@@ -339,10 +339,10 @@ async function main() {
       const vercel_json =
         `
 {
-  rewrites: [{ source: '/(.*)', destination: '/api/main' }],
-  functions: {
-    'api/main.js': { includeFiles: '**/*' },
-  },
+  "rewrites": [{ "source": "/(.*)", "destination": "/api/main" }],
+  "functions": {
+    "api/main.js": { "includeFiles": "**/*" }
+  }
 }
 `.trim() + '\n'
 
