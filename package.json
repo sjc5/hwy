@@ -1,6 +1,11 @@
 {
   "name": "hwy-monorepo",
   "private": true,
+  "author": {
+    "name": "Samuel J. Cook"
+  },
+  "license": "MIT",
+  "description": "Monorepo for Hwy framework",
   "scripts": {
     "build:core": "pnpm -r --filter hwy run build",
     "build:dev": "pnpm -r --filter @hwy-js/dev run build",
