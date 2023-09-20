@@ -91,8 +91,7 @@ root
             ), the path would be <InlineCode>example.com/foo/bar</InlineCode>.
             If you want the directory to be ignored, prefix it with two
             underscores (e.g., <InlineCode>__foo</InlineCode>). In that case,
-            the route will just be
-            <InlineCode>example.com/bar</InlineCode>.
+            the route will just be <InlineCode>example.com/bar</InlineCode>.
           </ListItem>
 
           <ListItem>
@@ -574,35 +573,24 @@ export async function loader({ c }: AppDataFunctionArgs) {
         code={`
 import {
   CssImports,
-  getMatchingPathData,
   rootOutlet,
   hwyDev,
   ClientEntryScript,
   getDefaultBodyProps,
+  renderRoot,
 } from 'hwy'
 
 app.all('*', async (c, next) => {
-  const activePathData = await getMatchingPathData({ c })
-
-  if (activePathData.fetchResponse) {
-    return activePathData.fetchResponse
-  }
-
-  if (!activePathData.matchingPaths?.length) {
-    return await next()
-  }
-
-  return c.html(
-    \`<!DOCTYPE html>\` +
-    (
+  return await renderRoot(c, next, async ({ activePathData }) => {
+    return (
       <html lang="en">
         <head>
           <meta charSet="UTF-8" />
           <meta name="viewport" content="width=device-width,initial-scale=1" />
 
           <HeadElements
-            activePathData={activePathData}
             c={c}
+            activePathData={activePathData}
             defaults={defaultHeadBlocks}
           />
 
@@ -614,8 +602,8 @@ app.all('*', async (c, next) => {
 
         <body {...getDefaultBodyProps()}>
           {await rootOutlet({
-            activePathData,
             c,
+            activePathData,
             fallbackErrorBoundary: () => {
               return <div>Something went wrong!</div>
             },
@@ -623,7 +611,7 @@ app.all('*', async (c, next) => {
         </body>
       </html>
     )
-  )
+  }
 })
       `}
       />
