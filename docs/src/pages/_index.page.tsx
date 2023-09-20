@@ -130,7 +130,7 @@ export default function () {
 // src/pages/user/$user_id.page.tsx
 
 import type { DataFunctionArgs, PageProps } from 'hwy'
-import { UserProfile } from './components.js'
+import { UserProfile, getUser } from './somewhere.js'
 
 export async function loader({ params }: DataFunctionArgs) {
   return await getUser(params.user_id)
@@ -150,7 +150,7 @@ export default function ({ loaderData }: PageProps<typeof loader>) {
           language="typescript"
           code={`
 import type { PageProps } from 'hwy'
-import { UserProfile } from './components.js'
+import { UserProfile, getUser } from './somewhere.js'
 
 export default async function ({ params }: PageProps) {
   const user = await getUser(params.user_id)

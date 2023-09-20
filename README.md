@@ -55,7 +55,7 @@ Below is an example of a simple Hwy page. You'll notice it looks a lot like Remi
 // src/pages/user/$user_id.page.tsx
 
 import type { DataFunctionArgs, PageProps } from 'hwy'
-import { UserProfile } from './components.js'
+import { UserProfile, getUser } from './somewhere.js'
 
 export async function loader({ params }: DataFunctionArgs) {
   return await getUser(params.user_id)
@@ -70,7 +70,7 @@ Or, if you prefer to fetch inside your components:
 
 ```tsx
 import type { PageProps } from 'hwy'
-import { UserProfile } from './components.js'
+import { UserProfile, getUser } from './somewhere.js'
 
 export default async function ({ params }: PageProps) {
   const user = await getUser(params.user_id)
