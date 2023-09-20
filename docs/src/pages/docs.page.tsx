@@ -352,11 +352,10 @@ export function loader({ c }: DataFunctionArgs) {
       <AnchorHeading content="Server components" />
       <Paragraph>
         In addition to using loaders to load data in parallel before rendering
-        any components, you can also load data inside your Hwy page components
-        by simply making them async and awaiting the{' '}
-        <InlineCode>outlet</InlineCode> calls. Be careful with this, as it can
-        introduce waterfalls, but if you are doing low-latency data fetching and
-        prefer that pattern, it's available to you in Hwy.
+        any components, you can also load data inside your Hwy page components.
+        Be careful with this, as it can introduce waterfalls, but if you are
+        doing low-latency data fetching and prefer that pattern, it's available
+        to you in Hwy.
       </Paragraph>
       <CodeBlock
         language="typescript"
@@ -386,6 +385,12 @@ export default async function ({ outlet }: PageProps) {
         And in the child component, you'll want to use{' '}
         <InlineCode>{`PageProps & { someData: SomeType }`}</InlineCode> as your
         prop type.
+      </Paragraph>
+      <Paragraph>
+        Because page components are async and let you fetch data inside them, be
+        sure to always await your <InlineCode>outlet</InlineCode> calls, like
+        this: <InlineCode>{`{await outlet()}`}</InlineCode>. If you don't,
+        things might not render correctly.
       </Paragraph>
       <Paragraph>
         Another way of doing this would be to use Hono's{' '}
