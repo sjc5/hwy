@@ -149,9 +149,6 @@ export default function ({ loaderData }: PageProps<typeof loader>) {
         <CodeBlock
           language="typescript"
           code={`
-import type { PageProps } from 'hwy'
-import { UserProfile, getUser } from './somewhere.js'
-
 export default async function ({ params }: PageProps) {
   const user = await getUser(params.user_id)
 

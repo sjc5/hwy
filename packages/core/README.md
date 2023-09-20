@@ -69,9 +69,6 @@ export default async function ({ loaderData }: PageProps<typeof loader>) {
 Or, if you prefer to fetch inside your components:
 
 ```tsx
-import type { PageProps } from 'hwy'
-import { UserProfile, getUser } from './somewhere.js'
-
 export default async function ({ params }: PageProps) {
   const user = await getUser(params.user_id)
 
