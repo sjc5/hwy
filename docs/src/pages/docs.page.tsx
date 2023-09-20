@@ -106,12 +106,11 @@ root
             If you want to include a layout for a route (e.g., a sidebar or
             sub-navigation), include a file with the same name as the directory
             (but with <InlineCode>.page.tsx</InlineCode> included) as a sibling
-            to the route directory. For example, if you have a route at
+            to the route directory. For example, if you have a route at{' '}
             <InlineCode>/foo/bar</InlineCode>, you can include a layout at
             <InlineCode>/src/pages/foo/bar.page.tsx</InlineCode> and a default
-            page at
-            <InlineCode>/src/pages/foo/bar/_index.page.tsx</InlineCode>. Note
-            that any layouts for your main home page (
+            page at <InlineCode>/src/pages/foo/bar/_index.page.tsx</InlineCode>.
+            Note that any layouts for your main home page (
             <InlineCode>src/_index.page.tsx</InlineCode>), such as a global
             navigation header, should be inserted into your root component that
             is rendered from your main server entry point (i.e.,{' '}
@@ -564,9 +563,7 @@ export async function loader({ c }: AppDataFunctionArgs) {
       <AnchorHeading content="Main.tsx" />
       <Paragraph>
         In your <InlineCode>main.tsx</InlineCode> file, you'll have a handler
-        that looks something like this. We intentionally kept this highly
-        explicit and non-magical so that you can easily customize it to your
-        needs and see exactly what is going on at a low level.
+        that looks something like this.
       </Paragraph>
       <CodeBlock
         language="typescript"
