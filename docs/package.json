@@ -1,0 +1,32 @@
+{
+  "name": "docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "hwy-prebuild": "tailwindcss -i src/styles/tw-input.css -o src/styles/tw-output.bundle.css",
+    "vercel-build": "tsc --noEmit && hwy-build && cp -r dist/* api",
+    "start": "node dist/main.js",
+    "dev": "hwy-dev-serve"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.1.1",
+    "highlight.js": "^11.8.0",
+    "hono": "^3.6.3",
+    "hwy": "^0.1.0"
+  },
+  "devDependencies": {
+    "@hwy-js/dev": "^0.1.0",
+    "@types/node": "^20.5.9",
+    "@types/nprogress": "^0.2.0",
+    "cross-env": "^7.0.3",
+    "esbuild": "^0.19.2",
+    "htmx.org": "^1.9.5",
+    "nodemon": "^3.0.1",
+    "nprogress": "^0.2.0",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.14.1"
+  }
+}

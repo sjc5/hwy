@@ -1,0 +1,48 @@
+{
+  "name": "create-hwy",
+  "version": "0.1.4",
+  "author": {
+    "name": "Samuel J. Cook"
+  },
+  "license": "MIT",
+  "description": "New project generator for Hwy framework",
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "__common",
+    "__public"
+  ],
+  "scripts": {
+    "build": "rimraf dist && tsup-node index.ts --format esm",
+    "create-hwy": "pnpm run build && node dist/index.js"
+  },
+  "bin": {
+    "create-hwy": "./scripts/create-hwy.js"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.3",
+    "@types/node": "^20.5.9",
+    "@types/nprogress": "^0.2.0",
+    "hono": "^3.6.3",
+    "hwy": "workspace:*",
+    "nprogress": "^0.2.0",
+    "rimraf": "^5.0.1",
+    "tailwindcss": "^3.3.3",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "detype": "^0.6.3",
+    "inquirer": "^9.2.11",
+    "picocolors": "^1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hwy-js/hwy",
+    "directory": "packages/create-hwy"
+  },
+  "homepage": "https://hwy.dev",
+  "bugs": "https://github.com/hwy-js/hwy/issues",
+  "sideEffects": false
+}

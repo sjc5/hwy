@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  min-height: 100dvh;
+}
+
+a:active,
+button:active {
+  opacity: 0.8;
+}

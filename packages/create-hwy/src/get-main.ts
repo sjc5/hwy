@@ -1,0 +1,169 @@
+import { Options } from './types.js'
+
+let imports = `
+import {
+  hwyInit,
+  CssImports,
+  getMatchingPathData,
+  rootOutlet,
+  hwyDev,
+  ClientEntryScript,
+  HeadElements,
+  getDefaultBodyProps,
+} from 'hwy'
+import { Hono } from 'hono'
+import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
+import { logger } from 'hono/logger'
+import { secureHeaders } from 'hono/secure-headers'
+`.trim()
+
+function get_main(options: Options) {
+  if (options.deployment_target === 'vercel') {
+    imports =
+      imports + '\n' + "import { handle } from '@hono/node-server/vercel'"
+  }
+
+  return (
+    imports.trim() +
+    '\n\n' +
+    `
+const IS_DEV = process.env.NODE_ENV === 'development'
+
+const app = new Hono()
+
+hwyInit({
+  app,
+  importMetaUrl: import.meta.url,
+  serveStatic,${
+    options.css_preference === 'tailwind'
+      ? "\n  watchExclusions: ['src/styles/tw-output.bundle.css'],"
+      : ''
+  }
+})
+
+app.use('*', logger())
+app.get('*', secureHeaders())
+
+app.all('*', async (c, next) => {${
+      options.with_nprogress
+        ? `\n  if (IS_DEV) await new Promise((r) => setTimeout(r, 150)) // simulate latency in dev\n`
+        : ''
+    }
+  const activePathData = await getMatchingPathData({ c })
+
+  if (activePathData.fetchResponse) return activePathData.fetchResponse
+
+  if (!activePathData.matchingPaths?.length) return await next()
+
+  return c.html(
+    \`<!DOCTYPE html>\` +
+    (
+      <html lang="en">
+        <head>
+          <meta charSet="UTF-8" />
+          <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+          <HeadElements
+            c={c}
+            activePathData={activePathData}
+            defaults={[
+              { title: '${options.project_name}' },
+              {
+                tag: 'meta',
+                props: {
+                  name: 'description',
+                  content: 'Take the Hwy!',
+                },
+              },
+              {
+                tag: 'meta',
+                props: {
+                  name: 'htmx-config',
+                  content: JSON.stringify({
+                    selfRequestsOnly: true,
+                    refreshOnHistoryMiss: true,
+                  }),
+                },
+              },
+            ]}
+          />
+
+          <CssImports />
+          <ClientEntryScript />
+
+          {hwyDev?.DevLiveRefreshScript()}
+        </head>
+
+        <body
+          {...getDefaultBodyProps(${
+            options.with_nprogress ? '{ nProgress: true }' : ''
+          })}
+        >
+          <nav>
+            <a href="/">
+              <h1>Hwy</h1>
+            </a>
+
+            <ul>
+              <li>
+                <a href="/about">About</a>
+              </li>
+              <li>
+                <a href="/login">Login</a>
+              </li>
+            </ul>
+          </nav>
+
+          <main>
+            {await rootOutlet({
+              activePathData,
+              c,
+              fallbackErrorBoundary: () => {
+                return <div>Something went wrong.</div>
+              },
+            })}
+          </main>
+        </body>
+      </html>
+    )
+  )
+})
+
+app.notFound((c) => c.text('404 Not Found', 404))
+
+
+app.onError((error, c) => {
+  console.error(error)
+  return c.text('500 Internal Server Error', 500)
+})
+
+${options.deployment_target === 'vercel' ? serve_fn_vercel : serve_fn_node}
+`.trim() +
+    '\n'
+  )
+}
+
+export { get_main }
+
+const serve_fn_node = `
+const PORT = 3000
+
+serve({ fetch: app.fetch, port: PORT }, (info) => {
+  console.log(
+    \`\\nListening on http://\${IS_DEV ? 'localhost' : info.address}:\${PORT}\\n\`
+  )
+})
+`.trim()
+
+const serve_fn_vercel = `
+if (IS_DEV) {
+  const PORT = 3000
+
+  serve({ fetch: app.fetch, port: PORT }, () => {
+    console.log(\`\\nListening on http://localhost:\${PORT}\\n\`)
+  })
+}
+
+export default handle(app)
+`.trim()
