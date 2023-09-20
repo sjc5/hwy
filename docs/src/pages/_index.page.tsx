@@ -42,8 +42,8 @@ export default function () {
 
         <Paragraph>
           Page components are async, so you can even{' '}
-          <Boldtalic>fetch data in JSX</Boldtalic> if you really want to! Just
-          make sure to be mindful about waterfalls.
+          <Boldtalic>fetch data in JSX</Boldtalic> if you want to (just be
+          careful with waterfalls).
         </Paragraph>
 
         <Paragraph>

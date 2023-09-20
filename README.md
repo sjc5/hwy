@@ -14,7 +14,7 @@ Hwy is a lot like NextJS or Remix, but it uses **_HTMX_** instead of React on th
 
 Hwy lets you write **_React-style JSX_** in **_nested, file-based routes_**, with **_Remix-style actions and parallel loaders_**.
 
-Page components are async, so you can even **_fetch data in JSX_** if you really want to! Just make sure to be mindful about waterfalls.
+Page components are async, so you can even **_fetch data in JSX_** if you want to (just be careful with waterfalls).
 
 The backend server is built on **_Hono_**, so you have access to a rich, growing ecosystem with lots of middleware and wonderful docs.
 
