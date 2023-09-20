@@ -92,4 +92,6 @@ Hwy is in beta! Act accordingly.
 
 ## License
 
-MIT
+MIT License
+
+Copyright (c) 2023 Samuel J. Cook

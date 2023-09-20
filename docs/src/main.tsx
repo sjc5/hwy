@@ -124,7 +124,9 @@ app.all('*', async (c, next) => {
             </div>
 
             <footer class="text-xs border-t border-t-solid border-1 border-[#7773] pt-3 pb-4 shrink mt-6">
-              <span class="opacity-60">Copyright 2023 Samuel J. Cook</span>
+              <span class="opacity-60">
+                MIT License. Copyright (c) 2023 Samuel J. Cook.
+              </span>
             </footer>
           </div>
         </body>
