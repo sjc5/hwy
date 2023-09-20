@@ -1,6 +1,6 @@
 import path from 'node:path'
 import fs from 'node:fs'
-import { HtmlEscapedString } from '../types.js'
+import type { HtmlEscapedString } from 'hono/utils/html'
 import { getHashedPublicUrl } from '../utils/hashed-public-url.js'
 import { ROOT_DIRNAME } from '../setup.js'
 

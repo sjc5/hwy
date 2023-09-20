@@ -57,9 +57,9 @@ async function runBuildTasks(log?: string) {
   // needs to happen once first pre-css bundling
   await generate_public_file_map()
 
-  const is_using_client_entry = fs.existsSync(
-    path.join(process.cwd(), 'src/client.entry.ts')
-  )
+  const is_using_client_entry =
+    fs.existsSync(path.join(process.cwd(), 'src/client.entry.ts')) ||
+    fs.existsSync(path.join(process.cwd(), 'src/client.entry.js'))
 
   // needs to come first for file map generation
   await Promise.all([

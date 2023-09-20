@@ -1,3 +1,5 @@
+import { Options } from './types.js'
+
 const ts_config = `
 {
   "compilerOptions": {
@@ -15,7 +17,19 @@ const ts_config = `
   "exclude": ["node_modules", "dist"]
 }`
 
-function get_ts_config() {
+const js_config = `
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx"
+  }
+}`
+
+function get_ts_config(options: Options) {
+  if (options.lang_preference === 'javascript') {
+    return js_config.trim()
+  }
+
   return ts_config.trim()
 }
 

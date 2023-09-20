@@ -2,13 +2,13 @@ import { IS_DEV, PORT } from './utils/constants.js'
 import {
   hwyInit,
   CssImports,
-  getMatchingPathData,
   rootOutlet,
   hwyDev,
   ClientEntryScript,
   HeadElements,
   HeadBlock,
   getDefaultBodyProps,
+  renderRoot,
 } from 'hwy'
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
@@ -76,28 +76,21 @@ const default_head_blocks: HeadBlock[] = [
 app.all('*', async (c, next) => {
   if (IS_DEV) await new Promise((r) => setTimeout(r, 300))
 
-  const activePathData = await getMatchingPathData({ c })
-
-  if (activePathData.fetchResponse) return activePathData.fetchResponse
-
-  if (!activePathData.matchingPaths?.length) return await next()
-
   // // 31 days vercel edge cache (invalidated each deploy)
   c.header('CDN-Cache-Control', 'public, max-age=2678400')
   // // 10 seconds client cache
   c.header('Cache-Control', 'public, max-age=10')
 
-  return c.html(
-    `<!DOCTYPE html>` +
-    (
+  return await renderRoot(c, next, async ({ activePathData }) => {
+    return (
       <html lang="en">
         <head>
           <meta charSet="UTF-8" />
           <meta name="viewport" content="width=device-width,initial-scale=1" />
 
           <HeadElements
-            activePathData={activePathData}
             c={c}
+            activePathData={activePathData}
             defaults={default_head_blocks}
           />
 
@@ -116,8 +109,8 @@ app.all('*', async (c, next) => {
               <Nav />
               <div class="flex flex-col gap-8 lg:gap-12 max-w-[640px] mb-8 mt-12 mx-auto">
                 {await rootOutlet({
-                  activePathData,
                   c,
+                  activePathData,
                   fallbackErrorBoundary: FallbackErrorBoundary,
                 })}
               </div>
@@ -132,7 +125,7 @@ app.all('*', async (c, next) => {
         </body>
       </html>
     )
-  )
+  })
 })
 
 app.notFound((c) => {

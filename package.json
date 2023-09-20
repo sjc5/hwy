@@ -9,7 +9,8 @@
   "scripts": {
     "build:core": "pnpm -r --filter hwy run build",
     "build:dev": "pnpm -r --filter @hwy-js/dev run build",
-    "build": "npm run build:dev && npm run build:core",
+    "build:create-hwy": "pnpm -r --filter @hwy-js/create-hwy run build",
+    "build": "npm run build:dev && npm run build:core && npm run build:create-hwy",
     "dev:core": "pnpm -r --filter hwy run dev",
     "dev:dev": "pnpm -r --filter @hwy-js/dev run dev",
     "dev": "npm-run-all --parallel dev:*",

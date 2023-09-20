@@ -16,13 +16,14 @@ type Action<EnvType extends Env = {}> = (
 
 type PageProps<
   LoaderType extends Loader<any> = Loader<any>,
-  ActionType extends Action<any> = Action<any>
+  ActionType extends Action<any> = Action<any>,
+  EnvType extends Env = {}
 > = {
   loaderData: Awaited<ReturnType<LoaderType>>
   actionData: Awaited<ReturnType<ActionType>> | undefined
   outlet: (props?: Record<string, any>) => Promise<JSX.Element>
   path: string | undefined
-  c: Context
+  c: Context<EnvType>
   params: Record<string, string>
   splatSegments: string[]
 }
@@ -33,8 +34,9 @@ type ErrorBoundaryProps<EnvType extends Env = {}> = {
 
 type PageComponent<
   LoaderType extends Loader<any> = Loader<any>,
-  ActionType extends Action<any> = Action<any>
-> = (props: PageProps<LoaderType, ActionType>) => Promise<JSX.Element>
+  ActionType extends Action<any> = Action<any>,
+  EnvType extends Env = {}
+> = (props: PageProps<LoaderType, ActionType, EnvType>) => Promise<JSX.Element>
 
 type HeadBlock =
   | { title: string }
@@ -42,17 +44,15 @@ type HeadBlock =
 
 type HeadProps<
   LoaderType extends Loader<any> = Loader<any>,
-  ActionType extends Action<any> = Action<any>
-> = Omit<PageProps<LoaderType, ActionType>, 'outlet'>
+  ActionType extends Action<any> = Action<any>,
+  EnvType extends Env = {}
+> = Omit<PageProps<LoaderType, ActionType, EnvType>, 'outlet'>
 
 type HeadFunction<
   LoaderType extends Loader<any> = Loader<any>,
-  ActionType extends Action<any> = Action<any>
-> = (props: HeadProps<LoaderType, ActionType>) => Array<HeadBlock>
-
-type HtmlEscapedString = string & {
-  isEscaped: true
-}
+  ActionType extends Action<any> = Action<any>,
+  EnvType extends Env = {}
+> = (props: HeadProps<LoaderType, ActionType, EnvType>) => Array<HeadBlock>
 
 export type {
   DataFunctionArgs,
@@ -60,7 +60,6 @@ export type {
   Action,
   PageProps,
   PageComponent,
-  HtmlEscapedString,
   HeadBlock,
   HeadProps,
   HeadFunction,

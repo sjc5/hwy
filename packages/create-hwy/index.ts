@@ -130,14 +130,12 @@ async function main() {
       recursive: true,
     })
 
-    // ts-config
-    if (options.lang_preference === 'typescript') {
-      fs.writeFileSync(
-        path.join(new_dir_path, 'tsconfig.json'),
-        get_ts_config(),
-        'utf8'
-      )
-    }
+    // ts-config (still needed for JavaScript to do JSX)
+    fs.writeFileSync(
+      path.join(new_dir_path, 'tsconfig.json'),
+      get_ts_config(options),
+      'utf8'
+    )
 
     // tailwind-config
     if (options.css_preference === 'tailwind') {
@@ -276,6 +274,13 @@ async function main() {
       )
     }
 
+    if (options.css_preference === 'vanilla') {
+      fs.cpSync(
+        path.join(root_dir_path, '__common/styles/_preflight.bundle.css'),
+        path.join(new_dir_path, 'src/styles/_preflight.bundle.css')
+      )
+    }
+
     // utils
     await handle_ts_or_js_file_copy({
       code: fs.readFileSync(
@@ -308,6 +313,45 @@ async function main() {
         })
       })
     )
+
+    if (options.lang_preference === 'javascript') {
+      fs.writeFileSync(
+        path.join(new_dir_path, 'src/__ignore.ts'),
+        `
+/* 
+ * Ignore this file.
+ * It is here so your tsconfig.json does not complain.
+ * The tsconfig.json is needed for Hono JSX to work.
+ */
+        `.trim() + '\n',
+        'utf8'
+      )
+    }
+
+    if (options.deployment_target === 'vercel') {
+      fs.mkdirSync(path.join(new_dir_path, 'api'), { recursive: true })
+      fs.writeFileSync(
+        path.join(new_dir_path, 'api/main.js'),
+        '/* Commit this file to make Vercel happy. */\n',
+        'utf8'
+      )
+
+      const vercel_json =
+        `
+{
+  rewrites: [{ source: '/(.*)', destination: '/api/main' }],
+  functions: {
+    'api/main.js': { includeFiles: '**/*' },
+  },
+}
+`.trim() + '\n'
+
+      fs.writeFileSync(
+        path.join(new_dir_path, 'vercel.json'),
+        vercel_json,
+        'utf8'
+      )
+    }
 
     console.log(
       pc.cyan(

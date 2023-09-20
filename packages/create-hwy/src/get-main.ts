@@ -4,12 +4,12 @@ let imports = `
 import {
   hwyInit,
   CssImports,
-  getMatchingPathData,
   rootOutlet,
   hwyDev,
   ClientEntryScript,
   HeadElements,
   getDefaultBodyProps,
+  renderRoot,
 } from 'hwy'
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
@@ -50,15 +50,8 @@ app.all('*', async (c, next) => {${
         ? `\n  if (IS_DEV) await new Promise((r) => setTimeout(r, 150)) // simulate latency in dev\n`
         : ''
     }
-  const activePathData = await getMatchingPathData({ c })
-
-  if (activePathData.fetchResponse) return activePathData.fetchResponse
-
-  if (!activePathData.matchingPaths?.length) return await next()
-
-  return c.html(
-    \`<!DOCTYPE html>\` +
-    (
+  return await renderRoot(c, next, async ({ activePathData }) => {
+    return (
       <html lang="en">
         <head>
           <meta charSet="UTF-8" />
@@ -127,7 +120,7 @@ app.all('*', async (c, next) => {${
         </body>
       </html>
     )
-  )
+  })
 })
 
 app.notFound((c) => c.text('404 Not Found', 404))
@@ -147,7 +140,7 @@ ${options.deployment_target === 'vercel' ? serve_fn_vercel : serve_fn_node}
 export { get_main }
 
 const serve_fn_node = `
-const PORT = 3000
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(
@@ -158,7 +151,7 @@ serve({ fetch: app.fetch, port: PORT }, (info) => {
 
 const serve_fn_vercel = `
 if (IS_DEV) {
-  const PORT = 3000
+  const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
 
   serve({ fetch: app.fetch, port: PORT }, () => {
     console.log(\`\\nListening on http://localhost:\${PORT}\\n\`)

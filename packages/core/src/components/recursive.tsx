@@ -1,6 +1,6 @@
 import { Context } from 'hono'
 import { getMatchingPathData } from '../router/get-matching-path-data.js'
-import { HtmlEscapedString } from '../types.js'
+import type { HtmlEscapedString } from 'hono/utils/html'
 
 async function rootOutlet(props: {
   activePathData: Awaited<ReturnType<typeof getMatchingPathData>>

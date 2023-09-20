@@ -84,7 +84,7 @@ app.notFound((c) => {
 })
 
 const IS_DEV = process.env.NODE_ENV === 'development'
-const PORT = 9999
+const PORT = process.env.PORT ? Number(process.env.PORT) : 9999
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(
