@@ -10,21 +10,21 @@ npx create-hwy@latest
 
 ## What is Hwy?
 
-Hwy is a lot like NextJS or Remix, but it uses **HTMX** instead of React on the frontend.
+Hwy is a lot like NextJS or Remix, but it uses **_HTMX_** instead of React on the frontend.
 
-Hwy lets you write **React-style JSX** in **nested, file-based routes**, with **Remix-style actions and parallel loaders**.
+Hwy lets you write **_React-style JSX_** in **_nested, file-based routes_**, with **_Remix-style actions and parallel loaders_**.
 
-Page components are async, so you can even **fetch data in JSX** if you really want to! Just make sure to be mindful about waterfalls.
+Page components are async, so you can even **_fetch data in JSX_** if you really want to! Just make sure to be mindful about waterfalls.
 
-The backend server is built on **Hono**, so you have access to a rich, growing ecosystem with lots of middleware and wonderful docs.
+The backend server is built on **_Hono_**, so you have access to a rich, growing ecosystem with lots of middleware and wonderful docs.
 
-Hwy is **100% server-rendered**, but with the HTMX defaults Hwy sets up for you out of the box, your app still **feels like an SPA**.
+Hwy is **_100% server-rendered_**, but with the HTMX defaults Hwy sets up for you out of the box, your app still **_feels like an SPA_**.
 
-Links and forms are automatically **progressively enhanced** thanks to HTMX's `hx-boost` feature. Just use normal anchor tags and traditional form attributes.
+Links and forms are automatically **_progressively enhanced_** thanks to HTMX's `hx-boost` feature. Just use normal anchor tags and traditional form attributes.
 
-Because Hwy replaces the **full page** on transitions by default, everything stays **simple**. You don't have to return different components from different endpoints (unless you want to).
+Because Hwy replaces the **_full page_** on transitions by default, everything stays **_simple_**. You don't have to return different components from different endpoints (unless you want to).
 
-And best of all, **anything you can do with Hono or HTMX, you can do with Hwy**.
+And best of all, **_anything you can do with Hono or HTMX, you can do with Hwy_**.
 
 ## Features
 
