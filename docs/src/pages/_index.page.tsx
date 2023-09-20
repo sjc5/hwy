@@ -37,7 +37,13 @@ export default function () {
         <Paragraph>
           Hwy lets you write <Boldtalic>React-style JSX</Boldtalic> in{' '}
           <Boldtalic>nested, file-based routes</Boldtalic>, with{' '}
-          <Boldtalic>Remix-style loaders and actions</Boldtalic>.
+          <Boldtalic>Remix-style actions and parallel loaders</Boldtalic>.
+        </Paragraph>
+
+        <Paragraph>
+          Page components are async, so you can even{' '}
+          <Boldtalic>fetch data in JSX</Boldtalic> if you really want to! Just
+          make sure to be mindful about waterfalls.
         </Paragraph>
 
         <Paragraph>
@@ -83,7 +89,8 @@ export default function () {
         <UnorderedList class="!space-y-0">
           <ListItem>Server-rendered JSX / TSX</ListItem>
           <ListItem>Nested, file-based routing</ListItem>
-          <ListItem>Remix-style loaders and actions</ListItem>
+          <ListItem>Remix-style actions and parallel loaders</ListItem>
+          <ListItem>Async page components</ListItem>
           <ListItem>Rich Hono middleware ecosystem</ListItem>
           <ListItem>100% type-safe</ListItem>
           <ListItem>Server built on Hono</ListItem>
@@ -125,12 +132,30 @@ export default function () {
 import type { DataFunctionArgs, PageProps } from 'hwy'
 import { UserProfile } from './components.js'
 
-export function loader({ params }: DataFunctionArgs) {
+export async function loader({ params }: DataFunctionArgs) {
   return await getUser(params.user_id)
 }
 
-export default function (props: PageProps<typeof loader>) {
-  return <UserProfile user={props.loaderData} />
+export default function ({ loaderData }: PageProps<typeof loader>) {
+  return <UserProfile user={loaderData} />
+}
+`}
+        />
+
+        <Paragraph class="my-6">
+          Or, if you prefer to fetch inside your components:
+        </Paragraph>
+
+        <CodeBlock
+          language="typescript"
+          code={`
+import type { PageProps } from 'hwy'
+import { UserProfile } from './components.js'
+
+export default async function ({ params }: PageProps) {
+  const user = await getUser(params.user_id)
+
+  return <UserProfile user={user} />
 }
 `}
         />
