@@ -76,6 +76,7 @@ app.all('*', async (c, next) => {${
                   content: JSON.stringify({
                     selfRequestsOnly: true,
                     refreshOnHistoryMiss: true,
+                    scrollBehavior: 'auto',
                   }),
                 },
               },

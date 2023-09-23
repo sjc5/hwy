@@ -20,8 +20,9 @@
     "npm-run-all": "^4.1.5"
   },
   "prettier": {
-    "semi": false,
-    "singleQuote": true,
-    "tabWidth": 2
+    "semi": true,
+    "singleQuote": false,
+    "tabWidth": 2,
+    "tabs": true
   }
 }

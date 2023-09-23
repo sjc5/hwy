@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 import type { Context } from 'hono'
 import { matcher } from '../router/matcher.js'
 import { get_path_to_use } from '../utils/get-path-to-use.js'
@@ -17,8 +18,10 @@ function fully_decorate_paths({
 }) {
   return (
     matching_paths?.map((_path) => {
-      const get_imported = () =>
-        import(path.join(ROOT_DIRNAME, _path.importPath))
+      const get_imported = () => {
+        const inner = path.join(ROOT_DIRNAME, _path.importPath)
+        return import(pathToFileURL(inner).href)
+      }
 
       // public
       return {
@@ -114,8 +117,8 @@ async function getMatchingPathData({
   c: Context
   redirectTo?: string
 }) {
-  const paths: Paths = (await import(path.join(ROOT_DIRNAME, 'paths.js')))
-    .default
+  const inner = path.join(ROOT_DIRNAME, 'paths.js')
+  const paths: Paths = (await import(pathToFileURL(inner).href)).default
 
   const semi_decorated_paths = semi_decorate_paths({
     c,

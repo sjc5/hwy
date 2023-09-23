@@ -1,7 +1,7 @@
 import path from 'node:path'
 import fs from 'node:fs'
 import type { HtmlEscapedString } from 'hono/utils/html'
-import { getHashedPublicUrl } from '../utils/hashed-public-url.js'
+import { getPublicUrl } from '../utils/hashed-public-url.js'
 import { ROOT_DIRNAME } from '../setup.js'
 
 function CriticalCss(): HtmlEscapedString {
@@ -30,9 +30,7 @@ function NonCriticalCss(): HtmlEscapedString {
 
   if (!standard_css_exists) return <></>
 
-  return (
-    <link rel="stylesheet" href={getHashedPublicUrl({ url: CSS_IMPORT_URL })} />
-  )
+  return <link rel="stylesheet" href={getPublicUrl(CSS_IMPORT_URL)} />
 }
 
 function CssImports(): HtmlEscapedString {

@@ -625,7 +625,6 @@ app.all('*', async (c, next) => {
       <CodeBlock
         language="typescript"
         code={`
-// activePathData comes from 
 <HeadElements
   activePathData={activePathData}
   c={c}
@@ -637,16 +636,6 @@ app.all('*', async (c, next) => {
         name: 'description',
         content:
           'Hwy is a lightweight, flexible, and powerful alternative to NextJS, based on HTMX instead of React.',
-      },
-    },
-    {
-      tag: 'meta',
-      props: {
-        name: 'htmx-config',
-        content: JSON.stringify({
-          selfRequestsOnly: true,
-          refreshOnHistoryMiss: true,
-        }),
       },
     },
   ]}
@@ -820,7 +809,7 @@ export const head: HeadFunction = (props) => {
           language="typescript"
           code={`
 <script
-  src={getHashedPublicUrl({ url: 'your-script.js' })}
+  src={getPublicUrl('your-script.js')}
   defer
 />
         `}

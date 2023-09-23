@@ -68,6 +68,7 @@ const default_head_blocks: HeadBlock[] = [
       content: JSON.stringify({
         selfRequestsOnly: true,
         refreshOnHistoryMiss: true,
+        scrollBehavior: 'auto',
       }),
     },
   },

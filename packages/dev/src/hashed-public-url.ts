@@ -26,7 +26,7 @@ function get_hashed_public_url_low_level({
       fs.readFileSync(path.join(ROOT_DIRNAME, 'public-map.json'), 'utf-8')
     ) as any
   }
-  hashed_url = public_map?.['public/' + url]
+  hashed_url = public_map?.[path.join('public', url)]
 
   if (!hashed_url) {
     throw new Error(`No hashed URL found for ${url}`)
