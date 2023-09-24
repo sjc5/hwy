@@ -4,115 +4,115 @@ Original license: MIT
 Copied from source on: August 21, 2023
 */
 
-import { hwy_log } from "./hwy-log.js";
+import { hwy_log } from './hwy-log.js'
 
 type ServerSentEvent = {
-  id?: string;
-  event?: string;
-  data?: string;
-  retry?: number;
-};
+  id?: string
+  event?: string
+  data?: string
+  retry?: number
+}
 
 type ServerSentEventSink = {
-  send_message(message: string): void;
-  send(event: ServerSentEvent): void;
-  sendRaw(data: string): void;
-  ping(): void;
-  close(): void;
-};
+  send_message(message: string): void
+  send(event: ServerSentEvent): void
+  sendRaw(data: string): void
+  ping(): void
+  close(): void
+}
 
 type ServerSentEventsInit = {
-  responseInit?: ResponseInit;
-  onOpen?: (sink: ServerSentEventSink) => void;
-  onClose?: (sink: ServerSentEventSink) => void;
-};
+  responseInit?: ResponseInit
+  onOpen?: (sink: ServerSentEventSink) => void
+  onClose?: (sink: ServerSentEventSink) => void
+}
 
 function server_sent_events(options: ServerSentEventsInit): Response {
-  const { onOpen, onClose, responseInit = {} } = options;
+  const { onOpen, onClose, responseInit = {} } = options
 
   const defaultHeaders = {
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
-    Connection: "keep-alive",
-  };
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+  }
 
-  const headers = new Headers(responseInit.headers);
+  const headers = new Headers(responseInit.headers)
 
   for (const [key, value] of Object.entries(defaultHeaders)) {
     if (!headers.has(key)) {
-      headers.set(key, value);
+      headers.set(key, value)
     }
   }
 
-  let sink: ServerSentEventSink;
+  let sink: ServerSentEventSink
 
-  let onCloseCalled = false;
+  let onCloseCalled = false
 
   function callOnClose() {
     if (!onCloseCalled) {
-      onCloseCalled = true;
-      onClose?.(sink);
+      onCloseCalled = true
+      onClose?.(sink)
     }
   }
 
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      const encoder = new TextEncoder();
+      const encoder = new TextEncoder()
 
       sink = {
         sendRaw(data: string) {
-          controller.enqueue(encoder.encode(data));
+          controller.enqueue(encoder.encode(data))
         },
 
         send(event) {
-          if (event.id?.includes("\n")) {
-            throw new Error("Event ID cannot contain newlines");
-          } else if (event.event?.includes("\n")) {
-            throw new Error("Event name cannot contain newlines");
+          if (event.id?.includes('\n')) {
+            throw new Error('Event ID cannot contain newlines')
+          } else if (event.event?.includes('\n')) {
+            throw new Error('Event name cannot contain newlines')
           }
 
           const retry =
-            event.retry === undefined ? "" : `retry: ${event.retry}\n`;
+            event.retry === undefined ? '' : `retry: ${event.retry}\n`
 
-          const ev = event.event ? `event: ${event.event}\n` : "";
+          const ev = event.event ? `event: ${event.event}\n` : ''
 
-          let data = "";
+          let data = ''
           if (event.data) {
-            const lines = event.data.split("\n");
-            data = lines.map((line) => `data: ${line}`).join("\n") + "\n";
+            const lines = event.data.split('\n')
+            data = lines.map((line) => `data: ${line}`).join('\n') + '\n'
           }
 
-          const id = event.id ? `id: ${event.id}\n` : "";
+          const id = event.id ? `id: ${event.id}\n` : ''
 
-          this.sendRaw(retry + ev + data + id + "\n");
+          this.sendRaw(retry + ev + data + id + '\n')
         },
 
         send_message(message) {
-          this.send({ data: message });
+          this.send({ data: message })
         },
 
         ping() {
-          const data = encoder.encode(": ping");
-          controller.enqueue(data);
+          const data = encoder.encode(': ping')
+          controller.enqueue(data)
         },
 
         close() {
-          controller.close();
-          callOnClose();
+          controller.close()
+          callOnClose()
         },
-      };
+      }
 
-      onOpen?.(sink);
+      onOpen?.(sink)
     },
 
     cancel() {
-      hwy_log(`Dev live refresh stream canceled.`);
-      callOnClose();
+      hwy_log(`Dev live refresh stream canceled.`)
+      callOnClose()
     },
-  });
+  })
 
-  return new Response(stream, { ...responseInit, headers });
+  return new Response(stream, { ...responseInit, headers })
 }
 
-export { server_sent_events };
-export type { ServerSentEventSink };
+export { server_sent_events }
+export type { ServerSentEventSink }

@@ -52,7 +52,9 @@ async function runBuildTasks(log?: string) {
   const standard_tasks_p0 = performance.now()
 
   await rimraf(path.resolve('dist'))
-  await fs.promises.mkdir(path.join(process.cwd(), 'dist'), { recursive: true })
+  await fs.promises.mkdir(path.join(process.cwd(), 'dist'), {
+    recursive: true,
+  })
 
   // needs to happen once first pre-css bundling
   await generate_public_file_map()

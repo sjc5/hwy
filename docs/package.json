@@ -12,10 +12,10 @@
     "@hono/node-server": "^1.2.0",
     "highlight.js": "^11.8.0",
     "hono": "^3.7.1",
-    "hwy": "0.2.0-beta.3"
+    "hwy": "0.2.0-beta.6"
   },
   "devDependencies": {
-    "@hwy-js/dev": "0.2.0-beta.3",
+    "@hwy-js/dev": "0.2.0-beta.6",
     "@types/node": "^20.6.3",
     "@types/nprogress": "^0.2.0",
     "cross-env": "^7.0.3",
