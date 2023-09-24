@@ -5,7 +5,7 @@
   "scripts": {
     "hwy-prebuild": "tailwindcss -i src/styles/tw-input.css -o src/styles/tw-output.bundle.css",
     "vercel-build": "tsc --noEmit && hwy-build && cp -r dist/* api",
-    "start": "bun dist/main.js",
+    "start": "node dist/main.js",
     "dev": "hwy-dev-serve"
   },
   "dependencies": {
