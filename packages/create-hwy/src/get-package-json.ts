@@ -32,10 +32,10 @@ function get_package_json(options: Options) {
         dependencies: {
           '@hono/node-server': '^1.1.1',
           hono: '^3.5.8',
-          hwy: '0.2.0-beta.6',
+          hwy: '0.2.0-beta.7',
         },
         devDependencies: {
-          '@hwy-js/dev': '0.2.0-beta.6',
+          '@hwy-js/dev': '0.2.0-beta.7',
           ...(options.lang_preference === 'typescript'
             ? { '@types/node': '^20.5.9', '@types/nprogress': '^0.2.0' }
             : {}),
