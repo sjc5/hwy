@@ -11,31 +11,25 @@ import {
   HeadElements,
   getDefaultBodyProps,
   renderRoot,
-} from
-`.trim()
-
-const node_imports = `
+} from 'hwy'
 import { Hono } from 'hono'
-import { serve } from '@hono/node-server'
-import { serveStatic } from '@hono/node-server/serve-static'
 import { logger } from 'hono/logger'
 import { secureHeaders } from 'hono/secure-headers'
 `.trim()
 
+const node_imports = `
+import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
+`.trim()
+
 const deno_imports = `
-import { Hono } from 'npm:hono'
-import { serveStatic } from 'npm:hono/deno'
-import { logger } from 'npm:hono/logger'
-import { secureHeaders } from 'npm:hono/secure-headers'
+import { serveStatic } from 'hono/deno'
 `.trim()
 
 function get_main(options: Options) {
   const is_targeting_deno = target_is_deno(options)
 
-  imports +=
-    (is_targeting_deno ? ` 'npm:hwy'` : ` 'hwy'`) +
-    '\n' +
-    (is_targeting_deno ? deno_imports : node_imports)
+  imports += '\n' + (is_targeting_deno ? deno_imports : node_imports)
 
   if (options.deployment_target === 'vercel') {
     imports =

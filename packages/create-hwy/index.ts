@@ -12,6 +12,7 @@ import { get_main } from './src/get-main.js'
 import { transform } from 'detype'
 import { get_gitignore } from './src/get-gitignore.js'
 import { get_client_entry } from './src/get-client-entry.js'
+import { target_is_deno } from './src/utils.js'
 
 function dirname_from_import_meta(import_meta_url: string) {
   return path.dirname(fileURLToPath(import_meta_url))
@@ -360,6 +361,34 @@ async function main() {
       fs.writeFileSync(
         path.join(new_dir_path, 'vercel.json'),
         vercel_json,
+        'utf8'
+      )
+    }
+
+    if (target_is_deno(options)) {
+      fs.writeFileSync(
+        path.join(new_dir_path, 'deno.json'),
+        JSON.stringify(
+          {
+            imports: {
+              hono: 'npm:hono',
+              hwy: 'npm:hwy@0.2.0-beta.10',
+              'hono/deno': 'npm:hono/deno',
+              'hono/logger': 'npm:hono/logger',
+              'hono/secure-headers': 'npm:hono/secure-headers',
+              'hono/jsx': 'npm:hono/jsx',
+              ...(options.css_preference === 'tailwind'
+                ? { tailwindcss: 'npm:tailwindcss' }
+                : {}),
+            },
+            compilerOptions: {
+              jsx: 'react-jsx',
+              jsxImportSource: 'npm:hono/jsx',
+            },
+          },
+          null,
+          2
+        ) + '\n',
         'utf8'
       )
     }

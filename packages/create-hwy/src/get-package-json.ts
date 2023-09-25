@@ -1,7 +1,20 @@
 import { Options } from './types.js'
 import { target_is_deno } from './utils.js'
 
-const LATEST_HWY_VERSION = '0.2.0-beta.9'
+const VERSIONS = {
+  HWY: '0.2.0-beta.10',
+  HONO_NODE_SERVER: '^1.2.0',
+  HONO: '^3.5.8',
+  HTMX: '^1.9.6',
+  TYPESCRIPT: '^5.2.2',
+  TAILWIND: '^3.3.3',
+  NPROGRESS: '^0.2.0',
+  NPROGRESS_TYPES: '^0.2.0',
+  NODE_TYPES: '^20.6.3',
+  CROSS_ENV: '^7.0.3',
+  ESBUILD: '^0.19.3',
+  NODEMON: '^3.0.1',
+} as const
 
 function get_package_json(options: Options) {
   /* TAILWIND PREBUILD */
@@ -13,6 +26,8 @@ function get_package_json(options: Options) {
     }
   }
 
+  const is_targeting_deno = target_is_deno(options)
+
   return (
     JSON.stringify(
       {
@@ -22,7 +37,7 @@ function get_package_json(options: Options) {
         scripts: {
           ...tailwind_prebuild,
           [options.deployment_target === 'vercel' ? 'vercel-build' : 'build']:
-            (options.lang_preference === 'typescript'
+            (options.lang_preference === 'typescript' && !is_targeting_deno
               ? 'tsc --noEmit && '
               : '') +
             'hwy-build' +
@@ -37,25 +52,30 @@ function get_package_json(options: Options) {
           dev: 'hwy-dev-serve',
         },
         dependencies: {
-          '@hono/node-server': '^1.1.1',
-          hono: '^3.5.8',
-          hwy: LATEST_HWY_VERSION,
+          ...(!is_targeting_deno
+            ? { '@hono/node-server': VERSIONS.HONO_NODE_SERVER }
+            : {}),
+          hono: VERSIONS.HONO,
+          hwy: VERSIONS.HWY,
         },
         devDependencies: {
-          '@hwy-js/dev': LATEST_HWY_VERSION,
+          '@hwy-js/dev': VERSIONS.HWY,
           ...(options.lang_preference === 'typescript'
-            ? { '@types/node': '^20.5.9', '@types/nprogress': '^0.2.0' }
+            ? {
+                '@types/node': VERSIONS.NODE_TYPES,
+                '@types/nprogress': VERSIONS.NPROGRESS_TYPES,
+              }
             : {}),
-          'cross-env': '^7.0.3',
-          esbuild: '^0.19.2',
-          'htmx.org': '^1.9.5',
-          nodemon: '^3.0.1',
-          ...(options.with_nprogress ? { nprogress: '^0.2.0' } : {}),
+          'cross-env': VERSIONS.CROSS_ENV,
+          esbuild: VERSIONS.ESBUILD,
+          'htmx.org': VERSIONS.HTMX,
+          nodemon: VERSIONS.NODEMON,
+          ...(options.with_nprogress ? { nprogress: VERSIONS.NPROGRESS } : {}),
           ...(options.css_preference === 'tailwind'
-            ? { tailwindcss: '^3.3.3' }
+            ? { tailwindcss: VERSIONS.TAILWIND }
             : {}),
           ...(options.lang_preference === 'typescript'
-            ? { typescript: '^5.2.2' }
+            ? { typescript: VERSIONS.TYPESCRIPT }
             : {}),
         },
         engines: {

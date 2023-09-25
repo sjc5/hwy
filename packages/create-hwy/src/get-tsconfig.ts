@@ -1,4 +1,5 @@
 import { Options } from './types.js'
+import { target_is_deno } from './utils.js'
 
 const ts_config = `
 {
@@ -26,7 +27,7 @@ const js_config = `
 }`
 
 function get_ts_config(options: Options) {
-  if (options.lang_preference === 'javascript') {
+  if (options.lang_preference === 'javascript' || target_is_deno(options)) {
     return js_config.trim()
   }
 
