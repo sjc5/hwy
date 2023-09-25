@@ -5,17 +5,17 @@
   "scripts": {
     "hwy-prebuild": "tailwindcss -i src/styles/tw-input.css -o src/styles/tw-output.bundle.css",
     "vercel-build": "tsc --noEmit && hwy-build && cp -r dist/* api",
-    "start": "node dist/main.js",
+    "start": "deno run -A dist/main.js",
     "dev": "hwy-dev-serve"
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",
     "highlight.js": "^11.8.0",
     "hono": "^3.7.1",
-    "hwy": "0.2.0-beta.7"
+    "hwy": "0.2.0-beta.9"
   },
   "devDependencies": {
-    "@hwy-js/dev": "0.2.0-beta.7",
+    "@hwy-js/dev": "0.2.0-beta.9",
     "@types/node": "^20.6.3",
     "@types/nprogress": "^0.2.0",
     "cross-env": "^7.0.3",

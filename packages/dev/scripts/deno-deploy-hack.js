@@ -1,4 +1,7 @@
+#!/usr/bin/env node
+
 import fs from 'node:fs'
+import path from 'node:path'
 
 function get_line(path_from_dist) {
   return `await import("${path_from_dist}"); `
@@ -12,9 +15,9 @@ function get_code(paths) {
 
 console.log('Running Deno Deploy hack...')
 
-const page_paths = (await import('./dist/paths.js')).default.map(
-  (x) => './' + x.importPath
-)
+const page_paths = (
+  await import(path.join(process.cwd(), 'dist', 'paths.js'))
+).default.map((x) => './' + x.importPath)
 
 const public_paths = Object.keys(
   JSON.parse(fs.readFileSync('./dist/public-map.json', 'utf8'))

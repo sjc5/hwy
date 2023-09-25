@@ -18,7 +18,12 @@ function dirname_from_import_meta(import_meta_url: string) {
 }
 
 const lang_choices = ['TypeScript', 'JavaScript'] as const
-const deployment_choices = ['Node', 'Vercel (Serverless)'] as const
+const deployment_choices = [
+  'Node',
+  'Vercel (Serverless)',
+  'Deno Deploy',
+  'Deno',
+] as const
 const css_choices = ['Tailwind', 'Vanilla'] as const
 
 type Prompts = Parameters<(typeof inquirer)['prompt']>[0]
@@ -101,7 +106,13 @@ async function main() {
     lang_preference:
       choices.lang_preference === 'TypeScript' ? 'typescript' : 'javascript',
     deployment_target:
-      choices.deployment_target === 'Vercel (Serverless)' ? 'vercel' : 'node',
+      choices.deployment_target === 'Vercel (Serverless)'
+        ? 'vercel'
+        : choices.deployment_target === 'Deno Deploy'
+        ? 'deno_deploy'
+        : choices.deployment_target === 'Deno'
+        ? 'deno'
+        : 'node',
   }
 
   console.log('\nWorking...')

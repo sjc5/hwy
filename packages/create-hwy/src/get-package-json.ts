@@ -1,4 +1,7 @@
 import { Options } from './types.js'
+import { target_is_deno } from './utils.js'
+
+const LATEST_HWY_VERSION = '0.2.0-beta.9'
 
 function get_package_json(options: Options) {
   /* TAILWIND PREBUILD */
@@ -25,17 +28,21 @@ function get_package_json(options: Options) {
             'hwy-build' +
             (options.deployment_target === 'vercel'
               ? ' && cp -r dist/* api'
+              : options.deployment_target === 'deno_deploy'
+              ? ' && hwy-deno-deploy-hack'
               : ''),
-          start: 'node dist/main.js',
+          start: target_is_deno(options)
+            ? 'deno run -A dist/main.js'
+            : 'node dist/main.js',
           dev: 'hwy-dev-serve',
         },
         dependencies: {
           '@hono/node-server': '^1.1.1',
           hono: '^3.5.8',
-          hwy: '0.2.0-beta.7',
+          hwy: LATEST_HWY_VERSION,
         },
         devDependencies: {
-          '@hwy-js/dev': '0.2.0-beta.7',
+          '@hwy-js/dev': LATEST_HWY_VERSION,
           ...(options.lang_preference === 'typescript'
             ? { '@types/node': '^20.5.9', '@types/nprogress': '^0.2.0' }
             : {}),
