@@ -53,8 +53,10 @@ const deno_add_on = `
 Here is our recommended way to use Deno with Hwy:
 
 1. Use \`npm install\` (adjusted for your package manager) to install dependencies.
-2. Run \`deno task dev\` or \`npm run dev\` (adjusted for your package manager) to start the dev server.
-3. Use the \`npm:\` prefix when importing modules, e.g., \`import { Hono } from 'npm:hono'\`.
+2. Run \`deno task dev\` to start the dev server.
+3. Use the \`npm:\` prefix when importing modules (whether in a source file or in an import map).
+This template does import mapping via the "imports" property in \`deno.json\`. This is what
+makes the usage of bare specifiers in the source files work.
 `.trim()
 
 const deno_tailwind_add_on = `
