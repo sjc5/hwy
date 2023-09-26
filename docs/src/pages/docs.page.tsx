@@ -711,22 +711,21 @@ export const head: HeadFunction = (props) => {
       </Paragraph>
       <AnchorHeading content="Deployment" />
       <Paragraph>
-        Hwy is a standard Node app, so it can be deployed anywhere Node apps can
-        be deployed. Railway.app and Render.com are both great for this.
+        Hwy can be deployed to any Node-compatible runtime with filesystem read
+        access. This includes more traditional Node app hosting like Render.com
+        or Railway.app, or Vercel (Lambda), or Deno Deploy. This should also
+        include Bun once that ecosystem becomes more stable and has more hosting
+        options. Just choose your preferred deployment target when you run{" "}
+        <InlineCode>npx create-hwy@latest</InlineCode>.
       </Paragraph>
       <Paragraph>
-        You can also deploy to Vercel with just a few tweaks. If you want to
-        deploy to Vercel, the easiest way is to choose "Vercel" as a deployment
-        target when you run <InlineCode>npx create-hwy@latest</InlineCode>.
-      </Paragraph>
-      <Paragraph>
-        Theoretically, this should also deploy fine to Deno Deploy, but you'll
-        need to configure the build step. We definitely have a goal to support
-        Deno and Bun long-term, but for now the focus is on Node for maximum
-        simplicity. Cloudflare is a bit trickier, however, because Hwy reads
-        from the filesystem at runtime. We may add support for this in the
-        future through a specialized build step, but for now, it's not
-        supported.
+        Cloudflare is a bit trickier, however, because Hwy reads from the
+        filesystem at runtime. We may add support for this in the future through
+        a specialized build step, but for now, it's not supported. This also
+        means that Vercel edge functions are not supported, as they rely on
+        Cloudflare Workers, which do not have runtime read access to the
+        filesystem. Normal Vercel serverless, which runs on AWS Lambda under the
+        hood, will work just fine.
       </Paragraph>
       <AnchorHeading content="Progressive enhancement" />
       <Paragraph>
