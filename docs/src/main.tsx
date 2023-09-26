@@ -1,4 +1,4 @@
-import { IS_DEV, PORT } from './utils/constants.js'
+import { IS_DEV, PORT } from "./utils/constants.js";
 import {
   hwyInit,
   CssImports,
@@ -9,19 +9,19 @@ import {
   HeadBlock,
   getDefaultBodyProps,
   renderRoot,
-} from 'hwy'
-import { Hono } from 'hono'
-import { serve } from '@hono/node-server'
-import { handle } from '@hono/node-server/vercel'
-import { serveStatic } from '@hono/node-server/serve-static'
-import { Nav } from './components/nav.js'
-import { logger } from 'hono/logger'
-import { secureHeaders } from 'hono/secure-headers'
-import { FallbackErrorBoundary } from './components/fallback-error-boundary.js'
+} from "hwy";
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { handle } from "@hono/node-server/vercel";
+import { serveStatic } from "@hono/node-server/serve-static";
+import { Nav } from "./components/nav.js";
+import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
+import { FallbackErrorBoundary } from "./components/fallback-error-boundary.js";
 
-const app = new Hono()
-app.use('*', logger())
-app.get('*', secureHeaders())
+const app = new Hono();
+app.use("*", logger());
+app.get("*", secureHeaders());
 
 hwyInit({
   app,
@@ -33,53 +33,54 @@ hwyInit({
    * monorepo (or aren't deploying to Vercel), you won't need
    * to add a publicUrlPrefix.
    */
-  publicUrlPrefix: process.env.NODE_ENV === 'production' ? 'docs/' : undefined,
-  watchExclusions: ['src/styles/tw-output.bundle.css'],
-})
+  publicUrlPrefix: process.env.NODE_ENV === "production" ? "docs/" : undefined,
+  watchExclusions: ["src/styles/tw-output.bundle.css"],
+});
 
 const default_head_blocks: HeadBlock[] = [
-  { title: 'Hwy Framework' },
+  { title: "Hwy Framework" },
   {
-    tag: 'meta',
+    tag: "meta",
     props: {
-      name: 'description',
+      name: "description",
       content:
-        'Hwy is a lightweight, flexible, and powerful alternative to NextJS, based on HTMX instead of React.',
+        "Hwy is a lightweight, flexible, and powerful alternative to NextJS, based on HTMX instead of React.",
     },
   },
   {
-    tag: 'link',
+    tag: "link",
     props: {
-      rel: 'icon',
+      rel: "icon",
       href: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 16 16'><text x='0' y='14'>🔥</text></svg>`,
     },
   },
   {
-    tag: 'meta',
+    tag: "meta",
     props: {
-      name: 'og:image',
-      content: '/create-hwy-snippet.webp',
+      name: "og:image",
+      content: "/create-hwy-snippet.webp",
     },
   },
   {
-    tag: 'meta',
+    tag: "meta",
     props: {
-      name: 'htmx-config',
+      name: "htmx-config",
       content: JSON.stringify({
         selfRequestsOnly: true,
         refreshOnHistoryMiss: true,
+        scrollBehavior: "auto",
       }),
     },
   },
-]
+];
 
-app.all('*', async (c, next) => {
-  if (IS_DEV) await new Promise((r) => setTimeout(r, 300))
+app.all("*", async (c, next) => {
+  if (IS_DEV) await new Promise((r) => setTimeout(r, 300));
 
   // // 31 days vercel edge cache (invalidated each deploy)
-  c.header('CDN-Cache-Control', 'public, max-age=2678400')
+  c.header("CDN-Cache-Control", "public, max-age=2678400");
   // // 10 seconds client cache
-  c.header('Cache-Control', 'public, max-age=10')
+  c.header("Cache-Control", "public, max-age=10");
 
   return await renderRoot(c, next, async ({ activePathData }) => {
     return (
@@ -124,27 +125,27 @@ app.all('*', async (c, next) => {
           </div>
         </body>
       </html>
-    )
-  })
-})
+    );
+  });
+});
 
 app.notFound((c) => {
-  return c.text('404 Not Found', 404)
-})
+  return c.text("404 Not Found", 404);
+});
 
 app.onError((error, c) => {
-  console.error(error)
-  return c.text('500 Internal Server Error', 500)
-})
+  console.error(error);
+  return c.text("500 Internal Server Error", 500);
+});
 
-export default handle(app)
+export default handle(app);
 
 if (IS_DEV) {
   serve({ fetch: app.fetch, port: PORT }, (info) => {
     console.log(
-      `\nListening on http://${IS_DEV ? 'localhost' : info.address}:${
+      `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
         info.port
       }\n`
-    )
-  })
+    );
+  });
 }

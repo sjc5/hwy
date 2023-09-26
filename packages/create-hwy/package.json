@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.1.10",
+  "version": "0.2.1",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -15,16 +15,17 @@
   ],
   "scripts": {
     "build": "rimraf dist && tsup-node index.ts --format esm",
-    "create-hwy": "pnpm run build && node dist/index.js"
+    "create-hwy": "pnpm run build && node dist/index.js",
+    "publish-beta": "npm publish --tag beta"
   },
   "bin": {
     "create-hwy": "./scripts/create-hwy.js"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.3",
-    "@types/node": "^20.5.9",
+    "@types/node": "^20.6.3",
     "@types/nprogress": "^0.2.0",
-    "hono": "^3.6.3",
+    "hono": "^3.7.1",
     "hwy": "workspace:*",
     "nprogress": "^0.2.0",
     "rimraf": "^5.0.1",

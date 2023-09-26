@@ -1,4 +1,4 @@
-import { getHashedPublicUrl } from '../utils/hashed-public-url.js'
+import { getPublicUrl } from '../utils/hashed-public-url.js'
 
 function ClientEntryScript({
   strategy = 'defer',
@@ -7,7 +7,7 @@ function ClientEntryScript({
 }) {
   return (
     <script
-      src={getHashedPublicUrl({ url: 'dist/client.entry.js' })}
+      src={getPublicUrl('dist/client.entry.js')}
       {...{ [strategy]: true }}
     />
   )

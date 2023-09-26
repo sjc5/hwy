@@ -7,16 +7,16 @@
     "dev": "hwy-dev-serve"
   },
   "dependencies": {
-    "@hono/node-server": "^1.1.1",
-    "hono": "^3.6.3",
+    "@hono/node-server": "^1.2.0",
+    "hono": "^3.7.1",
     "hwy": "workspace:*"
   },
   "devDependencies": {
     "@hwy-js/dev": "workspace:*",
-    "@types/node": "^20.5.9",
+    "@types/node": "^20.6.3",
     "cross-env": "^7.0.3",
-    "esbuild": "^0.19.2",
-    "htmx.org": "^1.9.5",
+    "esbuild": "^0.19.3",
+    "htmx.org": "^1.9.6",
     "nodemon": "^3.0.1",
     "typescript": "^5.2.2"
   },

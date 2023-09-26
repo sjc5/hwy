@@ -106,9 +106,7 @@ function server_sent_events(options: ServerSentEventsInit): Response {
     },
 
     cancel() {
-      hwy_log(
-        `Dev live refresh stream canceled. If you just refreshed or closed your browser window, you can safely ignore the error message below.`
-      )
+      hwy_log(`Dev live refresh stream canceled.`)
       callOnClose()
     },
   })

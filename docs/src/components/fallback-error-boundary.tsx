@@ -1,5 +1,5 @@
-import type { ErrorBoundaryProps } from 'hwy'
-import { Paragraph } from './paragraph.js'
+import type { ErrorBoundaryProps } from "hwy";
+import { Paragraph } from "./paragraph.js";
 
 function FallbackErrorBoundary(props: ErrorBoundaryProps) {
   return (
@@ -10,7 +10,7 @@ function FallbackErrorBoundary(props: ErrorBoundaryProps) {
         happened.
       </Paragraph>
     </div>
-  )
+  );
 }
 
-export { FallbackErrorBoundary }
+export { FallbackErrorBoundary };

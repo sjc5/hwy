@@ -33,7 +33,7 @@ function get_hashed_public_url_low_level({
   if (url.startsWith('/')) url = url.slice(1)
   if (url.startsWith('./')) url = url.slice(2)
 
-  hashed_url = get_public_map({ ROOT_DIRNAME })?.['public/' + url]
+  hashed_url = get_public_map({ ROOT_DIRNAME })?.[path.join('public', url)]
 
   if (!hashed_url) {
     throw new Error(`No hashed URL found for ${url}`)
@@ -42,7 +42,7 @@ function get_hashed_public_url_low_level({
   return '/' + hashed_url
 }
 
-function getHashedPublicUrl({ url }: { url: string }): string {
+function getPublicUrl(url: string): string {
   return get_hashed_public_url_low_level({ ROOT_DIRNAME, url })
 }
 
@@ -66,7 +66,7 @@ function get_original_public_url({
     ) as any
   }
 
-  const sliced_url = hashed_url.slice(1)
+  const sliced_url = path.normalize(hashed_url.slice(1))
   const original_url = reverse_public_map?.[sliced_url]
 
   if (!original_url) {
@@ -95,7 +95,7 @@ function get_serve_static_options({
 }
 
 export {
-  getHashedPublicUrl,
+  getPublicUrl,
   get_serve_static_options,
   get_public_map,
   get_hashed_public_url_low_level,

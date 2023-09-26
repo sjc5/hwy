@@ -16,16 +16,18 @@ async function handle_prebuild() {
     const pkg_json = JSON.parse(
       fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf-8')
     )
-    const prebuild_exists = pkg_json.scripts?.['hwy-prebuild']
-    const prebuild_dev_exists = pkg_json.scripts?.['hwy-prebuild-dev']
+    const prebuild_script = pkg_json.scripts?.['hwy-prebuild']
+    const prebuild_dev_script = pkg_json.scripts?.['hwy-prebuild-dev']
 
-    if (!prebuild_exists && !prebuild_dev_exists) return
+    if (!prebuild_script && !prebuild_dev_script) return
 
-    let script_to_run = 'npm run hwy-prebuild'
+    const should_use_dev_script = IS_DEV && prebuild_dev_script
 
-    if (IS_DEV && prebuild_dev_exists) {
-      script_to_run = 'npm run hwy-prebuild-dev'
-    }
+    const script_to_run = should_use_dev_script
+      ? prebuild_dev_script
+      : prebuild_script
+
+    if (!script_to_run) return
 
     hwy_log(`Running ${script_to_run}`)
 
@@ -52,7 +54,9 @@ async function runBuildTasks(log?: string) {
   const standard_tasks_p0 = performance.now()
 
   await rimraf(path.resolve('dist'))
-  await fs.promises.mkdir(path.join(process.cwd(), 'dist'), { recursive: true })
+  await fs.promises.mkdir(path.join(process.cwd(), 'dist'), {
+    recursive: true,
+  })
 
   // needs to happen once first pre-css bundling
   await generate_public_file_map()

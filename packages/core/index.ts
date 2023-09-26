@@ -24,7 +24,7 @@ export { HeadElements } from './src/components/head-elements.js'
 export { getMatchingPathData } from './src/router/get-matching-path-data.js'
 
 // utils
-export { getHashedPublicUrl } from './src/utils/hashed-public-url.js'
+export { getPublicUrl } from './src/utils/hashed-public-url.js'
 export { redirect } from './src/utils/redirect.js'
 export { hwyDev } from './src/utils/conditional-dev.js'
 export { getDefaultBodyProps } from './src/utils/default-body-props.js'

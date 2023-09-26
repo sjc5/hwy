@@ -39,10 +39,7 @@ async function walk_pages() {
 
     if (!ext || !permitted_extensions.includes(ext)) continue
 
-    const _path = entry.path
-      .replace('pages/', '')
-      .replace('.' + ext, '')
-      .replace('.page', '')
+    const _path = entry.path.replace('.' + ext, '').replace('.page', '')
 
     const segments_init = _path.split(path.sep)
 
@@ -130,7 +127,7 @@ async function write_paths_to_file() {
 async function generate_file_hash(file_path: string): Promise<string> {
   const content = await fs.promises.readFile(file_path)
   const hash = crypto.createHash('sha256').update(content).digest('hex')
-  return hash.slice(0, 12) // Take the first 8 characters for brevity.
+  return hash.slice(0, 12) // Take the first 12 characters for brevity.
 }
 
 async function generate_public_file_map() {
@@ -144,7 +141,10 @@ async function generate_public_file_map() {
 
     const tasks: Promise<void>[] = entries.map(async (entry) => {
       const src_entry = path.join(src_dir, entry.name)
-      const relative_entry = `public/${path.relative(src_path, src_entry)}`
+      const relative_entry = path.join(
+        'public',
+        path.relative(src_path, src_entry)
+      )
 
       if (entry.isDirectory()) {
         return traverse(src_entry)
@@ -153,11 +153,13 @@ async function generate_public_file_map() {
         const extname = path.extname(entry.name)
         const basename = path.basename(entry.name, extname)
         const hashed_filename = `${basename}.${hash}${extname}`
-        const hashed_relative_path = `public/${path.relative(
-          src_path,
-          src_entry.replace(basename + extname, hashed_filename)
-        )}`
-
+        const hashed_relative_path = path.join(
+          'public',
+          path.relative(
+            src_path,
+            src_entry.replace(basename + extname, hashed_filename)
+          )
+        )
         file_map[relative_entry] = hashed_relative_path
         reverse_file_map[hashed_relative_path] = relative_entry
       }

@@ -1,4 +1,5 @@
 import { Options } from './types.js'
+import { target_is_deno } from './utils.js'
 
 const ts_config = `
 {
@@ -25,12 +26,24 @@ const js_config = `
   }
 }`
 
+const deno_config = `
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "npm:hono/jsx"
+  }
+}`
+
 function get_ts_config(options: Options) {
   if (options.lang_preference === 'javascript') {
-    return js_config.trim()
+    return js_config.trim() + '\n'
   }
 
-  return ts_config.trim()
+  if (target_is_deno(options)) {
+    return deno_config.trim() + '\n'
+  }
+
+  return ts_config.trim() + '\n'
 }
 
 export { get_ts_config }

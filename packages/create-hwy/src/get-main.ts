@@ -1,4 +1,5 @@
 import { Options } from './types.js'
+import { target_is_deno } from './utils.js'
 
 let imports = `
 import {
@@ -12,13 +13,24 @@ import {
   renderRoot,
 } from 'hwy'
 import { Hono } from 'hono'
-import { serve } from '@hono/node-server'
-import { serveStatic } from '@hono/node-server/serve-static'
 import { logger } from 'hono/logger'
 import { secureHeaders } from 'hono/secure-headers'
 `.trim()
 
+const node_imports = `
+import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
+`.trim()
+
+const deno_imports = `
+import { serveStatic } from 'hono/deno'
+`.trim()
+
 function get_main(options: Options) {
+  const is_targeting_deno = target_is_deno(options)
+
+  imports += '\n' + (is_targeting_deno ? deno_imports : node_imports)
+
   if (options.deployment_target === 'vercel') {
     imports =
       imports + '\n' + "import { handle } from '@hono/node-server/vercel'"
@@ -27,9 +39,10 @@ function get_main(options: Options) {
   return (
     imports.trim() +
     '\n\n' +
+    (is_targeting_deno
+      ? ''
+      : `const IS_DEV = process.env.NODE_ENV === 'development'\n\n`) +
     `
-const IS_DEV = process.env.NODE_ENV === 'development'
-
 const app = new Hono()
 
 hwyInit({
@@ -46,7 +59,7 @@ app.use('*', logger())
 app.get('*', secureHeaders())
 
 app.all('*', async (c, next) => {${
-      options.with_nprogress
+      options.with_nprogress && !is_targeting_deno
         ? `\n  if (IS_DEV) await new Promise((r) => setTimeout(r, 150)) // simulate latency in dev\n`
         : ''
     }
@@ -76,6 +89,7 @@ app.all('*', async (c, next) => {${
                   content: JSON.stringify({
                     selfRequestsOnly: true,
                     refreshOnHistoryMiss: true,
+                    scrollBehavior: 'auto',
                   }),
                 },
               },
@@ -131,13 +145,25 @@ app.onError((error, c) => {
   return c.text('500 Internal Server Error', 500)
 })
 
-${options.deployment_target === 'vercel' ? serve_fn_vercel : serve_fn_node}
+${
+  options.deployment_target === 'vercel'
+    ? serve_fn_vercel
+    : is_targeting_deno
+    ? serve_fn_deno
+    : serve_fn_node
+}
 `.trim() +
     '\n'
   )
 }
 
 export { get_main }
+
+const serve_fn_deno = `
+const PORT = Deno.env.get("PORT") ? Number(Deno.env.get("PORT")) : 8080
+
+Deno.serve({ port: PORT }, app.fetch)
+`.trim()
 
 const serve_fn_node = `
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
