@@ -24,11 +24,11 @@ importers:
         specifier: ^3.7.1
         version: 3.7.1
       hwy:
-        specifier: 0.2.2-beta.3
+        specifier: 0.2.2-beta.4
         version: link:../packages/core
     devDependencies:
       '@hwy-js/dev':
-        specifier: 0.2.2-beta.3
+        specifier: 0.2.2-beta.4
         version: link:../packages/dev
       '@types/node':
         specifier: ^20.6.3
