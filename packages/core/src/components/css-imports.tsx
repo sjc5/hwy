@@ -4,14 +4,9 @@ import { getPublicUrl } from "../utils/hashed-public-url.js";
 import { ROOT_DIRNAME } from "../setup.js";
 import { pathToFileURL } from "node:url";
 
-const critical_css_path = path.join(
-  ROOT_DIRNAME,
-  "dist",
-  "critical-bundled-css.js"
-);
+const critical_css_path = path.join(ROOT_DIRNAME, "critical-bundled-css.js");
 const standard_bundled_css_exists_path = path.join(
   ROOT_DIRNAME,
-  "dist",
   "standard-bundled-css-exists.js"
 );
 
