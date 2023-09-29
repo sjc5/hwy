@@ -8,6 +8,7 @@ import {
   getPublicUrl,
   get_serve_static_options,
 } from "./utils/hashed-public-url.js";
+import { warm_css_files } from "./components/css-imports.js";
 
 function dirname_from_import_meta(import_meta_url: string) {
   return path.dirname(fileURLToPath(import_meta_url));
@@ -53,7 +54,7 @@ async function hwyInit({
   ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl);
   PUBLIC_URL_PREFIX = publicUrlPrefix ?? "";
 
-  await warm_public_file_maps();
+  await Promise.all([warm_public_file_maps(), warm_css_files()]);
 
   app.use("/favicon.ico", async (c) => {
     try {

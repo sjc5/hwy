@@ -4,28 +4,37 @@ import { getPublicUrl } from "../utils/hashed-public-url.js";
 import { PUBLIC_URL_PREFIX, ROOT_DIRNAME } from "../setup.js";
 import { pathToFileURL } from "node:url";
 
-console.log({ ROOT_DIRNAME, PUBLIC_URL_PREFIX });
+let critical_css: string | undefined;
+let standard_bundled_css_exists: boolean | undefined;
 
-const critical_css_path = path.join(
-  ROOT_DIRNAME,
-  PUBLIC_URL_PREFIX,
-  "dist",
-  "critical-bundled-css.js"
-);
-const standard_bundled_css_exists_path = path.join(
-  ROOT_DIRNAME,
-  PUBLIC_URL_PREFIX,
-  "dist",
-  "standard-bundled-css-exists.js"
-);
+async function warm_css_files() {
+  console.log({ ROOT_DIRNAME, PUBLIC_URL_PREFIX });
 
-const promises = await Promise.all([
-  import(pathToFileURL(critical_css_path).href),
-  import(pathToFileURL(standard_bundled_css_exists_path).href),
-]);
+  if (critical_css === undefined) {
+    const critical_css_path = path.join(
+      ROOT_DIRNAME,
+      PUBLIC_URL_PREFIX,
+      "critical-bundled-css.js"
+    );
 
-const critical_css = promises[0].default;
-const standard_bundled_css_exists = promises[1].default;
+    console.log({ critical_css_path });
+
+    critical_css = (await import(pathToFileURL(critical_css_path).href))
+      .default;
+  }
+
+  if (standard_bundled_css_exists === undefined) {
+    const standard_bundled_css_exists_path = path.join(
+      ROOT_DIRNAME,
+      PUBLIC_URL_PREFIX,
+      "standard-bundled-css-exists.js"
+    );
+
+    standard_bundled_css_exists = (
+      await import(pathToFileURL(standard_bundled_css_exists_path).href)
+    ).default;
+  }
+}
 
 function CriticalCss(): HtmlEscapedString {
   if (!critical_css) return <></>;
@@ -62,4 +71,5 @@ export {
 
   // private
   CSS_IMPORT_URL,
+  warm_css_files,
 };
