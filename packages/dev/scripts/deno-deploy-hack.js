@@ -20,9 +20,13 @@ const page_paths = (
   await import(path.join(process.cwd(), "dist", "paths.js"))
 ).default.map((x) => "./" + x.importPath);
 
-const public_paths = (
-  await import(pathToFileURL(path.join(process.cwd(), "dist", "public-map.js")))
-).default.map((x) => "../" + x);
+const public_paths = Object.keys(
+  (
+    await import(
+      pathToFileURL(path.join(process.cwd(), "dist", "public-map.js"))
+    )
+  ).default
+).map((x) => "../" + x);
 
 const other_paths = [
   "./standard-bundled-css-exists.js",
