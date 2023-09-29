@@ -15,6 +15,7 @@ function dirname_from_import_meta(import_meta_url: string) {
 
 // although instantiated with let, this should only ever be set once inside hwyInit
 let ROOT_DIRNAME = "";
+let PUBLIC_URL_PREFIX = "";
 
 type ServeStaticFn = typeof serveStaticFn;
 
@@ -50,6 +51,7 @@ async function hwyInit({
   hwyDev?.devInit({ app, watchExclusions });
 
   ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl);
+  PUBLIC_URL_PREFIX = publicUrlPrefix ?? "";
 
   await warm_public_file_maps();
 
@@ -64,14 +66,7 @@ async function hwyInit({
   const static_path = "/public/*";
   app.use(static_path, immutable_cache());
 
-  app.use(
-    static_path,
-    serveStatic(
-      get_serve_static_options({
-        public_url_prefix: publicUrlPrefix,
-      })
-    )
-  );
+  app.use(static_path, serveStatic(get_serve_static_options()));
 }
 
 export {
@@ -80,4 +75,5 @@ export {
 
   // private
   ROOT_DIRNAME,
+  PUBLIC_URL_PREFIX,
 };

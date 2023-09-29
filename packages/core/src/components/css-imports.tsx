@@ -1,12 +1,21 @@
 import path from "node:path";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { getPublicUrl } from "../utils/hashed-public-url.js";
-import { ROOT_DIRNAME } from "../setup.js";
+import { PUBLIC_URL_PREFIX, ROOT_DIRNAME } from "../setup.js";
 import { pathToFileURL } from "node:url";
 
-const critical_css_path = path.join(ROOT_DIRNAME, "critical-bundled-css.js");
+console.log({ ROOT_DIRNAME, PUBLIC_URL_PREFIX });
+
+const critical_css_path = path.join(
+  ROOT_DIRNAME,
+  PUBLIC_URL_PREFIX,
+  "dist",
+  "critical-bundled-css.js"
+);
 const standard_bundled_css_exists_path = path.join(
   ROOT_DIRNAME,
+  PUBLIC_URL_PREFIX,
+  "dist",
   "standard-bundled-css-exists.js"
 );
 

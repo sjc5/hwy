@@ -1,5 +1,5 @@
 import path from "node:path";
-import { ROOT_DIRNAME } from "../setup.js";
+import { PUBLIC_URL_PREFIX, ROOT_DIRNAME } from "../setup.js";
 import { pathToFileURL } from "node:url";
 
 let public_map: Record<string, string> | undefined;
@@ -47,10 +47,8 @@ function getPublicUrl(url: string): string {
 
 function get_original_public_url({
   hashed_url,
-  public_url_prefix,
 }: {
   hashed_url: string;
-  public_url_prefix?: string;
 }): string {
   const sliced_url = path.normalize(hashed_url.slice(1));
 
@@ -60,19 +58,14 @@ function get_original_public_url({
     throw new Error(`No original URL found for ${sliced_url}`);
   }
 
-  return "./" + (public_url_prefix ?? "") + original_url;
+  return "./" + PUBLIC_URL_PREFIX + original_url;
 }
 
-function get_serve_static_options({
-  public_url_prefix,
-}: {
-  public_url_prefix?: string;
-}) {
+function get_serve_static_options() {
   return {
     rewriteRequestPath: (path: string) => {
       return get_original_public_url({
         hashed_url: path,
-        public_url_prefix,
       });
     },
   };
