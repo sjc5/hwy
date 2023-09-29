@@ -29,7 +29,7 @@ const vercel_add_on =
   "\n\n" +
   `
 \`\`\`ts
-hwyInit({
+await hwyInit({
 app,
 importMetaUrl: import.meta.url,
 serveStatic,

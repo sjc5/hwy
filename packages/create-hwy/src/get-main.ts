@@ -1,5 +1,5 @@
-import { Options } from './types.js'
-import { target_is_deno } from './utils.js'
+import { Options } from "./types.js";
+import { target_is_deno } from "./utils.js";
 
 let imports = `
 import {
@@ -15,43 +15,43 @@ import {
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 import { secureHeaders } from 'hono/secure-headers'
-`.trim()
+`.trim();
 
 const node_imports = `
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
-`.trim()
+`.trim();
 
 const deno_imports = `
 import { serveStatic } from 'hono/deno'
-`.trim()
+`.trim();
 
 function get_main(options: Options) {
-  const is_targeting_deno = target_is_deno(options)
+  const is_targeting_deno = target_is_deno(options);
 
-  imports += '\n' + (is_targeting_deno ? deno_imports : node_imports)
+  imports += "\n" + (is_targeting_deno ? deno_imports : node_imports);
 
-  if (options.deployment_target === 'vercel') {
+  if (options.deployment_target === "vercel") {
     imports =
-      imports + '\n' + "import { handle } from '@hono/node-server/vercel'"
+      imports + "\n" + "import { handle } from '@hono/node-server/vercel'";
   }
 
   return (
     imports.trim() +
-    '\n\n' +
+    "\n\n" +
     (is_targeting_deno
-      ? ''
+      ? ""
       : `const IS_DEV = process.env.NODE_ENV === 'development'\n\n`) +
     `
 const app = new Hono()
 
-hwyInit({
+await hwyInit({
   app,
   importMetaUrl: import.meta.url,
   serveStatic,${
-    options.css_preference === 'tailwind'
+    options.css_preference === "tailwind"
       ? "\n  watchExclusions: ['src/styles/tw-output.bundle.css'],"
-      : ''
+      : ""
   }
 })
 
@@ -61,7 +61,7 @@ app.get('*', secureHeaders())
 app.all('*', async (c, next) => {${
       options.with_nprogress && !is_targeting_deno
         ? `\n  if (IS_DEV) await new Promise((r) => setTimeout(r, 150)) // simulate latency in dev\n`
-        : ''
+        : ""
     }
   return await renderRoot(c, next, async ({ activePathData }) => {
     return (
@@ -104,7 +104,7 @@ app.all('*', async (c, next) => {${
 
         <body
           {...getDefaultBodyProps(${
-            options.with_nprogress ? '{ nProgress: true }' : ''
+            options.with_nprogress ? "{ nProgress: true }" : ""
           })}
         >
           <nav>
@@ -146,24 +146,24 @@ app.onError((error, c) => {
 })
 
 ${
-  options.deployment_target === 'vercel'
+  options.deployment_target === "vercel"
     ? serve_fn_vercel
     : is_targeting_deno
     ? serve_fn_deno
     : serve_fn_node
 }
 `.trim() +
-    '\n'
-  )
+    "\n"
+  );
 }
 
-export { get_main }
+export { get_main };
 
 const serve_fn_deno = `
 const PORT = Deno.env.get("PORT") ? Number(Deno.env.get("PORT")) : 8080
 
 Deno.serve({ port: PORT }, app.fetch)
-`.trim()
+`.trim();
 
 const serve_fn_node = `
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
@@ -173,7 +173,7 @@ serve({ fetch: app.fetch, port: PORT }, (info) => {
     \`\\nListening on http://\${IS_DEV ? 'localhost' : info.address}:\${PORT}\\n\`
   )
 })
-`.trim()
+`.trim();
 
 const serve_fn_vercel = `
 if (IS_DEV) {
@@ -185,4 +185,4 @@ if (IS_DEV) {
 }
 
 export default handle(app)
-`.trim()
+`.trim();

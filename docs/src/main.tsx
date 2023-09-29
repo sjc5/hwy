@@ -23,7 +23,7 @@ const app = new Hono();
 app.use("*", logger());
 app.get("*", secureHeaders());
 
-hwyInit({
+await hwyInit({
   app,
   importMetaUrl: import.meta.url,
   serveStatic,
