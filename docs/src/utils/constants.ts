@@ -1,3 +1,3 @@
-export const IS_DEV = process.env.NODE_ENV === "development";
-export const IS_PROD = process.env.NODE_ENV === "production";
-export const PORT = process.env.PORT ? Number(process.env.PORT) : 8788;
+export const IS_DEV = process.env.NODE_ENV === 'development'
+export const IS_PROD = process.env.NODE_ENV === 'production'
+export const PORT = process.env.PORT ? Number(process.env.PORT) : 8788

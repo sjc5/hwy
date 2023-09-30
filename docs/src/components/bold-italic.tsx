@@ -3,7 +3,7 @@ function Boldtalic({ children }: { children: string }) {
     <b>
       <i>{children}</i>
     </b>
-  );
+  )
 }
 
-export { Boldtalic };
+export { Boldtalic }

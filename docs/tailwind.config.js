@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: "media",
-  content: ["./src/**/*.tsx"],
+  darkMode: 'media',
+  content: ['./src/**/*.tsx'],
   theme: {
     extend: {},
   },
@@ -9,4 +9,4 @@ export default {
   future: {
     hoverOnlyWhenSupported: true,
   },
-};
+}

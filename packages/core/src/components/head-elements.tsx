@@ -7,10 +7,13 @@ function stable_hash(obj: Record<string, any>): string {
   return JSON.stringify(
     Object.keys(obj)
       .sort()
-      .reduce((result, key) => {
-        result[key] = obj[key]
-        return result
-      }, {} as Record<string, any>)
+      .reduce(
+        (result, key) => {
+          result[key] = obj[key]
+          return result
+        },
+        {} as Record<string, any>,
+      ),
   )
 }
 

@@ -8,36 +8,36 @@ import {
   HeadElements,
   HeadBlock,
   renderRoot,
-} from "hwy";
-import { Hono } from "hono";
-import { serve } from "@hono/node-server";
-import { serveStatic } from "@hono/node-server/serve-static";
-import { Sidebar } from "./components/sidebar.js";
+} from 'hwy'
+import { Hono } from 'hono'
+import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
+import { Sidebar } from './components/sidebar.js'
 
-const app = new Hono();
+const app = new Hono()
 
 await hwyInit({
   app,
   importMetaUrl: import.meta.url,
   serveStatic,
-});
+})
 
 const default_head_blocks: HeadBlock[] = [
-  { title: "Tester" },
+  { title: 'Tester' },
   {
-    tag: "meta",
+    tag: 'meta',
     props: {
-      name: "htmx-config",
+      name: 'htmx-config',
       content: JSON.stringify({
-        defaultSwapStyle: "outerHTML",
+        defaultSwapStyle: 'outerHTML',
         selfRequestsOnly: true,
         refreshOnHistoryMiss: true,
       }),
     },
   },
-];
+]
 
-app.all("*", async (c, next) => {
+app.all('*', async (c, next) => {
   return await renderRoot(c, next, async ({ activePathData }) => {
     return (
       <html lang="en">
@@ -67,19 +67,19 @@ app.all("*", async (c, next) => {
           </main>
         </body>
       </html>
-    );
-  });
-});
+    )
+  })
+})
 
-app.notFound((c) => c.text("404 Not Found", 404));
+app.notFound((c) => c.text('404 Not Found', 404))
 
-const IS_DEV = process.env.NODE_ENV === "development";
-const PORT = process.env.PORT ? Number(process.env.PORT) : 9999;
+const IS_DEV = process.env.NODE_ENV === 'development'
+const PORT = process.env.PORT ? Number(process.env.PORT) : 9999
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(
-    `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
+    `\nListening on http://${IS_DEV ? 'localhost' : info.address}:${
       info.port
-    }\n`
-  );
-});
+    }\n`,
+  )
+})

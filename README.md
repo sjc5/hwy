@@ -54,15 +54,15 @@ Below is an example of a simple Hwy page. You'll notice it looks a lot like Remi
 ```tsx
 // src/pages/user/$user_id.page.tsx
 
-import type { DataFunctionArgs, PageProps } from "hwy";
-import { UserProfile, getUser } from "./somewhere.js";
+import type { DataFunctionArgs, PageProps } from 'hwy'
+import { UserProfile, getUser } from './somewhere.js'
 
 export async function loader({ params }: DataFunctionArgs) {
-  return await getUser(params.user_id);
+  return await getUser(params.user_id)
 }
 
 export default async function ({ loaderData }: PageProps<typeof loader>) {
-  return <UserProfile user={loaderData} />;
+  return <UserProfile user={loaderData} />
 }
 ```
 
@@ -70,9 +70,9 @@ Or, if you prefer to fetch inside your components:
 
 ```tsx
 export default async function ({ params }: PageProps) {
-  const user = await getUser(params.user_id);
+  const user = await getUser(params.user_id)
 
-  return <UserProfile user={user} />;
+  return <UserProfile user={user} />
 }
 ```
 

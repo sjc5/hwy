@@ -39,17 +39,20 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
 
   // these are essentially any matching layout routes
   const definite_matches = paths.filter(
-    (x) => !x.isIndex && !x.endsInDynamic && !x.endsInSplat
+    (x) => !x.isIndex && !x.endsInDynamic && !x.endsInSplat,
   )
 
   const highest_scores_by_segment_length_of_definite_matches =
-    definite_matches.reduce((acc, x) => {
-      const segment_length = x.segments.length
-      if (acc[segment_length] == null || x.score > acc[segment_length]) {
-        acc[segment_length] = x.score
-      }
-      return acc
-    }, {} as Record<number, number>)
+    definite_matches.reduce(
+      (acc, x) => {
+        const segment_length = x.segments.length
+        if (acc[segment_length] == null || x.score > acc[segment_length]) {
+          acc[segment_length] = x.score
+        }
+        return acc
+      },
+      {} as Record<number, number>,
+    )
 
   // the "maybe matches" need to compete with each other
   // they also need some more complicated logic
@@ -77,7 +80,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
   }
 
   const sorted_grouped_by_segment_length = Object.entries(
-    grouped_by_segment_length
+    grouped_by_segment_length,
   )
     .sort(([a], [b]) => Number(a) - Number(b))
     .map(([_, paths]) => paths)
@@ -109,7 +112,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
       const data = winner.path.split('/').filter(Boolean)
 
       const number_of_non_splat_segments = winner.segments.filter(
-        (x) => !x.isSplat
+        (x) => !x.isSplat,
       ).length
 
       const number_of_splat_segments =
@@ -117,7 +120,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
 
       splat_segments = data.slice(
         data.length - number_of_splat_segments,
-        data.length
+        data.length,
       )
     }
 
@@ -125,7 +128,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
   }
 
   const maybe_final_paths = [...definite_matches, ...xformed_maybes].sort(
-    (a, b) => a.segments.length - b.segments.length
+    (a, b) => a.segments.length - b.segments.length,
   )
 
   // if anything left

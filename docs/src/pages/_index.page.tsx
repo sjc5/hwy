@@ -1,15 +1,15 @@
-import { Boldtalic } from "../components/bold-italic.js";
-import { CodeBlock } from "../components/code-block.js";
-import { InlineCode } from "../components/inline-code.js";
-import { Paragraph } from "../components/paragraph.js";
-import { ListItem, UnorderedList } from "../components/unordered-list.js";
+import { Boldtalic } from '../components/bold-italic.js'
+import { CodeBlock } from '../components/code-block.js'
+import { InlineCode } from '../components/inline-code.js'
+import { Paragraph } from '../components/paragraph.js'
+import { ListItem, UnorderedList } from '../components/unordered-list.js'
 
 export default function () {
   return (
     <>
       <h1 class="text-3xl lg:text-4xl leading-snug lg:leading-normal opacity-[0.95] py-6">
-        Hwy is a <Boldtalic>lightweight</Boldtalic>,{" "}
-        <Boldtalic>flexible</Boldtalic>, and <Boldtalic>powerful</Boldtalic>{" "}
+        Hwy is a <Boldtalic>lightweight</Boldtalic>,{' '}
+        <Boldtalic>flexible</Boldtalic>, and <Boldtalic>powerful</Boldtalic>{' '}
         alternative to NextJS, based on <Boldtalic>HTMX</Boldtalic> instead of
         React.
       </h1>
@@ -30,18 +30,18 @@ export default function () {
         </h3>
 
         <Paragraph>
-          Hwy is a lot like NextJS or Remix, but it uses{" "}
+          Hwy is a lot like NextJS or Remix, but it uses{' '}
           <Boldtalic>HTMX</Boldtalic> instead of React on the frontend.
         </Paragraph>
 
         <Paragraph>
-          Hwy lets you write <Boldtalic>React-style JSX</Boldtalic> in{" "}
-          <Boldtalic>nested, file-based routes</Boldtalic>, with{" "}
+          Hwy lets you write <Boldtalic>React-style JSX</Boldtalic> in{' '}
+          <Boldtalic>nested, file-based routes</Boldtalic>, with{' '}
           <Boldtalic>Remix-style actions and parallel loaders</Boldtalic>.
         </Paragraph>
 
         <Paragraph>
-          Page components are async, so you can even{" "}
+          Page components are async, so you can even{' '}
           <Boldtalic>fetch data in JSX</Boldtalic> if you want to (just be
           careful with waterfalls).
         </Paragraph>
@@ -54,13 +54,13 @@ export default function () {
 
         <Paragraph>
           Hwy is <Boldtalic>100% server-rendered</Boldtalic>, but with the HTMX
-          defaults Hwy sets up for you out of the box, your app still{" "}
+          defaults Hwy sets up for you out of the box, your app still{' '}
           <Boldtalic>feels like an SPA</Boldtalic>.
         </Paragraph>
 
         <Paragraph>
-          Links and forms are automatically{" "}
-          <Boldtalic>progressively enhanced</Boldtalic> thanks to HTMX's{" "}
+          Links and forms are automatically{' '}
+          <Boldtalic>progressively enhanced</Boldtalic> thanks to HTMX's{' '}
           <InlineCode>hx-boost</InlineCode> feature. Just use normal anchor tags
           and traditional form attributes.
         </Paragraph>
@@ -73,7 +73,7 @@ export default function () {
         </Paragraph>
 
         <Paragraph>
-          And best of all,{" "}
+          And best of all,{' '}
           <Boldtalic>
             anything you can do with Hono or HTMX, you can do with Hwy
           </Boldtalic>
@@ -163,12 +163,12 @@ export default async function ({ params }: PageProps) {
           Get Started
         </h3>
         <Paragraph>
-          If you want to dive right in, just open a terminal and run{" "}
+          If you want to dive right in, just open a terminal and run{' '}
           <InlineCode>npx create-hwy@latest</InlineCode> and follow the prompts.
         </Paragraph>
 
         <Paragraph>
-          If you'd prefer to read more first, take a peek at{" "}
+          If you'd prefer to read more first, take a peek at{' '}
           <a href="/docs" class="underline">
             our docs
           </a>
@@ -198,5 +198,5 @@ export default async function ({ params }: PageProps) {
         <Paragraph>Hwy is in beta! Act accordingly.</Paragraph>
       </div>
     </>
-  );
+  )
 }

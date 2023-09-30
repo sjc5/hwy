@@ -27,7 +27,7 @@ function Nav() {
         </a>
       </div>
     </nav>
-  );
+  )
 }
 
-export { Nav };
+export { Nav }

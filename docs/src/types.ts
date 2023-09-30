@@ -1,3 +1,3 @@
-type ChildrenPermissive = string | JSX.Element | (string | JSX.Element)[];
+type ChildrenPermissive = string | JSX.Element | (string | JSX.Element)[]
 
-export type { ChildrenPermissive };
+export type { ChildrenPermissive }

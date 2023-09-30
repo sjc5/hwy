@@ -1,4 +1,4 @@
-import { ChildrenPermissive } from "../types.js";
+import { ChildrenPermissive } from '../types.js'
 
 function DialogModal({
   open_button_inner,
@@ -6,10 +6,10 @@ function DialogModal({
   wrapper_class,
   open_button_class,
 }: {
-  open_button_inner: ChildrenPermissive;
-  dialog_inner: ChildrenPermissive;
-  wrapper_class?: string;
-  open_button_class?: string;
+  open_button_inner: ChildrenPermissive
+  dialog_inner: ChildrenPermissive
+  wrapper_class?: string
+  open_button_class?: string
 }) {
   return (
     <div hx-boost="false" class={wrapper_class}>
@@ -24,14 +24,14 @@ function DialogModal({
         onclick="event.target==this && this.close()"
         style={{
           padding: 0,
-          border: "none",
-          background: "transparent",
+          border: 'none',
+          background: 'transparent',
         }}
       >
         <form method="dialog">{dialog_inner}</form>
       </dialog>
     </div>
-  );
+  )
 }
 
-export { DialogModal };
+export { DialogModal }

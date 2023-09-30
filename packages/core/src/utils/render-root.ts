@@ -9,7 +9,7 @@ async function renderRoot(
     activePathData,
   }: {
     activePathData: Awaited<ReturnType<typeof getMatchingPathData>>
-  }) => Promise<HtmlEscapedString>
+  }) => Promise<HtmlEscapedString>,
 ) {
   const activePathData = await getMatchingPathData({ c })
 

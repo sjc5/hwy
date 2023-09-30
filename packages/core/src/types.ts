@@ -7,17 +7,17 @@ type DataFunctionArgs<EnvType extends Env = {}> = {
 }
 
 type Loader<EnvType extends Env = {}> = (
-  args: DataFunctionArgs<EnvType>
+  args: DataFunctionArgs<EnvType>,
 ) => Promise<any> | any
 
 type Action<EnvType extends Env = {}> = (
-  args: DataFunctionArgs<EnvType>
+  args: DataFunctionArgs<EnvType>,
 ) => Promise<any> | any
 
 type PageProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
-  EnvType extends Env = {}
+  EnvType extends Env = {},
 > = {
   loaderData: Awaited<ReturnType<LoaderType>>
   actionData: Awaited<ReturnType<ActionType>> | undefined
@@ -35,7 +35,7 @@ type ErrorBoundaryProps<EnvType extends Env = {}> = {
 type PageComponent<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
-  EnvType extends Env = {}
+  EnvType extends Env = {},
 > = (props: PageProps<LoaderType, ActionType, EnvType>) => Promise<JSX.Element>
 
 type HeadBlock =
@@ -45,13 +45,13 @@ type HeadBlock =
 type HeadProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
-  EnvType extends Env = {}
+  EnvType extends Env = {},
 > = Omit<PageProps<LoaderType, ActionType, EnvType>, 'outlet'>
 
 type HeadFunction<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
-  EnvType extends Env = {}
+  EnvType extends Env = {},
 > = (props: HeadProps<LoaderType, ActionType, EnvType>) => Array<HeadBlock>
 
 export type {

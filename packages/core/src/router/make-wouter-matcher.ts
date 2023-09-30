@@ -6,7 +6,7 @@ Copied from source on: August 3, 2023
 
 // creates a matcher function
 function make_wouter_matcher(
-  make_regexp_fn = path_to_regexp
+  make_regexp_fn = path_to_regexp,
 ): (pattern: string, path: string) => [boolean, Record<string, string>] {
   const cache: Record<
     string,
@@ -25,10 +25,13 @@ function make_wouter_matcher(
     if (!out) return [false, {} as Record<string, string>]
 
     // formats an object with matched params
-    const params = keys.reduce((params, key, i) => {
-      params[key.name] = out[i + 1]
-      return params
-    }, {} as Record<string, string>)
+    const params = keys.reduce(
+      (params, key, i) => {
+        params[key.name] = out[i + 1]
+        return params
+      },
+      {} as Record<string, string>,
+    )
 
     return [true, params]
   }

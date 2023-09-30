@@ -1,28 +1,28 @@
-import path from "node:path";
-import { PUBLIC_URL_PREFIX, ROOT_DIRNAME } from "../setup.js";
-import { path_to_file_url } from "./path-to-file-url.js";
+import path from 'node:path'
+import { PUBLIC_URL_PREFIX, ROOT_DIRNAME } from '../setup.js'
+import { path_to_file_url } from './path-to-file-url.js'
 
-let public_map: Record<string, string> | undefined;
-let reverse_public_map: Record<string, string> | undefined;
+let public_map: Record<string, string> | undefined
+let reverse_public_map: Record<string, string> | undefined
 
 async function warm_public_file_maps() {
   if (!public_map) {
-    const public_map_path = path.join(ROOT_DIRNAME, "public-map.js");
+    const public_map_path = path.join(ROOT_DIRNAME, 'public-map.js')
 
-    const _path = path_to_file_url(public_map_path);
+    const _path = path_to_file_url(public_map_path)
 
-    public_map = (await import(_path)).default;
+    public_map = (await import(_path)).default
   }
 
   if (!reverse_public_map) {
     const reverse_public_map_path = path.join(
       ROOT_DIRNAME,
-      "public-reverse-map.js"
-    );
+      'public-reverse-map.js',
+    )
 
-    const _path = path_to_file_url(reverse_public_map_path);
+    const _path = path_to_file_url(reverse_public_map_path)
 
-    reverse_public_map = (await import(_path)).default;
+    reverse_public_map = (await import(_path)).default
   }
 }
 
@@ -33,34 +33,34 @@ function getPublicUrl(url: string): string {
    * STILL NOT WORTH SPLITTING INTO A SEPARATE PKG.
    */
 
-  let hashed_url: string | undefined;
+  let hashed_url: string | undefined
 
-  if (url.startsWith("/")) url = url.slice(1);
-  if (url.startsWith("./")) url = url.slice(2);
+  if (url.startsWith('/')) url = url.slice(1)
+  if (url.startsWith('./')) url = url.slice(2)
 
-  hashed_url = public_map?.[path.join("public", url)];
+  hashed_url = public_map?.[path.join('public', url)]
 
   if (!hashed_url) {
-    throw new Error(`No hashed URL found for ${url}`);
+    throw new Error(`No hashed URL found for ${url}`)
   }
 
-  return "/" + hashed_url;
+  return '/' + hashed_url
 }
 
 function get_original_public_url({
   hashed_url,
 }: {
-  hashed_url: string;
+  hashed_url: string
 }): string {
-  const sliced_url = path.normalize(hashed_url.slice(1));
+  const sliced_url = path.normalize(hashed_url.slice(1))
 
-  const original_url = reverse_public_map?.[sliced_url];
+  const original_url = reverse_public_map?.[sliced_url]
 
   if (!original_url) {
-    throw new Error(`No original URL found for ${sliced_url}`);
+    throw new Error(`No original URL found for ${sliced_url}`)
   }
 
-  return "./" + PUBLIC_URL_PREFIX + original_url;
+  return './' + PUBLIC_URL_PREFIX + original_url
 }
 
 function get_serve_static_options() {
@@ -68,9 +68,9 @@ function get_serve_static_options() {
     rewriteRequestPath: (path: string) => {
       return get_original_public_url({
         hashed_url: path,
-      });
+      })
     },
-  };
+  }
 }
 
-export { getPublicUrl, get_serve_static_options, warm_public_file_maps };
+export { getPublicUrl, get_serve_static_options, warm_public_file_maps }
