@@ -78,7 +78,7 @@ async function walk_pages() {
         };
       });
 
-    const import_path_tsx =
+    const import_path_with_orig_ext =
       path.join(process.cwd(), "src/pages/" + _path) + ".page" + ("." + ext);
 
     let path_to_use = "/" + segments.map((x) => x.segment).join("/");
@@ -99,7 +99,7 @@ async function walk_pages() {
 
     try {
       await esbuild.build({
-        entryPoints: [import_path_tsx],
+        entryPoints: [import_path_with_orig_ext],
         bundle: true,
         outfile: path.resolve("./dist/pages/" + _path + ".js"),
         treeShaking: true,

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { PUBLIC_URL_PREFIX, ROOT_DIRNAME } from "../setup.js";
-import { pathToFileURL } from "node:url";
+import { path_to_file_url } from "./path-to-file-url.js";
 
 let public_map: Record<string, string> | undefined;
 let reverse_public_map: Record<string, string> | undefined;
@@ -9,7 +9,9 @@ async function warm_public_file_maps() {
   if (!public_map) {
     const public_map_path = path.join(ROOT_DIRNAME, "public-map.js");
 
-    public_map = (await import(pathToFileURL(public_map_path).href)).default;
+    const _path = path_to_file_url(public_map_path);
+
+    public_map = (await import(_path)).default;
   }
 
   if (!reverse_public_map) {
@@ -18,9 +20,9 @@ async function warm_public_file_maps() {
       "public-reverse-map.js"
     );
 
-    reverse_public_map = (
-      await import(pathToFileURL(reverse_public_map_path).href)
-    ).default;
+    const _path = path_to_file_url(reverse_public_map_path);
+
+    reverse_public_map = (await import(_path)).default;
   }
 }
 

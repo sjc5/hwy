@@ -2,7 +2,6 @@ import type { Hono, Context, Next } from "hono";
 import type { serveStatic as serveStaticFn } from "@hono/node-server/serve-static";
 import { hwyDev } from "./utils/conditional-dev.js";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import {
   warm_public_file_maps,
   getPublicUrl,
@@ -10,8 +9,18 @@ import {
 } from "./utils/hashed-public-url.js";
 import { warm_css_files } from "./components/css-imports.js";
 
-function dirname_from_import_meta(import_meta_url: string) {
-  return path.dirname(fileURLToPath(import_meta_url));
+function file_url_to_path(url: string): string {
+  if (!url) return "";
+  return decodeURI(url.replace(/^file:\/\//, ""));
+}
+
+async function dirname_from_import_meta(import_meta_url: string) {
+  try {
+    const { fileURLToPath } = await import("node:url");
+    return path.dirname(fileURLToPath(import_meta_url));
+  } catch {
+    return path.dirname(file_url_to_path(import_meta_url));
+  }
 }
 
 // although instantiated with let, this should only ever be set once inside hwyInit
@@ -51,7 +60,7 @@ async function hwyInit({
 
   hwyDev?.devInit({ app, watchExclusions });
 
-  ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl);
+  ROOT_DIRNAME = await dirname_from_import_meta(importMetaUrl);
   PUBLIC_URL_PREFIX = publicUrlPrefix ?? "";
 
   await Promise.all([warm_public_file_maps(), warm_css_files()]);
