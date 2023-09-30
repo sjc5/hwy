@@ -7,11 +7,11 @@ type DataFunctionArgs<EnvType extends Env = {}> = {
 };
 
 type Loader<EnvType extends Env = {}> = (
-  args: DataFunctionArgs<EnvType>,
+  args: DataFunctionArgs<EnvType>
 ) => Promise<any> | any;
 
 type Action<EnvType extends Env = {}> = (
-  args: DataFunctionArgs<EnvType>,
+  args: DataFunctionArgs<EnvType>
 ) => Promise<any> | any;
 
 type PageProps<

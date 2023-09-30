@@ -85,7 +85,7 @@ function get_package_json(options: Options) {
         },
       },
       null,
-      2,
+      2
     ) + "\n"
   );
 }

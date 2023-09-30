@@ -187,25 +187,23 @@ async function getMatchingPathData({
             console.error("Loader error:", error);
             return { error, result: undefined };
           });
-      }),
+      })
     ),
 
     Promise.all(
       (fully_decorated_matching_paths || [])?.map(
-        (path) => path?.componentImporter(),
-      ),
+        (path) => path?.componentImporter()
+      )
+    ),
+
+    Promise.all(
+      (fully_decorated_matching_paths || []).map((path) => path?.headImporter())
     ),
 
     Promise.all(
       (fully_decorated_matching_paths || []).map(
-        (path) => path?.headImporter(),
-      ),
-    ),
-
-    Promise.all(
-      (fully_decorated_matching_paths || []).map(
-        (path) => path?.errorBoundaryImporter(),
-      ),
+        (path) => path?.errorBoundaryImporter()
+      )
     ),
   ]);
 
@@ -213,7 +211,7 @@ async function getMatchingPathData({
   const active_data = active_data_obj.map((item) => item.result);
 
   const there_are_errors = Boolean(
-    action_data_error || errors.some((error) => error),
+    action_data_error || errors.some((error) => error)
   );
 
   let highest_error_index = errors?.findIndex((error) => error);
@@ -264,7 +262,7 @@ async function getMatchingPathData({
   }
 
   const import_url_strings = (matching_paths || [])?.map(
-    (path) => path.importUrlString,
+    (path) => path.importUrlString
   );
 
   const should_render_loader_error =

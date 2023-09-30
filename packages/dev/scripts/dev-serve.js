@@ -9,7 +9,7 @@ function set_env_and_run_command(env_var, env_value, command, args) {
       process.cwd(),
       "node_modules",
       ".bin",
-      command,
+      command
     );
     const env = { ...process.env, [env_var]: env_value };
 

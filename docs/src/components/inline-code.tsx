@@ -16,7 +16,7 @@ function InlineCode({
         high_contrast
           ? "bg-black text-white dark:bg-white dark:text-black"
           : "bg-[#7772] dark:bg-[#7773] rounded",
-        rest.class,
+        rest.class
       )}
     >
       {children}

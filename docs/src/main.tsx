@@ -145,7 +145,7 @@ if (IS_DEV) {
     console.log(
       `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
         info.port
-      }\n`,
+      }\n`
     );
   });
 }

@@ -11,7 +11,7 @@ async function warm_css_files() {
   if (critical_css === undefined) {
     const critical_css_path = path.join(
       ROOT_DIRNAME,
-      "critical-bundled-css.js",
+      "critical-bundled-css.js"
     );
 
     critical_css = (await import(pathToFileURL(critical_css_path).href))
@@ -21,7 +21,7 @@ async function warm_css_files() {
   if (standard_bundled_css_exists === undefined) {
     const standard_bundled_css_exists_path = path.join(
       ROOT_DIRNAME,
-      "standard-bundled-css-exists.js",
+      "standard-bundled-css-exists.js"
     );
 
     standard_bundled_css_exists = (

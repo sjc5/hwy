@@ -15,7 +15,7 @@ async function warm_public_file_maps() {
   if (!reverse_public_map) {
     const reverse_public_map_path = path.join(
       ROOT_DIRNAME,
-      "public-reverse-map.js",
+      "public-reverse-map.js"
     );
     const _path = pathToFileURL(reverse_public_map_path).href;
     reverse_public_map = (await import(_path)).default;

@@ -80,6 +80,6 @@ serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(
     `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
       info.port
-    }\n`,
+    }\n`
   );
 });

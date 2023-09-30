@@ -25,7 +25,7 @@ const public_paths = Object.keys(
     await import(
       pathToFileURL(path.join(process.cwd(), "dist", "public-map.js"))
     )
-  ).default,
+  ).default
 ).map((x) => "../" + x);
 
 const other_paths = [
@@ -40,5 +40,5 @@ fs.writeFileSync(
   "./dist/main.js",
   fs.readFileSync("./dist/main.js", "utf8") +
     "\n" +
-    get_code([...page_paths, ...public_paths, ...other_paths]),
+    get_code([...page_paths, ...public_paths, ...other_paths])
 );

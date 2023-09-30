@@ -12,8 +12,8 @@ function stable_hash(obj: Record<string, any>): string {
           result[key] = obj[key];
           return result;
         },
-        {} as Record<string, any>,
-      ),
+        {} as Record<string, any>
+      )
   );
 }
 

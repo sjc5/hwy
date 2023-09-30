@@ -33,7 +33,7 @@ async function bundle_css_files() {
 
   async function build_standard_css() {
     const promises = await Promise.all(
-      standard_css_paths.map((x) => fs.promises.readFile(x, "utf-8")),
+      standard_css_paths.map((x) => fs.promises.readFile(x, "utf-8"))
     );
 
     const standard_css_text = promises.join("\n").replace(URL_REGEX, replacer);
@@ -51,14 +51,14 @@ async function bundle_css_files() {
 
       fs.writeFileSync(
         path.join(process.cwd(), "dist/standard-bundled-css-exists.js"),
-        "const x = true; export default x;",
+        "const x = true; export default x;"
       );
     }
   }
 
   async function build_critical_css() {
     const promises = await Promise.all(
-      critical_css_paths.map((x) => fs.promises.readFile(x, "utf-8")),
+      critical_css_paths.map((x) => fs.promises.readFile(x, "utf-8"))
     );
 
     const critical_css_text = promises.join("\n").replace(URL_REGEX, replacer);
@@ -82,12 +82,12 @@ async function bundle_css_files() {
 
       fs.writeFileSync(
         path.join(process.cwd(), "dist/critical-bundled-css.js"),
-        `const x = \`${css}\`; export default x;`,
+        `const x = \`${css}\`; export default x;`
       );
     } else {
       fs.writeFileSync(
         path.join(process.cwd(), "dist/critical-bundled-css.js"),
-        `const x = undefined; export default x;`,
+        `const x = undefined; export default x;`
       );
     }
   }

@@ -1,6 +1,6 @@
 function AnchorHeading({ content }: { content: string }) {
   const slugified = encodeURIComponent(
-    content.toLowerCase().replace(/ /g, "-"),
+    content.toLowerCase().replace(/ /g, "-")
   );
 
   return (

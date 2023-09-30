@@ -120,7 +120,7 @@ async function write_paths_to_file() {
   const output_dir = path.join(process.cwd(), "dist");
   fs.writeFileSync(
     path.join(output_dir, "paths.js"),
-    `export default ${JSON.stringify(paths)}`,
+    `export default ${JSON.stringify(paths)}`
   );
 }
 
@@ -143,7 +143,7 @@ async function generate_public_file_map() {
       const src_entry = path.join(src_dir, entry.name);
       const relative_entry = path.join(
         "public",
-        path.relative(src_path, src_entry),
+        path.relative(src_path, src_entry)
       );
 
       if (entry.isDirectory()) {
@@ -157,8 +157,8 @@ async function generate_public_file_map() {
           "public",
           path.relative(
             src_path,
-            src_entry.replace(basename + extname, hashed_filename),
-          ),
+            src_entry.replace(basename + extname, hashed_filename)
+          )
         );
         file_map[relative_entry] = hashed_relative_path;
         reverse_file_map[hashed_relative_path] = relative_entry;
@@ -177,12 +177,12 @@ async function generate_public_file_map() {
     fs.promises.writeFile(
       map_file_path,
       `export default ${JSON.stringify(file_map)};`,
-      "utf-8",
+      "utf-8"
     ),
     fs.promises.writeFile(
       reverse_map_file_path,
       `export default ${JSON.stringify(reverse_file_map)};`,
-      "utf-8",
+      "utf-8"
     ),
   ]);
 }
