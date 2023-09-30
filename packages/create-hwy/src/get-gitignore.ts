@@ -1,4 +1,4 @@
-import { Options } from './types.js'
+import { Options } from "./types.js";
 
 function get_gitignore(options: Options) {
   let text = `
@@ -20,24 +20,24 @@ public/dist
 .env
 .env.local
 
-`.trim()
+`.trim();
 
-  if (options.deployment_target === 'vercel') {
+  if (options.deployment_target === "vercel") {
     const vercel_text = `\n\n# vercel
 api/**/*
-!api/main.js\n\n`
+!api/main.js\n\n`;
 
-    text += vercel_text
+    text += vercel_text;
   }
 
-  if (options.css_preference === 'tailwind') {
+  if (options.css_preference === "tailwind") {
     const tw_text = `\n\n# tailwind artifacts
-src/styles/tw-output.bundle.css\n\n`
+src/styles/tw-output.bundle.css\n\n`;
 
-    text += tw_text
+    text += tw_text;
   }
 
-  return text.trim() + '\n'
+  return text.trim() + "\n";
 }
 
-export { get_gitignore }
+export { get_gitignore };

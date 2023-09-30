@@ -1,5 +1,7 @@
 function AnchorHeading({ content }: { content: string }) {
-  const slugified = encodeURIComponent(content.toLowerCase().replace(/ /g, '-'))
+  const slugified = encodeURIComponent(
+    content.toLowerCase().replace(/ /g, "-"),
+  );
 
   return (
     <div class="flex gap-3 text-xl font-bold pt-4" id={slugified}>
@@ -11,7 +13,7 @@ function AnchorHeading({ content }: { content: string }) {
       </a>
       {content}
     </div>
-  )
+  );
 }
 
-export { AnchorHeading }
+export { AnchorHeading };

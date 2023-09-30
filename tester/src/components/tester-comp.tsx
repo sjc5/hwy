@@ -1,9 +1,9 @@
-import { PageProps } from 'hwy'
+import { PageProps } from "hwy";
 
 async function TesterComp({ outlet, params, splatSegments }: PageProps) {
-  let pathname = new URL(import.meta.url).pathname
-  pathname = pathname.split('/dist/pages')[1]
-  const is_splat = pathname.endsWith('$.js')
+  let pathname = new URL(import.meta.url).pathname;
+  pathname = pathname.split("/dist/pages")[1];
+  const is_splat = pathname.endsWith("$.js");
 
   return (
     <div class="tester-comp-wrapper">
@@ -17,7 +17,7 @@ async function TesterComp({ outlet, params, splatSegments }: PageProps) {
 
       <div class="outlet-wrapper">{await outlet()}</div>
     </div>
-  )
+  );
 }
 
-export { TesterComp }
+export { TesterComp };

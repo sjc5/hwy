@@ -1,24 +1,24 @@
-import { HeadFunction, HeadProps } from 'hwy'
-import { CodeBlock } from '../components/code-block.js'
-import { AnchorHeading } from '../components/anchor-heading.js'
-import { Paragraph } from '../components/paragraph.js'
-import { InlineCode } from '../components/inline-code.js'
-import { ListItem, UnorderedList } from '../components/unordered-list.js'
-import { Boldtalic } from '../components/bold-italic.js'
+import { HeadFunction, HeadProps } from "hwy";
+import { CodeBlock } from "../components/code-block.js";
+import { AnchorHeading } from "../components/anchor-heading.js";
+import { Paragraph } from "../components/paragraph.js";
+import { InlineCode } from "../components/inline-code.js";
+import { ListItem, UnorderedList } from "../components/unordered-list.js";
+import { Boldtalic } from "../components/bold-italic.js";
 
 export const head: HeadFunction = () => {
   return [
-    { title: 'Hwy Framework Docs' },
+    { title: "Hwy Framework Docs" },
     {
-      tag: 'meta',
+      tag: "meta",
       props: {
-        name: 'description',
+        name: "description",
         content:
-          'Documentation for the Hwy framework, a simple, lightweight alternative to NextJS, based on HTMX.',
+          "Documentation for the Hwy framework, a simple, lightweight alternative to NextJS, based on HTMX.",
       },
     },
-  ]
-}
+  ];
+};
 
 export default function () {
   return (
@@ -76,16 +76,16 @@ root
           <ListItem>
             Pages should include <InlineCode>.page.</InlineCode> (e.g.,
             <InlineCode>about.page.tsx</InlineCode>) in the filename. If you
-            want co-location in this directory, you can always just exclude the{' '}
+            want co-location in this directory, you can always just exclude the{" "}
             <InlineCode>.page.</InlineCode> part in any filename (e.g.,
             <InlineCode>about-components.tsx</InlineCode>).
           </ListItem>
 
           <ListItem>
             Directory names will become part of the path, unless they are
-            prefixed with double underscores. For example, if you have a{' '}
+            prefixed with double underscores. For example, if you have a{" "}
             <InlineCode>src/pages/foo</InlineCode> directory, and a file inside
-            the <InlineCode>foo</InlineCode> directory called{' '}
+            the <InlineCode>foo</InlineCode> directory called{" "}
             <InlineCode>bar.page.tsx</InlineCode> (
             <InlineCode>/src/pages/foo/bar.page.tsx</InlineCode>
             ), the path would be <InlineCode>example.com/foo/bar</InlineCode>.
@@ -97,7 +97,7 @@ root
           <ListItem>
             If you want a default index page inside at any route, just include
             an <InlineCode>_index.page.tsx</InlineCode> file in that directory.
-            This includes the <InlineCode>pages</InlineCode> directory itself;{' '}
+            This includes the <InlineCode>pages</InlineCode> directory itself;{" "}
             <InlineCode>/src/pages/_index.page.tsx</InlineCode> will be the
             default route for your site.
           </ListItem>
@@ -106,14 +106,14 @@ root
             If you want to include a layout for a route (e.g., a sidebar or
             sub-navigation), include a file with the same name as the directory
             (but with <InlineCode>.page.tsx</InlineCode> included) as a sibling
-            to the route directory. For example, if you have a route at{' '}
+            to the route directory. For example, if you have a route at{" "}
             <InlineCode>/foo/bar</InlineCode>, you can include a layout at
             <InlineCode>/src/pages/foo/bar.page.tsx</InlineCode> and a default
             page at <InlineCode>/src/pages/foo/bar/_index.page.tsx</InlineCode>.
             Note that any layouts for your main home page (
             <InlineCode>src/_index.page.tsx</InlineCode>), such as a global
             navigation header, should be inserted into your root component that
-            is rendered from your main server entry point (i.e.,{' '}
+            is rendered from your main server entry point (i.e.,{" "}
             <InlineCode>src/main.tsx</InlineCode>).
           </ListItem>
 
@@ -121,18 +121,18 @@ root
             If you want to include dynamic child routes, you can just prefix the
             file name with a dollar sign (<InlineCode>$</InlineCode>). For
             example, if you have a route at <InlineCode>/foo/bar</InlineCode>,
-            you can include a dynamic child route at{' '}
+            you can include a dynamic child route at{" "}
             <InlineCode>/src/pages/foo/bar/$id.page.tsx</InlineCode>. This will
-            match any route that starts with <InlineCode>/foo/bar/</InlineCode>{' '}
+            match any route that starts with <InlineCode>/foo/bar/</InlineCode>{" "}
             and will pass the id as a parameter to the page (including the
-            page's loader, action, and component... more on this later). The{' '}
+            page's loader, action, and component... more on this later). The{" "}
             <InlineCode>/foo/bar</InlineCode> route will still render the index
             page, if you have one.
             <br />
             <br />
             NOTE: One "gotcha" with this is that you need to use a string that
             would be safe to use as a JavaScript variable for your dynamic
-            properties. For example,{' '}
+            properties. For example,{" "}
             <InlineCode>/src/pages/$user_id.page.tsx</InlineCode> would be fine,
             but <InlineCode>/src/pages/$user-id.page.tsx</InlineCode> would not.
           </ListItem>
@@ -142,7 +142,7 @@ root
             file named simply <InlineCode>$.page.tsx</InlineCode>. This will
             match any route that hasn't already been matched by a more specific
             route. You can also include a top-level 404 page by including a file
-            named <InlineCode>$.page.tsx</InlineCode> in{' '}
+            named <InlineCode>$.page.tsx</InlineCode> in{" "}
             <InlineCode>src/pages</InlineCode>. Any splat parameters "caught" by
             one of these routes will be passed into the page.
           </ListItem>
@@ -152,7 +152,7 @@ root
       <Paragraph>
         Pages are very simple as well. They are simply JSX components default
         exported from a page route file. Again, a page route file is any file in
-        the <InlineCode>src/pages</InlineCode> directory that includes{' '}
+        the <InlineCode>src/pages</InlineCode> directory that includes{" "}
         <InlineCode>.page.</InlineCode> in the filename. For example,
         <InlineCode>src/pages/about.page.tsx</InlineCode> is a page file.
       </Paragraph>
@@ -200,65 +200,65 @@ export default function ({
           <ListItem>
             <InlineCode>c</InlineCode> - This is the Hono Context object. It
             contains the request and response objects, as well as some other
-            useful properties and methods. See the{' '}
+            useful properties and methods. See the{" "}
             <a href="https://hono.dev" target="_blank" class="underline">
               Hono docs
-            </a>{' '}
+            </a>{" "}
             for more info.
           </ListItem>
 
           <ListItem>
             <InlineCode>loaderData</InlineCode> - This is the data returned from
-            the route loader. If you aren't using a route loader, this will be{' '}
+            the route loader. If you aren't using a route loader, this will be{" "}
             <InlineCode>undefined</InlineCode>. If you are using a route loader
-            and pass in <InlineCode>typeof loader</InlineCode> as a generic to{' '}
+            and pass in <InlineCode>typeof loader</InlineCode> as a generic to{" "}
             <InlineCode>PageProps</InlineCode>, this will be 100% type-safe.
           </ListItem>
 
           <ListItem>
-            <InlineCode>actionData</InlineCode> - Same as{' '}
+            <InlineCode>actionData</InlineCode> - Same as{" "}
             <InlineCode>loaderData</InlineCode>, except in this case the data
             comes from your route's action, if applicable. If you are using a
             route action but <Boldtalic>not</Boldtalic> a route loader, this is
-            how you'd handle the generics:{' '}
+            how you'd handle the generics:{" "}
             <InlineCode>{`PageProps<never, typeof action>`}</InlineCode>.
           </ListItem>
 
           <ListItem>
             <InlineCode>outlet</InlineCode> - This is the outlet for the page,
             and it's where child routes get rendered. Because page components
-            are async, you should render outlets like this:{' '}
+            are async, you should render outlets like this:{" "}
             <InlineCode>{`{await outlet()}`}</InlineCode>, regardless of whether
             you're actually doing anything asynchronous inside of them.
           </ListItem>
 
           <ListItem>
             <InlineCode>params</InlineCode> - This is an object containing any
-            parameters passed to the page. For example, if you have a page at{' '}
-            <InlineCode>src/pages/foo/bar/$id.page.tsx</InlineCode>, the{' '}
+            parameters passed to the page. For example, if you have a page at{" "}
+            <InlineCode>src/pages/foo/bar/$id.page.tsx</InlineCode>, the{" "}
             <InlineCode>params</InlineCode> object will contain a property
-            called <InlineCode>id</InlineCode> with the value of the{' '}
+            called <InlineCode>id</InlineCode> with the value of the{" "}
             <InlineCode>id</InlineCode> parameter. In other words, if the user
             visits the route <InlineCode>example.com/foo/bar/123</InlineCode>,
-            the <InlineCode>params</InlineCode> object will be{' '}
+            the <InlineCode>params</InlineCode> object will be{" "}
             <InlineCode>{`{ id: '123' }`}</InlineCode>.
           </ListItem>
 
           <ListItem>
             <InlineCode>splatSegments</InlineCode> - This is an array of any
             "splat" segments caught by the "deepest" splat route. For example,
-            if you have a page at{' '}
+            if you have a page at{" "}
             <InlineCode>src/pages/foo/bar/$.page.tsx</InlineCode> (a splat
-            route) and the user visits{' '}
-            <InlineCode>example.com/foo/bar/123/456</InlineCode>, the{' '}
-            <InlineCode>splatSegments</InlineCode> array will be{' '}
+            route) and the user visits{" "}
+            <InlineCode>example.com/foo/bar/123/456</InlineCode>, the{" "}
+            <InlineCode>splatSegments</InlineCode> array will be{" "}
             <InlineCode>{`['123', '456']`}</InlineCode>.
           </ListItem>
         </UnorderedList>
       </Paragraph>
       <Paragraph>
-        <InlineCode>PageProps</InlineCode> is also a generic type, which takes{' '}
-        <InlineCode>typeof loader</InlineCode> and{' '}
+        <InlineCode>PageProps</InlineCode> is also a generic type, which takes{" "}
+        <InlineCode>typeof loader</InlineCode> and{" "}
         <InlineCode>typeof action</InlineCode> as its two parameters,
         respectively. These are the types of the loader and action functions for
         the page (more on this later). If you aren't using data functions for a
@@ -285,8 +285,8 @@ export default function ({ c }: PageProps) {
       <AnchorHeading content="Page loaders" />
       <Paragraph>
         Page loaders are functions named "loader" that are exported from a page
-        file. They are passed a subset of the PageProps object:{' '}
-        <InlineCode>c</InlineCode>, <InlineCode>params</InlineCode>, and{' '}
+        file. They are passed a subset of the PageProps object:{" "}
+        <InlineCode>c</InlineCode>, <InlineCode>params</InlineCode>, and{" "}
         <InlineCode>splatSegments</InlineCode>. The typescript type exported by
         Hwy for this object is called <InlineCode>DataFunctionArgs</InlineCode>,
         which can take an optional generic of your Hono Env type (see the Hono
@@ -380,7 +380,7 @@ export default async function ({ outlet }: PageProps) {
       </Paragraph>
       <CodeBlock language="typescript" code={`{await outlet({ someData })}`} />
       <Paragraph>
-        And in the child component, you'll want to use{' '}
+        And in the child component, you'll want to use{" "}
         <InlineCode>{`PageProps & { someData: SomeType }`}</InlineCode> as your
         prop type.
       </Paragraph>
@@ -391,7 +391,7 @@ export default async function ({ outlet }: PageProps) {
         things might not render correctly.
       </Paragraph>
       <Paragraph>
-        Another way of doing this would be to use Hono's{' '}
+        Another way of doing this would be to use Hono's{" "}
         <InlineCode>c.set('some-key', someData)</InlineCode> feature. If you do
         that, any child component will be able to access the data without
         re-fetching via <InlineCode>c.get('some-key')</InlineCode>.
@@ -405,11 +405,11 @@ export default async function ({ outlet }: PageProps) {
         you want to log users in, mutate data in your database, etc.
       </Paragraph>
       <Paragraph>
-        Data returned from an action will be passed to the page component as the{' '}
-        <InlineCode>actionData</InlineCode> property on the{' '}
+        Data returned from an action will be passed to the page component as the{" "}
+        <InlineCode>actionData</InlineCode> property on the{" "}
         <InlineCode>PageProps</InlineCode> object. Unlike loaders, which are
         designed to run in parallel and pass different data to each nested
-        component, actions are called individually and return the same{' '}
+        component, actions are called individually and return the same{" "}
         <InlineCode>actionData</InlineCode> to all nested components.
       </Paragraph>
       <Paragraph>
@@ -443,7 +443,7 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
       />
       <Paragraph>
         This form uses 100% standard html attributes, and it will be
-        automatically progressively enhanced by HTMX (uses the{' '}
+        automatically progressively enhanced by HTMX (uses the{" "}
         <InlineCode>hx-boost</InlineCode> feature). If JavaScript doesn't load
         for some reason, it will fall back to traditional web behavior
         (full-page reload).
@@ -489,15 +489,15 @@ export function loader() {
       </Paragraph>
       <AnchorHeading content="Error boundaries" />
       <Paragraph>
-        Any Hwy page can export an <InlineCode>ErrorBoundary</InlineCode>{' '}
-        component, which takes the same parameters as{' '}
+        Any Hwy page can export an <InlineCode>ErrorBoundary</InlineCode>{" "}
+        component, which takes the same parameters as{" "}
         <InlineCode>loaders</InlineCode> and <InlineCode>actions</InlineCode>,
         as well as the error itself. The type for the ErrorBoundary component
         props is exported as <InlineCode>ErrorBoundaryProps</InlineCode>. If an
         error is thrown in the page or any of its children, the error will be
         caught and passed to the nearest applicable parent error boundary
         component. You can also pass a default error boundary component that
-        effectively wraps your outermost <InlineCode>rootOutlet</InlineCode> (in{' '}
+        effectively wraps your outermost <InlineCode>rootOutlet</InlineCode> (in{" "}
         <InlineCode>main.tsx</InlineCode>) like so:
       </Paragraph>
       <CodeBlock
@@ -618,8 +618,8 @@ app.all('*', async (c, next) => {
       </Paragraph>
       <AnchorHeading content="Document head (page metadata)" />
       <Paragraph>
-        Your document's <InlineCode>head</InlineCode> is rendered via the{' '}
-        <InlineCode>{`HeadElements`}</InlineCode> component in your{' '}
+        Your document's <InlineCode>head</InlineCode> is rendered via the{" "}
+        <InlineCode>{`HeadElements`}</InlineCode> component in your{" "}
         <InlineCode>main.tsx</InlineCode> file, like this:
       </Paragraph>
       <CodeBlock
@@ -677,7 +677,7 @@ export const head: HeadFunction = (props) => {
       />
       <Paragraph>
         This will override any conflicting head elements set either by an
-        ancestor page component or by the root defaults. The{' '}
+        ancestor page component or by the root defaults. The{" "}
         <InlineCode>head</InlineCode> function is passed all the same props as a
         page component, excluding <InlineCode>outlet</InlineCode>.
       </Paragraph>
@@ -686,22 +686,22 @@ export const head: HeadFunction = (props) => {
         Hwy includes built-in support for several CSS patterns, including a very
         convenient way to inline critical CSS. CSS is rendered into your app
         through the <InlineCode>CssImports</InlineCode> component. That
-        component in turn reads from the <InlineCode>src/styles</InlineCode>{' '}
+        component in turn reads from the <InlineCode>src/styles</InlineCode>{" "}
         directory, which is where you should put your CSS files. Inside the
-        styles directory, you can put two types of CSS files:{' '}
+        styles directory, you can put two types of CSS files:{" "}
         <InlineCode>critical</InlineCode> and <InlineCode>bundle</InlineCode>.
         Any files that include <InlineCode>.critical.</InlineCode> in the
         filename will be concatenated (sorted alphabetically by file name),
-        processed by esbuild, and inserted inline into the{' '}
-        <InlineCode>head</InlineCode> of your document. Any files that include{' '}
+        processed by esbuild, and inserted inline into the{" "}
+        <InlineCode>head</InlineCode> of your document. Any files that include{" "}
         <InlineCode>.bundle.</InlineCode> in the filename will similarly be
         concatenated (sorted alphabetically by file name), processed by esbuild,
-        and inserted as a standard linked stylesheet in the{' '}
+        and inserted as a standard linked stylesheet in the{" "}
         <InlineCode>head</InlineCode> of your document.
       </Paragraph>
       <Paragraph>
         It's also very easy to configure Tailwind, if that's your thing. To see
-        how this works, spin up a new project with{' '}
+        how this works, spin up a new project with{" "}
         <InlineCode>npx create-hwy@latest</InlineCode> and select "Tailwind"
         when prompted.
       </Paragraph>
@@ -715,7 +715,7 @@ export const head: HeadFunction = (props) => {
         access. This includes more traditional Node app hosting like Render.com
         or Railway.app, or Vercel (Lambda), or Deno Deploy. This should also
         include Bun once that ecosystem becomes more stable and has more hosting
-        options. Just choose your preferred deployment target when you run{' '}
+        options. Just choose your preferred deployment target when you run{" "}
         <InlineCode>npx create-hwy@latest</InlineCode>.
       </Paragraph>
       <Paragraph>
@@ -729,8 +729,8 @@ export const head: HeadFunction = (props) => {
       </Paragraph>
       <AnchorHeading content="Progressive enhancement" />
       <Paragraph>
-        When you included the <InlineCode>hx-boost</InlineCode> attribute on the{' '}
-        <InlineCode>body</InlineCode> tag (included by default when you use{' '}
+        When you included the <InlineCode>hx-boost</InlineCode> attribute on the{" "}
+        <InlineCode>body</InlineCode> tag (included by default when you use{" "}
         <InlineCode>getDefaultBodyProps</InlineCode>), anchor tags (links) and
         form submissions will be automatically progressively enhanced. For
         forms, include the traditional attributes, like this:
@@ -760,7 +760,7 @@ export const head: HeadFunction = (props) => {
       <AnchorHeading content="Using Hwy without HTMX" />
       <Paragraph>
         If you would like to use Hwy like a traditional MPA framework, and skip
-        using HTMX, you can do so simply by excluding HTMX from your{' '}
+        using HTMX, you can do so simply by excluding HTMX from your{" "}
         <InlineCode>src/client.entry.ts</InlineCode> file.
       </Paragraph>
       <AnchorHeading content="Security" />
@@ -799,9 +799,9 @@ export const head: HeadFunction = (props) => {
       </UnorderedList>
       <AnchorHeading content="Self-vendoring" />
       <Paragraph>
-        If you would like to self-vendor your dependencies instead of using a{' '}
+        If you would like to self-vendor your dependencies instead of using a{" "}
         <InlineCode>src/client.entry.ts</InlineCode> file (which is bundled with
-        esbuild), you can do so simply by including your dependencies in the{' '}
+        esbuild), you can do so simply by including your dependencies in the{" "}
         <InlineCode>/public</InlineCode> directory and referencing them in a
         script. For example:
         <CodeBlock
@@ -833,5 +833,5 @@ export const head: HeadFunction = (props) => {
         <ListItem>What else? You tell me!</ListItem>
       </UnorderedList>
     </div>
-  )
+  );
 }

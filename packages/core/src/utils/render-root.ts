@@ -1,6 +1,6 @@
-import type { HtmlEscapedString } from 'hono/utils/html'
-import type { Context, Next } from 'hono'
-import { getMatchingPathData } from '../router/get-matching-path-data.js'
+import type { HtmlEscapedString } from "hono/utils/html";
+import type { Context, Next } from "hono";
+import { getMatchingPathData } from "../router/get-matching-path-data.js";
 
 async function renderRoot(
   c: Context,
@@ -8,22 +8,22 @@ async function renderRoot(
   rootMarkup: ({
     activePathData,
   }: {
-    activePathData: Awaited<ReturnType<typeof getMatchingPathData>>
+    activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
   }) => Promise<HtmlEscapedString>,
 ) {
-  const activePathData = await getMatchingPathData({ c })
+  const activePathData = await getMatchingPathData({ c });
 
   if (activePathData.fetchResponse) {
-    return activePathData.fetchResponse
+    return activePathData.fetchResponse;
   }
 
   if (!activePathData.matchingPaths?.length) {
-    return await next()
+    return await next();
   }
 
-  const markup = await rootMarkup({ activePathData })
+  const markup = await rootMarkup({ activePathData });
 
-  return c.html(`<!DOCTYPE html>` + markup)
+  return c.html(`<!DOCTYPE html>` + markup);
 }
 
-export { renderRoot }
+export { renderRoot };

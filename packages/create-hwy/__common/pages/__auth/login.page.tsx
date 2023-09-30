@@ -1,51 +1,51 @@
-import { DataFunctionArgs, PageProps } from 'hwy'
-import { extractSimpleFormData } from '../../utils/extract-simple-form-data.js'
+import { DataFunctionArgs, PageProps } from "hwy";
+import { extractSimpleFormData } from "../../utils/extract-simple-form-data.js";
 
 export async function action({ c }: DataFunctionArgs) {
-  const data = await extractSimpleFormData<'email' | 'password'>({ c })
+  const data = await extractSimpleFormData<"email" | "password">({ c });
 
   if (!data.email || !data.password) {
     return {
       error: true,
-      message: 'Error: Please enter a valid email and password.',
-    }
+      message: "Error: Please enter a valid email and password.",
+    };
   }
 
-  if (!data.email.includes('.') || !data.email.includes('@')) {
+  if (!data.email.includes(".") || !data.email.includes("@")) {
     return {
       error: true,
-      message: 'Error: Please enter a valid email address.',
-    }
+      message: "Error: Please enter a valid email address.",
+    };
   }
 
   if (data.password.length < 4) {
     return {
       error: true,
-      message: 'Error: Please enter a password that is at least 4 characters.',
-    }
+      message: "Error: Please enter a password that is at least 4 characters.",
+    };
   }
 
   return {
-    email: '',
+    email: "",
     success: true,
     message: `Congrats! You are signed in as ${data.email}.`,
-  }
+  };
 }
 
-const thisRoute = '/login'
+const thisRoute = "/login";
 
 export default function ({ actionData }: PageProps<never, typeof action>) {
-  const colStyles = { display: 'flex', flexDirection: 'column', gap: '1.5rem' }
+  const colStyles = { display: "flex", flexDirection: "column", gap: "1.5rem" };
   const labelStyles = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-    fontSize: '0.9rem',
-  }
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.5rem",
+    fontSize: "0.9rem",
+  };
 
   return (
     <div style={colStyles}>
-      <h1 style={{ fontSize: '1.5rem' }}>Login</h1>
+      <h1 style={{ fontSize: "1.5rem" }}>Login</h1>
 
       <p>
         <b>NOTE:</b> This is a fake login form. It does not log you into
@@ -56,7 +56,7 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
       </p>
 
       <p>
-        This is coming from <code>src/pages/__auth/login.page.tsx</code>. The{' '}
+        This is coming from <code>src/pages/__auth/login.page.tsx</code>. The{" "}
         "__auth" part is a folder that is ignored because it is preceded by two
         underscores (i.e., "__"). This can help you to add arbitrary
         organization to your pages if you'd like.
@@ -96,11 +96,11 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
         <div
           style={
             actionData.error
-              ? { color: 'lightcoral' }
+              ? { color: "lightcoral" }
               : {
-                  color: 'lightgreen',
-                  fontSize: '1.5rem',
-                  fontWeight: 'bold',
+                  color: "lightgreen",
+                  fontSize: "1.5rem",
+                  fontWeight: "bold",
                 }
           }
         >
@@ -114,5 +114,5 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
         </a>
       )}
     </div>
-  )
+  );
 }

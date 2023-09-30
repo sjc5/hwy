@@ -1,1 +1,1 @@
-import 'htmx.org'
+import "htmx.org";

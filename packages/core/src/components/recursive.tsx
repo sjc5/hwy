@@ -1,32 +1,32 @@
-import { Context } from 'hono'
-import { getMatchingPathData } from '../router/get-matching-path-data.js'
-import type { HtmlEscapedString } from 'hono/utils/html'
+import { Context } from "hono";
+import { getMatchingPathData } from "../router/get-matching-path-data.js";
+import type { HtmlEscapedString } from "hono/utils/html";
 
 async function rootOutlet(props: {
-  activePathData: Awaited<ReturnType<typeof getMatchingPathData>>
-  index?: number
-  c: Context
+  activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
+  index?: number;
+  c: Context;
   fallbackErrorBoundary?: (props: {
-    error: Error
-    splatSegments: string[]
-    params: Record<string, string>
-    c: Context
-  }) => HtmlEscapedString
+    error: Error;
+    splatSegments: string[];
+    params: Record<string, string>;
+    c: Context;
+  }) => HtmlEscapedString;
 }): Promise<HtmlEscapedString> {
-  const { index, activePathData: active_path_data } = props
+  const { index, activePathData: active_path_data } = props;
 
-  const index_to_use = index ?? 0
+  const index_to_use = index ?? 0;
 
-  const current_active_path = active_path_data?.activePaths?.[index_to_use]
+  const current_active_path = active_path_data?.activePaths?.[index_to_use];
 
-  const CurrentComponent = active_path_data?.activeComponents?.[index_to_use]
+  const CurrentComponent = active_path_data?.activeComponents?.[index_to_use];
 
-  if (!CurrentComponent) return <></>
+  if (!CurrentComponent) return <></>;
 
-  const current_data = active_path_data?.activeData?.[index_to_use]
+  const current_data = active_path_data?.activeData?.[index_to_use];
 
   const this_is_an_error_boundary =
-    active_path_data?.outermostErrorBoundaryIndex === index_to_use
+    active_path_data?.outermostErrorBoundaryIndex === index_to_use;
 
   try {
     if (
@@ -35,10 +35,10 @@ async function rootOutlet(props: {
     ) {
       const ErrorBoundary =
         active_path_data?.activeErrorBoundaries?.[index_to_use] ??
-        props.fallbackErrorBoundary
+        props.fallbackErrorBoundary;
 
       if (!ErrorBoundary) {
-        return <div>Error: No error boundary found.</div>
+        return <div>Error: No error boundary found.</div>;
       }
 
       return ErrorBoundary({
@@ -46,7 +46,7 @@ async function rootOutlet(props: {
         splatSegments: active_path_data?.splatSegments,
         params: active_path_data?.params,
         c: props.c,
-      })
+      });
     }
 
     return CurrentComponent({
@@ -60,24 +60,24 @@ async function rootOutlet(props: {
           activePathData: active_path_data,
           index: index_to_use + 1,
           c: props.c,
-        })
+        });
       },
       path: current_active_path,
       loaderData: current_data,
       actionData: active_path_data.actionData,
       error: active_path_data?.errorToRender,
-    })
+    });
   } catch (error) {
-    console.error(error)
+    console.error(error);
 
     const ErrorBoundary =
       active_path_data?.activeErrorBoundaries
         ?.splice(0, index_to_use + 1)
         ?.reverse()
-        ?.find((x) => x) ?? props.fallbackErrorBoundary
+        ?.find((x) => x) ?? props.fallbackErrorBoundary;
 
     if (!ErrorBoundary) {
-      return <div>Error: No error boundary found.</div>
+      return <div>Error: No error boundary found.</div>;
     }
 
     return await ErrorBoundary({
@@ -85,8 +85,8 @@ async function rootOutlet(props: {
       splatSegments: active_path_data?.splatSegments,
       params: active_path_data?.params,
       c: props.c,
-    })
+    });
   }
 }
 
-export { rootOutlet }
+export { rootOutlet };

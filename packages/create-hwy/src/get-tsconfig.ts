@@ -1,5 +1,5 @@
-import { Options } from './types.js'
-import { target_is_deno } from './utils.js'
+import { Options } from "./types.js";
+import { target_is_deno } from "./utils.js";
 
 const ts_config = `
 {
@@ -16,7 +16,7 @@ const ts_config = `
     "jsxImportSource": "hono/jsx"
   },
   "exclude": ["node_modules", "dist"]
-}`
+}`;
 
 const js_config = `
 {
@@ -24,7 +24,7 @@ const js_config = `
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   }
-}`
+}`;
 
 const deno_config = `
 {
@@ -32,18 +32,18 @@ const deno_config = `
     "jsx": "react-jsx",
     "jsxImportSource": "npm:hono/jsx"
   }
-}`
+}`;
 
 function get_ts_config(options: Options) {
-  if (options.lang_preference === 'javascript') {
-    return js_config.trim() + '\n'
+  if (options.lang_preference === "javascript") {
+    return js_config.trim() + "\n";
   }
 
   if (target_is_deno(options)) {
-    return deno_config.trim() + '\n'
+    return deno_config.trim() + "\n";
   }
 
-  return ts_config.trim() + '\n'
+  return ts_config.trim() + "\n";
 }
 
-export { get_ts_config }
+export { get_ts_config };

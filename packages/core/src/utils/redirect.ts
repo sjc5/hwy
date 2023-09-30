@@ -1,4 +1,4 @@
-import type { Context } from 'hono'
+import type { Context } from "hono";
 
 // public
 function redirect({
@@ -6,23 +6,23 @@ function redirect({
   to,
   status,
 }: {
-  c: Context
-  to: string
-  status?: number
+  c: Context;
+  to: string;
+  status?: number;
 }) {
-  if (c.req.headers.get('HX-Request')) {
-    if (to.startsWith('http')) {
-      c.res.headers.set('HX-Redirect', to)
-      return c.res
+  if (c.req.headers.get("HX-Request")) {
+    if (to.startsWith("http")) {
+      c.res.headers.set("HX-Redirect", to);
+      return c.res;
     }
 
-    const status_as_string = status?.toString().trim()
+    const status_as_string = status?.toString().trim();
 
     if (
       status_as_string &&
-      (!status_as_string.startsWith('3') || status_as_string.length !== 3)
+      (!status_as_string.startsWith("3") || status_as_string.length !== 3)
     ) {
-      throw new Error('You must use a 3xx status code when redirecting')
+      throw new Error("You must use a 3xx status code when redirecting");
     }
 
     return new Response(null, {
@@ -30,10 +30,10 @@ function redirect({
       headers: {
         Location: to,
       },
-    })
+    });
   }
 
-  return c.redirect(to)
+  return c.redirect(to);
 }
 
-export { redirect }
+export { redirect };
