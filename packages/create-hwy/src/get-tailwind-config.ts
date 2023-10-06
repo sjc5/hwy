@@ -1,10 +1,10 @@
 import { Options } from "./types.js";
 
-const ts_import = `import type { Config } from 'tailwindcss'\n\n`;
+const ts_import = `import type { Config } from "tailwindcss"\n\n`;
 
 let tailwind_config = `export default {
-  darkMode: 'media',
-  content: ['./src/**/*.{__REPLACE_ME__}'],
+  darkMode: "media",
+  content: ["./src/**/*.{__REPLACE_ME__}"],
   theme: {
     extend: {},
   },

@@ -11,19 +11,19 @@ import {
   HeadElements,
   getDefaultBodyProps,
   renderRoot,
-} from 'hwy'
-import { Hono } from 'hono'
-import { logger } from 'hono/logger'
-import { secureHeaders } from 'hono/secure-headers'
+} from "hwy"
+import { Hono } from "hono"
+import { logger } from "hono/logger"
+import { secureHeaders } from "hono/secure-headers"
 `.trim();
 
 const node_imports = `
-import { serve } from '@hono/node-server'
-import { serveStatic } from '@hono/node-server/serve-static'
+import { serve } from "@hono/node-server"
+import { serveStatic } from "@hono/node-server/serve-static"
 `.trim();
 
 const deno_imports = `
-import { serveStatic } from 'hono/deno'
+import { serveStatic } from "hono/deno"
 `.trim();
 
 function get_main(options: Options) {
@@ -33,7 +33,7 @@ function get_main(options: Options) {
 
   if (options.deployment_target === "vercel") {
     imports =
-      imports + "\n" + "import { handle } from '@hono/node-server/vercel'";
+      imports + "\n" + `import { handle } from "@hono/node-server/vercel"`;
   }
 
   return (
@@ -41,7 +41,7 @@ function get_main(options: Options) {
     "\n\n" +
     (is_targeting_deno
       ? ""
-      : `const IS_DEV = process.env.NODE_ENV === 'development'\n\n`) +
+      : `const IS_DEV = process.env.NODE_ENV === "development"\n\n`) +
     `
 const app = new Hono()
 
@@ -50,15 +50,15 @@ await hwyInit({
   importMetaUrl: import.meta.url,
   serveStatic,${
     options.css_preference === "tailwind"
-      ? "\n  watchExclusions: ['src/styles/tw-output.bundle.css'],"
+      ? `\n  watchExclusions: ["src/styles/tw-output.bundle.css"],`
       : ""
   }
 })
 
-app.use('*', logger())
-app.get('*', secureHeaders())
+app.use("*", logger())
+app.get("*", secureHeaders())
 
-app.all('*', async (c, next) => {${
+app.all("*", async (c, next) => {${
       options.with_nprogress && !is_targeting_deno
         ? `\n  if (IS_DEV) await new Promise((r) => setTimeout(r, 150)) // simulate latency in dev\n`
         : ""
@@ -74,22 +74,22 @@ app.all('*', async (c, next) => {${
             c={c}
             activePathData={activePathData}
             defaults={[
-              { title: '${options.project_name}' },
+              { title: "${options.project_name}" },
               {
-                tag: 'meta',
+                tag: "meta",
                 props: {
-                  name: 'description',
-                  content: 'Take the Hwy!',
+                  name: "description",
+                  content: "Take the Hwy!",
                 },
               },
               {
-                tag: 'meta',
+                tag: "meta",
                 props: {
-                  name: 'htmx-config',
+                  name: "htmx-config",
                   content: JSON.stringify({
                     selfRequestsOnly: true,
                     refreshOnHistoryMiss: true,
-                    scrollBehavior: 'auto',
+                    scrollBehavior: "auto",
                   }),
                 },
               },
@@ -137,12 +137,12 @@ app.all('*', async (c, next) => {${
   })
 })
 
-app.notFound((c) => c.text('404 Not Found', 404))
+app.notFound((c) => c.text("404 Not Found", 404))
 
 
 app.onError((error, c) => {
   console.error(error)
-  return c.text('500 Internal Server Error', 500)
+  return c.text("500 Internal Server Error", 500)
 })
 
 ${
@@ -170,7 +170,7 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(
-    \`\\nListening on http://\${IS_DEV ? 'localhost' : info.address}:\${PORT}\\n\`
+    \`\\nListening on http://\${IS_DEV ? "localhost" : info.address}:\${PORT}\\n\`
   )
 })
 `.trim();

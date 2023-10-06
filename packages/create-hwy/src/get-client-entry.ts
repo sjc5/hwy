@@ -9,12 +9,12 @@ function get_client_entry(options: Options) {
 ${is_targeting_deno ? "// deno-lint-ignore-file\n" : ""}
 const __window = window as any
 
-import htmx from 'htmx.org'
+import htmx from "htmx.org"
 __window.htmx = htmx
 ${
   options.with_nprogress
     ? `
-import NProgress from 'nprogress'
+import NProgress from "nprogress"
 __window.NProgress = NProgress
 `
     : ``
@@ -24,7 +24,7 @@ ${
     ? `// @ts-ignore`
     : ``
 }
-import('htmx.org/dist/ext/head-support.js')
+import("htmx.org/dist/ext/head-support.js")
 `.trim() + "\n"
   );
 }

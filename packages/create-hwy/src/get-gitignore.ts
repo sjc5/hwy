@@ -31,8 +31,13 @@ api/**/*
   }
 
   if (options.css_preference === "tailwind") {
-    const tw_text = `\n\n# tailwind artifacts
+    let tw_text = `\n\n# tailwind artifacts
 src/styles/tw-output.bundle.css\n\n`;
+
+    if (options.deployment_target === "vercel") {
+      // to not double up the "\n\n"
+      tw_text = tw_text.trimStart();
+    }
 
     text += tw_text;
   }

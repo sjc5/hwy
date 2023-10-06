@@ -30,17 +30,17 @@ const vercel_add_on =
   `
 \`\`\`ts
 await hwyInit({
-app,
-importMetaUrl: import.meta.url,
-serveStatic,
-/*
-* The publicUrlPrefix makes the monorepo work with the public
-* folder when deployed with Vercel. If you aren't using a
-* monorepo (or aren't deploying to Vercel), you won't need
-* to add a publicUrlPrefix.
-*/
-publicUrlPrefix: process.env.NODE_ENV === 'production' ? 'docs/' : undefined,
-watchExclusions: ['src/styles/tw-output.bundle.css'],
+  app,
+  importMetaUrl: import.meta.url,
+  serveStatic,
+  /*
+  * The publicUrlPrefix makes the monorepo work with the public
+  * folder when deployed with Vercel. If you aren't using a
+  * monorepo (or aren't deploying to Vercel), you won't need
+  * to add a publicUrlPrefix.
+  */
+  publicUrlPrefix: process.env.NODE_ENV === "production" ? "docs/" : undefined,
+  watchExclusions: ["src/styles/tw-output.bundle.css"],
 })
 \`\`\`
 `.trim() +
