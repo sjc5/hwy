@@ -1,6 +1,4 @@
-import { PageProps } from "hwy";
-
-export default function ({ path }: PageProps) {
+export default function () {
   return (
     <div>
       <h2 class="text-6xl">404</h2>

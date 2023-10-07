@@ -38,20 +38,24 @@ async function hwyInit({
   app,
   importMetaUrl,
   serveStatic,
+  isDev,
   publicUrlPrefix,
   watchExclusions,
 }: {
   app: Hono<any>;
   importMetaUrl: string;
   serveStatic: ServeStaticFn;
+  isDev: boolean;
   publicUrlPrefix?: string;
   watchExclusions?: string[];
 }) {
   console.log("\nInitializing Hwy app...");
 
-  hwyDev?.devInit({ app, watchExclusions });
+  if (isDev) {
+    hwyDev?.devInit({ app, watchExclusions });
+  }
 
-  ROOT_DIRNAME = await dirname_from_import_meta(importMetaUrl);
+  ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl);
   PUBLIC_URL_PREFIX = publicUrlPrefix ?? "";
 
   await Promise.all([warm_public_file_maps(), warm_css_files()]);

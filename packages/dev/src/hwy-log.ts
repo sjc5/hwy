@@ -5,9 +5,7 @@ function hwy_log(...args: any[]) {
 }
 
 function log_perf(task_name: string, p0: number, p1: number) {
-  console.log(
-    `Completed ${task_name} in ${Math.round(p1 - p0).toFixed(0)}ms.\n`
-  );
+  hwy_log(`Completed ${task_name} in ${Math.round(p1 - p0).toFixed(0)}ms.`);
 }
 
 export { hwy_log, log_perf };

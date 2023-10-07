@@ -1,7 +1,6 @@
 import {
   hwyInit,
   CssImports,
-  getMatchingPathData,
   rootOutlet,
   hwyDev,
   ClientEntryScript,
@@ -16,10 +15,13 @@ import { Sidebar } from "./components/sidebar.js";
 
 const app = new Hono();
 
+const IS_DEV = process.env.NODE_ENV === "development";
+
 await hwyInit({
   app,
   importMetaUrl: import.meta.url,
   serveStatic,
+  isDev: IS_DEV,
 });
 
 const default_head_blocks: HeadBlock[] = [
@@ -73,7 +75,6 @@ app.all("*", async (c, next) => {
 
 app.notFound((c) => c.text("404 Not Found", 404));
 
-const IS_DEV = process.env.NODE_ENV === "development";
 const PORT = process.env.PORT ? Number(process.env.PORT) : 9999;
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {

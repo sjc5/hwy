@@ -2,7 +2,7 @@ import { Options } from "./types.js";
 import { target_is_deno } from "./utils.js";
 
 const VERSIONS = {
-  HWY: "^0.2.2-beta.13",
+  HWY: "^0.2.2-beta.21",
   HONO_NODE_SERVER: "^1.2.0",
   HONO: "^3.5.8",
   HTMX: "^1.9.6",
@@ -13,7 +13,6 @@ const VERSIONS = {
   NODE_TYPES: "^20.6.3",
   CROSS_ENV: "^7.0.3",
   ESBUILD: "^0.19.3",
-  NODEMON: "^3.0.1",
 } as const;
 
 export const LATEST_HWY_VERSION = VERSIONS.HWY;
@@ -51,7 +50,7 @@ function get_package_json(options: Options) {
           start: target_is_deno(options)
             ? "deno run -A dist/main.js"
             : "node dist/main.js",
-          dev: "hwy-dev-serve",
+          dev: target_is_deno(options) ? "hwy-dev-serve-deno" : "hwy-dev-serve",
         },
         dependencies: {
           ...(!is_targeting_deno
@@ -71,7 +70,6 @@ function get_package_json(options: Options) {
           "cross-env": VERSIONS.CROSS_ENV,
           esbuild: VERSIONS.ESBUILD,
           "htmx.org": VERSIONS.HTMX,
-          nodemon: VERSIONS.NODEMON,
           ...(options.with_nprogress ? { nprogress: VERSIONS.NPROGRESS } : {}),
           ...(options.css_preference === "tailwind"
             ? { tailwindcss: VERSIONS.TAILWIND }

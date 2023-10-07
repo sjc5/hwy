@@ -17,7 +17,6 @@
     "cross-env": "^7.0.3",
     "esbuild": "^0.19.3",
     "htmx.org": "^1.9.6",
-    "nodemon": "^3.0.1",
     "typescript": "^5.2.2"
   },
   "engines": {

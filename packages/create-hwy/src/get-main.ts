@@ -40,7 +40,7 @@ function get_main(options: Options) {
     imports.trim() +
     "\n\n" +
     (is_targeting_deno
-      ? ""
+      ? `const IS_DEV = Deno.env.get("IS_DEV")\n\n`
       : `const IS_DEV = process.env.NODE_ENV === "development"\n\n`) +
     `
 const app = new Hono()
@@ -52,14 +52,15 @@ await hwyInit({
     options.css_preference === "tailwind"
       ? `\n  watchExclusions: ["src/styles/tw-output.bundle.css"],`
       : ""
-  }
+  },
+  isDev: IS_DEV,
 })
 
 app.use("*", logger())
 app.get("*", secureHeaders())
 
 app.all("*", async (c, next) => {${
-      options.with_nprogress && !is_targeting_deno
+      options.with_nprogress
         ? `\n  if (IS_DEV) await new Promise((r) => setTimeout(r, 150)) // simulate latency in dev\n`
         : ""
     }
@@ -166,7 +167,7 @@ Deno.serve({ port: PORT }, app.fetch)
 `.trim();
 
 const serve_fn_node = `
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
+const PORT = process.env.PORT ? Number(process.env.PORT) : 8080
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(
@@ -177,7 +178,7 @@ serve({ fetch: app.fetch, port: PORT }, (info) => {
 
 const serve_fn_vercel = `
 if (IS_DEV) {
-  const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
+  const PORT = process.env.PORT ? Number(process.env.PORT) : 8080
 
   serve({ fetch: app.fetch, port: PORT }, () => {
     console.log(\`\\nListening on http://localhost:\${PORT}\\n\`)

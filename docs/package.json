@@ -12,16 +12,15 @@
     "@hono/node-server": "^1.2.0",
     "highlight.js": "^11.8.0",
     "hono": "^3.7.1",
-    "hwy": "0.2.2-beta.13"
+    "hwy": "0.2.2-beta.21"
   },
   "devDependencies": {
-    "@hwy-js/dev": "0.2.2-beta.13",
+    "@hwy-js/dev": "0.2.2-beta.21",
     "@types/node": "^20.6.3",
     "@types/nprogress": "^0.2.0",
     "cross-env": "^7.0.3",
     "esbuild": "^0.19.3",
     "htmx.org": "^1.9.6",
-    "nodemon": "^3.0.1",
     "nprogress": "^0.2.0",
     "tailwindcss": "^3.3.3",
     "typescript": "^5.2.2"

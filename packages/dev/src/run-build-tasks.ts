@@ -4,14 +4,13 @@ import { bundle_css_files } from "./bundle-css-files.js";
 import { generate_public_file_map, write_paths_to_file } from "./walk-pages.js";
 import { rimraf } from "rimraf";
 import esbuild from "esbuild";
-import { IS_DEV } from "./constants.js";
 import { hwy_log, log_perf } from "./hwy-log.js";
 import { exec as exec_callback } from "child_process";
 import { promisify } from "node:util";
 
 const exec = promisify(exec_callback);
 
-async function handle_prebuild() {
+async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
   try {
     const pkg_json = JSON.parse(
       fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8")
@@ -21,7 +20,7 @@ async function handle_prebuild() {
 
     if (!prebuild_script && !prebuild_dev_script) return;
 
-    const should_use_dev_script = IS_DEV && prebuild_dev_script;
+    const should_use_dev_script = is_dev && prebuild_dev_script;
 
     const script_to_run = should_use_dev_script
       ? prebuild_dev_script
@@ -39,13 +38,15 @@ async function handle_prebuild() {
   }
 }
 
-async function runBuildTasks(log?: string) {
+async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
+  const IS_DEV = isDev;
+
   hwy_log(`New build initiated${log ? ` (${log})` : ""}`);
 
   hwy_log(`Running pre-build tasks...`);
 
   const prebuild_p0 = performance.now();
-  await handle_prebuild();
+  await handle_prebuild({ is_dev: IS_DEV });
   const prebuild_p1 = performance.now();
   log_perf("pre-build tasks", prebuild_p0, prebuild_p1);
 

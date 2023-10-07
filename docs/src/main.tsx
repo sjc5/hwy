@@ -35,6 +35,7 @@ await hwyInit({
    */
   publicUrlPrefix: process.env.NODE_ENV === "production" ? "docs/" : undefined,
   watchExclusions: ["src/styles/tw-output.bundle.css"],
+  isDev: IS_DEV,
 });
 
 const default_head_blocks: HeadBlock[] = [
