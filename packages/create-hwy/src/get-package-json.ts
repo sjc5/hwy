@@ -2,7 +2,7 @@ import { Options } from "./types.js";
 import { target_is_deno } from "./utils.js";
 
 const VERSIONS = {
-  HWY: "^0.2.2-beta.21",
+  HWY: "^0.3.0-beta.0",
   HONO_NODE_SERVER: "^1.2.0",
   HONO: "^3.5.8",
   HTMX: "^1.9.6",
@@ -13,6 +13,7 @@ const VERSIONS = {
   NODE_TYPES: "^20.6.3",
   CROSS_ENV: "^7.0.3",
   ESBUILD: "^0.19.3",
+  BUN_TYPES: "^1.0.5-canary.20231007T140129",
 } as const;
 
 export const LATEST_HWY_VERSION = VERSIONS.HWY;
@@ -49,11 +50,13 @@ function get_package_json(options: Options) {
               : ""),
           start: target_is_deno(options)
             ? "deno run -A dist/main.js"
+            : options.deployment_target === "bun"
+            ? "bun dist/main.js"
             : "node dist/main.js",
           dev: target_is_deno(options) ? "hwy-dev-serve-deno" : "hwy-dev-serve",
         },
         dependencies: {
-          ...(!is_targeting_deno
+          ...(!is_targeting_deno && options.deployment_target !== "bun"
             ? { "@hono/node-server": VERSIONS.HONO_NODE_SERVER }
             : {}),
           hono: VERSIONS.HONO,
@@ -63,9 +66,17 @@ function get_package_json(options: Options) {
           "@hwy-js/dev": LATEST_HWY_VERSION,
           ...(options.lang_preference === "typescript"
             ? {
-                "@types/node": VERSIONS.NODE_TYPES,
-                "@types/nprogress": VERSIONS.NPROGRESS_TYPES,
+                ...(!is_targeting_deno && options.deployment_target !== "bun"
+                  ? { "@types/node": VERSIONS.NODE_TYPES }
+                  : {}),
+                ...(options.with_nprogress
+                  ? { "@types/nprogress": VERSIONS.NPROGRESS_TYPES }
+                  : {}),
               }
+            : {}),
+          ...(options.deployment_target === "bun" &&
+          options.lang_preference === "typescript"
+            ? { "bun-types": VERSIONS.BUN_TYPES }
             : {}),
           "cross-env": VERSIONS.CROSS_ENV,
           esbuild: VERSIONS.ESBUILD,
@@ -83,7 +94,7 @@ function get_package_json(options: Options) {
         },
       },
       null,
-      2
+      2,
     ) + "\n"
   );
 }

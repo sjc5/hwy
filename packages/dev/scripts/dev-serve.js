@@ -10,7 +10,7 @@ function set_env_and_run_command(env_var, env_value, command, args) {
       process.cwd(),
       "node_modules",
       ".bin",
-      command
+      command,
     );
     const env = { ...process.env, [env_var]: env_value };
 
@@ -82,7 +82,7 @@ let timeout;
 async function chokidar_watch() {
   const refresh_watcher = chokidar.watch(
     path.join(process.cwd(), ".dev/refresh.txt"),
-    { ignoreInitial: true }
+    { ignoreInitial: true },
   );
 
   refresh_watcher.on("all", async () => {
@@ -94,7 +94,7 @@ async function chokidar_watch() {
       run_command_with_spawn().catch((error) => {
         console.error(error);
       });
-    }, 0);
+    }, 1);
   });
 }
 

@@ -72,6 +72,15 @@ All you will need to do is update the entrypoint (near the bottom of the yaml fi
 to point to \`dist/main.js\`.
 `.trim();
 
+const bun_add_on = `
+To get started, run:
+
+\`\`\`sh
+bun i
+bun run --bun dev
+\`\`\`
+`.trim();
+
 function get_readme(options: Options) {
   if (options.deployment_target === "vercel") {
     readme += vercel_add_on;
@@ -89,6 +98,10 @@ function get_readme(options: Options) {
 
   if (options.deployment_target === "deno_deploy") {
     readme += "\n\n" + deno_deploy_add_on;
+  }
+
+  if (options.deployment_target === "bun") {
+    readme += "\n\n" + bun_add_on;
   }
 
   return readme.trim() + "\n";

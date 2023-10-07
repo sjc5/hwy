@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.2.2-beta.21",
+  "version": "0.3.0-beta.0",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -28,6 +28,7 @@
     "hono": "^3.7.1",
     "hwy": "workspace:*",
     "nprogress": "^0.2.0",
+    "prettier": "^3.0.3",
     "rimraf": "^5.0.1",
     "tailwindcss": "^3.3.3",
     "tsup": "^7.2.0",

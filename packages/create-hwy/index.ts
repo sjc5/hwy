@@ -16,18 +16,22 @@ import { transform } from "detype";
 import { get_gitignore } from "./src/get-gitignore.js";
 import { get_client_entry } from "./src/get-client-entry.js";
 import { target_is_deno } from "./src/utils.js";
+import { format } from "prettier";
 
 function dirname_from_import_meta(import_meta_url: string) {
   return path.dirname(fileURLToPath(import_meta_url));
 }
 
 const lang_choices = ["TypeScript", "JavaScript"] as const;
+
 const deployment_choices = [
   "Node",
-  "Vercel (Serverless)",
+  "Bun",
+  "Vercel (Node Serverless)",
   "Deno Deploy",
   "Deno",
 ] as const;
+
 const css_choices = ["Tailwind", "Vanilla"] as const;
 
 type Prompts = Parameters<(typeof inquirer)["prompt"]>[0];
@@ -110,12 +114,14 @@ async function main() {
     lang_preference:
       choices.lang_preference === "TypeScript" ? "typescript" : "javascript",
     deployment_target:
-      choices.deployment_target === "Vercel (Serverless)"
+      choices.deployment_target === "Vercel (Node Serverless)"
         ? "vercel"
         : choices.deployment_target === "Deno Deploy"
         ? "deno_deploy"
         : choices.deployment_target === "Deno"
         ? "deno"
+        : choices.deployment_target === "Bun"
+        ? "bun"
         : "node",
   };
 
@@ -148,8 +154,10 @@ async function main() {
     // ts-config (still needed for JavaScript to do JSX)
     fs.writeFileSync(
       path.join(new_dir_path, "tsconfig.json"),
-      get_ts_config(options),
-      "utf8"
+      await format(get_ts_config(options), {
+        parser: "json",
+      }),
+      "utf8",
     );
 
     // tailwind-config
@@ -158,25 +166,32 @@ async function main() {
         path.join(
           new_dir_path,
           "tailwind.config" +
-            (options.lang_preference === "typescript" ? ".ts" : ".js")
+            (options.lang_preference === "typescript" ? ".ts" : ".js"),
         ),
-        get_tailwind_config(options),
-        "utf8"
+        await format(get_tailwind_config(options), {
+          parser:
+            options.lang_preference === "typescript" ? "typescript" : "babel",
+        }),
+        "utf8",
       );
     }
 
     // readme
     fs.writeFileSync(
       path.join(new_dir_path, "README.md"),
-      get_readme(options),
-      "utf8"
+      await format(get_readme(options), {
+        parser: "markdown",
+      }),
+      "utf8",
     );
 
     // package-json
     fs.writeFileSync(
       path.join(new_dir_path, "package.json"),
-      get_package_json(options),
-      "utf8"
+      await format(get_package_json(options), {
+        parser: "json",
+      }),
+      "utf8",
     );
 
     async function handle_ts_or_js_file_copy({
@@ -193,7 +208,7 @@ async function main() {
         fs.writeFileSync(
           path.join(new_dir_path, destination_without_extension + ts_ext),
           code,
-          "utf8"
+          "utf8",
         );
       } else {
         const ext = is_jsx ? ".jsx" : ".js";
@@ -201,25 +216,24 @@ async function main() {
           code,
           destination_without_extension + ts_ext,
           {
-            prettierOptions: {
-              semi: false,
-              singleQuote: true,
-              tabWidth: 2,
-            },
-          }
+            prettierOptions: {},
+          },
         );
         str = str.replaceAll(".tsx", ".jsx"); // modifies file references in tutorial copy
         fs.writeFileSync(
           path.join(new_dir_path, destination_without_extension + ext),
           str,
-          "utf8"
+          "utf8",
         );
       }
     }
 
     // main
     await handle_ts_or_js_file_copy({
-      code: get_main(options),
+      code: await format(get_main(options), {
+        parser:
+          options.lang_preference === "typescript" ? "typescript" : "babel",
+      }),
       destination_without_extension: "src/main",
       is_jsx: true,
     });
@@ -228,37 +242,40 @@ async function main() {
     fs.writeFileSync(
       path.join(new_dir_path, ".gitignore"),
       get_gitignore(options),
-      "utf8"
+      "utf8",
     );
 
     // client-entry
     await handle_ts_or_js_file_copy({
-      code: get_client_entry(options),
+      code: await format(get_client_entry(options), {
+        parser:
+          options.lang_preference === "typescript" ? "typescript" : "babel",
+      }),
       destination_without_extension: "src/client.entry",
       is_jsx: false,
     });
 
     const root_dir_path = path.join(
       dirname_from_import_meta(import.meta.url),
-      `../`
+      `../`,
     );
 
     // public dir
     fs.cpSync(
       path.join(root_dir_path, "__public"),
       path.join(new_dir_path, "public"),
-      { recursive: true }
+      { recursive: true },
     );
 
     // styles
     fs.cpSync(
       path.join(root_dir_path, "__common/styles/global.critical.css"),
-      path.join(new_dir_path, "src/styles/global.critical.css")
+      path.join(new_dir_path, "src/styles/global.critical.css"),
     );
 
     let standard_styles = fs.readFileSync(
       path.join(root_dir_path, "__common/styles/tw-input.css"),
-      "utf8"
+      "utf8",
     );
 
     if (options.css_preference !== "tailwind") {
@@ -266,7 +283,7 @@ async function main() {
         `@tailwind base;
 @tailwind components;
 @tailwind utilities;\n\n`,
-        ""
+        "",
       );
     }
 
@@ -276,23 +293,23 @@ async function main() {
         "src/styles/" +
           (options.css_preference === "tailwind"
             ? "tw-input.css"
-            : "global.bundle.css")
+            : "global.bundle.css"),
       ),
       standard_styles,
-      "utf8"
+      "utf8",
     );
 
     if (options.with_nprogress) {
       fs.cpSync(
         path.join(root_dir_path, "__common/styles/nprogress.bundle.css"),
-        path.join(new_dir_path, "src/styles/nprogress.bundle.css")
+        path.join(new_dir_path, "src/styles/nprogress.bundle.css"),
       );
     }
 
     if (options.css_preference === "vanilla") {
       fs.cpSync(
         path.join(root_dir_path, "__common/styles/_preflight.bundle.css"),
-        path.join(new_dir_path, "src/styles/_preflight.bundle.css")
+        path.join(new_dir_path, "src/styles/_preflight.bundle.css"),
       );
     }
 
@@ -300,7 +317,7 @@ async function main() {
     await handle_ts_or_js_file_copy({
       code: fs.readFileSync(
         path.join(root_dir_path, "__common/utils/extract-simple-form-data.ts"),
-        "utf8"
+        "utf8",
       ),
       destination_without_extension: "src/utils/extract-simple-form-data",
       is_jsx: false,
@@ -321,12 +338,12 @@ async function main() {
         return handle_ts_or_js_file_copy({
           code: fs.readFileSync(
             path.join(root_dir_path, "__common/pages/" + page + ".tsx"),
-            "utf8"
+            "utf8",
           ),
           destination_without_extension: "src/pages/" + page,
           is_jsx: true,
         });
-      })
+      }),
     );
 
     if (options.lang_preference === "javascript") {
@@ -339,7 +356,7 @@ async function main() {
  * The tsconfig.json is needed for Hono JSX to work.
  */
         `.trim() + "\n",
-        "utf8"
+        "utf8",
       );
     }
 
@@ -348,7 +365,7 @@ async function main() {
       fs.writeFileSync(
         path.join(new_dir_path, "api/main.js"),
         "/* Commit this file to make Vercel happy. */\n",
-        "utf8"
+        "utf8",
       );
 
       const vercel_json =
@@ -364,7 +381,7 @@ async function main() {
       fs.writeFileSync(
         path.join(new_dir_path, "vercel.json"),
         vercel_json,
-        "utf8"
+        "utf8",
       );
     }
 
@@ -389,20 +406,20 @@ async function main() {
             },
           },
           null,
-          2
+          2,
         ) + "\n",
-        "utf8"
+        "utf8",
       );
     }
 
     console.log(
       pc.cyan(
         `\nNice. Your new Hwy project is ready to go.\n\nTo get started, run:\n\n  ${pc.green(
-          `cd ` + choices.new_dir_name + `\n  npm i\n  npm run dev`
+          `cd ` + choices.new_dir_name + `\n  npm i\n  npm run dev`,
         )}\n\nBe sure to check out the docs at ${pc.bold(
-          pc.underline(`https://hwy.dev`)
-        )}.\n\nHappy hacking!\n`
-      )
+          pc.underline(`https://hwy.dev`),
+        )}.\n\nHappy hacking!\n`,
+      ),
     );
   } catch (error) {
     console.error("An error occurred:", error);

@@ -11,39 +11,49 @@ import {
   HeadElements,
   getDefaultBodyProps,
   renderRoot,
-} from "hwy"
-import { Hono } from "hono"
-import { logger } from "hono/logger"
-import { secureHeaders } from "hono/secure-headers"
+} from "hwy";
+import { Hono } from "hono";
+import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
 `.trim();
 
 const node_imports = `
-import { serve } from "@hono/node-server"
-import { serveStatic } from "@hono/node-server/serve-static"
+import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 `.trim();
 
 const deno_imports = `
-import { serveStatic } from "hono/deno"
+import { serveStatic } from "hono/deno";
+`.trim();
+
+const bun_imports = `
+import { serveStatic } from "hono/bun";
 `.trim();
 
 function get_main(options: Options) {
   const is_targeting_deno = target_is_deno(options);
 
-  imports += "\n" + (is_targeting_deno ? deno_imports : node_imports);
+  imports +=
+    "\n" +
+    (is_targeting_deno
+      ? deno_imports
+      : options.deployment_target === "bun"
+      ? bun_imports
+      : node_imports);
 
   if (options.deployment_target === "vercel") {
     imports =
-      imports + "\n" + `import { handle } from "@hono/node-server/vercel"`;
+      imports + "\n" + `import { handle } from "@hono/node-server/vercel";`;
   }
 
   return (
     imports.trim() +
     "\n\n" +
     (is_targeting_deno
-      ? `const IS_DEV = Deno.env.get("IS_DEV")\n\n`
-      : `const IS_DEV = process.env.NODE_ENV === "development"\n\n`) +
+      ? `const IS_DEV = Deno.env.get("IS_DEV");\n\n`
+      : `const IS_DEV = process.env.NODE_ENV === "development";\n\n`) +
     `
-const app = new Hono()
+const app = new Hono();
 
 await hwyInit({
   app,
@@ -52,16 +62,16 @@ await hwyInit({
     options.css_preference === "tailwind"
       ? `\n  watchExclusions: ["src/styles/tw-output.bundle.css"],`
       : ""
-  },
+  }
   isDev: IS_DEV,
-})
+});
 
-app.use("*", logger())
-app.get("*", secureHeaders())
+app.use("*", logger());
+app.get("*", secureHeaders());
 
 app.all("*", async (c, next) => {${
       options.with_nprogress
-        ? `\n  if (IS_DEV) await new Promise((r) => setTimeout(r, 150)) // simulate latency in dev\n`
+        ? `\n  if (IS_DEV) await new Promise((r) => setTimeout(r, 150)); // simulate latency in dev\n`
         : ""
     }
   return await renderRoot(c, next, async ({ activePathData }) => {
@@ -134,23 +144,25 @@ app.all("*", async (c, next) => {${
           </main>
         </body>
       </html>
-    )
-  })
-})
+    );
+  });
+});
 
-app.notFound((c) => c.text("404 Not Found", 404))
+app.notFound((c) => c.text("404 Not Found", 404));
 
 
 app.onError((error, c) => {
-  console.error(error)
-  return c.text("500 Internal Server Error", 500)
-})
+  console.error(error);
+  return c.text("500 Internal Server Error", 500);
+});
 
 ${
   options.deployment_target === "vercel"
     ? serve_fn_vercel
     : is_targeting_deno
     ? serve_fn_deno
+    : options.deployment_target === "bun"
+    ? serve_fn_bun
     : serve_fn_node
 }
 `.trim() +
@@ -161,29 +173,40 @@ ${
 export { get_main };
 
 const serve_fn_deno = `
-const PORT = Deno.env.get("PORT") ? Number(Deno.env.get("PORT")) : 8080
+const PORT = Deno.env.get("PORT") ? Number(Deno.env.get("PORT")) : 8080;
 
-Deno.serve({ port: PORT }, app.fetch)
+Deno.serve({ port: PORT }, app.fetch);
 `.trim();
 
 const serve_fn_node = `
-const PORT = process.env.PORT ? Number(process.env.PORT) : 8080
+const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(
     \`\\nListening on http://\${IS_DEV ? "localhost" : info.address}:\${PORT}\\n\`
-  )
-})
+  );
+});
 `.trim();
 
 const serve_fn_vercel = `
 if (IS_DEV) {
-  const PORT = process.env.PORT ? Number(process.env.PORT) : 8080
+  const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
 
   serve({ fetch: app.fetch, port: PORT }, () => {
-    console.log(\`\\nListening on http://localhost:\${PORT}\\n\`)
-  })
+    console.log(\`\\nListening on http://localhost:\${PORT}\\n\`);
+  });
 }
 
-export default handle(app)
+export default handle(app);
+`.trim();
+
+const serve_fn_bun = `
+const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
+
+const server = Bun.serve({
+  port: PORT,
+  fetch: app.fetch,
+});
+
+console.log(\`\\nListening on http://\${server.hostname}:\${PORT}\\n\`);
 `.trim();
