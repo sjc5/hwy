@@ -6,7 +6,14 @@ function get_client_entry(options: Options) {
 
   return (
     `
-${is_targeting_deno ? "// deno-lint-ignore-file\n" : ""}
+${
+  is_targeting_deno
+    ? "// deno-lint-ignore-file\n"
+    : options.deployment_target === "bun" &&
+      options.lang_preference === "typescript"
+    ? `/// <reference lib="dom" />\n`
+    : ""
+}
 const __window = window as any;
 
 import htmx from "htmx.org";
