@@ -8,10 +8,10 @@ export default function () {
   return (
     <>
       <h1 class="text-3xl lg:text-4xl leading-snug lg:leading-normal opacity-[0.95] py-6">
-        Hwy is a <Boldtalic>lightweight</Boldtalic>,{" "}
-        <Boldtalic>flexible</Boldtalic>, and <Boldtalic>powerful</Boldtalic>{" "}
-        alternative to NextJS, based on <Boldtalic>HTMX</Boldtalic> instead of
-        React.
+        Hwy is a <Boldtalic>simple</Boldtalic>,{" "}
+        <Boldtalic>lightweight</Boldtalic>, and <Boldtalic>flexible</Boldtalic>{" "}
+        web framework, built on <Boldtalic>Hono</Boldtalic> and{" "}
+        <Boldtalic>HTMX</Boldtalic>.
       </h1>
 
       <div class="flex flex-col gap-4">

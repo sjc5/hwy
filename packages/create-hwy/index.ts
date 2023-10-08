@@ -412,10 +412,17 @@ async function main() {
       );
     }
 
+    const applicable_instructions =
+      options.deployment_target === "bun"
+        ? bun_instructions
+        : target_is_deno(options)
+        ? deno_instructions
+        : npm_instructions;
+
     console.log(
       pc.cyan(
         `\nNice. Your new Hwy project is ready to go.\n\nTo get started, run:\n\n  ${pc.green(
-          `cd ` + choices.new_dir_name + `\n  npm i\n  npm run dev`,
+          `cd ` + choices.new_dir_name + applicable_instructions,
         )}\n\nBe sure to check out the docs at ${pc.bold(
           pc.underline(`https://hwy.dev`),
         )}.\n\nHappy hacking!\n`,
@@ -425,5 +432,9 @@ async function main() {
     console.error("An error occurred:", error);
   }
 }
+
+const npm_instructions = `\n  npm i\n  npm run dev`;
+const deno_instructions = `\n  npm i\n  deno task dev`;
+const bun_instructions = `\n  bun i\n  bun run --bun dev`;
 
 await main();

@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/dev",
-  "version": "0.3.0-beta.0",
+  "version": "0.3.0-beta.1",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -32,13 +32,13 @@
     "dotenv": "^16.3.1",
     "picocolors": "^1.0.0",
     "readdirp": "^3.6.0",
-    "rimraf": "^5.0.1"
+    "rimraf": "^5.0.5"
   },
   "devDependencies": {
-    "@types/node": "^20.6.3",
+    "@types/node": "^20.8.3",
     "cross-env": "^7.0.3",
-    "esbuild": "^0.19.3",
-    "hono": "^3.7.1",
+    "esbuild": "^0.19.4",
+    "hono": "^3.7.5",
     "htmx.org": "^1.9.6",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"

@@ -41,7 +41,7 @@ await hwyInit({
   */
   publicUrlPrefix: process.env.NODE_ENV === "production" ? "docs/" : undefined,
   watchExclusions: ["src/styles/tw-output.bundle.css"],
-})
+});
 \`\`\`
 `.trim() +
   "\n\n" +

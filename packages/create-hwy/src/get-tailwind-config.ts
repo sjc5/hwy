@@ -1,6 +1,6 @@
 import { Options } from "./types.js";
 
-const ts_import = `import type { Config } from "tailwindcss"\n\n`;
+const ts_import = `import type { Config } from "tailwindcss";\n\n`;
 
 let tailwind_config = `export default {
   darkMode: "media",
@@ -19,9 +19,10 @@ function get_tailwind_config(options: Options) {
     tailwind_config =
       ts_import +
       tailwind_config.replace("__REPLACE_ME__", "ts,tsx") +
-      " satisfies Config\n";
+      " satisfies Config;\n";
   } else {
-    tailwind_config = tailwind_config.replace("__REPLACE_ME__", "js,jsx");
+    tailwind_config =
+      tailwind_config.replace("__REPLACE_ME__", "js,jsx") + ";\n";
   }
 
   return tailwind_config;
