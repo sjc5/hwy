@@ -1,5 +1,5 @@
 import { Options } from "./types.js";
-import { target_is_deno } from "./utils.js";
+import { get_is_target_deno } from "./utils.js";
 
 let imports = `
 import {
@@ -31,7 +31,7 @@ import { serveStatic } from "hono/bun";
 `.trim();
 
 function get_main(options: Options) {
-  const is_targeting_deno = target_is_deno(options);
+  const is_targeting_deno = get_is_target_deno(options);
 
   imports +=
     "\n" +

@@ -15,7 +15,7 @@ import { get_main } from "./src/get-main.js";
 import { transform } from "detype";
 import { get_gitignore } from "./src/get-gitignore.js";
 import { get_client_entry } from "./src/get-client-entry.js";
-import { target_is_deno } from "./src/utils.js";
+import { get_is_target_deno } from "./src/utils.js";
 import { format } from "prettier";
 
 function dirname_from_import_meta(import_meta_url: string) {
@@ -385,7 +385,7 @@ async function main() {
       );
     }
 
-    if (target_is_deno(options)) {
+    if (get_is_target_deno(options)) {
       fs.writeFileSync(
         path.join(new_dir_path, "deno.json"),
         JSON.stringify(
@@ -415,7 +415,7 @@ async function main() {
     const applicable_instructions =
       options.deployment_target === "bun"
         ? bun_instructions
-        : target_is_deno(options)
+        : get_is_target_deno(options)
         ? deno_instructions
         : npm_instructions;
 

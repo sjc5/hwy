@@ -1,5 +1,5 @@
 import { Options } from "./types.js";
-import { target_is_deno } from "./utils.js";
+import { get_is_target_deno } from "./utils.js";
 
 const ts_config = {
   compilerOptions: {
@@ -36,7 +36,7 @@ function get_ts_config(options: Options) {
     return JSON.stringify(js_config).trim() + "\n";
   }
 
-  if (target_is_deno(options)) {
+  if (get_is_target_deno(options)) {
     return JSON.stringify(deno_config).trim() + "\n";
   }
 

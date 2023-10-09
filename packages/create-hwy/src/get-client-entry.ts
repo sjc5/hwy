@@ -1,8 +1,8 @@
 import { Options } from "./types.js";
-import { target_is_deno } from "./utils.js";
+import { get_is_target_deno } from "./utils.js";
 
 function get_client_entry(options: Options) {
-  const is_targeting_deno = target_is_deno(options);
+  const is_targeting_deno = get_is_target_deno(options);
 
   return (
     `

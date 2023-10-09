@@ -1,5 +1,5 @@
 import { Options } from "./types.js";
-import { target_is_deno } from "./utils.js";
+import { get_is_target_deno } from "./utils.js";
 
 const VERSIONS = {
   HWY: "^0.3.0-beta.5",
@@ -28,7 +28,7 @@ function get_package_json(options: Options) {
     };
   }
 
-  const is_targeting_deno = target_is_deno(options);
+  const is_targeting_deno = get_is_target_deno(options);
 
   return (
     JSON.stringify(
@@ -48,12 +48,14 @@ function get_package_json(options: Options) {
               : options.deployment_target === "deno_deploy"
               ? " && hwy-deno-deploy-hack"
               : ""),
-          start: target_is_deno(options)
+          start: get_is_target_deno(options)
             ? "deno run -A dist/main.js"
             : options.deployment_target === "bun"
             ? "bun dist/main.js"
             : "node dist/main.js",
-          dev: target_is_deno(options) ? "hwy-dev-serve-deno" : "hwy-dev-serve",
+          dev: get_is_target_deno(options)
+            ? "hwy-dev-serve-deno"
+            : "hwy-dev-serve",
         },
         dependencies: {
           ...(!is_targeting_deno && options.deployment_target !== "bun"
