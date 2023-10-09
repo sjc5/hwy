@@ -4,8 +4,6 @@ Original license: MIT
 Copied from source on: August 21, 2023
 */
 
-import { hwy_log } from "./hwy-log.js";
-
 type ServerSentEvent = {
   id?: string;
   event?: string;
@@ -106,7 +104,6 @@ function server_sent_events(options: ServerSentEventsInit): Response {
     },
 
     cancel() {
-      hwy_log(`Dev live refresh stream canceled.`);
       callOnClose();
     },
   });

@@ -2,7 +2,7 @@ import path from "node:path";
 import type { HtmlEscapedString } from "hono/utils/html";
 import { getPublicUrl } from "../utils/hashed-public-url.js";
 import { ROOT_DIRNAME } from "../setup.js";
-import { pathToFileURL } from "node:url";
+import { path_to_file_url } from "../utils/url-polyfills.js";
 
 let critical_css: string | undefined;
 let standard_bundled_css_exists: boolean | undefined;
@@ -11,21 +11,21 @@ async function warm_css_files() {
   if (critical_css === undefined) {
     const critical_css_path = path.join(
       ROOT_DIRNAME,
-      "critical-bundled-css.js"
+      "critical-bundled-css.js",
     );
 
-    critical_css = (await import(pathToFileURL(critical_css_path).href))
+    critical_css = (await import(path_to_file_url(critical_css_path).href))
       .default;
   }
 
   if (standard_bundled_css_exists === undefined) {
     const standard_bundled_css_exists_path = path.join(
       ROOT_DIRNAME,
-      "standard-bundled-css-exists.js"
+      "standard-bundled-css-exists.js",
     );
 
     standard_bundled_css_exists = (
-      await import(pathToFileURL(standard_bundled_css_exists_path).href)
+      await import(path_to_file_url(standard_bundled_css_exists_path).href)
     ).default;
   }
 }

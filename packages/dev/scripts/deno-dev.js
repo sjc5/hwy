@@ -16,6 +16,7 @@ async function run_command_with_spawn() {
   const env = {
     ...Deno.env.toObject(),
     NODE_ENV: "development",
+    IS_DEV: "1",
   };
 
   const cmd = new Deno.Command(Deno.execPath(), {
@@ -39,7 +40,7 @@ async function start_watcher() {
 
       timeout = setTimeout(async () => {
         await run_command_with_spawn();
-      }, 1);
+      }, 100);
     }
   }
 }

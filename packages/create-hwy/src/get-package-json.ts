@@ -2,7 +2,7 @@ import { Options } from "./types.js";
 import { target_is_deno } from "./utils.js";
 
 const VERSIONS = {
-  HWY: "^0.3.0-beta.2",
+  HWY: "^0.3.0-beta.3",
   HONO_NODE_SERVER: "^1.2.0",
   HONO: "^3.7.5",
   HTMX: "^1.9.6",

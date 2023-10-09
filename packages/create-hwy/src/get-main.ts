@@ -50,7 +50,7 @@ function get_main(options: Options) {
     imports.trim() +
     "\n\n" +
     (is_targeting_deno
-      ? `const IS_DEV = Deno.env.get("IS_DEV");\n\n`
+      ? `const IS_DEV = Boolean(Deno.env.get("IS_DEV"));\n\n`
       : `const IS_DEV = process.env.NODE_ENV === "development";\n\n`) +
     `
 const app = new Hono();

@@ -8,10 +8,10 @@ import {
   get_serve_static_options,
 } from "./utils/hashed-public-url.js";
 import { warm_css_files } from "./components/css-imports.js";
-import { fileURLToPath } from "node:url";
+import { file_url_to_path } from "./utils/url-polyfills.js";
 
 function dirname_from_import_meta(import_meta_url: string) {
-  return path.dirname(fileURLToPath(import_meta_url));
+  return path.dirname(file_url_to_path(import_meta_url));
 }
 
 // although instantiated with let, this should only ever be set once inside hwyInit
