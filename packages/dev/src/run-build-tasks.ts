@@ -13,7 +13,7 @@ const exec = promisify(exec_callback);
 async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
   try {
     const pkg_json = JSON.parse(
-      fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8")
+      fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"),
     );
     const prebuild_script = pkg_json.scripts?.["hwy-prebuild"];
     const prebuild_dev_script = pkg_json.scripts?.["hwy-prebuild-dev"];
@@ -109,7 +109,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   if (IS_DEV) {
     fs.writeFileSync(
       path.join(process.cwd(), ".dev/refresh.txt"),
-      Date.now().toString()
+      Date.now().toString(),
     );
   }
 

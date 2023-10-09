@@ -45,13 +45,13 @@ async function hwyInit({
   app: Hono<any>;
   importMetaUrl: string;
   serveStatic: ServeStaticFn;
-  isDev: boolean;
+  isDev?: boolean;
   publicUrlPrefix?: string;
   watchExclusions?: string[];
 }) {
   console.log("\nInitializing Hwy app...");
 
-  if (isDev) {
+  if (isDev ?? process.env.NODE_ENV === "development") {
     hwyDev?.devInit({ app, watchExclusions });
   }
 

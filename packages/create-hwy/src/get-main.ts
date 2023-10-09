@@ -63,7 +63,6 @@ await hwyInit({
       ? `\n  watchExclusions: ["src/styles/tw-output.bundle.css"],`
       : ""
   }
-  isDev: IS_DEV,
 });
 
 app.use("*", logger());

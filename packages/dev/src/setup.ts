@@ -17,7 +17,7 @@ function devSetup(props?: { watchExclusions?: string[] }) {
 
   const refresh_watcher = chokidar.watch(
     path.join(process.cwd(), ".dev/refresh.txt"),
-    { ignoreInitial: true }
+    { ignoreInitial: true },
   );
 
   refresh_watcher.on("all", () => send_signal_to_sinks());
@@ -30,7 +30,7 @@ function devSetup(props?: { watchExclusions?: string[] }) {
     {
       ignoreInitial: true,
       ignored: [path.join(process.cwd(), "public/dist"), ...exclusions],
-    }
+    },
   );
 
   watcher.on("all", async (_, path) => {

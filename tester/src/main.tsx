@@ -21,7 +21,6 @@ await hwyInit({
   app,
   importMetaUrl: import.meta.url,
   serveStatic,
-  isDev: IS_DEV,
 });
 
 const default_head_blocks: HeadBlock[] = [
@@ -81,6 +80,6 @@ serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(
     `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
       info.port
-    }\n`
+    }\n`,
   );
 });
