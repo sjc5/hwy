@@ -1,5 +1,5 @@
 import { Options } from "./types.js";
-import { target_is_deno } from "./utils.js";
+import { get_is_target_deno } from "./utils.js";
 
 let readme =
   `
@@ -29,19 +29,19 @@ const vercel_add_on =
   "\n\n" +
   `
 \`\`\`ts
-hwyInit({
-app,
-importMetaUrl: import.meta.url,
-serveStatic,
-/*
-* The publicUrlPrefix makes the monorepo work with the public
-* folder when deployed with Vercel. If you aren't using a
-* monorepo (or aren't deploying to Vercel), you won't need
-* to add a publicUrlPrefix.
-*/
-publicUrlPrefix: process.env.NODE_ENV === 'production' ? 'docs/' : undefined,
-watchExclusions: ['src/styles/tw-output.bundle.css'],
-})
+await hwyInit({
+  app,
+  importMetaUrl: import.meta.url,
+  serveStatic,
+  /*
+  * The publicUrlPrefix makes the monorepo work with the public
+  * folder when deployed with Vercel. If you aren't using a
+  * monorepo (or aren't deploying to Vercel), you won't need
+  * to add a publicUrlPrefix.
+  */
+  publicUrlPrefix: process.env.NODE_ENV === "production" ? "docs/" : undefined,
+  watchExclusions: ["src/styles/tw-output.bundle.css"],
+});
 \`\`\`
 `.trim() +
   "\n\n" +
@@ -72,12 +72,21 @@ All you will need to do is update the entrypoint (near the bottom of the yaml fi
 to point to \`dist/main.js\`.
 `.trim();
 
+const bun_add_on = `
+To get started, run:
+
+\`\`\`sh
+bun i
+bun run --bun dev
+\`\`\`
+`.trim();
+
 function get_readme(options: Options) {
   if (options.deployment_target === "vercel") {
     readme += vercel_add_on;
   }
 
-  const is_targeting_deno = target_is_deno(options);
+  const is_targeting_deno = get_is_target_deno(options);
 
   if (is_targeting_deno) {
     readme += deno_add_on;
@@ -89,6 +98,10 @@ function get_readme(options: Options) {
 
   if (options.deployment_target === "deno_deploy") {
     readme += "\n\n" + deno_deploy_add_on;
+  }
+
+  if (options.deployment_target === "bun") {
+    readme += "\n\n" + bun_add_on;
   }
 
   return readme.trim() + "\n";

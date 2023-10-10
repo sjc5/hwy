@@ -1,53 +1,46 @@
 import {
   hwyInit,
   CssImports,
-  getMatchingPathData,
   rootOutlet,
   hwyDev,
   ClientEntryScript,
   HeadElements,
   HeadBlock,
-} from 'hwy'
-import { Hono } from 'hono'
-import { serve } from '@hono/node-server'
-import { serveStatic } from '@hono/node-server/serve-static'
-import { Sidebar } from './components/sidebar.js'
+  renderRoot,
+} from "hwy";
+import { Hono } from "hono";
+import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
+import { Sidebar } from "./components/sidebar.js";
 
-const app = new Hono()
+const app = new Hono();
 
-console.log('\nStarting app...')
+const IS_DEV = process.env.NODE_ENV === "development";
 
-hwyInit({
+await hwyInit({
   app,
   importMetaUrl: import.meta.url,
   serveStatic,
-})
+});
 
 const default_head_blocks: HeadBlock[] = [
-  { title: 'Tester' },
+  { title: "Tester" },
   {
-    tag: 'meta',
+    tag: "meta",
     props: {
-      name: 'htmx-config',
+      name: "htmx-config",
       content: JSON.stringify({
-        defaultSwapStyle: 'outerHTML',
+        defaultSwapStyle: "outerHTML",
         selfRequestsOnly: true,
         refreshOnHistoryMiss: true,
       }),
     },
   },
-]
+];
 
-app.all('*', async (c, next) => {
-  const activePathData = await getMatchingPathData({ c })
-
-  if (activePathData.fetchResponse) return activePathData.fetchResponse
-
-  if (!activePathData.matchingPaths?.length) return await next()
-
-  return c.html(
-    `<!DOCTYPE html>` +
-    (
+app.all("*", async (c, next) => {
+  return await renderRoot(c, next, async ({ activePathData }) => {
+    return (
       <html lang="en">
         <head>
           <meta charSet="UTF-8" />
@@ -75,21 +68,18 @@ app.all('*', async (c, next) => {
           </main>
         </body>
       </html>
-    )
-  )
-})
+    );
+  });
+});
 
-app.notFound((c) => {
-  return c.text('404 Not Found', 404)
-})
+app.notFound((c) => c.text("404 Not Found", 404));
 
-const IS_DEV = process.env.NODE_ENV === 'development'
-const PORT = process.env.PORT ? Number(process.env.PORT) : 9999
+const PORT = process.env.PORT ? Number(process.env.PORT) : 9999;
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(
-    `\nListening on http://${IS_DEV ? 'localhost' : info.address}:${
+    `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
       info.port
-    }\n`
-  )
-})
+    }\n`,
+  );
+});

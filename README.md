@@ -1,6 +1,6 @@
 # Hwy
 
-Hwy is a lightweight, flexible, and powerful alternative to NextJS, based on HTMX instead of React.
+Hwy is a simple, lightweight, and flexible web framework, built on Hono and HTMX.
 
 ## Quick Start
 

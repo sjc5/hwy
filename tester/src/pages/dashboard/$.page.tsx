@@ -1,3 +1,3 @@
-import { TesterComp } from '~/src/components/tester-comp.js'
+import { TesterComp } from "~/src/components/tester-comp.js";
 
-export default TesterComp
+export default TesterComp;

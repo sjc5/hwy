@@ -9,5 +9,5 @@ export default function () {
 
       <a href="/about/learn-more">Go to explicit child route</a>
     </>
-  )
+  );
 }

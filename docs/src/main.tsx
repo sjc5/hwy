@@ -23,7 +23,7 @@ const app = new Hono();
 app.use("*", logger());
 app.get("*", secureHeaders());
 
-hwyInit({
+await hwyInit({
   app,
   importMetaUrl: import.meta.url,
   serveStatic,
@@ -44,7 +44,7 @@ const default_head_blocks: HeadBlock[] = [
     props: {
       name: "description",
       content:
-        "Hwy is a lightweight, flexible, and powerful alternative to NextJS, based on HTMX instead of React.",
+        "Hwy is a simple, lightweight, and flexible web framework, built on Hono and HTMX.",
     },
   },
   {
@@ -145,7 +145,7 @@ if (IS_DEV) {
     console.log(
       `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
         info.port
-      }\n`
+      }\n`,
     );
   });
 }

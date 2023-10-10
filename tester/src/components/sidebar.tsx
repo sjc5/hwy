@@ -24,15 +24,15 @@ function Sidebar() {
       <LinkListItem href="/dashboard/customers/123/orders" />
       <LinkListItem href="/dashboard/customers/123/orders/456" />
     </ul>
-  )
+  );
 }
 
-export { Sidebar }
+export { Sidebar };
 
 function LinkListItem({ href }: { href: string }) {
   return (
     <li>
       <a href={href}>{href}</a>
     </li>
-  )
+  );
 }

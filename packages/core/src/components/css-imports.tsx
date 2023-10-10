@@ -1,16 +1,37 @@
-import path from 'node:path'
-import fs from 'node:fs'
-import type { HtmlEscapedString } from 'hono/utils/html'
-import { getPublicUrl } from '../utils/hashed-public-url.js'
-import { ROOT_DIRNAME } from '../setup.js'
+import path from "node:path";
+import type { HtmlEscapedString } from "hono/utils/html";
+import { getPublicUrl } from "../utils/hashed-public-url.js";
+import { ROOT_DIRNAME } from "../setup.js";
+import { path_to_file_url } from "../utils/url-polyfills.js";
+
+let critical_css: string | undefined;
+let standard_bundled_css_exists: boolean | undefined;
+
+async function warm_css_files() {
+  if (critical_css === undefined) {
+    const critical_css_path = path.join(
+      ROOT_DIRNAME,
+      "critical-bundled-css.js",
+    );
+
+    critical_css = (await import(path_to_file_url(critical_css_path).href))
+      .default;
+  }
+
+  if (standard_bundled_css_exists === undefined) {
+    const standard_bundled_css_exists_path = path.join(
+      ROOT_DIRNAME,
+      "standard-bundled-css-exists.js",
+    );
+
+    standard_bundled_css_exists = (
+      await import(path_to_file_url(standard_bundled_css_exists_path).href)
+    ).default;
+  }
+}
 
 function CriticalCss(): HtmlEscapedString {
-  const critical_css_path = path.join(ROOT_DIRNAME, 'critical-bundled.css')
-  const critical_css_exists = fs.existsSync(critical_css_path)
-
-  if (!critical_css_exists) return <></>
-
-  const critical_css = fs.readFileSync(critical_css_path, 'utf8').trim()
+  if (!critical_css) return <></>;
 
   return (
     <style
@@ -18,19 +39,15 @@ function CriticalCss(): HtmlEscapedString {
         __html: critical_css,
       }}
     ></style>
-  )
+  );
 }
 
-const CSS_IMPORT_URL = `dist/standard-bundled.css`
+const CSS_IMPORT_URL = `dist/standard-bundled.css`;
 
 function NonCriticalCss(): HtmlEscapedString {
-  const standard_css_exists = fs.existsSync(
-    path.join(ROOT_DIRNAME, 'standard-bundled-css-exists.txt')
-  )
+  if (!standard_bundled_css_exists) return <></>;
 
-  if (!standard_css_exists) return <></>
-
-  return <link rel="stylesheet" href={getPublicUrl(CSS_IMPORT_URL)} />
+  return <link rel="stylesheet" href={getPublicUrl(CSS_IMPORT_URL)} />;
 }
 
 function CssImports(): HtmlEscapedString {
@@ -39,7 +56,7 @@ function CssImports(): HtmlEscapedString {
       <CriticalCss />
       <NonCriticalCss />
     </>
-  )
+  );
 }
 
 export {
@@ -48,4 +65,5 @@ export {
 
   // private
   CSS_IMPORT_URL,
-}
+  warm_css_files,
+};

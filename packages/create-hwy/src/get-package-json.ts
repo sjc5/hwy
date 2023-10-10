@@ -1,19 +1,19 @@
 import { Options } from "./types.js";
-import { target_is_deno } from "./utils.js";
+import { get_is_target_deno } from "./utils.js";
 
 const VERSIONS = {
-  HWY: "^0.2.1",
+  HWY: "^0.3.0-beta.5",
   HONO_NODE_SERVER: "^1.2.0",
-  HONO: "^3.5.8",
+  HONO: "^3.7.5",
   HTMX: "^1.9.6",
   TYPESCRIPT: "^5.2.2",
   TAILWIND: "^3.3.3",
   NPROGRESS: "^0.2.0",
-  NPROGRESS_TYPES: "^0.2.0",
-  NODE_TYPES: "^20.6.3",
+  NPROGRESS_TYPES: "^0.2.1",
+  NODE_TYPES: "^20.8.3",
   CROSS_ENV: "^7.0.3",
-  ESBUILD: "^0.19.3",
-  NODEMON: "^3.0.1",
+  ESBUILD: "^0.19.4",
+  BUN_TYPES: "^1.0.5-canary.20231007T140129",
 } as const;
 
 export const LATEST_HWY_VERSION = VERSIONS.HWY;
@@ -28,7 +28,7 @@ function get_package_json(options: Options) {
     };
   }
 
-  const is_targeting_deno = target_is_deno(options);
+  const is_targeting_deno = get_is_target_deno(options);
 
   return (
     JSON.stringify(
@@ -48,13 +48,17 @@ function get_package_json(options: Options) {
               : options.deployment_target === "deno_deploy"
               ? " && hwy-deno-deploy-hack"
               : ""),
-          start: target_is_deno(options)
+          start: get_is_target_deno(options)
             ? "deno run -A dist/main.js"
+            : options.deployment_target === "bun"
+            ? "bun dist/main.js"
             : "node dist/main.js",
-          dev: "hwy-dev-serve",
+          dev: get_is_target_deno(options)
+            ? "hwy-dev-serve-deno"
+            : "hwy-dev-serve",
         },
         dependencies: {
-          ...(!is_targeting_deno
+          ...(!is_targeting_deno && options.deployment_target !== "bun"
             ? { "@hono/node-server": VERSIONS.HONO_NODE_SERVER }
             : {}),
           hono: VERSIONS.HONO,
@@ -64,14 +68,21 @@ function get_package_json(options: Options) {
           "@hwy-js/dev": LATEST_HWY_VERSION,
           ...(options.lang_preference === "typescript"
             ? {
-                "@types/node": VERSIONS.NODE_TYPES,
-                "@types/nprogress": VERSIONS.NPROGRESS_TYPES,
+                ...(!is_targeting_deno && options.deployment_target !== "bun"
+                  ? { "@types/node": VERSIONS.NODE_TYPES }
+                  : {}),
+                ...(options.with_nprogress
+                  ? { "@types/nprogress": VERSIONS.NPROGRESS_TYPES }
+                  : {}),
               }
+            : {}),
+          ...(options.deployment_target === "bun" &&
+          options.lang_preference === "typescript"
+            ? { "bun-types": VERSIONS.BUN_TYPES }
             : {}),
           "cross-env": VERSIONS.CROSS_ENV,
           esbuild: VERSIONS.ESBUILD,
           "htmx.org": VERSIONS.HTMX,
-          nodemon: VERSIONS.NODEMON,
           ...(options.with_nprogress ? { nprogress: VERSIONS.NPROGRESS } : {}),
           ...(options.css_preference === "tailwind"
             ? { tailwindcss: VERSIONS.TAILWIND }
@@ -85,7 +96,7 @@ function get_package_json(options: Options) {
         },
       },
       null,
-      2
+      2,
     ) + "\n"
   );
 }

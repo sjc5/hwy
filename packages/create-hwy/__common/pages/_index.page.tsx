@@ -11,5 +11,5 @@ export default function () {
         which is your site's main server "entry point".
       </p>
     </>
-  )
+  );
 }

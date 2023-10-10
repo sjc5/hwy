@@ -14,7 +14,7 @@ export const head: HeadFunction = () => {
       props: {
         name: "description",
         content:
-          "Documentation for the Hwy framework, a simple, lightweight alternative to NextJS, based on HTMX.",
+          "Documentation for the Hwy framework, a simple, lightweight, and flexible web framework, built on Hono and HTMX.",
       },
     },
   ];
@@ -635,7 +635,7 @@ app.all('*', async (c, next) => {
       props: {
         name: 'description',
         content:
-          'Hwy is a lightweight, flexible, and powerful alternative to NextJS, based on HTMX instead of React.',
+          'Hwy is a simple, lightweight, and flexible web framework, built on Hono and HTMX.',
       },
     },
   ]}

@@ -1,9 +1,9 @@
-import type * as _hwyDev from '@hwy-js/dev'
+import type * as _hwyDev from "@hwy-js/dev";
 
-let hwyDev: typeof _hwyDev | undefined
+let hwyDev: typeof _hwyDev | undefined;
 
-if (process.env.NODE_ENV === 'development') {
-  hwyDev = await import('@hwy-js/dev')
+if (process.env.NODE_ENV === "development") {
+  hwyDev = await import("@hwy-js/dev");
 }
 
-export { hwyDev }
+export { hwyDev };

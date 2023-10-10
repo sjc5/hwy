@@ -1,38 +1,31 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 
-let public_map: Record<string, string> | undefined
-
-function get_hashed_public_url_low_level({
-  url,
-  ROOT_DIRNAME,
-}: {
-  url: string
-  ROOT_DIRNAME: string
-}): string {
+async function get_hashed_public_url_low_level(url: string): Promise<string> {
   /*
    * NOTE: THIS FN IS DUPED IN "hwy" AND "@hwy-js/dev"
    * IF YOU UPDATE IT, UPDATE IT IN BOTH PLACES.
    * STILL NOT WORTH SPLITTING INTO A SEPARATE PKG.
    */
 
-  let hashed_url: string | undefined
+  const public_map_path = path.resolve("dist", "public-map.js");
 
-  if (url.startsWith('/')) url = url.slice(1)
-  if (url.startsWith('./')) url = url.slice(2)
+  const public_map: Record<string, string> | undefined = (
+    await import(pathToFileURL(public_map_path).href)
+  ).default;
 
-  if (!public_map) {
-    public_map = JSON.parse(
-      fs.readFileSync(path.join(ROOT_DIRNAME, 'public-map.json'), 'utf-8')
-    ) as any
-  }
-  hashed_url = public_map?.[path.join('public', url)]
+  let hashed_url: string | undefined;
+
+  if (url.startsWith("/")) url = url.slice(1);
+  if (url.startsWith("./")) url = url.slice(2);
+
+  hashed_url = public_map?.[path.join("public", url)];
 
   if (!hashed_url) {
-    throw new Error(`No hashed URL found for ${url}`)
+    throw new Error(`No hashed URL found for ${url}`);
   }
 
-  return '/' + hashed_url
+  return "/" + hashed_url;
 }
 
-export { get_hashed_public_url_low_level }
+export { get_hashed_public_url_low_level };
