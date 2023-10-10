@@ -3,11 +3,9 @@ import type { serveStatic as serveStaticFn } from "@hono/node-server/serve-stati
 import { hwyDev } from "./utils/conditional-dev.js";
 import path from "node:path";
 import {
-  warm_public_file_maps,
   getPublicUrl,
   get_serve_static_options,
 } from "./utils/hashed-public-url.js";
-import { warm_css_files } from "./components/css-imports.js";
 import { file_url_to_path } from "./utils/url-polyfills.js";
 
 function dirname_from_import_meta(import_meta_url: string) {
@@ -57,8 +55,6 @@ async function hwyInit({
 
   ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl);
   PUBLIC_URL_PREFIX = publicUrlPrefix ?? "";
-
-  await Promise.all([warm_public_file_maps(), warm_css_files()]);
 
   app.use("/favicon.ico", async (c) => {
     try {

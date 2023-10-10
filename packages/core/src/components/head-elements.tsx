@@ -1,6 +1,6 @@
-import { Context } from "hono";
+import type { Context } from "hono";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
-import { HeadFunction, HeadBlock } from "../types.js";
+import type { HeadFunction, HeadBlock } from "../types.js";
 import type { HtmlEscapedString } from "hono/utils/html";
 
 function stable_hash(obj: Record<string, any>): string {

@@ -6,7 +6,7 @@ import type { Paths } from "@hwy-js/dev";
 import { ROOT_DIRNAME } from "../setup.js";
 import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
 import { get_match_strength } from "./get-match-strength.js";
-import { DataFunctionArgs } from "../types.js";
+import type { DataFunctionArgs } from "../types.js";
 import { path_to_file_url } from "../utils/url-polyfills.js";
 
 function fully_decorate_paths({
@@ -118,7 +118,8 @@ async function getMatchingPathData({
   redirectTo?: string;
 }) {
   const inner = path.join(ROOT_DIRNAME, "paths.js");
-  const paths: Paths = (await import(path_to_file_url(inner).href)).default;
+  const paths: Paths = (await import(path_to_file_url(inner).href))
+    .__hwy__paths;
 
   const semi_decorated_paths = semi_decorate_paths({
     c,

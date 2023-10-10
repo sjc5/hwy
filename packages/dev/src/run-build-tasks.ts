@@ -66,6 +66,8 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     fs.existsSync(path.join(process.cwd(), "src/client.entry.ts")) ||
     fs.existsSync(path.join(process.cwd(), "src/client.entry.js"));
 
+  console.log("BOB");
+
   // needs to come first for file map generation
   await Promise.all([
     bundle_css_files(),
@@ -83,12 +85,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       : undefined,
   ]);
 
-  await Promise.all([
-    write_paths_to_file(),
-
-    // happens again post css bundling
-    generate_public_file_map(),
-
+  const [test] = await Promise.all([
     esbuild.build({
       entryPoints: ["src/main.*"],
       bundle: true,
@@ -97,7 +94,13 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       platform: "node",
       packages: "external",
       format: "esm",
+      write: false,
     }),
+
+    write_paths_to_file(),
+
+    // happens again post css bundling
+    generate_public_file_map(),
 
     IS_DEV
       ? fs.promises.mkdir(path.join(process.cwd(), ".dev"), {
@@ -105,6 +108,53 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
         })
       : undefined,
   ]);
+
+  let main_code = test.outputFiles?.[0].text;
+
+  console.log(main_code);
+
+  const file_names = [
+    "critical-bundled-css.js",
+    "paths.js",
+    "public-map.js",
+    "public-reverse-map.js",
+    "standard-bundled-css-exists.js",
+  ];
+
+  function convert_to_var_name(file_name: string) {
+    return "__hwy__" + file_name.replace(/-/g, "_").replace(".js", "");
+  }
+
+  let files_text = await Promise.all(
+    file_names.map((file_name) => {
+      return fs.promises.readFile(
+        path.join(process.cwd(), `dist/${file_name}`),
+        "utf-8",
+      );
+    }),
+  );
+
+  files_text = files_text.map((x, i) => {
+    return x.replace("export ", "");
+  });
+
+  let to_be_appended = files_text.join("\n\n");
+
+  to_be_appended =
+    to_be_appended +
+    `\n\n` +
+    file_names
+      .map((x) => {
+        const var_name = convert_to_var_name(x);
+        return `globalThis["${var_name}"] = ${var_name};`;
+      })
+      .join("\n") +
+    "\n\n";
+
+  fs.writeFileSync(
+    path.join(process.cwd(), "dist/main.js"),
+    to_be_appended + main_code,
+  );
 
   if (IS_DEV) {
     fs.writeFileSync(

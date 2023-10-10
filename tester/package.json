@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "tsc --noEmit && hwy-build",
     "start": "node dist/main.js",
     "dev": "hwy-dev-serve"
   },

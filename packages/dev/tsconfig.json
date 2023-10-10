@@ -7,7 +7,7 @@
     "strict": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },

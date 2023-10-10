@@ -3,11 +3,25 @@ import fs from "node:fs";
 import esbuild from "esbuild";
 import { hwy_log } from "./hwy-log.js";
 import { get_hashed_public_url_low_level } from "./hashed-public-url.js";
+import { pathToFileURL } from "node:url";
+
+const public_map_path = path.resolve("dist", "public-map.js");
+
+const public_map: Record<string, string> | undefined = (
+  await import(pathToFileURL(public_map_path).href)
+).__hwy__public_map;
 
 const URL_REGEX = /url\(\s*['"]([^'"]*)['"]\s*\)/g;
 
 function replacer(_: string, p1: string) {
-  const hashed = get_hashed_public_url_low_level(p1);
+  if (!public_map) {
+    throw new Error("No public map found");
+  }
+
+  const hashed = get_hashed_public_url_low_level({
+    public_map,
+    url: p1,
+  });
 
   return `url("${hashed}")`;
 }
@@ -33,10 +47,17 @@ async function bundle_css_files() {
 
   async function build_standard_css() {
     const promises = await Promise.all(
-      standard_css_paths.map((x) => fs.promises.readFile(x, "utf-8"))
+      standard_css_paths.map((x) => fs.promises.readFile(x, "utf-8")),
     );
 
     const standard_css_text = promises.join("\n").replace(URL_REGEX, replacer);
+
+    function write_standard_bundled_css_exists(does_exist: boolean) {
+      fs.writeFileSync(
+        path.join(process.cwd(), "dist/standard-bundled-css-exists.js"),
+        `export const __hwy__standard_bundled_css_exists = ${does_exist};`,
+      );
+    }
 
     if (standard_css_paths.length) {
       await esbuild.build({
@@ -49,16 +70,15 @@ async function bundle_css_files() {
         minify: true,
       });
 
-      fs.writeFileSync(
-        path.join(process.cwd(), "dist/standard-bundled-css-exists.js"),
-        "const x = true; export default x;"
-      );
+      write_standard_bundled_css_exists(true);
+    } else {
+      write_standard_bundled_css_exists(false);
     }
   }
 
   async function build_critical_css() {
     const promises = await Promise.all(
-      critical_css_paths.map((x) => fs.promises.readFile(x, "utf-8"))
+      critical_css_paths.map((x) => fs.promises.readFile(x, "utf-8")),
     );
 
     const critical_css_text = promises.join("\n").replace(URL_REGEX, replacer);
@@ -82,12 +102,12 @@ async function bundle_css_files() {
 
       fs.writeFileSync(
         path.join(process.cwd(), "dist/critical-bundled-css.js"),
-        `const x = \`${css}\`; export default x;`
+        `export const __hwy__critical_bundled_css = \`${css}\`;`,
       );
     } else {
       fs.writeFileSync(
         path.join(process.cwd(), "dist/critical-bundled-css.js"),
-        `const x = undefined; export default x;`
+        `export const __hwy__critical_bundled_css = undefined;`,
       );
     }
   }

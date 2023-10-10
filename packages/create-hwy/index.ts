@@ -3,7 +3,7 @@ import * as path from "node:path";
 import pc from "picocolors";
 import inquirer from "inquirer";
 import { fileURLToPath } from "node:url";
-import { Options } from "./src/types.js";
+import type { Options } from "./src/types.js";
 import {
   LATEST_HWY_VERSION,
   get_package_json,

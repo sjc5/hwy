@@ -2,7 +2,7 @@
 export { hwyInit } from "./src/setup.jsx";
 
 // types
-export {
+export type {
   Loader,
   DataFunctionArgs,
   Action,
