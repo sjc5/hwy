@@ -11,7 +11,7 @@ function get_code(paths) {
   return paths.map(get_line).join("\n");
 }
 
-console.log("Running Cloudflare Workers hack...");
+console.log("Running Cloudflare Pages hack...");
 
 const page_paths = (
   await import(path.join(process.cwd(), "dist", "paths.js"))

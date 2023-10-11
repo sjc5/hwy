@@ -5,7 +5,6 @@ import path from "node:path";
 
 function get_line(path_from_dist) {
   return `import("${path_from_dist}").then((x) => globalThis["${path_from_dist}"] = x);`;
-  // return `globalThis["${path_from_dist}"] = await import("${path_from_dist}");`;
 }
 
 function get_code(paths) {
