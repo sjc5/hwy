@@ -98,7 +98,7 @@ async function bundle_css_files() {
         console.error(result.errors.join("\n"));
       }
 
-      const css = result.outputFiles[0].text;
+      const css = result.outputFiles[0].text.trim();
 
       fs.writeFileSync(
         path.join(process.cwd(), "dist/critical-bundled-css.js"),

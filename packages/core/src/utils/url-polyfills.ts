@@ -14,17 +14,25 @@ try {
  */
 
 function file_url_to_path(url: string | URL): string {
+  if (!url) {
+    return "";
+  }
+
   if (!fileURLToPath) {
     return typeof url === "string" ? url : url.href;
   }
+
   return fileURLToPath(url);
 }
 
-function path_to_file_url(path: string): URL {
+function path_to_file_url_string(path: string): string {
+  console.log("path_to_file_url", path);
+
   if (!pathToFileURL) {
-    return new URL(path);
+    return path || "";
   }
-  return pathToFileURL(path);
+
+  return pathToFileURL(path).href;
 }
 
-export { file_url_to_path, path_to_file_url };
+export { file_url_to_path, path_to_file_url_string };

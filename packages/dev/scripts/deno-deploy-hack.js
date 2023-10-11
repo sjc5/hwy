@@ -18,14 +18,14 @@ console.log("Running Deno Deploy hack...");
 
 const page_paths = (
   await import(path.join(process.cwd(), "dist", "paths.js"))
-).default.map((x) => "./" + x.importPath);
+).__hwy__paths.map((x) => "./" + x.importPath);
 
 const public_paths = Object.keys(
   (
     await import(
       pathToFileURL(path.join(process.cwd(), "dist", "public-map.js"))
     )
-  ).default,
+  ).__hwy__public_map,
 ).map((x) => "../" + x);
 
 const other_paths = [

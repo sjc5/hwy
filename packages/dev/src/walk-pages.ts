@@ -105,6 +105,7 @@ async function walk_pages() {
         treeShaking: true,
         platform: "node",
         packages: "external",
+        external: ["__STATIC_CONTENT_MANIFEST"],
         format: "esm",
       });
     } catch (e) {

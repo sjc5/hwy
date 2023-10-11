@@ -36,7 +36,13 @@ function get_original_public_url({
     throw new Error(`No original URL found for ${sliced_url}`);
   }
 
-  return "./" + PUBLIC_URL_PREFIX + original_url;
+  let path_to_use = "./" + PUBLIC_URL_PREFIX + original_url;
+
+  if ((globalThis as any).__hwy__is_cloudflare) {
+    path_to_use = path_to_use.replace("/public", "");
+  }
+
+  return path_to_use;
 }
 
 function get_serve_static_options() {

@@ -1,6 +1,5 @@
 import path from "node:path";
 import fs from "node:fs";
-import { bundle_css_files } from "./bundle-css-files.js";
 import { generate_public_file_map, write_paths_to_file } from "./walk-pages.js";
 import { rimraf } from "rimraf";
 import esbuild from "esbuild";
@@ -66,7 +65,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     fs.existsSync(path.join(process.cwd(), "src/client.entry.ts")) ||
     fs.existsSync(path.join(process.cwd(), "src/client.entry.js"));
 
-  console.log("BOB");
+  const { bundle_css_files } = await import("./bundle-css-files.js");
 
   // needs to come first for file map generation
   await Promise.all([
@@ -93,6 +92,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       treeShaking: true,
       platform: "node",
       packages: "external",
+      external: ["__STATIC_CONTENT_MANIFEST"],
       format: "esm",
       write: false,
     }),
@@ -110,8 +110,6 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   ]);
 
   let main_code = test.outputFiles?.[0].text;
-
-  console.log(main_code);
 
   const file_names = [
     "critical-bundled-css.js",

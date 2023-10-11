@@ -7,7 +7,7 @@ import { ROOT_DIRNAME } from "../setup.js";
 import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
 import { get_match_strength } from "./get-match-strength.js";
 import type { DataFunctionArgs } from "../types.js";
-import { path_to_file_url } from "../utils/url-polyfills.js";
+import { path_to_file_url_string } from "../utils/url-polyfills.js";
 
 function fully_decorate_paths({
   matching_paths,
@@ -16,11 +16,16 @@ function fully_decorate_paths({
   matching_paths: ReturnType<typeof semi_decorate_paths>;
   splat_segments: string[];
 }) {
+  const is_cloudflare = (globalThis as any).__hwy__is_cloudflare;
+
   return (
     matching_paths?.map((_path) => {
       const get_imported = () => {
-        const inner = path.join(ROOT_DIRNAME, _path.importPath);
-        return import(path_to_file_url(inner).href);
+        if (is_cloudflare) {
+          return (globalThis as any)["./" + _path.importPath];
+        }
+        const inner = path.join(ROOT_DIRNAME || "./", _path.importPath);
+        return import(path_to_file_url_string(inner));
       };
 
       // public
@@ -117,9 +122,7 @@ async function getMatchingPathData({
   c: Context;
   redirectTo?: string;
 }) {
-  const inner = path.join(ROOT_DIRNAME, "paths.js");
-  const paths: Paths = (await import(path_to_file_url(inner).href))
-    .__hwy__paths;
+  const paths: Paths = (globalThis as any).__hwy__paths;
 
   const semi_decorated_paths = semi_decorate_paths({
     c,
