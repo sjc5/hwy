@@ -4,6 +4,7 @@ import { hwyDev } from "./utils/conditional-dev.js";
 import path from "node:path";
 import {
   getPublicUrl,
+  get_original_public_url,
   get_serve_static_options,
 } from "./utils/hashed-public-url.js";
 import { file_url_to_path } from "./utils/url-polyfills.js";
@@ -42,7 +43,7 @@ async function hwyInit({
 }: {
   app: Hono<any>;
   importMetaUrl: string;
-  serveStatic: ServeStaticFn;
+  serveStatic?: ServeStaticFn;
   isDev?: boolean;
   publicUrlPrefix?: string;
   watchExclusions?: string[];
@@ -66,6 +67,36 @@ async function hwyInit({
 
   const static_path = "/public/*";
   app.use(static_path, immutable_cache());
+
+  const is_cloudflare_pages = (globalThis as any).__hwy__is_cloudflare_pages;
+
+  if (is_cloudflare_pages) {
+    app.get(static_path, async (c) => {
+      const original_public_url = get_original_public_url({
+        hashed_url: c.req.path,
+      });
+
+      console.log("original_public_url", original_public_url);
+      console.log("c.req.url", c.req.url);
+
+      const hostname = c.req.url.replace(c.req.path, "");
+
+      console.log("hostname", hostname);
+      const new_url = hostname + "/" + original_public_url.slice(2);
+
+      console.log("new_url", new_url);
+
+      return await c.env.ASSETS.fetch(new Request(new_url));
+    });
+
+    return;
+  }
+
+  if (!serveStatic) {
+    throw new Error(
+      "serveStatic is required unless running on Cloudflare Pages",
+    );
+  }
 
   app.use(static_path, serveStatic(get_serve_static_options()));
 }

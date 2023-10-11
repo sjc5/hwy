@@ -1,0 +1,23 @@
+# standard exclusions
+node_modules
+
+# system artifacts
+.DS_Store
+
+# build artifacts
+dist
+public/dist
+
+# development artifacts
+.dev
+
+# environment files
+.env
+.env.local
+
+# tailwind artifacts
+src/styles/tw-output.bundle.css
+
+# wrangler project
+.dev.vars
+.wrangler/

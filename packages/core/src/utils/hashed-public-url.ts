@@ -38,7 +38,10 @@ function get_original_public_url({
 
   let path_to_use = "./" + PUBLIC_URL_PREFIX + original_url;
 
-  if ((globalThis as any).__hwy__is_cloudflare) {
+  if (
+    (globalThis as any).__hwy__is_cloudflare &&
+    !(globalThis as any).__hwy__is_cloudflare_pages
+  ) {
     path_to_use = path_to_use.replace("/public", "");
   }
 
@@ -55,4 +58,4 @@ function get_serve_static_options() {
   };
 }
 
-export { getPublicUrl, get_serve_static_options };
+export { getPublicUrl, get_serve_static_options, get_original_public_url };

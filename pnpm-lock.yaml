@@ -165,7 +165,53 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
-  testers/cloudflare:
+  testers/cf-pages:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^1.2.0
+        version: 1.2.0
+      hono:
+        specifier: ^3.7.5
+        version: 3.7.5
+      hwy:
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20231002.0
+        version: 4.20231002.0
+      '@hwy-js/dev':
+        specifier: workspace:*
+        version: link:../../packages/dev
+      '@types/node':
+        specifier: ^20.8.4
+        version: 20.8.4
+      cross-env:
+        specifier: ^7.0.3
+        version: 7.0.3
+      esbuild:
+        specifier: ^0.19.4
+        version: 0.19.4
+      htmx.org:
+        specifier: ^1.9.6
+        version: 1.9.6
+      npm-run-all:
+        specifier: ^4.1.5
+        version: 4.1.5
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
+      tailwindcss:
+        specifier: ^3.3.3
+        version: 3.3.3
+      typescript:
+        specifier: ^5.2.2
+        version: 5.2.2
+      wrangler:
+        specifier: ^3.11.0
+        version: 3.11.0
+
+  testers/cf-workers:
     dependencies:
       '@hono/node-server':
         specifier: ^1.2.0

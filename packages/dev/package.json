@@ -22,7 +22,8 @@
     "hwy-dev-serve": "./scripts/dev-serve.js",
     "hwy-dev-serve-deno": "./scripts/deno-dev.js",
     "hwy-deno-deploy-hack": "./scripts/deno-deploy-hack.js",
-    "hwy-cf-workers-hack": "./scripts/cf-workers-hack.js"
+    "hwy-cf-workers-hack": "./scripts/cf-workers-hack.js",
+    "hwy-cf-pages-hack": "./scripts/cf-pages-hack.js"
   },
   "peerDependencies": {
     "cross-env": "^7.0.3",
