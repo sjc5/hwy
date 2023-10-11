@@ -76,15 +76,9 @@ async function hwyInit({
         hashed_url: c.req.path,
       });
 
-      console.log("original_public_url", original_public_url);
-      console.log("c.req.url", c.req.url);
-
       const hostname = c.req.url.replace(c.req.path, "");
 
-      console.log("hostname", hostname);
       const new_url = hostname + "/" + original_public_url.slice(2);
-
-      console.log("new_url", new_url);
 
       return await c.env.ASSETS.fetch(new Request(new_url));
     });
