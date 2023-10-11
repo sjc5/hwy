@@ -27,11 +27,11 @@ importers:
         specifier: ^3.7.5
         version: 3.7.5
       hwy:
-        specifier: workspace:*
+        specifier: 0.4.0-beta.0
         version: link:../packages/core
     devDependencies:
       '@hwy-js/dev':
-        specifier: workspace:*
+        specifier: 0.4.0-beta.0
         version: link:../packages/dev
       '@types/node':
         specifier: ^20.8.3
