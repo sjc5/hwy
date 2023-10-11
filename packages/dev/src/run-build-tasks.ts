@@ -92,7 +92,6 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       treeShaking: true,
       platform: "node",
       packages: "external",
-      external: ["__STATIC_CONTENT_MANIFEST"],
       format: "esm",
       write: false,
     }),
