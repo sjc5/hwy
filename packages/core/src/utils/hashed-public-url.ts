@@ -38,10 +38,11 @@ function get_original_public_url({
 
   let path_to_use = "./" + PUBLIC_URL_PREFIX + original_url;
 
-  if (
-    (globalThis as any).__hwy__is_cloudflare &&
-    !(globalThis as any).__hwy__is_cloudflare_pages
-  ) {
+  const is_cloudflare = (globalThis as any).__hwy__is_cloudflare;
+  const is_cloudflare_pages = (globalThis as any).__hwy__is_cloudflare_pages;
+  const is_cloudflare_workers_not_pages = is_cloudflare && !is_cloudflare_pages;
+
+  if (is_cloudflare_workers_not_pages) {
     path_to_use = path_to_use.replace("/public", "");
   }
 
