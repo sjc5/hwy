@@ -84,7 +84,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       : undefined,
   ]);
 
-  const [test] = await Promise.all([
+  const [main_build_result] = await Promise.all([
     esbuild.build({
       entryPoints: ["src/main.*"],
       bundle: true,
@@ -108,7 +108,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       : undefined,
   ]);
 
-  let main_code = test.outputFiles?.[0].text;
+  let main_code = main_build_result.outputFiles?.[0].text;
 
   const file_names = [
     "critical-bundled-css.js",
