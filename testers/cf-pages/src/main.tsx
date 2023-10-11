@@ -11,28 +11,12 @@ import {
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { serveStatic } from "hono/cloudflare-workers";
-import { handle } from "hono/cloudflare-pages";
-
-import process from "node:process";
-globalThis.process = process;
-
-// const app = new Hono();
-
-// app.get("/hello", (c) => {
-//   return c.json({
-//     message: "Hello, Cloudflare Pages!",
-//   });
-// });
-
-// export const onRequest = handle(app);
 
 const app = new Hono();
 
 await hwyInit({
   app,
   importMetaUrl: import.meta.url,
-  // serveStatic: (() => {}) as any,
   watchExclusions: ["src/styles/tw-output.bundle.css"],
 });
 
@@ -117,10 +101,4 @@ app.onError((error, c) => {
   return c.text("500 Internal Server Error", 500);
 });
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
-
-// export const onRequest = handle(app);
-
 export default app;
-
-console.log(`\nListening on port ${PORT}\n`);

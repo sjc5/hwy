@@ -19,7 +19,9 @@ const page_paths = (
 
 fs.writeFileSync(
   "dist/_worker.js",
-  `globalThis.__hwy__is_cloudflare = true;\n` +
+  `import process from "node:process";\n` +
+    `globalThis.process = process;\n` +
+    `globalThis.__hwy__is_cloudflare = true;\n` +
     `globalThis.__hwy__is_cloudflare_pages = true;\n` +
     fs.readFileSync("./dist/main.js", "utf8") +
     "\n" +
