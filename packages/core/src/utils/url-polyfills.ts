@@ -7,13 +7,7 @@ try {
   pathToFileURL = node_url.pathToFileURL;
 } catch {}
 
-/*
- * These are used to provide a single point where we can
- * make adjustments for potential runtimes that do not
- * have `node:url` polyfilled.
- */
-
-function file_url_to_path(url: string | URL): string {
+function file_url_to_path(url: string | URL | undefined): string {
   if (!url) {
     return "";
   }
@@ -25,8 +19,10 @@ function file_url_to_path(url: string | URL): string {
   return fileURLToPath(url);
 }
 
-function path_to_file_url_string(path: string): string {
-  console.log("path_to_file_url", path);
+function path_to_file_url_string(path: string | undefined): string {
+  if (!path) {
+    return "";
+  }
 
   if (!pathToFileURL) {
     return path || "";
