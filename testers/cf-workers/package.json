@@ -1,5 +1,5 @@
 {
-  "name": "hwy-cf-test-2",
+  "name": "cf-workers-tester",
   "private": true,
   "type": "module",
   "scripts": {
