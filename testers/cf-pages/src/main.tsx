@@ -35,7 +35,7 @@ app.all("*", async (c, next) => {
             c={c}
             activePathData={activePathData}
             defaults={[
-              { title: "hwy-cf-test-2" },
+              { title: "cf-pages-tester" },
               {
                 tag: "meta",
                 props: {
