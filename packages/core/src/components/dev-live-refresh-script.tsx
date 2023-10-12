@@ -1,4 +1,4 @@
-import { LIVE_REFRESH_PATH } from "./refresh-middleware.js";
+import { LIVE_REFRESH_PATH } from "../../../common/index.mjs";
 import type { HtmlEscapedString } from "hono/utils/html";
 
 const get_dev_live_refresh_script_inner_html = (timeout_ms = 300) => {

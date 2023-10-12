@@ -1,7 +1,6 @@
 import path from "node:path";
 import fs from "node:fs";
 import { generate_public_file_map, write_paths_to_file } from "./walk-pages.js";
-import { rimraf } from "rimraf";
 import esbuild from "esbuild";
 import { hwy_log, log_perf } from "./hwy-log.js";
 import { exec as exec_callback } from "child_process";
@@ -53,7 +52,11 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
 
   const standard_tasks_p0 = performance.now();
 
-  await rimraf(path.resolve("dist"));
+  await fs.promises.rm(path.join(process.cwd(), "dist"), {
+    recursive: true,
+    force: true,
+  });
+
   await fs.promises.mkdir(path.join(process.cwd(), "dist"), {
     recursive: true,
   });

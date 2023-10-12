@@ -6,6 +6,8 @@ import { runBuildTasks } from "./run-build-tasks.js";
 import { hwy_log } from "./hwy-log.js";
 
 function devSetup(props?: { watchExclusions?: string[] }) {
+  hwy_log("RUNNING IN DEVELOPMENT MODE");
+
   dotenv.config();
 
   function send_signal_to_sinks() {

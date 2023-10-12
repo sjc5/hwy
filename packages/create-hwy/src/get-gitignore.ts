@@ -1,4 +1,4 @@
-import { Options } from "./types.js";
+import type { Options } from "./types.js";
 
 function get_gitignore(options: Options) {
   let text = `

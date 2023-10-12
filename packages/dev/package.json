@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/dev",
-  "version": "0.4.0-beta.0",
+  "version": "0.4.0-beta.1",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -12,8 +12,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "rimraf dist && tsup-node index.ts --format esm --dts",
-    "dev": "rimraf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
+    "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
     "publish-beta": "npm publish --tag beta"
   },
   "bin": {
@@ -33,8 +33,7 @@
     "chokidar": "^3.5.3",
     "dotenv": "^16.3.1",
     "picocolors": "^1.0.0",
-    "readdirp": "^3.6.0",
-    "rimraf": "^5.0.5"
+    "readdirp": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.3",

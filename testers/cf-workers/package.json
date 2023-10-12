@@ -6,9 +6,8 @@
     "hwy-prebuild": "tailwindcss -i src/styles/tw-input.css -o src/styles/tw-output.bundle.css",
     "build": "tsc --noEmit && hwy-build && hwy-cf-workers-hack",
     "start": "node dist/main.js",
-    "dev": "hwy-dev-serve",
-    "cf-dev": "wrangler dev --node-compat dist/main.js",
-    "cf-deploy": "wrangler deploy --node-compat dist/main.js"
+    "dev": "wrangler dev --node-compat dist/main.js",
+    "deploy": "wrangler deploy --node-compat dist/main.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",

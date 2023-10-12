@@ -1,6 +1,5 @@
 import type { Hono, Context, Next } from "hono";
 import type { serveStatic as serveStaticFn } from "@hono/node-server/serve-static";
-import { hwyDev } from "./utils/conditional-dev.js";
 import path from "node:path";
 import {
   getPublicUrl,
@@ -50,8 +49,18 @@ async function hwyInit({
 }) {
   console.log("\nInitializing Hwy app...");
 
-  if (isDev ?? process.env.NODE_ENV === "development") {
-    hwyDev?.devInit({ app, watchExclusions });
+  const is_cloudflare = (globalThis as any).__hwy__is_cloudflare;
+
+  const IS_DEV =
+    isDev ??
+    process.env.NODE_ENV === "development" ??
+    (is_cloudflare && (globalThis as any).ENVIRONMENT === "development");
+
+  (globalThis as any).__hwy__is_dev = IS_DEV;
+
+  if (IS_DEV) {
+    const { devInit } = await import("@hwy-js/dev");
+    devInit({ app, watchExclusions });
   }
 
   ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl);

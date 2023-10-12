@@ -3,7 +3,7 @@ import {
   hwyInit,
   CssImports,
   rootOutlet,
-  hwyDev,
+  DevLiveRefreshScript,
   ClientEntryScript,
   HeadElements,
   HeadBlock,
@@ -97,8 +97,7 @@ app.all("*", async (c, next) => {
 
           <CssImports />
           <ClientEntryScript />
-
-          {hwyDev?.DevLiveRefreshScript()}
+          <DevLiveRefreshScript />
         </head>
 
         <body

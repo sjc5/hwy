@@ -1,4 +1,5 @@
-import { LIVE_REFRESH_PATH, refreshMiddleware } from "./refresh-middleware.js";
+import { LIVE_REFRESH_PATH } from "../../common/index.mjs";
+import { refreshMiddleware } from "./refresh-middleware.js";
 import { devSetup } from "./setup.js";
 import type { Hono } from "hono";
 

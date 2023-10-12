@@ -1,8 +1,7 @@
+import { LIVE_REFRESH_PATH } from "../../common/index.mjs";
 import type { Context, Next } from "hono";
 import { sinks } from "./constants.js";
 import { server_sent_events } from "./server-sent-events.js";
-
-const LIVE_REFRESH_PATH = "/__live_refresh";
 
 function refreshMiddleware() {
   return async function (c: Context, next: Next) {
@@ -23,4 +22,4 @@ function refreshMiddleware() {
   };
 }
 
-export { LIVE_REFRESH_PATH, refreshMiddleware };
+export { refreshMiddleware };

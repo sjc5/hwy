@@ -1,4 +1,4 @@
-import { Options } from "./types.js";
+import type { Options } from "./types.js";
 import { get_is_target_deno } from "./utils.js";
 
 let imports = `

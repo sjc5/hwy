@@ -2,6 +2,8 @@ name = "hwy-cf-test-2"
 compatibility_date = "2023-10-10"
 node_compat = true
 
+vars = { ENVIRONMENT = "development" }
+
 main = "dist/main.js"
 
 [build]
