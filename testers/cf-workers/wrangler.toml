@@ -1,4 +1,4 @@
-name = "hwy-cf-test-2"
+name = "cf-workers-tester"
 compatibility_date = "2023-10-10"
 node_compat = true
 
