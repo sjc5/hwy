@@ -1,0 +1,4 @@
+{
+  "devPort": 1234,
+  "devWatchExclusions": ["src/styles/tw-output.bundle.css"]
+}
