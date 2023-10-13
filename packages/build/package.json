@@ -1,11 +1,11 @@
 {
-  "name": "@hwy-js/dev",
+  "name": "@hwy-js/build",
   "version": "0.4.0-beta.1",
   "author": {
     "name": "Samuel J. Cook"
   },
   "license": "MIT",
-  "description": "Development tools for Hwy framework",
+  "description": "Build tools for Hwy framework",
   "type": "module",
   "main": "dist/index.js",
   "files": [
@@ -17,27 +17,36 @@
     "publish-beta": "npm publish --tag beta"
   },
   "bin": {
-    "hwy-dev-serve-deno": "./scripts/deno-dev.js"
+    "hwy-dev-serve": "./scripts/dev-serve.js",
+    "hwy-build": "./scripts/run-build-tasks.js",
+    "hwy-build-dev": "./scripts/run-build-tasks-dev.js",
+    "hwy-deno-deploy-hack": "./scripts/deno-deploy-hack.js",
+    "hwy-cf-workers-hack": "./scripts/cf-workers-hack.js",
+    "hwy-cf-pages-hack": "./scripts/cf-pages-hack.js"
   },
   "peerDependencies": {
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "esbuild": "^0.19.2"
   },
   "dependencies": {
     "chokidar": "^3.5.3",
     "dotenv": "^16.3.1",
-    "picocolors": "^1.0.0"
+    "picocolors": "^1.0.0",
+    "readdirp": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.3",
     "cross-env": "^7.0.3",
+    "esbuild": "^0.19.4",
     "hono": "^3.7.5",
+    "htmx.org": "^1.9.6",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/hwy-js/hwy",
-    "directory": "packages/dev"
+    "directory": "packages/build"
   },
   "homepage": "https://hwy.dev",
   "bugs": "https://github.com/hwy-js/hwy/issues",

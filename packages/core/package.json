@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "@hono/node-server": "^1.2.0",
+    "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@types/node": "^20.8.3",
     "hono": "^3.7.5",

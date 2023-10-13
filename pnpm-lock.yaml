@@ -58,11 +58,51 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
+  packages/build:
+    dependencies:
+      chokidar:
+        specifier: ^3.5.3
+        version: 3.5.3
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.3.1
+      picocolors:
+        specifier: ^1.0.0
+        version: 1.0.0
+      readdirp:
+        specifier: ^3.6.0
+        version: 3.6.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.3
+        version: 20.8.4
+      cross-env:
+        specifier: ^7.0.3
+        version: 7.0.3
+      esbuild:
+        specifier: ^0.19.4
+        version: 0.19.4
+      hono:
+        specifier: ^3.7.5
+        version: 3.7.5
+      htmx.org:
+        specifier: ^1.9.6
+        version: 1.9.6
+      tsup:
+        specifier: ^7.2.0
+        version: 7.2.0(typescript@5.2.2)
+      typescript:
+        specifier: ^5.2.2
+        version: 5.2.2
+
   packages/core:
     devDependencies:
       '@hono/node-server':
         specifier: ^1.2.0
         version: 1.2.0
+      '@hwy-js/build':
+        specifier: workspace:*
+        version: link:../build
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../dev
@@ -130,9 +170,6 @@ importers:
       picocolors:
         specifier: ^1.0.0
         version: 1.0.0
-      readdirp:
-        specifier: ^3.6.0
-        version: 3.6.0
     devDependencies:
       '@types/node':
         specifier: ^20.8.3
@@ -140,15 +177,9 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
-      esbuild:
-        specifier: ^0.19.4
-        version: 0.19.4
       hono:
         specifier: ^3.7.5
         version: 3.7.5
-      htmx.org:
-        specifier: ^1.9.6
-        version: 1.9.6
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(typescript@5.2.2)
@@ -171,6 +202,9 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^4.20231002.0
         version: 4.20231002.0
+      '@hwy-js/build':
+        specifier: workspace:*
+        version: link:../../packages/build
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
@@ -214,6 +248,9 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^4.20231002.0
         version: 4.20231002.0
+      '@hwy-js/build':
+        specifier: workspace:*
+        version: link:../../packages/build
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev

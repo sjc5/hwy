@@ -58,9 +58,11 @@ async function hwyInit({
 
   (globalThis as any).__hwy__is_dev = IS_DEV;
 
+  // throw new Error("Bill jean" + (globalThis as any).ENVIRONMENT);
+
   if (IS_DEV) {
     const { devInit } = await import("@hwy-js/dev");
-    devInit({ app, watchExclusions });
+    devInit({ app });
   }
 
   ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl);

@@ -1,4 +1,7 @@
 {
-  "devPort": 1234,
-  "devWatchExclusions": ["src/styles/tw-output.bundle.css"]
+  "dev": {
+    "port": 1234,
+    "watchExclusions": ["src/styles/tw-output.bundle.css"],
+    "shouldStartServer": true
+  }
 }

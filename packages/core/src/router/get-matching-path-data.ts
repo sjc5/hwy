@@ -2,7 +2,7 @@ import path from "node:path";
 import type { Context } from "hono";
 import { matcher } from "../router/matcher.js";
 import { get_path_to_use } from "../utils/get-path-to-use.js";
-import type { Paths } from "@hwy-js/dev";
+import type { Paths } from "@hwy-js/build";
 import { ROOT_DIRNAME } from "../setup.js";
 import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
 import { get_match_strength } from "./get-match-strength.js";

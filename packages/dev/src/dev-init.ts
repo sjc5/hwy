@@ -11,13 +11,7 @@ function send_signal_to_sinks() {
   }
 }
 
-function devInit({
-  app,
-  watchExclusions,
-}: {
-  app: Hono<any>;
-  watchExclusions?: string[];
-}) {
+function devInit({ app }: { app: Hono<any> }) {
   app.use(LIVE_REFRESH_PATH, refreshMiddleware());
 
   app.all(CHOKIDAR_RPC_PATH, async (c) => {

@@ -1,0 +1,8 @@
+{
+  "dev": {
+    "port": 5432,
+    "watchExclusions": ["src/styles/tw-output.bundle.css"],
+    "shouldStartServer": false
+  },
+  "deploymentTarget": "cloudflare-pages"
+}

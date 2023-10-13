@@ -12,9 +12,11 @@ const hwy_config = hwy_config_exists
   ? JSON.parse(fs.readFileSync(path.join(process.cwd(), "hwy.json"), "utf-8"))
   : {};
 
-const PORT = hwy_config.devPort;
+const PORT = hwy_config.dev?.port;
 
-const WATCH_EXCLUSIONS = hwy_config.devWatchExclusions;
+const WATCH_EXCLUSIONS = hwy_config.dev?.watchExclusions;
+
+const SHOULD_START_DEV_SERVER = hwy_config.dev?.shouldStartServer;
 
 console.log({ WATCH_EXCLUSIONS, PORT });
 
@@ -42,9 +44,11 @@ refresh_watcher.on("all", async () => {
 
   has_run_one_time = true;
 
-  run_command_with_spawn().catch((error) => {
-    console.error(error);
-  });
+  if (SHOULD_START_DEV_SERVER !== false) {
+    run_command_with_spawn().catch((error) => {
+      console.error(error);
+    });
+  }
 });
 
 const exclusions =
@@ -66,32 +70,6 @@ watcher.on("all", async (_, path) => {
     log: "triggered from chokidar watcher: " + path,
   });
 });
-
-function set_env_and_run_command(env_var, env_value, command, args) {
-  return new Promise((resolve, reject) => {
-    const full_command_path = path.join(
-      process.cwd(),
-      "node_modules",
-      ".bin",
-      command,
-    );
-    const env = { ...process.env, [env_var]: env_value };
-
-    const proc = spawn(full_command_path, args, {
-      env,
-      stdio: "inherit",
-      shell: process.platform === "win32",
-    });
-
-    proc.on("exit", (code) => {
-      if (code !== 0) {
-        reject(new Error(`Process exited with code ${code}`));
-      } else {
-        resolve();
-      }
-    });
-  });
-}
 
 let current_proc = null; // variable to hold the reference to the current process
 
@@ -137,6 +115,32 @@ function run_command_with_spawn() {
         current_proc = null;
       }
       reject(error);
+    });
+  });
+}
+
+function set_env_and_run_command(env_var, env_value, command, args) {
+  return new Promise((resolve, reject) => {
+    const full_command_path = path.join(
+      process.cwd(),
+      "node_modules",
+      ".bin",
+      command,
+    );
+    const env = { ...process.env, [env_var]: env_value };
+
+    const proc = spawn(full_command_path, args, {
+      env,
+      stdio: "inherit",
+      shell: process.platform === "win32",
+    });
+
+    proc.on("exit", (code) => {
+      if (code !== 0) {
+        reject(new Error(`Process exited with code ${code}`));
+      } else {
+        resolve();
+      }
     });
   });
 }
