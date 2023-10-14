@@ -15,6 +15,7 @@
     "hwy": "workspace:*"
   },
   "devDependencies": {
+    "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@types/node": "^20.8.3",
     "@types/nprogress": "^0.2.1",
@@ -26,6 +27,6 @@
     "typescript": "^5.2.2"
   },
   "engines": {
-    "node": ">=18.14.1"
+    "node": ">=20"
   }
 }

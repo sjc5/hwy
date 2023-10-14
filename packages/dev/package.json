@@ -16,9 +16,6 @@
     "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
     "publish-beta": "npm publish --tag beta"
   },
-  "bin": {
-    "hwy-dev-serve-deno": "./scripts/deno-dev.js"
-  },
   "peerDependencies": {
     "cross-env": "^7.0.3"
   },

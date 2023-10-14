@@ -6,6 +6,18 @@ import chokidar from "chokidar";
 import dotenv from "dotenv";
 import fs from "node:fs";
 
+const { runBuildTasks, hwyLog } = await import("../dist/index.js");
+
+const NODE_MAJOR_VERSION_AS_NUMBER = parseInt(
+  process.version.replace("v", "").split(".")[0],
+);
+
+hwyLog(`Using Node version ${NODE_MAJOR_VERSION_AS_NUMBER}`);
+
+if (NODE_MAJOR_VERSION_AS_NUMBER < 20) {
+  throw new Error("Please use Node version 20 or higher.");
+}
+
 const hwy_config_exists = fs.existsSync(path.join(process.cwd(), "hwy.json"));
 
 const hwy_config = hwy_config_exists
@@ -16,17 +28,14 @@ const PORT = hwy_config.dev?.port;
 
 const WATCH_EXCLUSIONS = hwy_config.dev?.watchExclusions;
 
-const SHOULD_START_DEV_SERVER = hwy_config.dev?.shouldStartServer;
+const SHOULD_START_DEV_SERVER =
+  hwy_config?.deploymentTarget !== "cloudflare-pages";
 
-console.log({ WATCH_EXCLUSIONS, PORT });
-
-const CHOKIDAR_RPC_PATH = "/__hwy__chokidar_rpc";
+const live_refresh_rpc_PATH = "/__hwy__live_refresh_rpc";
 
 let has_run_one_time = false;
 
-const { runBuildTasks } = await import("../dist/index.js");
-
-console.log("RUNNING IN DEVELOPMENT MODE");
+hwyLog("Running in DEV mode.");
 
 dotenv.config();
 
@@ -38,13 +47,13 @@ const refresh_watcher = chokidar.watch(
 refresh_watcher.on("all", async () => {
   if (has_run_one_time) {
     try {
-      await fetch(`http://localhost:${PORT}${CHOKIDAR_RPC_PATH}`);
+      await fetch(`http://localhost:${PORT}${live_refresh_rpc_PATH}`);
     } catch {}
   }
 
   has_run_one_time = true;
 
-  if (SHOULD_START_DEV_SERVER !== false) {
+  if (SHOULD_START_DEV_SERVER) {
     run_command_with_spawn().catch((error) => {
       console.error(error);
     });
@@ -63,7 +72,7 @@ const watcher = chokidar.watch(
 );
 
 watcher.on("all", async (_, path) => {
-  console.log("Change detected, restarting server...");
+  hwyLog("Change detected, restarting server...");
 
   await runBuildTasks({
     isDev: true,

@@ -6,9 +6,18 @@ import {
   type Paths,
 } from "./walk-pages.js";
 import esbuild from "esbuild";
-import { hwy_log, log_perf } from "./hwy-log.js";
+import { hwyLog, logPerf } from "./hwy-log.js";
 import { exec as exec_callback } from "child_process";
 import { promisify } from "node:util";
+import { pathToFileURL } from "node:url";
+
+const FILE_NAMES = [
+  "critical-bundled-css.js",
+  "paths.js",
+  "public-map.js",
+  "public-reverse-map.js",
+  "standard-bundled-css-exists.js",
+];
 
 const exec = promisify(exec_callback);
 
@@ -38,7 +47,7 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
 
     if (!script_to_run) return;
 
-    hwy_log(`Running ${script_to_run}`);
+    hwyLog(`Running ${script_to_run}`);
 
     const { stdout, stderr } = await exec(script_to_run);
     console.log(stdout);
@@ -51,23 +60,18 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
 async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   const IS_DEV = isDev;
 
-  hwy_log(`New build initiated${log ? ` (${log})` : ""}`);
+  hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
 
-  hwy_log(`Running pre-build tasks...`);
+  hwyLog(`Running pre-build tasks...`);
 
   const prebuild_p0 = performance.now();
   await handle_prebuild({ is_dev: IS_DEV });
   const prebuild_p1 = performance.now();
-  log_perf("pre-build tasks", prebuild_p0, prebuild_p1);
+  logPerf("pre-build tasks", prebuild_p0, prebuild_p1);
 
-  hwy_log(`Running standard build tasks...`);
+  hwyLog(`Running standard build tasks...`);
 
   const standard_tasks_p0 = performance.now();
-
-  await fs.promises.rm(path.join(process.cwd(), "dist"), {
-    recursive: true,
-    force: true,
-  });
 
   await fs.promises.mkdir(path.join(process.cwd(), "dist"), {
     recursive: true,
@@ -125,20 +129,12 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
 
   let main_code = main_build_result.outputFiles?.[0].text;
 
-  const file_names = [
-    "critical-bundled-css.js",
-    "paths.js",
-    "public-map.js",
-    "public-reverse-map.js",
-    "standard-bundled-css-exists.js",
-  ];
-
   function convert_to_var_name(file_name: string) {
     return "__hwy__" + file_name.replace(/-/g, "_").replace(".js", "");
   }
 
   let files_text = await Promise.all(
-    file_names.map((file_name) => {
+    FILE_NAMES.map((file_name) => {
       return fs.promises.readFile(
         path.join(process.cwd(), `dist/${file_name}`),
         "utf-8",
@@ -155,12 +151,10 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   to_be_appended =
     to_be_appended +
     `\n\n` +
-    file_names
-      .map((x) => {
-        const var_name = convert_to_var_name(x);
-        return `globalThis["${var_name}"] = ${var_name};`;
-      })
-      .join("\n") +
+    FILE_NAMES.map((x) => {
+      const var_name = convert_to_var_name(x);
+      return `globalThis["${var_name}"] = ${var_name};`;
+    }).join("\n") +
     "\n\n";
 
   fs.writeFileSync(
@@ -168,8 +162,12 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     to_be_appended + main_code,
   );
 
+  const page_paths = (
+    await import(path.join(process.cwd(), "dist", "paths.js"))
+  ).__hwy__paths.map((x: Paths[number]) => "./" + x.importPath);
+
   if (DEPLOYMENT_TARGET === "cloudflare-pages") {
-    console.log("Customizing for Cloudflare Pages...");
+    hwyLog("Customizing build output for Cloudflare Pages...");
 
     function get_line(path_from_dist: string) {
       return `import("${path_from_dist}").then((x) => globalThis["${path_from_dist}"] = x);`;
@@ -179,15 +177,10 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       return paths.map(get_line).join("\n");
     }
 
-    const page_paths = (
-      await import(path.join(process.cwd(), "dist", "paths.js"))
-    ).__hwy__paths.map((x: Paths[number]) => "./" + x.importPath);
-
     fs.writeFileSync(
       "dist/_worker.js",
       `import process from "node:process";\n` +
         `globalThis.process = process;\n` +
-        `globalThis.__hwy__is_cloudflare = true;\n` +
         `globalThis.__hwy__is_cloudflare_pages = true;\n` +
         fs.readFileSync("./dist/main.js", "utf8") +
         "\n" +
@@ -196,6 +189,39 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
 
     // copy public folder into dist
     fs.cpSync("./public", "./dist/public", { recursive: true });
+  }
+
+  if (DEPLOYMENT_TARGET === "deno-deploy") {
+    function get_line(path_from_dist: string) {
+      return `await import("${path_from_dist}"); `;
+    }
+
+    function get_code(paths: Array<string>) {
+      const pre = "if (0 > 1) { try { ";
+      const post = "} catch {} }";
+      return pre + paths.map(get_line).join("") + post;
+    }
+
+    hwyLog("Customizing build output for Deno Deploy...");
+
+    const public_paths = Object.keys(
+      (
+        await import(
+          pathToFileURL(path.join(process.cwd(), "dist", "public-map.js")).href
+        )
+      ).__hwy__public_map,
+    ).map((x) => "../" + x);
+
+    fs.writeFileSync(
+      "./dist/main.js",
+      fs.readFileSync("./dist/main.js", "utf8") +
+        "\n" +
+        get_code([
+          ...page_paths,
+          ...public_paths,
+          ...FILE_NAMES.map((x) => "./" + x),
+        ]),
+    );
   }
 
   if (IS_DEV) {
@@ -207,7 +233,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
 
   const standard_tasks_p1 = performance.now();
 
-  log_perf("standard build tasks", standard_tasks_p0, standard_tasks_p1);
+  logPerf("standard build tasks", standard_tasks_p0, standard_tasks_p1);
 }
 
 export { runBuildTasks };

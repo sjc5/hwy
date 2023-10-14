@@ -48,7 +48,7 @@ async function start_watcher() {
 start_watcher().catch((error) => console.error(error));
 
 try {
-  await runBuildTasks({ isDev: true, log: "triggered from deno-dev.js" });
+  await runBuildTasks({ isDev: true, log: "triggered from dev-serve-deno.js" });
 } catch (e) {
   console.error("ERROR: Build tasks failed:", e);
 }
