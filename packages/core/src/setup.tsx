@@ -38,14 +38,12 @@ async function hwyInit({
   serveStatic,
   isDev,
   publicUrlPrefix,
-  watchExclusions,
 }: {
   app: Hono<any>;
   importMetaUrl: string;
   serveStatic?: ServeStaticFn;
   isDev?: boolean;
   publicUrlPrefix?: string;
-  watchExclusions?: string[];
 }) {
   const is_cloudflare_pages = (globalThis as any).__hwy__is_cloudflare_pages;
 

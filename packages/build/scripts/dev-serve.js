@@ -31,7 +31,7 @@ const WATCH_EXCLUSIONS = hwy_config.dev?.watchExclusions;
 const SHOULD_START_DEV_SERVER =
   hwy_config?.deploymentTarget !== "cloudflare-pages";
 
-const live_refresh_rpc_PATH = "/__hwy__live_refresh_rpc";
+const LIVE_REFRESH_RPC_PATH = "/__hwy__live_refresh_rpc";
 
 let has_run_one_time = false;
 
@@ -47,7 +47,7 @@ const refresh_watcher = chokidar.watch(
 refresh_watcher.on("all", async () => {
   if (has_run_one_time) {
     try {
-      await fetch(`http://localhost:${PORT}${live_refresh_rpc_PATH}`);
+      await fetch(`http://localhost:${PORT}${LIVE_REFRESH_RPC_PATH}`);
     } catch {}
   }
 

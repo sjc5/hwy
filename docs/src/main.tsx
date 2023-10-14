@@ -34,7 +34,6 @@ await hwyInit({
    * to add a publicUrlPrefix.
    */
   publicUrlPrefix: process.env.NODE_ENV === "production" ? "docs/" : undefined,
-  watchExclusions: ["src/styles/tw-output.bundle.css"],
 });
 
 const default_head_blocks: HeadBlock[] = [
@@ -77,9 +76,9 @@ const default_head_blocks: HeadBlock[] = [
 app.all("*", async (c, next) => {
   if (IS_DEV) await new Promise((r) => setTimeout(r, 150));
 
-  // // 31 days vercel edge cache (invalidated each deploy)
+  // 31 days vercel edge cache (invalidated each deploy)
   c.header("CDN-Cache-Control", "public, max-age=2678400");
-  // // 10 seconds client cache
+  // 10 seconds client cache
   c.header("Cache-Control", "public, max-age=10");
 
   return await renderRoot(c, next, async ({ activePathData }) => {

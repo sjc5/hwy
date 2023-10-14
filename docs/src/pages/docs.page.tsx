@@ -571,7 +571,7 @@ export async function loader({ c }: AppDataFunctionArgs) {
 import {
   CssImports,
   rootOutlet,
-  hwyDev,
+  DevLiveRefreshScript,
   ClientEntryScript,
   getDefaultBodyProps,
   renderRoot,
@@ -593,8 +593,7 @@ app.all('*', async (c, next) => {
 
           <CssImports />
           <ClientEntryScript />
-
-          {hwyDev?.DevLiveRefreshScript()}
+          <DevLiveRefreshScript />
         </head>
 
         <body {...getDefaultBodyProps()}>

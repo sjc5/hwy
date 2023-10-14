@@ -171,35 +171,44 @@ ${
 export { get_main };
 
 const serve_fn_deno = `
-const PORT = Deno.env.get("PORT") ? Number(Deno.env.get("PORT")) : 8080;
+const PORT = Deno.env.get("PORT") ? Number(Deno.env.get("PORT")) : 5555;
 
 Deno.serve({ port: PORT }, app.fetch);
 `.trim();
 
 const serve_fn_node = `
-const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
-
-serve({ fetch: app.fetch, port: PORT }, (info) => {
-  console.log(
-    \`\\nListening on http://\${IS_DEV ? "localhost" : info.address}:\${PORT}\\n\`
-  );
-});
+serve(
+  { fetch: app.fetch, port: Number(process.env.PORT || 5555) },
+  (info) => {
+    console.log(
+      \`\\nListening on http://\${IS_DEV ? "localhost" : info.address}:\${
+        info.port
+      }\\n\`,
+    );
+  },
+);
 `.trim();
 
 const serve_fn_vercel = `
 if (IS_DEV) {
-  const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
-
-  serve({ fetch: app.fetch, port: PORT }, () => {
-    console.log(\`\\nListening on http://localhost:\${PORT}\\n\`);
-  });
+  serve(
+    { fetch: app.fetch, port: Number(process.env.PORT || 5555) },
+    (info) => {
+      console.log(
+        \`\\nListening on http://\${IS_DEV ? "localhost" : info.address}:\${
+          info.port
+        }\\n\`,
+      );
+    },
+  );
 }
+
 
 export default handle(app);
 `.trim();
 
 const serve_fn_bun = `
-const PORT = process.env.PORT ? Number(process.env.PORT) : 8080;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 5555;
 
 const server = Bun.serve({
   port: PORT,
