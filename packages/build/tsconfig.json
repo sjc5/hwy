@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitAny": true,
     "skipLibCheck": true,
-    "esModuleInterop": true,
+    "verbatimModuleSyntax": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "types": ["@cloudflare/workers-types", "node"]
+    "jsxImportSource": "hono/jsx"
   },
   "exclude": ["node_modules", "dist"]
 }

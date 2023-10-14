@@ -1,0 +1,6 @@
+{
+  "dev": {
+    "port": 1234,
+    "watchExclusions": ["src/styles/tw-output.bundle.css"]
+  }
+}

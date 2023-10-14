@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import esbuild from "esbuild";
-import { hwy_log } from "./hwy-log.js";
+import { hwyLog } from "./hwy-log.js";
 import { get_hashed_public_url_low_level } from "./hashed-public-url.js";
 import { pathToFileURL } from "node:url";
 
@@ -29,7 +29,7 @@ function replacer(_: string, p1: string) {
 async function bundle_css_files() {
   const using_styles_dir = fs.existsSync(path.resolve("./src/styles"));
   if (!using_styles_dir) {
-    hwy_log("Not using styles directory, skipping css bundling...");
+    hwyLog("Not using styles directory, skipping css bundling...");
     return;
   }
   const directory_path = path.resolve("src/styles");

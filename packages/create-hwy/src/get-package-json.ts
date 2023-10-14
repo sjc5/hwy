@@ -92,7 +92,7 @@ function get_package_json(options: Options) {
             : {}),
         },
         engines: {
-          node: ">=18.14.1",
+          node: ">=20",
         },
       },
       null,

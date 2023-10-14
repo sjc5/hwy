@@ -27,11 +27,14 @@ importers:
         specifier: ^3.7.5
         version: 3.7.5
       hwy:
-        specifier: 0.4.0-beta.1
+        specifier: workspace:*
         version: link:../packages/core
     devDependencies:
+      '@hwy-js/build':
+        specifier: workspace:*
+        version: link:../packages/build
       '@hwy-js/dev':
-        specifier: 0.4.0-beta.1
+        specifier: workspace:*
         version: link:../packages/dev
       '@types/node':
         specifier: ^20.8.3
@@ -58,11 +61,51 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
+  packages/build:
+    dependencies:
+      chokidar:
+        specifier: ^3.5.3
+        version: 3.5.3
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.3.1
+      picocolors:
+        specifier: ^1.0.0
+        version: 1.0.0
+      readdirp:
+        specifier: ^3.6.0
+        version: 3.6.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.8.3
+        version: 20.8.4
+      cross-env:
+        specifier: ^7.0.3
+        version: 7.0.3
+      esbuild:
+        specifier: ^0.19.4
+        version: 0.19.4
+      hono:
+        specifier: ^3.7.5
+        version: 3.7.5
+      htmx.org:
+        specifier: ^1.9.6
+        version: 1.9.6
+      tsup:
+        specifier: ^7.2.0
+        version: 7.2.0(typescript@5.2.2)
+      typescript:
+        specifier: ^5.2.2
+        version: 5.2.2
+
   packages/core:
     devDependencies:
       '@hono/node-server':
         specifier: ^1.2.0
         version: 1.2.0
+      '@hwy-js/build':
+        specifier: workspace:*
+        version: link:../build
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../dev
@@ -130,9 +173,6 @@ importers:
       picocolors:
         specifier: ^1.0.0
         version: 1.0.0
-      readdirp:
-        specifier: ^3.6.0
-        version: 3.6.0
     devDependencies:
       '@types/node':
         specifier: ^20.8.3
@@ -140,15 +180,9 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
-      esbuild:
-        specifier: ^0.19.4
-        version: 0.19.4
       hono:
         specifier: ^3.7.5
         version: 3.7.5
-      htmx.org:
-        specifier: ^1.9.6
-        version: 1.9.6
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(typescript@5.2.2)
@@ -171,6 +205,9 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^4.20231002.0
         version: 4.20231002.0
+      '@hwy-js/build':
+        specifier: workspace:*
+        version: link:../../packages/build
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
@@ -189,46 +226,6 @@ importers:
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
-      tailwindcss:
-        specifier: ^3.3.3
-        version: 3.3.3
-      typescript:
-        specifier: ^5.2.2
-        version: 5.2.2
-      wrangler:
-        specifier: ^3.11.0
-        version: 3.11.0
-
-  testers/cf-workers:
-    dependencies:
-      '@hono/node-server':
-        specifier: ^1.2.0
-        version: 1.2.0
-      hono:
-        specifier: ^3.7.5
-        version: 3.7.5
-      hwy:
-        specifier: workspace:*
-        version: link:../../packages/core
-    devDependencies:
-      '@cloudflare/workers-types':
-        specifier: ^4.20231002.0
-        version: 4.20231002.0
-      '@hwy-js/dev':
-        specifier: workspace:*
-        version: link:../../packages/dev
-      '@types/node':
-        specifier: ^20.8.4
-        version: 20.8.4
-      cross-env:
-        specifier: ^7.0.3
-        version: 7.0.3
-      esbuild:
-        specifier: ^0.19.4
-        version: 0.19.4
-      htmx.org:
-        specifier: ^1.9.6
-        version: 1.9.6
       tailwindcss:
         specifier: ^3.3.3
         version: 3.3.3
@@ -2523,7 +2520,7 @@ packages:
       glob-to-regexp: 0.4.1
       source-map-support: 0.5.21
       stoppable: 1.1.0
-      undici: 5.25.4
+      undici: 5.26.3
       workerd: 1.20231002.0
       ws: 8.14.2
       youch: 3.3.2
@@ -3420,8 +3417,8 @@ packages:
     resolution: {integrity: sha512-Ga1jfYwRn7+cP9v8auvEXN1rX3sWqlayd4HP7OKk4mZWylEmu3KzXDUGrQUN6Ol7qo1gPvB2e5gX6udnyEPgdA==}
     dev: true
 
-  /undici@5.25.4:
-    resolution: {integrity: sha512-450yJxT29qKMf3aoudzFpIciqpx6Pji3hEWaXqXmanbXF58LTAGCKxcJjxMXWu3iG+Mudgo3ZUfDB6YDFd/dAw==}
+  /undici@5.26.3:
+    resolution: {integrity: sha512-H7n2zmKEWgOllKkIUkLvFmsJQj062lSm3uA4EYApG8gLuiOM0/go9bIoC3HVaSnfg4xunowDE2i9p8drkXuvDw==}
     engines: {node: '>=14.0'}
     dependencies:
       '@fastify/busboy': 2.0.0

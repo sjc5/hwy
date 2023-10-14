@@ -47,20 +47,20 @@ async function hwyInit({
   publicUrlPrefix?: string;
   watchExclusions?: string[];
 }) {
-  console.log("\nInitializing Hwy app...");
-
-  const is_cloudflare = (globalThis as any).__hwy__is_cloudflare;
+  const is_cloudflare_pages = (globalThis as any).__hwy__is_cloudflare_pages;
 
   const IS_DEV =
     isDev ??
     process.env.NODE_ENV === "development" ??
-    (is_cloudflare && (globalThis as any).ENVIRONMENT === "development");
+    (is_cloudflare_pages && (globalThis as any).ENVIRONMENT === "development");
+
+  console.log("\nInitializing Hwy app...");
 
   (globalThis as any).__hwy__is_dev = IS_DEV;
 
   if (IS_DEV) {
     const { devInit } = await import("@hwy-js/dev");
-    devInit({ app, watchExclusions });
+    devInit({ app });
   }
 
   ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl);
@@ -76,8 +76,6 @@ async function hwyInit({
 
   const static_path = "/public/*";
   app.use(static_path, immutable_cache());
-
-  const is_cloudflare_pages = (globalThis as any).__hwy__is_cloudflare_pages;
 
   if (is_cloudflare_pages) {
     app.get(static_path, async (c) => {

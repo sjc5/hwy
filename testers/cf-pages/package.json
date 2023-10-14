@@ -4,11 +4,11 @@
   "type": "module",
   "scripts": {
     "hwy-prebuild": "tailwindcss -i src/styles/tw-input.css -o src/styles/tw-output.bundle.css",
-    "build": "tsc --noEmit && hwy-build && hwy-cf-pages-hack",
+    "build": "tsc --noEmit && hwy-build",
     "start": "node dist/main.js",
     "dev:serve": "hwy-dev-serve",
-    "dev:wrangler": "npm run build && wrangler pages dev ./dist --compatibility-flag=\"nodejs_compat\" --port=3491",
-    "dev": "npm-run-all --parallel dev:*"
+    "dev:wrangler": "wrangler pages dev ./dist --compatibility-flag=\"nodejs_compat\" --port=5432 --live-reload",
+    "dev": "npm run build && npm-run-all --parallel dev:*"
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",
@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231002.0",
+    "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@types/node": "^20.8.4",
     "cross-env": "^7.0.3",
@@ -28,6 +29,6 @@
     "wrangler": "^3.11.0"
   },
   "engines": {
-    "node": ">=18.14.1"
+    "node": ">=20"
   }
 }

@@ -1,17 +1,24 @@
 import { LIVE_REFRESH_PATH } from "../../common/index.mjs";
+import { live_refresh_rpc_PATH, sinks } from "./constants.js";
+import { hwyLog } from "./hwy-log.js";
 import { refreshMiddleware } from "./refresh-middleware.js";
-import { devSetup } from "./setup.js";
 import type { Hono } from "hono";
 
-function devInit({
-  app,
-  watchExclusions,
-}: {
-  app: Hono<any>;
-  watchExclusions?: string[];
-}) {
-  devSetup({ watchExclusions });
+function send_signal_to_sinks() {
+  hwyLog(`Sending reload signal to browser...`);
+  for (const sink of sinks) {
+    sink.send_message("reload");
+  }
+}
+
+function devInit({ app }: { app: Hono<any> }) {
   app.use(LIVE_REFRESH_PATH, refreshMiddleware());
+
+  app.all(live_refresh_rpc_PATH, async (c) => {
+    send_signal_to_sinks();
+
+    return c.text("you called chokidar rpc");
+  });
 }
 
 export { devInit };

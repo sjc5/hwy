@@ -7,10 +7,12 @@
   "license": "MIT",
   "description": "Monorepo for Hwy framework",
   "scripts": {
+    "build:build": "pnpm -r --filter @hwy-js/build run build",
     "build:core": "pnpm -r --filter hwy run build",
     "build:dev": "pnpm -r --filter @hwy-js/dev run build",
     "build:create-hwy": "pnpm -r --filter create-hwy run build",
-    "build": "npm run build:dev && npm run build:core && npm run build:create-hwy",
+    "build": "npm run build:build && npm run build:dev && npm run build:core && npm run build:create-hwy",
+    "dev:build": "pnpm -r --filter @hwy-js/build run dev",
     "dev:core": "pnpm -r --filter hwy run dev",
     "dev:dev": "pnpm -r --filter @hwy-js/dev run dev",
     "dev": "npm-run-all --parallel dev:*",
