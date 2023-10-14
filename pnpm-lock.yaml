@@ -27,14 +27,14 @@ importers:
         specifier: ^3.7.5
         version: 3.7.5
       hwy:
-        specifier: 0.4.0-beta.3
+        specifier: workspace:*
         version: link:../packages/core
     devDependencies:
       '@hwy-js/build':
-        specifier: 0.4.0-beta.3
+        specifier: workspace:*
         version: link:../packages/build
       '@hwy-js/dev':
-        specifier: 0.4.0-beta.3
+        specifier: workspace:*
         version: link:../packages/dev
       '@types/node':
         specifier: ^20.8.3
@@ -42,9 +42,6 @@ importers:
       '@types/nprogress':
         specifier: ^0.2.1
         version: 0.2.1
-      cross-env:
-        specifier: ^7.0.3
-        version: 7.0.3
       esbuild:
         specifier: ^0.19.4
         version: 0.19.4
@@ -79,18 +76,12 @@ importers:
       '@types/node':
         specifier: ^20.8.3
         version: 20.8.4
-      cross-env:
-        specifier: ^7.0.3
-        version: 7.0.3
       esbuild:
         specifier: ^0.19.4
         version: 0.19.4
       hono:
         specifier: ^3.7.5
         version: 3.7.5
-      htmx.org:
-        specifier: ^1.9.6
-        version: 1.9.6
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(typescript@5.2.2)
@@ -164,12 +155,6 @@ importers:
 
   packages/dev:
     dependencies:
-      chokidar:
-        specifier: ^3.5.3
-        version: 3.5.3
-      dotenv:
-        specifier: ^16.3.1
-        version: 16.3.1
       picocolors:
         specifier: ^1.0.0
         version: 1.0.0
@@ -177,9 +162,6 @@ importers:
       '@types/node':
         specifier: ^20.8.3
         version: 20.8.3
-      cross-env:
-        specifier: ^7.0.3
-        version: 7.0.3
       hono:
         specifier: ^3.7.5
         version: 3.7.5
@@ -214,9 +196,6 @@ importers:
       '@types/node':
         specifier: ^20.8.4
         version: 20.8.4
-      cross-env:
-        specifier: ^7.0.3
-        version: 7.0.3
       esbuild:
         specifier: ^0.19.4
         version: 0.19.4
@@ -254,9 +233,6 @@ importers:
       '@types/node':
         specifier: ^20.8.3
         version: 20.8.4
-      cross-env:
-        specifier: ^7.0.3
-        version: 7.0.3
       esbuild:
         specifier: ^0.19.4
         version: 0.19.4
@@ -1658,14 +1634,6 @@ packages:
   /cookie@0.5.0:
     resolution: {integrity: sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw==}
     engines: {node: '>= 0.6'}
-    dev: true
-
-  /cross-env@7.0.3:
-    resolution: {integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==}
-    engines: {node: '>=10.14', npm: '>=6', yarn: '>=1'}
-    hasBin: true
-    dependencies:
-      cross-spawn: 7.0.3
     dev: true
 
   /cross-spawn@6.0.5:

@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/build",
-  "version": "0.4.0-beta.3",
+  "version": "0.4.0-beta.10",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -18,12 +18,9 @@
   },
   "bin": {
     "hwy-dev-serve": "./scripts/dev-serve.js",
-    "hwy-dev-serve-deno": "./scripts/dev-serve-deno.js",
-    "hwy-build": "./scripts/run-build-tasks.js",
-    "hwy-build-dev": "./scripts/run-build-tasks-dev.js"
+    "hwy-build": "./scripts/run-build-tasks.js"
   },
   "peerDependencies": {
-    "cross-env": "^7.0.3",
     "esbuild": "^0.19.2"
   },
   "dependencies": {
@@ -34,10 +31,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.8.3",
-    "cross-env": "^7.0.3",
     "esbuild": "^0.19.4",
     "hono": "^3.7.5",
-    "htmx.org": "^1.9.6",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   },

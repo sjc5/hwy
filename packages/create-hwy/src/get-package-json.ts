@@ -2,7 +2,7 @@ import type { Options } from "./types.js";
 import { get_is_target_deno } from "./utils.js";
 
 const VERSIONS = {
-  HWY: "^0.4.0-beta.3",
+  HWY: "^0.4.0-beta.10",
   HONO_NODE_SERVER: "^1.2.0",
   HONO: "^3.7.5",
   HTMX: "^1.9.6",
@@ -11,7 +11,6 @@ const VERSIONS = {
   NPROGRESS: "^0.2.0",
   NPROGRESS_TYPES: "^0.2.1",
   NODE_TYPES: "^20.8.3",
-  CROSS_ENV: "^7.0.3",
   ESBUILD: "^0.19.4",
   BUN_TYPES: "^1.0.5-canary.20231007T140129",
 } as const;
@@ -53,9 +52,7 @@ function get_package_json(options: Options) {
             : options.deployment_target === "bun"
             ? "bun dist/main.js"
             : "node dist/main.js",
-          dev: get_is_target_deno(options)
-            ? "hwy-dev-serve-deno"
-            : "hwy-dev-serve",
+          dev: "hwy-dev-serve",
         },
         dependencies: {
           ...(!is_targeting_deno && options.deployment_target !== "bun"
@@ -65,6 +62,7 @@ function get_package_json(options: Options) {
           hwy: LATEST_HWY_VERSION,
         },
         devDependencies: {
+          "@hwy-js/build": LATEST_HWY_VERSION,
           "@hwy-js/dev": LATEST_HWY_VERSION,
           ...(options.lang_preference === "typescript"
             ? {
@@ -80,7 +78,6 @@ function get_package_json(options: Options) {
           options.lang_preference === "typescript"
             ? { "bun-types": VERSIONS.BUN_TYPES }
             : {}),
-          "cross-env": VERSIONS.CROSS_ENV,
           esbuild: VERSIONS.ESBUILD,
           "htmx.org": VERSIONS.HTMX,
           ...(options.with_nprogress ? { nprogress: VERSIONS.NPROGRESS } : {}),

@@ -12,14 +12,13 @@
     "@hono/node-server": "^1.2.0",
     "highlight.js": "^11.8.0",
     "hono": "^3.7.5",
-    "hwy": "0.4.0-beta.3"
+    "hwy": "workspace:*"
   },
   "devDependencies": {
-    "@hwy-js/build": "0.4.0-beta.3",
-    "@hwy-js/dev": "0.4.0-beta.3",
+    "@hwy-js/build": "workspace:*",
+    "@hwy-js/dev": "workspace:*",
     "@types/node": "^20.8.3",
     "@types/nprogress": "^0.2.1",
-    "cross-env": "^7.0.3",
     "esbuild": "^0.19.4",
     "htmx.org": "^1.9.6",
     "nprogress": "^0.2.0",
