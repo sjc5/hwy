@@ -85,7 +85,9 @@ async function hwyInit({
 
       const new_url = hostname + "/" + original_public_url.slice(2);
 
-      return await c.env.ASSETS.fetch(new Request(new_url));
+      const new_req = new Request(new_url, c.req);
+
+      return await c.env.ASSETS.fetch(new_req);
     });
 
     return;

@@ -17,7 +17,6 @@ const app = new Hono();
 await hwyInit({
   app,
   importMetaUrl: import.meta.url,
-  watchExclusions: ["src/styles/tw-output.bundle.css"],
 });
 
 app.use("*", logger());
