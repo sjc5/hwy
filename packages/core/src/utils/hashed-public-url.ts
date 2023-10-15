@@ -1,5 +1,8 @@
 import path from "node:path";
 import { PUBLIC_URL_PREFIX } from "../setup.js";
+import { get_hwy_global } from "./get-hwy-global.js";
+
+const hwy_global = get_hwy_global();
 
 function getPublicUrl(url: string): string {
   let hashed_url: string | undefined;
@@ -7,8 +10,7 @@ function getPublicUrl(url: string): string {
   if (url.startsWith("/")) url = url.slice(1);
   if (url.startsWith("./")) url = url.slice(2);
 
-  const public_map: Record<string, string> | undefined = (globalThis as any)
-    .__hwy__public_map;
+  const public_map = hwy_global.get("public_map");
 
   hashed_url = public_map?.[path.join("public", url)];
 
@@ -26,9 +28,7 @@ function get_original_public_url({
 }): string {
   const sliced_url = path.normalize(hashed_url.slice(1));
 
-  const reverse_public_map: Record<string, string> | undefined = (
-    globalThis as any
-  ).__hwy__public_reverse_map;
+  const reverse_public_map = hwy_global.get("public_reverse_map");
 
   const original_url = reverse_public_map?.[sliced_url];
 

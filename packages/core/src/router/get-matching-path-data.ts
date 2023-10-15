@@ -8,6 +8,9 @@ import { get_matching_paths_internal } from "./get-matching-path-data-internal.j
 import { get_match_strength } from "./get-match-strength.js";
 import type { DataFunctionArgs } from "../types.js";
 import { path_to_file_url_string } from "../utils/url-polyfills.js";
+import { get_hwy_global } from "../utils/get-hwy-global.js";
+
+const hwy_global = get_hwy_global();
 
 function fully_decorate_paths({
   matching_paths,
@@ -16,7 +19,7 @@ function fully_decorate_paths({
   matching_paths: ReturnType<typeof semi_decorate_paths>;
   splat_segments: string[];
 }) {
-  const is_cloudflare_pages = (globalThis as any).__hwy__is_cloudflare_pages;
+  const is_cloudflare_pages = hwy_global.get("is_cloudflare_pages");
 
   return (
     matching_paths?.map((_path) => {
@@ -122,7 +125,11 @@ async function getMatchingPathData({
   c: Context;
   redirectTo?: string;
 }) {
-  const paths: Paths = (globalThis as any).__hwy__paths;
+  const paths = hwy_global.get("paths");
+
+  if (!paths) {
+    throw new Error("Paths not found.");
+  }
 
   const semi_decorated_paths = semi_decorate_paths({
     c,

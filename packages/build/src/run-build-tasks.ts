@@ -10,6 +10,7 @@ import { hwyLog, logPerf } from "./hwy-log.js";
 import { exec as exec_callback } from "child_process";
 import { promisify } from "node:util";
 import { pathToFileURL } from "node:url";
+import { HWY_GLOBAL_KEYS, HWY_PREFIX } from "../../common/index.mjs";
 
 const FILE_NAMES = [
   "critical-bundled-css.js",
@@ -130,7 +131,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   let main_code = main_build_result.outputFiles?.[0].text;
 
   function convert_to_var_name(file_name: string) {
-    return "__hwy__" + file_name.replace(/-/g, "_").replace(".js", "");
+    return HWY_PREFIX + file_name.replace(/-/g, "_").replace(".js", "");
   }
 
   let files_text = await Promise.all(
@@ -164,7 +165,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
 
   const page_paths = (
     await import(path.join(process.cwd(), "dist", "paths.js"))
-  ).__hwy__paths.map((x: Paths[number]) => "./" + x.importPath);
+  )[HWY_GLOBAL_KEYS.paths].map((x: Paths[number]) => "./" + x.importPath);
 
   if (DEPLOYMENT_TARGET === "cloudflare-pages") {
     hwyLog("Customizing build output for Cloudflare Pages...");
@@ -181,7 +182,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       "dist/_worker.js",
       `import process from "node:process";\n` +
         `globalThis.process = process;\n` +
-        `globalThis.__hwy__is_cloudflare_pages = true;\n` +
+        `globalThis.${HWY_GLOBAL_KEYS.is_cloudflare_pages} = true;\n` +
         fs.readFileSync("./dist/main.js", "utf8") +
         "\n" +
         get_code([...page_paths]),
@@ -209,7 +210,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
         await import(
           pathToFileURL(path.join(process.cwd(), "dist", "public-map.js")).href
         )
-      ).__hwy__public_map,
+      )[HWY_GLOBAL_KEYS.public_map],
     ).map((x) => "../" + x);
 
     fs.writeFileSync(

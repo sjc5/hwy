@@ -1,5 +1,8 @@
-import { LIVE_REFRESH_PATH } from "../../common/index.mjs";
-import { LIVE_REFRESH_RPC_PATH, sinks } from "./constants.js";
+import {
+  LIVE_REFRESH_SSE_PATH,
+  LIVE_REFRESH_RPC_PATH,
+} from "../../common/index.mjs";
+import { sinks } from "./constants.js";
 import { hwyLog } from "./hwy-log.js";
 import { refreshMiddleware } from "./refresh-middleware.js";
 import type { Hono } from "hono";
@@ -12,7 +15,7 @@ function send_signal_to_sinks() {
 }
 
 function devInit({ app }: { app: Hono<any> }) {
-  app.use(LIVE_REFRESH_PATH, refreshMiddleware());
+  app.use(LIVE_REFRESH_SSE_PATH, refreshMiddleware());
 
   app.all(LIVE_REFRESH_RPC_PATH, async (c) => {
     send_signal_to_sinks();

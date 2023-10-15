@@ -29,10 +29,12 @@ function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
       const name = block.props.name;
       const property = block.props.property;
 
+      const META_KEY_PREFIX = "__meta__";
+
       if (name) {
-        results.set("__meta__" + name, block);
+        results.set(META_KEY_PREFIX + name, block);
       } else if (property) {
-        results.set("__meta__" + property, block);
+        results.set(META_KEY_PREFIX + property, block);
       } else {
         results.set(stable_hash(block), block);
       }

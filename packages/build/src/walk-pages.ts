@@ -3,6 +3,7 @@ import fs from "node:fs";
 import crypto from "node:crypto";
 import readdirp from "readdirp";
 import esbuild from "esbuild";
+import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
 
 async function walk_pages() {
   const paths: {
@@ -119,7 +120,7 @@ async function write_paths_to_file() {
   const paths = await walk_pages();
   fs.writeFileSync(
     path.join(process.cwd(), "dist", "paths.js"),
-    `export const __hwy__paths = ${JSON.stringify(paths)}`,
+    `export const ${HWY_GLOBAL_KEYS.paths} = ${JSON.stringify(paths)}`,
   );
 }
 
@@ -175,12 +176,14 @@ async function generate_public_file_map() {
   await Promise.all([
     fs.promises.writeFile(
       map_file_path,
-      `export const __hwy__public_map = ${JSON.stringify(file_map)};`,
+      `export const ${HWY_GLOBAL_KEYS.public_map} = ${JSON.stringify(
+        file_map,
+      )};`,
       "utf-8",
     ),
     fs.promises.writeFile(
       reverse_map_file_path,
-      `export const __hwy__public_reverse_map = ${JSON.stringify(
+      `export const ${HWY_GLOBAL_KEYS.public_reverse_map} = ${JSON.stringify(
         reverse_file_map,
       )};`,
       "utf-8",

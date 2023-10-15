@@ -1,8 +1,8 @@
-import { LIVE_REFRESH_PATH } from "../../../common/index.mjs";
+import { LIVE_REFRESH_SSE_PATH } from "../../../common/index.mjs";
 import type { HtmlEscapedString } from "hono/utils/html";
 
 const get_dev_live_refresh_script_inner_html = (timeout_ms = 300) => {
-  const statement_1 = `let es=new EventSource('${LIVE_REFRESH_PATH}');`;
+  const statement_1 = `let es=new EventSource('${LIVE_REFRESH_SSE_PATH}');`;
   const statement_2 = `es.addEventListener('message',(ev)=>{if(ev.data=='reload')setTimeout(()=>window.location.reload(),${timeout_ms})});`;
   return statement_1 + statement_2;
 };

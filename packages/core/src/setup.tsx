@@ -7,6 +7,7 @@ import {
   get_serve_static_options,
 } from "./utils/hashed-public-url.js";
 import { file_url_to_path } from "./utils/url-polyfills.js";
+import { get_hwy_global } from "./utils/get-hwy-global.js";
 
 function dirname_from_import_meta(import_meta_url: string) {
   return path.dirname(file_url_to_path(import_meta_url));
@@ -45,7 +46,9 @@ async function hwyInit({
   isDev?: boolean;
   publicUrlPrefix?: string;
 }) {
-  const is_cloudflare_pages = (globalThis as any).__hwy__is_cloudflare_pages;
+  const hwy_global = get_hwy_global();
+
+  const is_cloudflare_pages = hwy_global.get("is_cloudflare_pages");
 
   const IS_DEV =
     isDev ??
@@ -54,7 +57,7 @@ async function hwyInit({
 
   console.log("\nInitializing Hwy app...");
 
-  (globalThis as any).__hwy__is_dev = IS_DEV;
+  hwy_global.set("is_dev", IS_DEV);
 
   if (IS_DEV) {
     const { devInit } = await import("@hwy-js/dev");

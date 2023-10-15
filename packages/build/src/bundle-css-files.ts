@@ -4,12 +4,13 @@ import esbuild from "esbuild";
 import { hwyLog } from "./hwy-log.js";
 import { get_hashed_public_url_low_level } from "./hashed-public-url.js";
 import { pathToFileURL } from "node:url";
+import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
 
 const public_map_path = path.resolve("dist", "public-map.js");
 
 const public_map: Record<string, string> | undefined = (
   await import(pathToFileURL(public_map_path).href)
-).__hwy__public_map;
+)[HWY_GLOBAL_KEYS.public_map];
 
 const URL_REGEX = /url\(\s*['"]([^'"]*)['"]\s*\)/g;
 
@@ -55,7 +56,7 @@ async function bundle_css_files() {
     function write_standard_bundled_css_exists(does_exist: boolean) {
       fs.writeFileSync(
         path.join(process.cwd(), "dist/standard-bundled-css-exists.js"),
-        `export const __hwy__standard_bundled_css_exists = ${does_exist};`,
+        `export const ${HWY_GLOBAL_KEYS.standard_bundled_css_exists} = ${does_exist};`,
       );
     }
 
@@ -102,12 +103,12 @@ async function bundle_css_files() {
 
       fs.writeFileSync(
         path.join(process.cwd(), "dist/critical-bundled-css.js"),
-        `export const __hwy__critical_bundled_css = \`${css}\`;`,
+        `export const ${HWY_GLOBAL_KEYS.critical_bundled_css} = \`${css}\`;`,
       );
     } else {
       fs.writeFileSync(
         path.join(process.cwd(), "dist/critical-bundled-css.js"),
-        `export const __hwy__critical_bundled_css = undefined;`,
+        `export const ${HWY_GLOBAL_KEYS.critical_bundled_css} = undefined;`,
       );
     }
   }
