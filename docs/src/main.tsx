@@ -23,6 +23,8 @@ export const config = {
   runtime: "edge",
 };
 
+export const runtime = "edge";
+
 console.log("runtime", (globalThis as any).EdgeRuntime, config);
 
 const app = new Hono();
