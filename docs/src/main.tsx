@@ -19,6 +19,10 @@ import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { FallbackErrorBoundary } from "./components/fallback-error-boundary.js";
 
+export const config = {
+  runtime: "edge",
+};
+
 const app = new Hono();
 app.use("*", logger());
 app.get("*", secureHeaders());

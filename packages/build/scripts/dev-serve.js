@@ -39,7 +39,9 @@ refresh_watcher.on("all", async () => {
   if (has_run_one_time) {
     try {
       await fetch(`http://127.0.0.1:${PORT}${LIVE_REFRESH_RPC_PATH}`);
-    } catch {}
+    } catch (e) {
+      console.error("Live refresh RPC failed:", e);
+    }
   }
 
   has_run_one_time = true;

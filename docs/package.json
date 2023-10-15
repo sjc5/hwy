@@ -12,11 +12,11 @@
     "@hono/node-server": "^1.2.0",
     "highlight.js": "^11.8.0",
     "hono": "^3.7.5",
-    "hwy": "workspace:*"
+    "hwy": "0.4.0-beta.10"
   },
   "devDependencies": {
-    "@hwy-js/build": "workspace:*",
-    "@hwy-js/dev": "workspace:*",
+    "@hwy-js/build": "0.4.0-beta.10",
+    "@hwy-js/dev": "0.4.0-beta.10",
     "@types/node": "^20.8.3",
     "@types/nprogress": "^0.2.1",
     "esbuild": "^0.19.4",
