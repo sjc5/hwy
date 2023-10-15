@@ -2,5 +2,6 @@
   "dev": {
     "port": 1238,
     "watchExclusions": ["src/styles/tw-output.bundle.css"]
-  }
+  },
+  "deploymentTarget": "vercel-lambda"
 }

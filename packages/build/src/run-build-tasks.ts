@@ -11,6 +11,7 @@ import { exec as exec_callback } from "child_process";
 import { promisify } from "node:util";
 import { pathToFileURL } from "node:url";
 import { HWY_GLOBAL_KEYS, HWY_PREFIX } from "../../common/index.mjs";
+import { get_hwy_config } from "./get-hwy-config.js";
 
 const FILE_NAMES = [
   "critical-bundled-css.js",
@@ -22,13 +23,7 @@ const FILE_NAMES = [
 
 const exec = promisify(exec_callback);
 
-const hwy_config_exists = fs.existsSync(path.join(process.cwd(), "hwy.json"));
-
-const hwy_config = hwy_config_exists
-  ? JSON.parse(fs.readFileSync(path.join(process.cwd(), "hwy.json"), "utf-8"))
-  : {};
-
-const DEPLOYMENT_TARGET = hwy_config.deploymentTarget || "node";
+const hwy_config = get_hwy_config();
 
 async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
   try {
@@ -167,7 +162,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     await import(path.join(process.cwd(), "dist", "paths.js"))
   )[HWY_GLOBAL_KEYS.paths].map((x: Paths[number]) => "./" + x.importPath);
 
-  if (DEPLOYMENT_TARGET === "cloudflare-pages") {
+  if (hwy_config.deploymentTarget === "cloudflare-pages") {
     hwyLog("Customizing build output for Cloudflare Pages...");
 
     function get_line(path_from_dist: string) {
@@ -192,7 +187,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     fs.cpSync("./public", "./dist/public", { recursive: true });
   }
 
-  if (DEPLOYMENT_TARGET === "deno-deploy") {
+  if (hwy_config.deploymentTarget === "deno-deploy") {
     function get_line(path_from_dist: string) {
       return `await import("${path_from_dist}"); `;
     }
@@ -223,6 +218,10 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
           ...FILE_NAMES.map((x) => "./" + x),
         ]),
     );
+  }
+
+  if (hwy_config.deploymentTarget === "vercel-lambda") {
+    fs.cpSync("./dist", "./api", { recursive: true });
   }
 
   if (IS_DEV) {

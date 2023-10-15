@@ -2,41 +2,19 @@ import { ChildProcess, spawn } from "node:child_process";
 import path from "node:path";
 import chokidar from "chokidar";
 import dotenv from "dotenv";
-import fs from "node:fs";
 import { runBuildTasks } from "./run-build-tasks.js";
 import { hwyLog } from "./hwy-log.js";
 import { LIVE_REFRESH_RPC_PATH } from "../../common/index.mjs";
+import { get_hwy_config } from "./get-hwy-config.js";
 
 declare const Deno: Record<any, any>;
 
 async function devServe() {
-  const hwy_config_exists = fs.existsSync(path.join(process.cwd(), "hwy.json"));
-
-  type HwyConfig = {
-    dev?: {
-      port?: number;
-      watchExclusions?: string[];
-    };
-    deploymentTarget?:
-      | "node"
-      | "bun"
-      | "deno"
-      | "deno-deploy"
-      | "vercel-lambda"
-      | "cloudflare-pages";
-  };
-
-  const hwy_config: HwyConfig = hwy_config_exists
-    ? JSON.parse(fs.readFileSync(path.join(process.cwd(), "hwy.json"), "utf-8"))
-    : {};
-
-  const PORT = hwy_config.dev?.port;
-  const WATCH_EXCLUSIONS = hwy_config.dev?.watchExclusions;
-
-  const DEPLOYMENT_TARGET = hwy_config?.deploymentTarget;
+  const { deploymentTarget: deployment_target, dev: dev_config } =
+    get_hwy_config();
 
   const is_targeting_deno =
-    DEPLOYMENT_TARGET === "deno" || DEPLOYMENT_TARGET === "deno-deploy";
+    deployment_target === "deno" || deployment_target === "deno-deploy";
 
   let has_run_one_time = false;
 
@@ -52,7 +30,9 @@ async function devServe() {
   refresh_watcher.on("all", async () => {
     if (has_run_one_time) {
       try {
-        await fetch(`http://127.0.0.1:${PORT}${LIVE_REFRESH_RPC_PATH}`);
+        await fetch(
+          `http://127.0.0.1:${dev_config?.port}${LIVE_REFRESH_RPC_PATH}`,
+        );
       } catch (e) {
         console.error("Live refresh RPC failed:", e);
       }
@@ -60,7 +40,7 @@ async function devServe() {
 
     has_run_one_time = true;
 
-    if (DEPLOYMENT_TARGET === "cloudflare-pages") {
+    if (deployment_target === "cloudflare-pages") {
       return;
     }
 
@@ -78,7 +58,7 @@ async function devServe() {
   });
 
   const exclusions =
-    WATCH_EXCLUSIONS?.map((x) => path.join(process.cwd(), x)) || [];
+    dev_config.watchExclusions?.map((x) => path.join(process.cwd(), x)) || [];
 
   const watcher = chokidar.watch(
     [path.join(process.cwd(), "src"), path.join(process.cwd(), "public")],
@@ -108,7 +88,7 @@ async function devServe() {
       const env = {
         ...process.env,
         NODE_ENV: "development",
-        PORT: String(PORT),
+        PORT: String(dev_config.port),
       };
 
       const proc = spawn("node", ["dist/main.js"], {
@@ -159,7 +139,7 @@ async function devServe() {
       ...Deno.env.toObject(),
       NODE_ENV: "development",
       IS_DEV: "1",
-      PORT: String(PORT),
+      PORT: String(dev_config.port),
     };
 
     const cmd = new Deno.Command(Deno.execPath(), {
