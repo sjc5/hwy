@@ -20,10 +20,10 @@ import { secureHeaders } from "hono/secure-headers";
 import { FallbackErrorBoundary } from "./components/fallback-error-boundary.js";
 
 export const config = {
-  runtime: "experimental-edge",
+  runtime: "edge",
 };
 
-console.log("runtime", (globalThis as any).EdgeRuntime);
+console.log("runtime", (globalThis as any).EdgeRuntime, config);
 
 const app = new Hono();
 app.use("*", logger());
