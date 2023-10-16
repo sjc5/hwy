@@ -2,8 +2,8 @@ export default function () {
   return (
     <>
       <p>
-        John This is the home page. This is the entire site's "index route", and
-        it is being rendered from <code>src/pages/_index.page.tsx</code>.
+        This is the home page. This is the entire site's "index route", and it
+        is being rendered from <code>src/pages/_index.page.tsx</code>.
       </p>
 
       <p>

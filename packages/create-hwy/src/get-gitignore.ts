@@ -13,9 +13,6 @@ node_modules
 dist
 public/dist
 
-# development artifacts
-.dev
-
 # environment files
 .env
 .env.local

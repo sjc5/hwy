@@ -23,7 +23,7 @@ async function devServe() {
   dotenv.config();
 
   const refresh_watcher = chokidar.watch(
-    path.join(process.cwd(), ".dev/refresh.txt"),
+    path.join(process.cwd(), "dist", "refresh.txt"),
     { ignoreInitial: true },
   );
 

@@ -115,12 +115,6 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
 
     // happens again post css bundling
     generate_public_file_map(),
-
-    IS_DEV
-      ? fs.promises.mkdir(path.join(process.cwd(), ".dev"), {
-          recursive: true,
-        })
-      : undefined,
   ]);
 
   let main_code = main_build_result.outputFiles?.[0].text;
@@ -208,9 +202,11 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       )[HWY_GLOBAL_KEYS.public_map],
     ).map((x) => "../" + x);
 
+    const main_path = path.join(process.cwd(), "dist", "main.js");
+
     fs.writeFileSync(
-      "./dist/main.js",
-      fs.readFileSync("./dist/main.js", "utf8") +
+      main_path,
+      fs.readFileSync(main_path, "utf8") +
         "\n" +
         get_code([
           ...page_paths,
@@ -220,7 +216,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     );
   }
 
-  if (hwy_config.deploymentTarget === "vercel-lambda") {
+  if (!IS_DEV && hwy_config.deploymentTarget === "vercel-lambda") {
     hwyLog("Customizing build output for Vercel Serverless (Lambda)...");
 
     fs.cpSync("./dist", "./api", { recursive: true });
@@ -228,7 +224,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
 
   if (IS_DEV) {
     fs.writeFileSync(
-      path.join(process.cwd(), ".dev/refresh.txt"),
+      path.join(process.cwd(), "dist", "refresh.txt"),
       Date.now().toString(),
     );
   }

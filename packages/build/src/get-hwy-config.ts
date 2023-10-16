@@ -44,7 +44,10 @@ async function get_hwy_config() {
       format: "esm",
     });
 
-    const written_path = path.join(process.cwd(), "dist", "hwy.config.js");
+    const dist_path = path.join(process.cwd(), "dist");
+    fs.mkdirSync(dist_path, { recursive: true });
+
+    const written_path = path.join(dist_path, "hwy.config.js");
     fs.writeFileSync(written_path, code);
 
     const imported = await import(written_path);
