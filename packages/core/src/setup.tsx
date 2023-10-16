@@ -41,7 +41,7 @@ async function hwyInit({
   publicUrlPrefix,
 }: {
   app: Hono<any>;
-  importMetaUrl: string;
+  importMetaUrl?: string;
   serveStatic?: ServeStaticFn;
   isDev?: boolean;
   publicUrlPrefix?: string;
@@ -64,7 +64,7 @@ async function hwyInit({
     devInit({ app });
   }
 
-  ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl);
+  ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl ?? "");
   PUBLIC_URL_PREFIX = publicUrlPrefix ?? "";
 
   app.use("/favicon.ico", async (c) => {

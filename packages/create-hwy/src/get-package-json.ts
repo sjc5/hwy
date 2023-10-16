@@ -2,7 +2,7 @@ import type { Options } from "./types.js";
 import { get_is_target_deno } from "./utils.js";
 
 const VERSIONS = {
-  HWY: "^0.4.0-beta.12",
+  HWY: "^0.4.0-beta.13",
   HONO_NODE_SERVER: "^1.2.0",
   HONO: "^3.7.5",
   HTMX: "^1.9.6",
@@ -40,13 +40,7 @@ function get_package_json(options: Options) {
           [options.deployment_target === "vercel" ? "vercel-build" : "build"]:
             (options.lang_preference === "typescript" && !is_targeting_deno
               ? "tsc --noEmit && "
-              : "") +
-            "hwy-build" +
-            (options.deployment_target === "vercel"
-              ? " && cp -r dist/* api"
-              : options.deployment_target === "deno_deploy"
-              ? " && hwy-deno-deploy-hack"
-              : ""),
+              : "") + "hwy-build",
           start: get_is_target_deno(options)
             ? "deno run -A dist/main.js"
             : options.deployment_target === "bun"

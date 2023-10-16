@@ -14,10 +14,7 @@ import { secureHeaders } from "hono/secure-headers";
 
 const app = new Hono();
 
-await hwyInit({
-  app,
-  importMetaUrl: import.meta.url,
-});
+await hwyInit({ app });
 
 app.use("*", logger());
 app.get("*", secureHeaders());

@@ -9,10 +9,10 @@ import { get_hwy_config } from "./get-hwy-config.js";
 
 declare const Deno: Record<any, any>;
 
-async function devServe() {
-  const { deploymentTarget: deployment_target, dev: dev_config } =
-    get_hwy_config();
+const { deploymentTarget: deployment_target, dev: dev_config } =
+  await get_hwy_config();
 
+async function devServe() {
   const is_targeting_deno =
     deployment_target === "deno" || deployment_target === "deno-deploy";
 

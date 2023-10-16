@@ -23,7 +23,7 @@ const FILE_NAMES = [
 
 const exec = promisify(exec_callback);
 
-const hwy_config = get_hwy_config();
+const hwy_config = await get_hwy_config();
 
 async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
   try {
@@ -188,6 +188,8 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   }
 
   if (hwy_config.deploymentTarget === "deno-deploy") {
+    hwyLog("Customizing build output for Deno Deploy...");
+
     function get_line(path_from_dist: string) {
       return `await import("${path_from_dist}"); `;
     }
@@ -197,8 +199,6 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       const post = "} catch {} }";
       return pre + paths.map(get_line).join("") + post;
     }
-
-    hwyLog("Customizing build output for Deno Deploy...");
 
     const public_paths = Object.keys(
       (
@@ -221,6 +221,8 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   }
 
   if (hwy_config.deploymentTarget === "vercel-lambda") {
+    hwyLog("Customizing build output for Vercel Serverless (Lambda)...");
+
     fs.cpSync("./dist", "./api", { recursive: true });
   }
 
