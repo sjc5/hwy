@@ -19,12 +19,10 @@ function fully_decorate_paths({
   matching_paths: ReturnType<typeof semi_decorate_paths>;
   splat_segments: string[];
 }) {
-  const is_cloudflare_pages = hwy_global.get("is_cloudflare_pages");
-
   return (
     matching_paths?.map((_path) => {
       const get_imported = () => {
-        if (is_cloudflare_pages) {
+        if (hwy_global.get("deployment_target") === "cloudflare-pages") {
           return (globalThis as any)["./" + _path.importPath];
         }
         const inner = path.join(ROOT_DIRNAME || "./", _path.importPath);

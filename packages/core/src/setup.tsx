@@ -21,11 +21,19 @@ type ServeStaticFn = typeof serveStaticFn;
 
 const IMMUTABLE_CACHE_HEADER_VALUE = "public, max-age=31536000, immutable";
 
+const hwy_global = get_hwy_global();
+
 function immutable_cache() {
+  const deployment_target = hwy_global.get("deployment_target");
+
+  const should_set_cdn_cache_control =
+    deployment_target === "vercel-lambda" ||
+    deployment_target === "cloudflare-pages";
+
   return function (c: Context, next: Next) {
     c.header("Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
 
-    if (process.env.VERCEL) {
+    if (should_set_cdn_cache_control) {
       c.header("CDN-Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
     }
 
@@ -47,21 +55,13 @@ async function hwyInit({
   publicUrlPrefix?: string;
 }) {
   const hwy_global = get_hwy_global();
-
-  const is_cloudflare_pages = hwy_global.get("is_cloudflare_pages");
-
-  const IS_DEV =
-    isDev ??
-    process.env.NODE_ENV === "development" ??
-    (is_cloudflare_pages && (globalThis as any).ENVIRONMENT === "development");
+  const deployment_target = hwy_global.get("deployment_target");
 
   console.log("\nInitializing Hwy app...");
 
-  hwy_global.set("is_dev", IS_DEV);
-
-  if (IS_DEV) {
+  if (hwy_global.get("is_dev")) {
     const { devInit } = await import("@hwy-js/dev");
-    devInit({ app });
+    devInit({ app, deploymentTarget: deployment_target });
   }
 
   ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl ?? "");
@@ -78,7 +78,7 @@ async function hwyInit({
   const static_path = "/public/*";
   app.use(static_path, immutable_cache());
 
-  if (is_cloudflare_pages) {
+  if (deployment_target === "cloudflare-pages") {
     app.get(static_path, async (c) => {
       const original_public_url = get_original_public_url({
         hashed_url: c.req.path,

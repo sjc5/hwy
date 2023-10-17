@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { DEFAULT_PORT } from "../../common/index.mjs";
+import { DEFAULT_PORT, type DeploymentTarget } from "../../common/index.mjs";
 import esbuild from "esbuild";
 
 type HwyConfig = {
@@ -8,13 +8,7 @@ type HwyConfig = {
     port: number;
     watchExclusions?: Array<string>;
   };
-  deploymentTarget:
-    | "node"
-    | "bun"
-    | "deno"
-    | "deno-deploy"
-    | "vercel-lambda"
-    | "cloudflare-pages";
+  deploymentTarget: DeploymentTarget;
 };
 
 let cached_hwy_config: HwyConfig | undefined;

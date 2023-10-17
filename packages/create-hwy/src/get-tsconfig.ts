@@ -1,4 +1,4 @@
-import type { Options } from "./types.js";
+import type { Options } from "../index.js";
 import { get_is_target_deno } from "./utils.js";
 
 const ts_config = {
@@ -43,6 +43,11 @@ function get_ts_config(options: Options) {
   if (options.deployment_target === "bun") {
     // @ts-ignore
     ts_config.compilerOptions.types = ["bun-types"];
+  }
+
+  if (options.deployment_target === "cloudflare-pages") {
+    // @ts-ignore
+    ts_config.compilerOptions.types = ["@cloudflare/workers-types", "node"];
   }
 
   return JSON.stringify(ts_config).trim() + "\n";

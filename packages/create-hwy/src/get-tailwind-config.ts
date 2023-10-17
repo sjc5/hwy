@@ -1,4 +1,4 @@
-import { Options } from "./types.js";
+import type { Options } from "../index.js";
 
 const ts_import = `import type { Config } from "tailwindcss";\n\n`;
 

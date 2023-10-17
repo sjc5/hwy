@@ -54,14 +54,12 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
 }
 
 async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
-  const IS_DEV = isDev;
-
   hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
 
   hwyLog(`Running pre-build tasks...`);
 
   const prebuild_p0 = performance.now();
-  await handle_prebuild({ is_dev: IS_DEV });
+  await handle_prebuild({ is_dev: isDev });
   const prebuild_p1 = performance.now();
   logPerf("pre-build tasks", prebuild_p0, prebuild_p1);
 
@@ -147,9 +145,13 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     }).join("\n") +
     "\n\n";
 
+  const dev_line = `globalThis.${HWY_GLOBAL_KEYS.is_dev} = ${isDev};\n`;
+
+  const dep_target_line = `globalThis.${HWY_GLOBAL_KEYS.deployment_target} = "${hwy_config.deploymentTarget}";\n\n`;
+
   fs.writeFileSync(
     path.join(process.cwd(), "dist/main.js"),
-    to_be_appended + main_code,
+    dev_line + dep_target_line + to_be_appended + main_code,
   );
 
   const page_paths = (
@@ -171,7 +173,6 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       "dist/_worker.js",
       `import process from "node:process";\n` +
         `globalThis.process = process;\n` +
-        `globalThis.${HWY_GLOBAL_KEYS.is_cloudflare_pages} = true;\n` +
         fs.readFileSync("./dist/main.js", "utf8") +
         "\n" +
         get_code([...page_paths]),
@@ -216,13 +217,13 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     );
   }
 
-  if (!IS_DEV && hwy_config.deploymentTarget === "vercel-lambda") {
+  if (!isDev && hwy_config.deploymentTarget === "vercel-lambda") {
     hwyLog("Customizing build output for Vercel Serverless (Lambda)...");
 
     fs.cpSync("./dist", "./api", { recursive: true });
   }
 
-  if (IS_DEV) {
+  if (isDev) {
     fs.writeFileSync(
       path.join(process.cwd(), "dist", "refresh.txt"),
       Date.now().toString(),

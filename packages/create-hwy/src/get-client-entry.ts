@@ -1,4 +1,4 @@
-import type { Options } from "./types.js";
+import type { Options } from "../index.js";
 import { get_is_target_deno } from "./utils.js";
 
 function get_client_entry(options: Options) {
@@ -14,7 +14,9 @@ ${
     ? `/// <reference lib="dom" />\n`
     : ""
 }
-const __window = window as any;
+const __window = window${
+      options.lang_preference === "typescript" ? " as any" : ""
+    };
 
 import htmx from "htmx.org";
 __window.htmx = htmx;

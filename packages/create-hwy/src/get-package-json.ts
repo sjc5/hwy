@@ -1,4 +1,5 @@
-import type { Options } from "./types.js";
+import { DEFAULT_PORT } from "../../common/index.mjs";
+import type { Options } from "../index.js";
 import { get_is_target_deno } from "./utils.js";
 
 const VERSIONS = {
@@ -11,8 +12,12 @@ const VERSIONS = {
   NPROGRESS: "^0.2.0",
   NPROGRESS_TYPES: "^0.2.1",
   NODE_TYPES: "^20.8.3",
-  ESBUILD: "^0.19.4",
   BUN_TYPES: "^1.0.5-canary.20231007T140129",
+
+  // Cloudflare
+  CLOUDFLARE_WORKER_TYPES: "^4.20231002.0",
+  NPM_RUN_ALL: "^4.1.5",
+  WRANGLER: "^3.11.0",
 } as const;
 
 export const LATEST_HWY_VERSION = VERSIONS.HWY;
@@ -37,16 +42,28 @@ function get_package_json(options: Options) {
         type: "module",
         scripts: {
           ...tailwind_prebuild,
-          [options.deployment_target === "vercel" ? "vercel-build" : "build"]:
+          [options.deployment_target === "vercel-lambda"
+            ? "vercel-build"
+            : "build"]:
             (options.lang_preference === "typescript" && !is_targeting_deno
               ? "tsc --noEmit && "
               : "") + "hwy-build",
-          start: get_is_target_deno(options)
-            ? "deno run -A dist/main.js"
-            : options.deployment_target === "bun"
-            ? "bun dist/main.js"
-            : "node dist/main.js",
-          dev: "hwy-dev-serve",
+          ...(options.deployment_target === "cloudflare-pages"
+            ? {
+                "dev:serve": "hwy-dev-serve",
+                "dev:wrangler": `wrangler pages dev ./dist --compatibility-flag="nodejs_compat" --port=${DEFAULT_PORT} --live-reload`,
+              }
+            : {
+                start: get_is_target_deno(options)
+                  ? "deno run -A dist/main.js"
+                  : options.deployment_target === "bun"
+                  ? "bun dist/main.js"
+                  : "node dist/main.js",
+              }),
+          dev:
+            options.deployment_target === "cloudflare-pages"
+              ? "npm run build && npm-run-all --parallel dev:*"
+              : "hwy-dev-serve",
         },
         dependencies: {
           ...(!is_targeting_deno && options.deployment_target !== "bun"
@@ -56,6 +73,10 @@ function get_package_json(options: Options) {
           hwy: LATEST_HWY_VERSION,
         },
         devDependencies: {
+          ...(options.deployment_target === "cloudflare-pages" &&
+          options.lang_preference === "typescript"
+            ? { "@cloudflare/workers-types": VERSIONS.CLOUDFLARE_WORKER_TYPES }
+            : {}),
           "@hwy-js/build": LATEST_HWY_VERSION,
           "@hwy-js/dev": LATEST_HWY_VERSION,
           ...(options.lang_preference === "typescript"
@@ -72,14 +93,19 @@ function get_package_json(options: Options) {
           options.lang_preference === "typescript"
             ? { "bun-types": VERSIONS.BUN_TYPES }
             : {}),
-          esbuild: VERSIONS.ESBUILD,
           "htmx.org": VERSIONS.HTMX,
+          ...(options.deployment_target === "cloudflare-pages"
+            ? { "npm-run-all": VERSIONS.NPM_RUN_ALL }
+            : {}),
           ...(options.with_nprogress ? { nprogress: VERSIONS.NPROGRESS } : {}),
           ...(options.css_preference === "tailwind"
             ? { tailwindcss: VERSIONS.TAILWIND }
             : {}),
           ...(options.lang_preference === "typescript"
             ? { typescript: VERSIONS.TYPESCRIPT }
+            : {}),
+          ...(options.deployment_target === "cloudflare-pages"
+            ? { wrangler: VERSIONS.WRANGLER }
             : {}),
         },
         engines: {

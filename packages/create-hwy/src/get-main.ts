@@ -1,4 +1,5 @@
-import type { Options } from "./types.js";
+import { DEFAULT_PORT } from "../../common/index.mjs";
+import type { Options } from "../index.js";
 import { get_is_target_deno } from "./utils.js";
 
 let imports = `
@@ -39,9 +40,11 @@ function get_main(options: Options) {
       ? deno_imports
       : options.deployment_target === "bun"
       ? bun_imports
+      : options.deployment_target === "cloudflare-pages"
+      ? ""
       : node_imports);
 
-  if (options.deployment_target === "vercel") {
+  if (options.deployment_target === "vercel-lambda") {
     imports =
       imports + "\n" + `import { handle } from "@hono/node-server/vercel";`;
   }
@@ -49,13 +52,17 @@ function get_main(options: Options) {
   return (
     imports.trim() +
     "\n\n" +
-    (is_targeting_deno
-      ? `const IS_DEV = Boolean(Deno.env.get("IS_DEV"));\n\n`
-      : `const IS_DEV = process.env.NODE_ENV === "development";\n\n`) +
+    (options.deployment_target === "node" ||
+    options.deployment_target === "vercel-lambda"
+      ? `const IS_DEV = process.env.NODE_ENV === "development";\n\n`
+      : "") +
     `
 const app = new Hono();
 
-await hwyInit({
+${
+  options.deployment_target === "cloudflare-pages"
+    ? `await hwyInit({ app });`
+    : `await hwyInit({
   app,
   importMetaUrl: import.meta.url,
   serveStatic,${
@@ -63,16 +70,13 @@ await hwyInit({
       ? `\n  watchExclusions: ["src/styles/tw-output.bundle.css"],`
       : ""
   }
-});
+});`
+}
 
 app.use("*", logger());
 app.get("*", secureHeaders());
 
-app.all("*", async (c, next) => {${
-      options.with_nprogress
-        ? `\n  if (IS_DEV) await new Promise((r) => setTimeout(r, 150)); // simulate latency in dev\n`
-        : ""
-    }
+app.all("*", async (c, next) => {
   return await renderRoot(c, next, async ({ activePathData }) => {
     return (
       <html lang="en">
@@ -148,19 +152,20 @@ app.all("*", async (c, next) => {${
 
 app.notFound((c) => c.text("404 Not Found", 404));
 
-
 app.onError((error, c) => {
   console.error(error);
   return c.text("500 Internal Server Error", 500);
 });
 
 ${
-  options.deployment_target === "vercel"
+  options.deployment_target === "vercel-lambda"
     ? serve_fn_vercel
     : is_targeting_deno
     ? serve_fn_deno
     : options.deployment_target === "bun"
     ? serve_fn_bun
+    : options.deployment_target === "cloudflare-pages"
+    ? serve_fn_cloudflare_pages
     : serve_fn_node
 }
 `.trim() +
@@ -170,15 +175,19 @@ ${
 
 export { get_main };
 
+const serve_fn_cloudflare_pages = `
+export default app;
+`.trim();
+
 const serve_fn_deno = `
-const PORT = Deno.env.get("PORT") ? Number(Deno.env.get("PORT")) : 5555;
+const PORT = Deno.env.get("PORT") ? Number(Deno.env.get("PORT")) : ${DEFAULT_PORT};
 
 Deno.serve({ port: PORT }, app.fetch);
 `.trim();
 
 const serve_fn_node = `
 serve(
-  { fetch: app.fetch, port: Number(process.env.PORT || 5555) },
+  { fetch: app.fetch, port: Number(process.env.PORT || ${DEFAULT_PORT}) },
   (info) => {
     console.log(
       \`\\nListening on http://\${IS_DEV ? "localhost" : info.address}:\${
@@ -192,7 +201,7 @@ serve(
 const serve_fn_vercel = `
 if (IS_DEV) {
   serve(
-    { fetch: app.fetch, port: Number(process.env.PORT || 5555) },
+    { fetch: app.fetch, port: Number(process.env.PORT || ${DEFAULT_PORT}) },
     (info) => {
       console.log(
         \`\\nListening on http://\${IS_DEV ? "localhost" : info.address}:\${
@@ -208,7 +217,7 @@ export default handle(app);
 `.trim();
 
 const serve_fn_bun = `
-const PORT = process.env.PORT ? Number(process.env.PORT) : 5555;
+const PORT = process.env.PORT ? Number(process.env.PORT) : ${DEFAULT_PORT};
 
 const server = Bun.serve({
   port: PORT,

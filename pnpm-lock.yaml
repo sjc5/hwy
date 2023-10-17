@@ -27,14 +27,14 @@ importers:
         specifier: ^3.7.5
         version: 3.7.5
       hwy:
-        specifier: 0.4.0-beta.15
+        specifier: workspace:*
         version: link:../packages/core
     devDependencies:
       '@hwy-js/build':
-        specifier: 0.4.0-beta.15
+        specifier: workspace:*
         version: link:../packages/build
       '@hwy-js/dev':
-        specifier: 0.4.0-beta.15
+        specifier: workspace:*
         version: link:../packages/dev
       '@types/node':
         specifier: ^20.8.3
@@ -42,9 +42,6 @@ importers:
       '@types/nprogress':
         specifier: ^0.2.1
         version: 0.2.1
-      esbuild:
-        specifier: ^0.19.4
-        version: 0.19.4
       htmx.org:
         specifier: ^1.9.6
         version: 1.9.6
@@ -66,6 +63,9 @@ importers:
       dotenv:
         specifier: ^16.3.1
         version: 16.3.1
+      esbuild:
+        specifier: ^0.19.2
+        version: 0.19.4
       picocolors:
         specifier: ^1.0.0
         version: 1.0.0
@@ -76,9 +76,6 @@ importers:
       '@types/node':
         specifier: ^20.8.3
         version: 20.8.4
-      esbuild:
-        specifier: ^0.19.4
-        version: 0.19.4
       hono:
         specifier: ^3.7.5
         version: 3.7.5
@@ -196,9 +193,6 @@ importers:
       '@types/node':
         specifier: ^20.8.4
         version: 20.8.4
-      esbuild:
-        specifier: ^0.19.4
-        version: 0.19.4
       htmx.org:
         specifier: ^1.9.6
         version: 1.9.6
@@ -233,9 +227,6 @@ importers:
       '@types/node':
         specifier: ^20.8.3
         version: 20.8.4
-      esbuild:
-        specifier: ^0.19.4
-        version: 0.19.4
       htmx.org:
         specifier: ^1.9.6
         version: 1.9.6
@@ -668,7 +659,7 @@ packages:
     cpu: [arm64]
     os: [android]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/android-arm@0.17.19:
@@ -695,7 +686,7 @@ packages:
     cpu: [arm]
     os: [android]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/android-x64@0.17.19:
@@ -722,7 +713,7 @@ packages:
     cpu: [x64]
     os: [android]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/darwin-arm64@0.17.19:
@@ -749,7 +740,7 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/darwin-x64@0.17.19:
@@ -776,7 +767,7 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/freebsd-arm64@0.17.19:
@@ -803,7 +794,7 @@ packages:
     cpu: [arm64]
     os: [freebsd]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/freebsd-x64@0.17.19:
@@ -830,7 +821,7 @@ packages:
     cpu: [x64]
     os: [freebsd]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/linux-arm64@0.17.19:
@@ -857,7 +848,7 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/linux-arm@0.17.19:
@@ -884,7 +875,7 @@ packages:
     cpu: [arm]
     os: [linux]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/linux-ia32@0.17.19:
@@ -911,7 +902,7 @@ packages:
     cpu: [ia32]
     os: [linux]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/linux-loong64@0.17.19:
@@ -938,7 +929,7 @@ packages:
     cpu: [loong64]
     os: [linux]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/linux-mips64el@0.17.19:
@@ -965,7 +956,7 @@ packages:
     cpu: [mips64el]
     os: [linux]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/linux-ppc64@0.17.19:
@@ -992,7 +983,7 @@ packages:
     cpu: [ppc64]
     os: [linux]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/linux-riscv64@0.17.19:
@@ -1019,7 +1010,7 @@ packages:
     cpu: [riscv64]
     os: [linux]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/linux-s390x@0.17.19:
@@ -1046,7 +1037,7 @@ packages:
     cpu: [s390x]
     os: [linux]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/linux-x64@0.17.19:
@@ -1073,7 +1064,7 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/netbsd-x64@0.17.19:
@@ -1100,7 +1091,7 @@ packages:
     cpu: [x64]
     os: [netbsd]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/openbsd-x64@0.17.19:
@@ -1127,7 +1118,7 @@ packages:
     cpu: [x64]
     os: [openbsd]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/sunos-x64@0.17.19:
@@ -1154,7 +1145,7 @@ packages:
     cpu: [x64]
     os: [sunos]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/win32-arm64@0.17.19:
@@ -1181,7 +1172,7 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/win32-ia32@0.17.19:
@@ -1208,7 +1199,7 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@esbuild/win32-x64@0.17.19:
@@ -1235,7 +1226,7 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
-    dev: true
+    dev: false
     optional: true
 
   /@fastify/busboy@2.0.0:
@@ -1898,7 +1889,7 @@ packages:
       '@esbuild/win32-arm64': 0.19.4
       '@esbuild/win32-ia32': 0.19.4
       '@esbuild/win32-x64': 0.19.4
-    dev: true
+    dev: false
 
   /escalade@3.1.1:
     resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}

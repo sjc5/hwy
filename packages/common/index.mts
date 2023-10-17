@@ -3,7 +3,7 @@ export const LIVE_REFRESH_SSE_PATH = `/${HWY_PREFIX}live_refresh_sse`;
 export const LIVE_REFRESH_RPC_PATH = `/${HWY_PREFIX}live_refresh_rpc`;
 
 export const HWY_GLOBAL_KEYS = {
-  is_cloudflare_pages: `${HWY_PREFIX}is_cloudflare_pages`,
+  deployment_target: `${HWY_PREFIX}deployment_target`,
   is_dev: `${HWY_PREFIX}is_dev`,
   critical_bundled_css: `${HWY_PREFIX}critical_bundled_css`,
   standard_bundled_css_exists: `${HWY_PREFIX}standard_bundled_css_exists`,
@@ -13,3 +13,11 @@ export const HWY_GLOBAL_KEYS = {
 } as const;
 
 export const DEFAULT_PORT = 5555;
+
+export type DeploymentTarget =
+  | "bun"
+  | "vercel-lambda"
+  | "node"
+  | "deno-deploy"
+  | "deno"
+  | "cloudflare-pages";

@@ -1,4 +1,4 @@
-import type { Options } from "./types.js";
+import type { Options } from "../index.js";
 import { get_is_target_deno } from "./utils.js";
 
 let readme =
@@ -82,7 +82,7 @@ bun run --bun dev
 `.trim();
 
 function get_readme(options: Options) {
-  if (options.deployment_target === "vercel") {
+  if (options.deployment_target === "vercel-lambda") {
     readme += vercel_add_on;
   }
 
@@ -96,12 +96,30 @@ function get_readme(options: Options) {
     readme += "\n\n" + deno_tailwind_add_on;
   }
 
-  if (options.deployment_target === "deno_deploy") {
+  if (options.deployment_target === "deno-deploy") {
     readme += "\n\n" + deno_deploy_add_on;
   }
 
   if (options.deployment_target === "bun") {
     readme += "\n\n" + bun_add_on;
+  }
+
+  if (options.deployment_target === "cloudflare-pages") {
+    const cloudflare_pages_add_on = `
+## IMPORTANT WRANGLER-SPECIFIC NOTES:
+
+Unfortunately, you'll need to manually keep the \`--port\` flag in the \`dev:wrangler\` script
+in sync with the \`dev.port\` field in your \`hwy.config${
+      options.lang_preference === "typescript" ? ".ts" : ".js"
+    }\` file.
+
+When you deploy, you'll want to set your build configuration as follows:
+
+- Build command: \`npm run build\`
+- Build output directory: \`/dist\`
+`;
+
+    readme += "\n\n" + cloudflare_pages_add_on;
   }
 
   return readme.trim() + "\n";

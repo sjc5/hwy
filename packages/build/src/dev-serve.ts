@@ -79,6 +79,8 @@ async function devServe() {
 
   let current_proc: ChildProcess | null = null;
 
+  const base_env = { NODE_ENV: "development", PORT: String(dev_config.port) };
+
   async function run_command_with_spawn() {
     return new Promise<void>((resolve, reject) => {
       if (current_proc) {
@@ -87,8 +89,7 @@ async function devServe() {
 
       const env = {
         ...process.env,
-        NODE_ENV: "development",
-        PORT: String(dev_config.port),
+        ...base_env,
       };
 
       const proc = spawn("node", ["dist/main.js"], {
@@ -137,9 +138,7 @@ async function devServe() {
 
     const env = {
       ...Deno.env.toObject(),
-      NODE_ENV: "development",
-      IS_DEV: "1",
-      PORT: String(dev_config.port),
+      ...base_env,
     };
 
     const cmd = new Deno.Command(Deno.execPath(), {

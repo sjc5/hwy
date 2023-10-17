@@ -3,7 +3,6 @@ import * as path from "node:path";
 import pc from "picocolors";
 import inquirer from "inquirer";
 import { fileURLToPath } from "node:url";
-import type { Options } from "./src/types.js";
 import {
   LATEST_HWY_VERSION,
   get_package_json,
@@ -17,6 +16,16 @@ import { get_gitignore } from "./src/get-gitignore.js";
 import { get_client_entry } from "./src/get-client-entry.js";
 import { get_is_target_deno } from "./src/utils.js";
 import { format } from "prettier";
+import type { DeploymentTarget } from "../common/index.mjs";
+import { get_hwy_config } from "./src/get-hwy-config.js";
+
+type Options = {
+  project_name: string;
+  lang_preference: "typescript" | "javascript";
+  css_preference: "tailwind" | "vanilla" | "none";
+  deployment_target: DeploymentTarget;
+  with_nprogress: boolean;
+};
 
 function dirname_from_import_meta(import_meta_url: string) {
   return path.dirname(fileURLToPath(import_meta_url));
@@ -26,10 +35,11 @@ const lang_choices = ["TypeScript", "JavaScript"] as const;
 
 const deployment_choices = [
   "Node",
+  "Vercel (Lambda)",
+  "Cloudflare Pages",
   "Bun",
-  "Vercel (Node Serverless)",
-  "Deno Deploy",
   "Deno",
+  "Deno Deploy",
 ] as const;
 
 const css_choices = ["Tailwind", "Vanilla"] as const;
@@ -77,32 +87,27 @@ const prompts = [
   },
 ] satisfies Prompts;
 
-async function main() {
-  async function ask_questions(): Promise<
-    | {
-        new_dir_name: string;
-        lang_preference: (typeof lang_choices)[number];
-        css_choice: (typeof css_choices)[number];
-        deployment_target: (typeof deployment_choices)[number];
-        nprogress: boolean;
-      }
-    | undefined
-  > {
-    try {
-      return await inquirer.prompt(prompts);
-    } catch (error) {
-      console.error("\nError:", error);
+async function ask_questions(): Promise<
+  | {
+      new_dir_name: string;
+      lang_preference: (typeof lang_choices)[number];
+      css_choice: (typeof css_choices)[number];
+      deployment_target: (typeof deployment_choices)[number];
+      nprogress: boolean;
     }
+  | undefined
+> {
+  try {
+    return await inquirer.prompt(prompts);
+  } catch (error) {
+    console.error("\nError:", error);
   }
+}
 
-  const choices = await ask_questions();
-
-  if (!choices) {
-    console.log("\nSomething went wrong! Please file an issue.\n");
-    return;
-  }
-
-  const options: Options = {
+function get_options(
+  choices: NonNullable<Awaited<ReturnType<typeof ask_questions>>>,
+) {
+  return {
     project_name: choices.new_dir_name,
     with_nprogress: choices.nprogress,
     css_preference:
@@ -114,26 +119,39 @@ async function main() {
     lang_preference:
       choices.lang_preference === "TypeScript" ? "typescript" : "javascript",
     deployment_target:
-      choices.deployment_target === "Vercel (Node Serverless)"
-        ? "vercel"
+      choices.deployment_target === "Vercel (Lambda)"
+        ? "vercel-lambda"
         : choices.deployment_target === "Deno Deploy"
-        ? "deno_deploy"
+        ? "deno-deploy"
         : choices.deployment_target === "Deno"
         ? "deno"
         : choices.deployment_target === "Bun"
         ? "bun"
+        : choices.deployment_target === "Cloudflare Pages"
+        ? "cloudflare-pages"
         : "node",
-  };
+  } satisfies Options;
+}
+
+async function main() {
+  const choices = await ask_questions();
+
+  if (!choices) {
+    console.log("\nSomething went wrong! Please file an issue.\n");
+    return;
+  }
+
+  const options = get_options(choices);
 
   console.log("\nWorking...");
 
   try {
     const new_dir_path = path.join(process.cwd(), choices.new_dir_name);
 
-    if (
-      fs.existsSync(new_dir_path) &&
-      fs.statSync(new_dir_path).isDirectory()
-    ) {
+    const dir_already_exists =
+      fs.existsSync(new_dir_path) && fs.statSync(new_dir_path).isDirectory();
+
+    if (dir_already_exists) {
       throw new Error(`Directory ${new_dir_path} already exists.`);
     }
 
@@ -156,6 +174,20 @@ async function main() {
       path.join(new_dir_path, "tsconfig.json"),
       await format(get_ts_config(options), {
         parser: "json",
+      }),
+      "utf8",
+    );
+
+    // hwy-config
+    fs.writeFileSync(
+      path.join(
+        new_dir_path,
+        "hwy.config" +
+          (options.lang_preference === "typescript" ? ".ts" : ".js"),
+      ),
+      await format(get_hwy_config(options), {
+        parser:
+          options.lang_preference === "typescript" ? "typescript" : "babel",
       }),
       "utf8",
     );
@@ -360,7 +392,7 @@ async function main() {
       );
     }
 
-    if (options.deployment_target === "vercel") {
+    if (options.deployment_target === "vercel-lambda") {
       fs.mkdirSync(path.join(new_dir_path, "api"), { recursive: true });
       fs.writeFileSync(
         path.join(new_dir_path, "api/main.js"),
@@ -438,3 +470,5 @@ const deno_instructions = `\n  npm i\n  deno task dev`;
 const bun_instructions = `\n  bun i\n  bun run --bun dev`;
 
 await main();
+
+export type { Options };

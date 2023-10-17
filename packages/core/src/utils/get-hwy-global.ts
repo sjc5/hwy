@@ -1,8 +1,8 @@
 import type { Paths } from "@hwy-js/build";
-import { HWY_PREFIX } from "../../../common/index.mjs";
+import { HWY_PREFIX, type DeploymentTarget } from "../../../common/index.mjs";
 
 type HwyGlobal = Partial<{
-  is_cloudflare_pages: boolean;
+  deployment_target: DeploymentTarget;
   is_dev: boolean;
   critical_bundled_css: string;
   standard_bundled_css_exists: boolean;

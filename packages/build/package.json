@@ -20,18 +20,15 @@
     "hwy-dev-serve": "./scripts/dev-serve.js",
     "hwy-build": "./scripts/run-build-tasks.js"
   },
-  "peerDependencies": {
-    "esbuild": "^0.19.2"
-  },
   "dependencies": {
     "chokidar": "^3.5.3",
     "dotenv": "^16.3.1",
+    "esbuild": "^0.19.2",
     "picocolors": "^1.0.0",
     "readdirp": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.3",
-    "esbuild": "^0.19.4",
     "hono": "^3.7.5",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
@@ -42,6 +39,5 @@
     "directory": "packages/build"
   },
   "homepage": "https://hwy.dev",
-  "bugs": "https://github.com/hwy-js/hwy/issues",
-  "sideEffects": false
+  "bugs": "https://github.com/hwy-js/hwy/issues"
 }

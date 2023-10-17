@@ -48,6 +48,5 @@
     "tsx",
     "nextjs",
     "remix"
-  ],
-  "sideEffects": false
+  ]
 }

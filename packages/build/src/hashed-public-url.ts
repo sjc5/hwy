@@ -9,8 +9,13 @@ function get_hashed_public_url_low_level({
 }): string {
   let hashed_url: string | undefined;
 
-  if (url.startsWith("/")) url = url.slice(1);
-  if (url.startsWith("./")) url = url.slice(2);
+  if (url.startsWith("/")) {
+    url = url.slice(1);
+  }
+
+  if (url.startsWith("./")) {
+    url = url.slice(2);
+  }
 
   hashed_url = public_map?.[path.join("public", url)];
 

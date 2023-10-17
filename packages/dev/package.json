@@ -31,6 +31,5 @@
     "directory": "packages/dev"
   },
   "homepage": "https://hwy.dev",
-  "bugs": "https://github.com/hwy-js/hwy/issues",
-  "sideEffects": false
+  "bugs": "https://github.com/hwy-js/hwy/issues"
 }
