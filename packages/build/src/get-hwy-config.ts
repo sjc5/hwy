@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { DEFAULT_PORT, type DeploymentTarget } from "../../common/index.mjs";
 import esbuild from "esbuild";
+import { pathToFileURL } from "node:url";
 
 type HwyConfig = {
   dev: {
@@ -26,7 +27,7 @@ async function get_hwy_config() {
   let internal_hwy_config: HwyConfig | undefined;
 
   if (js_config_exists) {
-    const imported = await import(js_path);
+    const imported = await import(pathToFileURL(js_path).href);
     internal_hwy_config = imported.default;
   }
 
@@ -44,7 +45,7 @@ async function get_hwy_config() {
     const written_path = path.join(dist_path, "hwy.config.js");
     fs.writeFileSync(written_path, code);
 
-    const imported = await import(written_path);
+    const imported = await import(pathToFileURL(written_path).href);
     internal_hwy_config = imported.default;
   }
 

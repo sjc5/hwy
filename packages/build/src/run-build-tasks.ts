@@ -12,6 +12,7 @@ import { promisify } from "node:util";
 import { pathToFileURL } from "node:url";
 import { HWY_GLOBAL_KEYS, HWY_PREFIX } from "../../common/index.mjs";
 import { get_hwy_config } from "./get-hwy-config.js";
+import { smart_normalize } from "./smart-normalize.js";
 
 const FILE_NAMES = [
   "critical-bundled-css.js",
@@ -134,7 +135,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     return x.replace("export ", "");
   });
 
-  let to_be_appended = files_text.join("\n\n");
+  let to_be_appended = smart_normalize(files_text.join("\n\n"));
 
   to_be_appended =
     to_be_appended +
@@ -155,7 +156,9 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   );
 
   const page_paths = (
-    await import(path.join(process.cwd(), "dist", "paths.js"))
+    await import(
+      pathToFileURL(path.join(process.cwd(), "dist", "paths.js")).href
+    )
   )[HWY_GLOBAL_KEYS.paths].map((x: Paths[number]) => "./" + x.importPath);
 
   if (hwy_config.deploymentTarget === "cloudflare-pages") {
@@ -182,7 +185,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     fs.cpSync("./public", "./dist/public", { recursive: true });
   }
 
-  if (hwy_config.deploymentTarget === "deno-deploy") {
+  if (hwy_config.deploymentTarget === "deno-deploy" && !isDev) {
     hwyLog("Customizing build output for Deno Deploy...");
 
     function get_line(path_from_dist: string) {

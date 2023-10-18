@@ -45,13 +45,11 @@ async function hwyInit({
   app,
   importMetaUrl,
   serveStatic,
-  isDev,
   publicUrlPrefix,
 }: {
   app: Hono<any>;
   importMetaUrl?: string;
   serveStatic?: ServeStaticFn;
-  isDev?: boolean;
   publicUrlPrefix?: string;
 }) {
   const hwy_global = get_hwy_global();

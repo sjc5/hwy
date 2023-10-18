@@ -86,7 +86,6 @@ function fully_decorate_paths({
 }
 
 type SemiDecoratedPath = Paths[number] & {
-  importUrlString: string;
   pattern: string;
   matches: boolean;
   params: Record<string, string>;
@@ -111,7 +110,6 @@ function semi_decorate_paths({
         path: get_path_to_use(c, redirectTo),
       }),
       isUltimateCatch: path.path === "/:catch*",
-      importUrlString: path.importPath.split("/pages/")[1],
     };
   });
 }
@@ -272,10 +270,6 @@ async function getMatchingPathData({
     };
   }
 
-  const import_url_strings = (matching_paths || [])?.map(
-    (path) => path.importUrlString,
-  );
-
   const should_render_loader_error =
     highest_error_index < active_data_obj.length - 1 ||
     (highest_error_index === active_data_obj.length - 1 && !action_data_error);
@@ -291,7 +285,6 @@ async function getMatchingPathData({
     activePaths: active_paths,
     activeComponents: active_components,
     activeHeads: active_heads,
-    importUrlStrings: import_url_strings,
     errorToRender: error_to_render,
     activeErrorBoundaries: active_error_boundaries,
     params,

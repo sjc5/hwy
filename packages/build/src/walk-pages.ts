@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import readdirp from "readdirp";
 import esbuild from "esbuild";
 import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
+import { smart_normalize } from "./smart-normalize.js";
 
 async function walk_pages() {
   const paths: {
@@ -90,7 +91,7 @@ async function walk_pages() {
 
     paths.push({
       entry: entry.path,
-      importPath: "pages/" + _path + ".js",
+      importPath: smart_normalize(path.join("pages/", _path + ".js")),
       path: path_to_use,
       segments,
       isIndex: is_index,
