@@ -27,14 +27,14 @@ importers:
         specifier: ^3.7.5
         version: 3.7.5
       hwy:
-        specifier: 0.4.0-beta.28
+        specifier: 0.4.0-beta.29
         version: link:../packages/core
     devDependencies:
       '@hwy-js/build':
-        specifier: 0.4.0-beta.28
+        specifier: 0.4.0-beta.29
         version: link:../packages/build
       '@hwy-js/dev':
-        specifier: 0.4.0-beta.28
+        specifier: 0.4.0-beta.29
         version: link:../packages/dev
       '@types/node':
         specifier: ^20.8.3
