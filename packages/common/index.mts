@@ -21,3 +21,11 @@ export type DeploymentTarget =
   | "deno-deploy"
   | "deno"
   | "cloudflare-pages";
+
+export type HwyConfig = {
+  dev?: {
+    port?: number;
+    watchExclusions?: Array<string>;
+  };
+  deploymentTarget: DeploymentTarget;
+};

@@ -108,8 +108,9 @@ function get_readme(options: Options) {
     const cloudflare_pages_add_on = `
 ## IMPORTANT WRANGLER-SPECIFIC NOTES:
 
-Unfortunately, you'll need to manually keep the \`--port\` flag in the \`dev:wrangler\` script
-in sync with the \`dev.port\` field in your \`hwy.config${
+Because Wrangler is in charge of your dev server, you should set your dev server port
+via the \`--port\` flag in the \`dev:wrangler\` script in your \`package.json\` file
+instead of in the \`dev.port\` field in your \`hwy.config${
       options.lang_preference === "typescript" ? ".ts" : ".js"
     }\` file.
 
@@ -117,7 +118,7 @@ When you deploy, you'll want to set your build configuration as follows:
 
 - Build command: \`npm run build\`
 - Build output directory: \`/dist\`
-`;
+`.trim();
 
     readme += "\n\n" + cloudflare_pages_add_on;
   }

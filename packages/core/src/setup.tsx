@@ -58,8 +58,11 @@ async function hwyInit({
   console.log("\nInitializing Hwy app...");
 
   if (hwy_global.get("is_dev")) {
-    const { devInit } = await import("@hwy-js/dev");
-    devInit({ app, deploymentTarget: deployment_target });
+    // Wrangler does its own live reload
+    if (deployment_target !== "cloudflare-pages") {
+      const { setupLiveRefreshEndpoints } = await import("@hwy-js/dev");
+      setupLiveRefreshEndpoints({ app });
+    }
   }
 
   ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl ?? "");

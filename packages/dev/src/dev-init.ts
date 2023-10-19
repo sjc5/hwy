@@ -1,7 +1,6 @@
 import {
   LIVE_REFRESH_SSE_PATH,
   LIVE_REFRESH_RPC_PATH,
-  type DeploymentTarget,
 } from "../../common/index.mjs";
 import { sinks } from "./constants.js";
 import { hwyLog } from "./hwy-log.js";
@@ -15,17 +14,8 @@ function send_signal_to_sinks() {
   }
 }
 
-function devInit({
-  app,
-  deploymentTarget,
-}: {
-  app: Hono<any>;
-  deploymentTarget?: DeploymentTarget;
-}) {
-  // Wrangler does its own live reload
-  if (deploymentTarget !== "cloudflare-pages") {
-    app.use(LIVE_REFRESH_SSE_PATH, refreshMiddleware());
-  }
+function setupLiveRefreshEndpoints({ app }: { app: Hono<any> }) {
+  app.use(LIVE_REFRESH_SSE_PATH, refreshMiddleware());
 
   app.all(LIVE_REFRESH_RPC_PATH, async (c) => {
     send_signal_to_sinks();
@@ -34,4 +24,4 @@ function devInit({
   });
 }
 
-export { devInit };
+export { setupLiveRefreshEndpoints };

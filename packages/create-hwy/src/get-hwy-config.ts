@@ -1,17 +1,25 @@
-import { DEFAULT_PORT } from "../../common/index.mjs";
+import { DEFAULT_PORT, type HwyConfig } from "../../common/index.mjs";
 import type { Options } from "../index.js";
 
 function get_hwy_config(options: Options) {
-  let text = `export default {
-    dev: {
-      port: ${DEFAULT_PORT},${
-        options.css_preference === "tailwind"
-          ? '\n      watchExclusions: ["src/styles/tw-output.bundle.css"],'
-          : ""
-      }
-    },
-    deploymentTarget: "${options.deployment_target}",
-  }`;
+  let obj: HwyConfig = {
+    deploymentTarget: options.deployment_target,
+  };
+
+  if (options.deployment_target !== "cloudflare-pages") {
+    obj.dev = {
+      port: DEFAULT_PORT,
+    };
+  }
+
+  if (options.css_preference === "tailwind") {
+    obj.dev = {
+      ...obj.dev,
+      watchExclusions: ["src/styles/tw-output.bundle.css"],
+    };
+  }
+
+  let text = `export default ${JSON.stringify(obj, null, 2)}`;
 
   if (options.lang_preference === "typescript") {
     text =

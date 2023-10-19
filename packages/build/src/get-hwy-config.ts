@@ -1,16 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
-import { DEFAULT_PORT, type DeploymentTarget } from "../../common/index.mjs";
+import { DEFAULT_PORT, type HwyConfig } from "../../common/index.mjs";
 import esbuild from "esbuild";
 import { pathToFileURL } from "node:url";
-
-type HwyConfig = {
-  dev: {
-    port: number;
-    watchExclusions?: Array<string>;
-  };
-  deploymentTarget: DeploymentTarget;
-};
 
 let cached_hwy_config: HwyConfig | undefined;
 

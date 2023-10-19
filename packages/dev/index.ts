@@ -1,1 +1,1 @@
-export { devInit } from "./src/dev-init.js";
+export { setupLiveRefreshEndpoints } from "./src/dev-init.js";

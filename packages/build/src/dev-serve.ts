@@ -22,43 +22,41 @@ async function devServe() {
 
   dotenv.config();
 
-  const refresh_watcher = chokidar.watch(
-    path.join(process.cwd(), "dist", "refresh.txt"),
-    { ignoreInitial: true },
-  );
+  if (deployment_target !== "cloudflare-pages") {
+    const refresh_watcher = chokidar.watch(
+      path.join(process.cwd(), "dist", "refresh.txt"),
+      { ignoreInitial: true },
+    );
 
-  refresh_watcher.on("all", async () => {
-    if (has_run_one_time) {
-      try {
-        await fetch(
-          `http://127.0.0.1:${dev_config?.port}${LIVE_REFRESH_RPC_PATH}`,
-        );
-      } catch (e) {
-        console.error("Live refresh RPC failed:", e);
+    refresh_watcher.on("all", async () => {
+      if (has_run_one_time) {
+        try {
+          await fetch(
+            `http://127.0.0.1:${dev_config?.port}${LIVE_REFRESH_RPC_PATH}`,
+          );
+        } catch (e) {
+          console.error("Live refresh RPC failed:", e);
+        }
       }
-    }
 
-    has_run_one_time = true;
+      has_run_one_time = true;
 
-    if (deployment_target === "cloudflare-pages") {
-      return;
-    }
+      if (is_targeting_deno) {
+        run_command_with_spawn_deno().catch((error) => {
+          console.error(error);
+        });
 
-    if (is_targeting_deno) {
-      run_command_with_spawn_deno().catch((error) => {
+        return;
+      }
+
+      run_command_with_spawn().catch((error) => {
         console.error(error);
       });
-
-      return;
-    }
-
-    run_command_with_spawn().catch((error) => {
-      console.error(error);
     });
-  });
+  }
 
   const exclusions =
-    dev_config.watchExclusions?.map((x) => path.join(process.cwd(), x)) || [];
+    dev_config?.watchExclusions?.map((x) => path.join(process.cwd(), x)) || [];
 
   const watcher = chokidar.watch(
     [path.join(process.cwd(), "src"), path.join(process.cwd(), "public")],
@@ -79,7 +77,10 @@ async function devServe() {
 
   let current_proc: ChildProcess | null = null;
 
-  const base_env = { NODE_ENV: "development", PORT: String(dev_config.port) };
+  const base_env = {
+    NODE_ENV: "development",
+    PORT: String(dev_config?.port || "") || undefined,
+  };
 
   async function run_command_with_spawn() {
     return new Promise<void>((resolve, reject) => {
@@ -88,8 +89,8 @@ async function devServe() {
       }
 
       const env = {
-        ...process.env,
         ...base_env,
+        ...process.env,
       };
 
       const proc = spawn("node", ["dist/main.js"], {
@@ -137,8 +138,8 @@ async function devServe() {
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     const env = {
-      ...Deno.env.toObject(),
       ...base_env,
+      ...Deno.env.toObject(),
     };
 
     const cmd = new Deno.Command(Deno.execPath(), {
