@@ -7,7 +7,10 @@ import { ListItem, UnorderedList } from "../components/unordered-list.js";
 export default function () {
   return (
     <>
-      <h1 class="text-3xl lg:text-4xl leading-snug lg:leading-normal opacity-[0.95] py-6">
+      <h1
+        class="text-3xl lg:text-4xl leading-snug lg:leading-normal opacity-[0.95] py-6"
+        id="test"
+      >
         Hwy is a <Boldtalic>simple</Boldtalic>,{" "}
         <Boldtalic>lightweight</Boldtalic>, and <Boldtalic>flexible</Boldtalic>{" "}
         web framework, built on <Boldtalic>Hono</Boldtalic> and{" "}

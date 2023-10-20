@@ -15,8 +15,8 @@ function DevLiveRefreshScript(props?: {
 }): HtmlEscapedString {
   if (
     hwy_global.get("is_dev") &&
-    hwy_global.get("deployment_target") !== "cloudflare-pages"
     // Wrangler does its own live reload
+    hwy_global.get("deployment_target") !== "cloudflare-pages"
   ) {
     return (
       <script

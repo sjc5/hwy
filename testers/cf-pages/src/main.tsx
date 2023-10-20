@@ -3,7 +3,7 @@ import {
   CssImports,
   rootOutlet,
   DevLiveRefreshScript,
-  ClientEntryScript,
+  ClientScripts,
   HeadElements,
   getDefaultBodyProps,
   renderRoot,
@@ -54,7 +54,7 @@ app.all("*", async (c, next) => {
           />
 
           <CssImports />
-          <ClientEntryScript />
+          <ClientScripts activePathData={activePathData} />
           <DevLiveRefreshScript />
         </head>
 

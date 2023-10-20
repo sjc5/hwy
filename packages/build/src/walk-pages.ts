@@ -6,6 +6,17 @@ import esbuild from "esbuild";
 import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
 import { smart_normalize } from "./smart-normalize.js";
 
+const permitted_extensions = [
+  "js",
+  "jsx",
+  "ts",
+  "tsx",
+  "mjs",
+  "cjs",
+  "mts",
+  "cts",
+];
+
 async function walk_pages() {
   const paths: {
     // ultimately public
@@ -21,27 +32,29 @@ async function walk_pages() {
     isIndex: boolean;
     endsInSplat: boolean;
     endsInDynamic: boolean;
+    hasSiblingClientFile: boolean;
+    filename: string;
   }[] = [];
 
   for await (const entry of readdirp(path.resolve("./src/pages"))) {
-    if (!entry.path.includes(".page.")) continue;
+    const is_page_file = entry.path.includes(".page.");
+    const is_client_file = entry.path.includes(".client.");
+
+    if (!is_page_file && !is_client_file) {
+      continue;
+    }
 
     const ext = entry.path.split(".").pop();
 
-    const permitted_extensions = [
-      "js",
-      "jsx",
-      "ts",
-      "tsx",
-      "mjs",
-      "cjs",
-      "mts",
-      "cts",
-    ];
+    if (!ext || !permitted_extensions.includes(ext)) {
+      continue;
+    }
 
-    if (!ext || !permitted_extensions.includes(ext)) continue;
+    const pre_ext_delineator = is_page_file ? ".page" : ".client";
 
-    const _path = entry.path.replace("." + ext, "").replace(".page", "");
+    const _path = entry.path
+      .replace("." + ext, "")
+      .replace(pre_ext_delineator, "");
 
     const segments_init = _path.split(path.sep);
 
@@ -81,7 +94,9 @@ async function walk_pages() {
       });
 
     const import_path_with_orig_ext =
-      path.join(process.cwd(), "src/pages/" + _path) + ".page" + ("." + ext);
+      path.join(process.cwd(), "src/pages/" + _path) +
+      pre_ext_delineator +
+      ("." + ext);
 
     let path_to_use = "/" + segments.map((x) => x.segment).join("/");
 
@@ -89,23 +104,44 @@ async function walk_pages() {
       path_to_use = path_to_use.slice(0, -1);
     }
 
-    paths.push({
-      entry: entry.path,
-      importPath: smart_normalize(path.join("pages/", _path + ".js")),
-      path: path_to_use,
-      segments,
-      isIndex: is_index,
-      endsInSplat: segments[segments.length - 1].isSplat,
-      endsInDynamic: segments[segments.length - 1].isDynamic,
-    });
+    if (is_page_file) {
+      let has_sibling_client_file = false;
+
+      for (const sibling of await fs.promises.readdir(
+        path.dirname(import_path_with_orig_ext),
+      )) {
+        const filename = path.basename(_path);
+
+        if (sibling.includes(filename + ".client.")) {
+          has_sibling_client_file = true;
+          break;
+        }
+      }
+
+      paths.push({
+        entry: entry.path,
+        importPath: smart_normalize(path.join("pages/", _path + ".js")),
+        path: path_to_use,
+        segments,
+        isIndex: is_index,
+        endsInSplat: segments[segments.length - 1].isSplat,
+        endsInDynamic: segments[segments.length - 1].isDynamic,
+        hasSiblingClientFile: has_sibling_client_file,
+        filename: _path + ".js",
+      });
+    }
+
+    fs.mkdirSync(path.resolve(`./public/dist/pages/`), { recursive: true });
 
     try {
       await esbuild.build({
         entryPoints: [import_path_with_orig_ext],
         bundle: true,
-        outfile: path.resolve("./dist/pages/" + _path + ".js"),
-        treeShaking: true,
-        platform: "node",
+        outfile: path.resolve(
+          `./${is_client_file ? "public/" : ""}dist/pages/` + _path + ".js",
+        ),
+        treeShaking: !is_client_file,
+        platform: is_client_file ? "browser" : "node",
         packages: "external",
         format: "esm",
       });
