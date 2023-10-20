@@ -156,8 +156,6 @@ async function walk_pages() {
 async function write_paths_to_file() {
   const paths = await walk_pages();
 
-  console.log("paths", paths);
-
   fs.writeFileSync(
     path.join(process.cwd(), "dist", "paths.js"),
     `export const ${HWY_GLOBAL_KEYS.paths} = ${JSON.stringify(paths)}`,
@@ -212,8 +210,6 @@ async function generate_public_file_map() {
 
   const map_file_path = path.resolve("./dist/public-map.js");
   const reverse_map_file_path = path.resolve("./dist/public-reverse-map.js");
-
-  console.log("file_map", file_map);
 
   await Promise.all([
     fs.promises.writeFile(

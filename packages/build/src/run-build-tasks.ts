@@ -113,7 +113,10 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     write_paths_to_file(),
   ]);
 
-  // happens again post css bundling
+  /*
+   * Time to finalize public file map. Must be post write_paths_to_file because the client
+   * scripts are written during walk_pages inside write_paths_to_file.
+   */
   await generate_public_file_map();
 
   let main_code = main_build_result.outputFiles?.[0].text;
