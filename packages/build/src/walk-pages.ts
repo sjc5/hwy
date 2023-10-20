@@ -155,6 +155,9 @@ async function walk_pages() {
 
 async function write_paths_to_file() {
   const paths = await walk_pages();
+
+  console.log("paths", paths);
+
   fs.writeFileSync(
     path.join(process.cwd(), "dist", "paths.js"),
     `export const ${HWY_GLOBAL_KEYS.paths} = ${JSON.stringify(paths)}`,
