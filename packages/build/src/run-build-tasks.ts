@@ -111,10 +111,10 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     }),
 
     write_paths_to_file(),
-
-    // happens again post css bundling
-    generate_public_file_map(),
   ]);
+
+  // happens again post css bundling
+  await generate_public_file_map();
 
   let main_code = main_build_result.outputFiles?.[0].text;
 
