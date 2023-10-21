@@ -13,11 +13,11 @@
     "@hono/node-server": "^1.2.0",
     "highlight.js": "^11.8.0",
     "hono": "^3.7.5",
-    "hwy": "0.4.0-beta.38"
+    "hwy": "0.4.0"
   },
   "devDependencies": {
-    "@hwy-js/build": "0.4.0-beta.38",
-    "@hwy-js/dev": "0.4.0-beta.38",
+    "@hwy-js/build": "0.4.0",
+    "@hwy-js/dev": "0.4.0",
     "@types/node": "^20.8.3",
     "@types/nprogress": "^0.2.1",
     "htmx.org": "^1.9.6",
