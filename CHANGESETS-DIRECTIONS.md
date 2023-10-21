@@ -1,8 +1,19 @@
+#
+
+## IMPORTANT, ALWAYS RUN A BUILD FIRST
+
+```sh
+pnpm build
+```
+
+**_^^^^^^^^^^^^ Do not forget this please ^^^^^^^^^^^^_**
+
 # Pre-release workflow
 
 https://github.com/changesets/changesets/blob/main/docs/prereleases.md
 
 ```sh
+pnpm changeset pre exit
 pnpm changeset pre enter beta
 pnpm changeset version
 pnpm build

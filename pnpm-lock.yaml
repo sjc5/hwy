@@ -33,14 +33,14 @@ importers:
         specifier: ^3.7.5
         version: 3.7.5
       hwy:
-        specifier: 0.4.0-beta.34
+        specifier: 0.4.0-beta.35
         version: link:../packages/core
     devDependencies:
       '@hwy-js/build':
-        specifier: 0.4.0-beta.34
+        specifier: 0.4.0-beta.35
         version: link:../packages/build
       '@hwy-js/dev':
-        specifier: 0.4.0-beta.34
+        specifier: 0.4.0-beta.35
         version: link:../packages/dev
       '@types/node':
         specifier: ^20.8.3
@@ -227,6 +227,9 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
     devDependencies:
+      '@hwy-js/build':
+        specifier: workspace:*
+        version: link:../../packages/build
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev

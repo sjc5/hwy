@@ -10,5 +10,8 @@
     "cf-pages-tester": "0.0.0",
     "tester": "0.0.0"
   },
-  "changesets": ["rotten-boxes-watch", "three-cooks-fold"]
+  "changesets": [
+    "rotten-boxes-watch",
+    "three-cooks-fold"
+  ]
 }
