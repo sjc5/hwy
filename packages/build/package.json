@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
+    "lint": "tsc",
     "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
     "publish-beta": "npm publish --tag beta"
   },

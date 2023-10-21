@@ -1,4 +1,4 @@
-import { DataFunctionArgs, PageProps } from "hwy";
+import type { DataFunctionArgs, PageProps } from "hwy";
 import { extractSimpleFormData } from "../../utils/extract-simple-form-data.js";
 
 export async function action({ c }: DataFunctionArgs) {

@@ -54,6 +54,8 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
   }
 }
 
+let is_first_run = true;
+
 async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
 
@@ -68,9 +70,18 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
 
   const standard_tasks_p0 = performance.now();
 
-  await fs.promises.mkdir(path.join(process.cwd(), "dist"), {
-    recursive: true,
-  });
+  const dist_path = path.join(process.cwd(), "dist");
+
+  if (is_first_run) {
+    is_first_run = false;
+
+    if (fs.existsSync(dist_path)) {
+      hwyLog("Removing old dist folder...");
+      fs.rmSync(dist_path, { recursive: true, force: true });
+    }
+  }
+
+  await fs.promises.mkdir(dist_path, { recursive: true });
 
   // needs to happen once first pre-css bundling
   await generate_public_file_map();

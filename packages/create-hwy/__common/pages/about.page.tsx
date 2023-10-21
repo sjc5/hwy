@@ -1,4 +1,4 @@
-import { PageProps } from "hwy";
+import type { PageProps } from "hwy";
 
 export default async function ({ outlet }: PageProps) {
   return (

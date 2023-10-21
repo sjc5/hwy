@@ -33,7 +33,7 @@ async function walk_pages() {
     endsInSplat: boolean;
     endsInDynamic: boolean;
     hasSiblingClientFile: boolean;
-    filename: string;
+    fileRefFromPagesDirWithJsExt: string;
   }[] = [];
 
   for await (const entry of readdirp(path.resolve("./src/pages"))) {
@@ -127,7 +127,7 @@ async function walk_pages() {
         endsInSplat: segments[segments.length - 1].isSplat,
         endsInDynamic: segments[segments.length - 1].isDynamic,
         hasSiblingClientFile: has_sibling_client_file,
-        filename: _path + ".js",
+        fileRefFromPagesDirWithJsExt: _path + ".js",
       });
     }
 

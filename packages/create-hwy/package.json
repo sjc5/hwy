@@ -15,6 +15,7 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsup-node index.ts --format esm",
+    "lint": "tsc",
     "create-hwy": "pnpm run build && node dist/index.js",
     "publish-beta": "npm publish --tag beta"
   },

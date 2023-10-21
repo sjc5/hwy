@@ -1,4 +1,4 @@
-import { PageProps } from "hwy";
+import type { PageProps } from "hwy";
 
 async function TesterComp({ outlet, params, splatSegments }: PageProps) {
   let pathname = new URL(import.meta.url).pathname;

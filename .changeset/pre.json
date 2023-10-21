@@ -1,0 +1,11 @@
+{
+  "mode": "pre",
+  "tag": "next",
+  "initialVersions": {
+    "@hwy-js/build": "0.4.0-beta.33",
+    "hwy": "0.4.0-beta.33",
+    "create-hwy": "0.4.0-beta.33",
+    "@hwy-js/dev": "0.4.0-beta.33"
+  },
+  "changesets": []
+}

@@ -19,13 +19,16 @@ function ClientScripts({
 
       {activePathData.matchingPaths
         ?.filter((x) => {
+          if (x.hasSiblingClientFile) {
+            console.log("hasSiblingClientFile", x);
+          }
           return x.hasSiblingClientFile;
         })
         .map((x) => {
           return (
             <script
               key={x.path}
-              src={getPublicUrl("dist/pages/" + x.filename)}
+              src={getPublicUrl("dist/pages/" + x.fileRefFromPagesDirWithJsExt)}
               {...{ [pageStrategy]: true }}
             />
           );
