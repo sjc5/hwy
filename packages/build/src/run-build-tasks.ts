@@ -54,8 +54,6 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
   }
 }
 
-let is_first_run = true;
-
 async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
 
@@ -71,16 +69,6 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   const standard_tasks_p0 = performance.now();
 
   const dist_path = path.join(process.cwd(), "dist");
-
-  if (is_first_run) {
-    is_first_run = false;
-
-    // look for a hwy-specific file that indicates a previous build
-    if (fs.existsSync(path.join(dist_path, "public-reverse-map.js"))) {
-      hwyLog("Removing old dist folder...");
-      fs.rmSync(dist_path, { recursive: true, force: true });
-    }
-  }
 
   await fs.promises.mkdir(dist_path, { recursive: true });
 

@@ -1,5 +1,11 @@
 # @hwy-js/build
 
+## 0.4.0-beta.37
+
+### Patch Changes
+
+- rmv rmSync instance, not really necessary
+
 ## 0.4.0-beta.36
 
 ## 0.4.0-beta.35

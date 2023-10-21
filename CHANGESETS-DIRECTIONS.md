@@ -13,10 +13,10 @@ pnpm build
 https://github.com/changesets/changesets/blob/main/docs/prereleases.md
 
 ```sh
+pnpm build
 pnpm changeset pre exit
 pnpm changeset pre enter beta
 pnpm changeset version
-pnpm build
 pnpm changeset publish
 git add .
 git commit -am "whatever"
@@ -33,6 +33,14 @@ pnpm changeset
 ```
 
 ## Whenever you want to release
+
+1. Run a build!
+
+```sh
+pnpm build
+```
+
+2. Bump versions
 
 ```sh
 pnpm changeset version
