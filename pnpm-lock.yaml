@@ -21,46 +21,6 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
-  docs:
-    dependencies:
-      '@hono/node-server':
-        specifier: ^1.2.0
-        version: 1.2.0
-      highlight.js:
-        specifier: ^11.8.0
-        version: 11.8.0
-      hono:
-        specifier: ^3.7.5
-        version: 3.7.5
-      hwy:
-        specifier: 0.4.0-beta.38
-        version: link:../packages/core
-    devDependencies:
-      '@hwy-js/build':
-        specifier: 0.4.0-beta.38
-        version: link:../packages/build
-      '@hwy-js/dev':
-        specifier: 0.4.0-beta.38
-        version: link:../packages/dev
-      '@types/node':
-        specifier: ^20.8.3
-        version: 20.8.4
-      '@types/nprogress':
-        specifier: ^0.2.1
-        version: 0.2.1
-      htmx.org:
-        specifier: ^1.9.6
-        version: 1.9.6
-      nprogress:
-        specifier: ^0.2.0
-        version: 0.2.0
-      tailwindcss:
-        specifier: ^3.3.3
-        version: 3.3.3
-      typescript:
-        specifier: ^5.2.2
-        version: 5.2.2
-
   packages/build:
     dependencies:
       chokidar:
@@ -2563,11 +2523,6 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       function-bind: 1.1.2
-
-  /highlight.js@11.8.0:
-    resolution: {integrity: sha512-MedQhoqVdr0U6SSnWPzfiadUcDHfN/Wzq25AkXiQv9oiOO/sG0S7XkvpFIqWBl9Yq1UYyYOOVORs5UW2XlPyzg==}
-    engines: {node: '>=12.0.0'}
-    dev: false
 
   /hono@3.7.5:
     resolution: {integrity: sha512-ZaaqAul84HHLXZKwwfH+eMInidwvRj9IdyOoI5Ze0v+WUOAAtQruml3QaUUWkOuI2Myt6IZAiUqkYklLK77k4g==}
