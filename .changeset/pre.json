@@ -1,6 +1,6 @@
 {
   "mode": "pre",
-  "tag": "next",
+  "tag": "beta",
   "initialVersions": {
     "@hwy-js/build": "0.4.0-beta.33",
     "hwy": "0.4.0-beta.33",
