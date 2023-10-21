@@ -2,10 +2,15 @@
   "mode": "pre",
   "tag": "beta",
   "initialVersions": {
+    "docs": "0.0.0",
     "@hwy-js/build": "0.4.0-beta.33",
     "hwy": "0.4.0-beta.33",
     "create-hwy": "0.4.0-beta.33",
-    "@hwy-js/dev": "0.4.0-beta.33"
+    "@hwy-js/dev": "0.4.0-beta.33",
+    "cf-pages-tester": "0.0.0",
+    "tester": "0.0.0"
   },
-  "changesets": []
+  "changesets": [
+    "rotten-boxes-watch"
+  ]
 }
