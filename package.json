@@ -22,7 +22,8 @@
     "dev:core": "pnpm -r --filter hwy run dev",
     "dev:dev": "pnpm -r --filter @hwy-js/dev run dev",
     "dev": "npm-run-all --parallel dev:*",
-    "publish-beta": "pnpm run build && pnpm -r publish-beta"
+    "publish-beta": "pnpm run build && pnpm -r publish-beta",
+    "release": "pnpm run build && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.2",
