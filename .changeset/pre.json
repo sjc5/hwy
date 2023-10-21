@@ -11,6 +11,7 @@
     "tester": "0.0.0"
   },
   "changesets": [
+    "curvy-goats-hear",
     "rotten-boxes-watch",
     "three-cooks-fold"
   ]
