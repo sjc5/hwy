@@ -1,5 +1,11 @@
 # create-hwy
 
+## 0.4.0-beta.38
+
+### Patch Changes
+
+- update ClientEntryScript to ClientScripts
+
 ## 0.4.0-beta.37
 
 ## 0.4.0-beta.36

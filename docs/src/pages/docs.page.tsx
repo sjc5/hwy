@@ -572,7 +572,7 @@ import {
   CssImports,
   rootOutlet,
   DevLiveRefreshScript,
-  ClientEntryScript,
+  ClientScripts,
   getDefaultBodyProps,
   renderRoot,
 } from 'hwy'
@@ -592,7 +592,7 @@ app.all('*', async (c, next) => {
           />
 
           <CssImports />
-          <ClientEntryScript />
+          <ClientScripts activePathData={activePathData} />
           <DevLiveRefreshScript />
         </head>
 

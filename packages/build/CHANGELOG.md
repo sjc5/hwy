@@ -1,5 +1,7 @@
 # @hwy-js/build
 
+## 0.4.0-beta.38
+
 ## 0.4.0-beta.37
 
 ### Patch Changes
