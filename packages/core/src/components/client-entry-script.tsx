@@ -1,16 +1,37 @@
+import type { getMatchingPathData } from "../router/get-matching-path-data.js";
 import { getPublicUrl } from "../utils/hashed-public-url.js";
 
-function ClientEntryScript({
-  strategy = "defer",
+function ClientScripts({
+  entryStrategy = "defer",
+  pageStrategy = "defer",
+  activePathData,
 }: {
-  strategy?: "defer" | "async";
+  entryStrategy?: "defer" | "async";
+  pageStrategy?: "defer" | "async";
+  activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
 }) {
   return (
-    <script
-      src={getPublicUrl("dist/client.entry.js")}
-      {...{ [strategy]: true }}
-    />
+    <>
+      <script
+        src={getPublicUrl("dist/client.entry.js")}
+        {...{ [entryStrategy]: true }}
+      />
+
+      {activePathData.matchingPaths
+        ?.filter((x) => {
+          return x.hasSiblingClientFile;
+        })
+        .map((x) => {
+          return (
+            <script
+              key={x.path}
+              src={getPublicUrl("dist/pages/" + x.fileRefFromPagesDirWithJsExt)}
+              {...{ [pageStrategy]: true }}
+            />
+          );
+        })}
+    </>
   );
 }
 
-export { ClientEntryScript };
+export { ClientScripts };
