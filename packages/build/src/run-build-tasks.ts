@@ -75,7 +75,8 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   if (is_first_run) {
     is_first_run = false;
 
-    if (fs.existsSync(dist_path)) {
+    // look for a hwy-specific file that indicates a previous build
+    if (fs.existsSync(path.join(dist_path, "public-reverse-map.js"))) {
       hwyLog("Removing old dist folder...");
       fs.rmSync(dist_path, { recursive: true, force: true });
     }

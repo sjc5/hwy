@@ -1,9 +1,14 @@
 import { DEFAULT_PORT } from "../../common/index.mjs";
 import type { Options } from "../index.js";
 import { get_is_target_deno } from "./utils.js";
+import fs from "node:fs";
+
+const latest_hwy_version = JSON.parse(
+  fs.readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
+).version;
 
 const VERSIONS = {
-  HWY: "^0.4.0-beta.33",
+  HWY: `^${latest_hwy_version}`,
   HONO_NODE_SERVER: "^1.2.0",
   HONO: "^3.7.5",
   HTMX: "^1.9.6",

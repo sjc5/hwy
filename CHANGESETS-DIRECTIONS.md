@@ -5,7 +5,10 @@ https://github.com/changesets/changesets/blob/main/docs/prereleases.md
 ```sh
 pnpm changeset pre enter beta
 pnpm changeset version
+pnpm build
 pnpm changeset publish
+git add .
+git commit -am "whatever"
 git push --follow-tags
 pnpm changeset pre exit
 ```
