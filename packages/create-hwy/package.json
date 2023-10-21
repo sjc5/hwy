@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.3.0",
+  "version": "0.4.0-beta.38",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -14,12 +14,18 @@
     "__public"
   ],
   "scripts": {
-    "build": "rimraf dist && tsup-node index.ts --format esm",
+    "build": "rm -rf dist && tsup-node index.ts --format esm",
+    "lint": "tsc",
     "create-hwy": "pnpm run build && node dist/index.js",
     "publish-beta": "npm publish --tag beta"
   },
   "bin": {
     "create-hwy": "./scripts/create-hwy.js"
+  },
+  "dependencies": {
+    "detype": "^0.6.3",
+    "inquirer": "^9.2.11",
+    "picocolors": "^1.0.0"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.3",
@@ -29,15 +35,9 @@
     "hwy": "workspace:*",
     "nprogress": "^0.2.0",
     "prettier": "^3.0.3",
-    "rimraf": "^5.0.5",
     "tailwindcss": "^3.3.3",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
-  },
-  "dependencies": {
-    "detype": "^0.6.3",
-    "inquirer": "^9.2.11",
-    "picocolors": "^1.0.0"
   },
   "repository": {
     "type": "git",
@@ -45,6 +45,5 @@
     "directory": "packages/create-hwy"
   },
   "homepage": "https://hwy.dev",
-  "bugs": "https://github.com/hwy-js/hwy/issues",
-  "sideEffects": false
+  "bugs": "https://github.com/hwy-js/hwy/issues"
 }

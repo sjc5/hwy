@@ -2,12 +2,15 @@ import path from "node:path";
 import type { Context } from "hono";
 import { matcher } from "../router/matcher.js";
 import { get_path_to_use } from "../utils/get-path-to-use.js";
-import type { Paths } from "@hwy-js/dev";
+import type { Paths } from "@hwy-js/build";
 import { ROOT_DIRNAME } from "../setup.js";
 import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
 import { get_match_strength } from "./get-match-strength.js";
-import { DataFunctionArgs } from "../types.js";
-import { path_to_file_url } from "../utils/url-polyfills.js";
+import type { DataFunctionArgs } from "../types.js";
+import { path_to_file_url_string } from "../utils/url-polyfills.js";
+import { get_hwy_global } from "../utils/get-hwy-global.js";
+
+const hwy_global = get_hwy_global();
 
 function fully_decorate_paths({
   matching_paths,
@@ -19,8 +22,11 @@ function fully_decorate_paths({
   return (
     matching_paths?.map((_path) => {
       const get_imported = () => {
-        const inner = path.join(ROOT_DIRNAME, _path.importPath);
-        return import(path_to_file_url(inner).href);
+        if (hwy_global.get("deployment_target") === "cloudflare-pages") {
+          return (globalThis as any)["./" + _path.importPath];
+        }
+        const inner = path.join(ROOT_DIRNAME || "./", _path.importPath);
+        return import(path_to_file_url_string(inner));
       };
 
       // public
@@ -80,7 +86,6 @@ function fully_decorate_paths({
 }
 
 type SemiDecoratedPath = Paths[number] & {
-  importUrlString: string;
   pattern: string;
   matches: boolean;
   params: Record<string, string>;
@@ -105,7 +110,6 @@ function semi_decorate_paths({
         path: get_path_to_use(c, redirectTo),
       }),
       isUltimateCatch: path.path === "/:catch*",
-      importUrlString: path.importPath.split("/pages/")[1],
     };
   });
 }
@@ -117,8 +121,11 @@ async function getMatchingPathData({
   c: Context;
   redirectTo?: string;
 }) {
-  const inner = path.join(ROOT_DIRNAME, "paths.js");
-  const paths: Paths = (await import(path_to_file_url(inner).href)).default;
+  const paths = hwy_global.get("paths");
+
+  if (!paths) {
+    throw new Error("Paths not found.");
+  }
 
   const semi_decorated_paths = semi_decorate_paths({
     c,
@@ -263,10 +270,6 @@ async function getMatchingPathData({
     };
   }
 
-  const import_url_strings = (matching_paths || [])?.map(
-    (path) => path.importUrlString,
-  );
-
   const should_render_loader_error =
     highest_error_index < active_data_obj.length - 1 ||
     (highest_error_index === active_data_obj.length - 1 && !action_data_error);
@@ -282,7 +285,6 @@ async function getMatchingPathData({
     activePaths: active_paths,
     activeComponents: active_components,
     activeHeads: active_heads,
-    importUrlStrings: import_url_strings,
     errorToRender: error_to_render,
     activeErrorBoundaries: active_error_boundaries,
     params,

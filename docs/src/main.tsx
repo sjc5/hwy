@@ -1,10 +1,10 @@
-import { IS_DEV, PORT } from "./utils/constants.js";
+import { IS_DEV } from "./utils/constants.js";
 import {
   hwyInit,
   CssImports,
   rootOutlet,
-  hwyDev,
-  ClientEntryScript,
+  DevLiveRefreshScript,
+  ClientScripts,
   HeadElements,
   HeadBlock,
   getDefaultBodyProps,
@@ -34,7 +34,6 @@ await hwyInit({
    * to add a publicUrlPrefix.
    */
   publicUrlPrefix: process.env.NODE_ENV === "production" ? "docs/" : undefined,
-  watchExclusions: ["src/styles/tw-output.bundle.css"],
 });
 
 const default_head_blocks: HeadBlock[] = [
@@ -75,11 +74,11 @@ const default_head_blocks: HeadBlock[] = [
 ];
 
 app.all("*", async (c, next) => {
-  if (IS_DEV) await new Promise((r) => setTimeout(r, 300));
+  if (IS_DEV) await new Promise((r) => setTimeout(r, 150));
 
-  // // 31 days vercel edge cache (invalidated each deploy)
+  // 31 days vercel edge cache (invalidated each deploy)
   c.header("CDN-Cache-Control", "public, max-age=2678400");
-  // // 10 seconds client cache
+  // 10 seconds client cache
   c.header("Cache-Control", "public, max-age=10");
 
   return await renderRoot(c, next, async ({ activePathData }) => {
@@ -96,9 +95,8 @@ app.all("*", async (c, next) => {
           />
 
           <CssImports />
-          <ClientEntryScript />
-
-          {hwyDev?.DevLiveRefreshScript()}
+          <ClientScripts activePathData={activePathData} />
+          <DevLiveRefreshScript />
         </head>
 
         <body
@@ -141,11 +139,14 @@ app.onError((error, c) => {
 export default handle(app);
 
 if (IS_DEV) {
-  serve({ fetch: app.fetch, port: PORT }, (info) => {
-    console.log(
-      `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
-        info.port
-      }\n`,
-    );
-  });
+  serve(
+    { fetch: app.fetch, port: Number(process.env.PORT || 3000) },
+    (info) => {
+      console.log(
+        `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
+          info.port
+        }\n`,
+      );
+    },
+  );
 }

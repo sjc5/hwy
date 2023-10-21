@@ -1,0 +1,44 @@
+{
+  "name": "@hwy-js/build",
+  "version": "0.4.0-beta.38",
+  "author": {
+    "name": "Samuel J. Cook"
+  },
+  "license": "MIT",
+  "description": "Build tools for Hwy framework",
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
+    "lint": "tsc",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
+    "publish-beta": "npm publish --tag beta"
+  },
+  "bin": {
+    "hwy-dev-serve": "./scripts/dev-serve.js",
+    "hwy-build": "./scripts/run-build-tasks.js"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "dotenv": "^16.3.1",
+    "esbuild": "^0.19.2",
+    "picocolors": "^1.0.0",
+    "readdirp": "^3.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.3",
+    "hono": "^3.7.5",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hwy-js/hwy",
+    "directory": "packages/build"
+  },
+  "homepage": "https://hwy.dev",
+  "bugs": "https://github.com/hwy-js/hwy/issues"
+}

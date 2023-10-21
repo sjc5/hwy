@@ -1,0 +1,26 @@
+{
+  "name": "tester",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && hwy-build",
+    "start": "node dist/main.js",
+    "dev": "hwy-dev-serve"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.2.0",
+    "hono": "^3.7.5",
+    "hwy": "workspace:*"
+  },
+  "devDependencies": {
+    "@hwy-js/build": "workspace:*",
+    "@hwy-js/dev": "workspace:*",
+    "@types/node": "^20.8.3",
+    "htmx.org": "^1.9.6",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.14.1"
+  }
+}

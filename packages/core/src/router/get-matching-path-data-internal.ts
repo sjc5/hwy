@@ -1,4 +1,4 @@
-import { SemiDecoratedPath } from "./get-matching-path-data.js";
+import type { SemiDecoratedPath } from "./get-matching-path-data.js";
 
 function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
   let paths = __paths.filter((x) => {
