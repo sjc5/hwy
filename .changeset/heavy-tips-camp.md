@@ -1,7 +1,7 @@
 ---
-"create-hwy": minor
 "@hwy-js/build": minor
 "hwy": minor
+"create-hwy": minor
 "@hwy-js/dev": minor
 ---
 

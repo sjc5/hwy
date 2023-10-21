@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["docs", "tester", "cf-pages-tester"]
+  "ignore": ["tester", "cf-pages-tester"]
 }
