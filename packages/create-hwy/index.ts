@@ -456,7 +456,7 @@ async function main() {
         `\nNice. Your new Hwy project is ready to go.\n\nTo get started, run:\n\n  ${pc.green(
           `cd ` + choices.new_dir_name + applicable_instructions,
         )}\n\nBe sure to check out the docs at ${pc.bold(
-          pc.underline(`https://hwy.dev`),
+          pc.underline(`https://hwy.dev/docs`),
         )}.\n\nHappy hacking!\n`,
       ),
     );
