@@ -1,5 +1,11 @@
 # create-hwy
 
+## 0.4.1
+
+### Patch Changes
+
+- e889767: more specific docs link in cli output
+
 ## 0.4.0
 
 ### Minor Changes
