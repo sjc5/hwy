@@ -11,6 +11,7 @@
   },
   "changesets": [
     "early-readers-rule",
-    "famous-adults-push"
+    "famous-adults-push",
+    "rude-kiwis-approve"
   ]
 }

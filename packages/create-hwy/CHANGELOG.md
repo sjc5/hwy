@@ -1,5 +1,11 @@
 # create-hwy
 
+## 0.4.2-beta.2
+
+### Patch Changes
+
+- Update JSX types
+
 ## 0.4.2-beta.1
 
 ### Patch Changes

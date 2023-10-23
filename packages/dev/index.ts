@@ -1,11 +1,19 @@
+/// <reference lib="dom" />
+
+import type { Fragment } from "hono/jsx";
+
+type Child =
+  | Parameters<typeof Fragment>[0]["children"]
+  | HTMLCollection
+  | false
+  | null;
+
 /*
 BEGIN JSX INTRISIC ELEMENTS CODE
 Adapted from: https://github.com/yudai-nkt/hono-jsx-types/blob/main/index.d.ts
 Original license: MIT
 Copied from source on: October 22, 2023
 */
-
-/// <reference lib="dom" />
 
 type BooleanLike = boolean | `${boolean}`;
 
@@ -31,6 +39,10 @@ type HandleConversions<T> = IfValueTypeIsBooleanConvertToBooleanOrBooleanString<
 
 declare global {
   namespace JSX {
+    // interface ElementChildrenAttribute {
+    //   children: any;
+    // }
+
     // Taken from https://github.com/preactjs/preact/blob/841ef82648b85dbb12dc17a47d7f79f000492030/src/jsx.d.ts and modified
     // MIT License
     // All the WAI-ARIA 1.1 attributes from https://www.w3.org/TR/wai-aria-1.1/
@@ -270,8 +282,11 @@ declare global {
             },
             `aria${Capitalize<string>}`
           >
-        | { dangerouslySetInnerHTML: { __html: string } }
-        | JSX.ElementChildrenAttribute
+        | {
+            dangerouslySetInnerHTML?: { __html: string };
+            class?: string | undefined;
+            children?: Child | Child[];
+          }
       >;
 
     interface IntrinsicElements {
