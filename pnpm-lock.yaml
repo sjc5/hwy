@@ -128,9 +128,6 @@ importers:
       hono:
         specifier: ^3.8.3
         version: 3.8.3
-      preact:
-        specifier: ^10.18.1
-        version: 10.18.1
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(typescript@5.2.2)
@@ -3372,10 +3369,6 @@ packages:
       nanoid: 3.3.6
       picocolors: 1.0.0
       source-map-js: 1.0.2
-    dev: true
-
-  /preact@10.18.1:
-    resolution: {integrity: sha512-mKUD7RRkQQM6s7Rkmi7IFkoEHjuFqRQUaXamO61E6Nn7vqF/bo7EZCmSyrUnp2UWHw0O7XjZ2eeXis+m7tf4lg==}
     dev: true
 
   /preferred-pm@3.1.2:

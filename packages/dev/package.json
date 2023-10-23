@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/dev",
-  "version": "0.4.2-beta.0",
+  "version": "0.4.2-beta.1",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -23,7 +23,6 @@
   "devDependencies": {
     "@types/node": "^20.8.7",
     "hono": "^3.8.3",
-    "preact": "^10.18.1",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   },

@@ -1,5 +1,11 @@
 # @hwy-js/build
 
+## 0.4.2-beta.1
+
+### Patch Changes
+
+- Using typescript built-ins instead of Preact types, and added some type munging and fixes to match Hwy's use cases
+
 ## 0.4.2-beta.0
 
 ### Patch Changes
