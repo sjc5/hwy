@@ -1,5 +1,11 @@
 # create-hwy
 
+## 0.4.2-beta.6
+
+### Patch Changes
+
+- clean up types
+
 ## 0.4.2-beta.5
 
 ### Patch Changes

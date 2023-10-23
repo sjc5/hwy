@@ -1,20 +1,16 @@
-type BooleanLike = boolean | `${boolean}`;
+import type { HtmlEscapedString } from "hono/utils/html";
 
+type BooleanLike = boolean | `${boolean}`;
 type NumberLike = number | `${number}`;
 
-type IfValueTypeIsBooleanConvertToBooleanOrBooleanString<T> = T extends boolean
-  ? BooleanLike
-  : T;
-
-type IfValueTypeIsNumberConvertToNumberOrNumberString<T> = T extends number
-  ? NumberLike
-  : T;
+type BooleanToBooleanLike<T> = T extends boolean ? BooleanLike : T;
+type NumberToNumberLike<T> = T extends number ? NumberLike : T;
 
 type StripNever<T> = {
   [K in keyof T as T[K] extends never ? never : K]: T[K];
 };
 
-type IfKeyStartsWithOnConvertValueToString<
+type FunctionToStringOrStrip<
   T extends {
     [key: string]: any;
   },
@@ -28,49 +24,37 @@ type IfKeyStartsWithOnConvertValueToString<
     : T[K];
 }>;
 
-type HandleConversions<T> = IfValueTypeIsBooleanConvertToBooleanOrBooleanString<
-  IfValueTypeIsNumberConvertToNumberOrNumberString<T>
->;
+type HandleConversions<T> = BooleanToBooleanLike<NumberToNumberLike<T>>;
+
+type Child = string | number | boolean | null | undefined | HtmlEscapedString;
+
+type AdditionalAttributes = {
+  children: Child | Child[];
+  class: string;
+  dangerouslySetInnerHTML: {
+    __html: string;
+  };
+  style: Partial<CSSStyleDeclaration>;
+};
 
 type HTMLAttributesOuter<E> = Partial<
-  {
-    children: any;
-    class: string;
-    dangerouslySetInnerHTML: {
-      __html: string;
-    };
-    style: Partial<CSSStyleDeclaration>;
-  } & Omit<
-    {
-      [K in keyof E]: HandleConversions<E[K]>;
-    },
-    "children" | "class" | "dangerouslySetInnerHTML" | "style"
-  >
+  AdditionalAttributes &
+    Omit<
+      {
+        [K in keyof E]: HandleConversions<E[K]>;
+      },
+      keyof AdditionalAttributes
+    >
 >;
-
-type Bob = IfKeyStartsWithOnConvertValueToString<{
-  onClick: (e: Event) => void;
-  onHover: ((this: GlobalEventHandlers, ev: Event) => any) | null;
-  addEventListener: (e: Event) => void;
-  foo: string;
-  onFoo: number;
-}>;
 
 type HTMLAttributes<
   E extends {
     [key: string]: any;
   },
-> = HTMLAttributesOuter<Partial<IfKeyStartsWithOnConvertValueToString<E>>>;
-
-type Jerry = HTMLAttributes<HTMLAnchorElement>;
-
-const asdf: Jerry = {
-  ontimeupdate: "asdf",
-  onclick: "asdf",
-};
+> = HTMLAttributesOuter<Partial<FunctionToStringOrStrip<E>>>;
 
 /*
-BEGIN JSX INTRISIC ELEMENTS CODE
+BEGIN ADAPTED YUDAI-NKT CODE
 Adapted from: https://github.com/yudai-nkt/hono-jsx-types/blob/main/index.d.ts
 Original license: MIT
 Copied from source on: October 22, 2023
@@ -262,7 +246,7 @@ interface CustomIntrinsicElements {
 }
 
 /*
-END JSX INTRISIC ELEMENTS CODE
+END ADAPTED YUDAI-NKT CODE
 */
 
 declare global {
