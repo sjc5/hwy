@@ -10,7 +10,8 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
+    "jsxImportSource": "hono/jsx",
+    "types": ["@hwy-js/dev"]
   },
   "exclude": ["node_modules", "dist"]
 }

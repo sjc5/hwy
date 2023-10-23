@@ -286,6 +286,7 @@ declare global {
             dangerouslySetInnerHTML?: { __html: string };
             class?: string | undefined;
             children?: Child | Child[];
+            style?: Partial<CSSStyleDeclaration> | string | undefined;
           }
       >;
 

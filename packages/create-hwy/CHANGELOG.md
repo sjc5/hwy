@@ -1,5 +1,11 @@
 # create-hwy
 
+## 0.4.2-beta.4
+
+### Patch Changes
+
+- Add style types
+
 ## 0.4.2-beta.3
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.4.2-beta.3",
+  "version": "0.4.2-beta.4",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -28,6 +28,7 @@
     "picocolors": "^1.0.0"
   },
   "devDependencies": {
+    "@hwy-js/dev": "workspace:*",
     "@types/inquirer": "^9.0.6",
     "@types/node": "^20.8.7",
     "@types/nprogress": "^0.2.2",
