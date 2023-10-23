@@ -1,5 +1,11 @@
 # @hwy-js/dev
 
+## 0.4.2-beta.3
+
+### Patch Changes
+
+- Update types
+
 ## 0.4.2-beta.2
 
 ### Patch Changes

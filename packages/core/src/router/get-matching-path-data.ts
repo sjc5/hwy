@@ -60,20 +60,20 @@ function fully_decorate_paths({
             throw e;
           }
         },
-        loader: async (loader_args: DataFunctionArgs) => {
+        loader: async (loaderArgs: DataFunctionArgs) => {
           try {
             const imported = await get_imported();
-            return imported.loader ? imported.loader(loader_args) : undefined;
+            return imported.loader ? imported.loader(loaderArgs) : undefined;
           } catch (e) {
             if (e instanceof Response) return e;
             console.error(e);
             throw e;
           }
         },
-        action: async (action_args: DataFunctionArgs) => {
+        action: async (actionArgs: DataFunctionArgs) => {
           try {
             const imported = await get_imported();
-            return imported.action ? imported.action(action_args) : undefined;
+            return imported.action ? imported.action(actionArgs) : undefined;
           } catch (e) {
             if (e instanceof Response) return e;
             console.error(e);
