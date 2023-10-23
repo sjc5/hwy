@@ -1,5 +1,11 @@
 # hwy
 
+## 0.4.2-beta.5
+
+### Patch Changes
+
+- update types
+
 ## 0.4.2-beta.4
 
 ### Patch Changes

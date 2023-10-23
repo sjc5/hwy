@@ -23,7 +23,7 @@ function DialogModal({
       <dialog
         onclick="event.target==this && this.close()"
         style={{
-          padding: 0,
+          padding: String(0),
           border: "none",
           background: "transparent",
         }}

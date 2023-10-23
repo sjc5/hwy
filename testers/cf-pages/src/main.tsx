@@ -97,3 +97,14 @@ app.onError((error, c) => {
 });
 
 export default app;
+
+type Bob = JSX.IntrinsicElements["div"];
+
+const test: Bob = {
+  class: "test",
+  ontimeupdate: "",
+};
+
+test.class;
+
+type Jeff = JSX.Element;

@@ -1,0 +1,2 @@
+alert("bob");
+export {};
