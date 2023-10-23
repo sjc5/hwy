@@ -10,7 +10,7 @@
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "types": ["@cloudflare/workers-types", "node"]
+    "types": ["@hwy-js/dev", "@cloudflare/workers-types", "node"]
   },
   "exclude": ["node_modules", "dist"]
 }

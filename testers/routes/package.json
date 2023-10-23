@@ -10,13 +10,13 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",
-    "hono": "^3.7.5",
+    "hono": "^3.8.3",
     "hwy": "workspace:*"
   },
   "devDependencies": {
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@types/node": "^20.8.3",
+    "@types/node": "^20.8.7",
     "htmx.org": "^1.9.6",
     "typescript": "^5.2.2"
   },

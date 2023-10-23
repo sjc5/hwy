@@ -1,0 +1,15 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@hwy-js/build": "0.4.1",
+    "hwy": "0.4.1",
+    "create-hwy": "0.4.1",
+    "@hwy-js/dev": "0.4.1",
+    "cf-pages-tester": "0.0.0",
+    "tester": "0.0.0"
+  },
+  "changesets": [
+    "famous-adults-push"
+  ]
+}
