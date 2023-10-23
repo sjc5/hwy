@@ -85,9 +85,6 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
     devDependencies:
-      '@hwy-js/dev':
-        specifier: workspace:*
-        version: link:../dev
       '@types/inquirer':
         specifier: ^9.0.6
         version: 9.0.6
