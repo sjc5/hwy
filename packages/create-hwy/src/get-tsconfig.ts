@@ -40,6 +40,14 @@ function get_ts_config(options: Options) {
     return JSON.stringify(deno_config).trim() + "\n";
   }
 
+  if (
+    options.deployment_target === "node" ||
+    options.deployment_target === "vercel-lambda"
+  ) {
+    // @ts-ignore
+    ts_config.compilerOptions.types = ["node"];
+  }
+
   if (options.deployment_target === "bun") {
     // @ts-ignore
     ts_config.compilerOptions.types = ["bun-types"];

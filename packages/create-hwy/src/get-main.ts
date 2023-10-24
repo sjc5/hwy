@@ -65,11 +65,7 @@ ${
     : `await hwyInit({
   app,
   importMetaUrl: import.meta.url,
-  serveStatic,${
-    options.css_preference === "tailwind"
-      ? `\n  watchExclusions: ["src/styles/tw-output.bundle.css"],`
-      : ""
-  }
+  serveStatic,
 });`
 }
 
@@ -81,7 +77,7 @@ app.all("*", async (c, next) => {
     return (
       <html lang="en">
         <head>
-          <meta charSet="UTF-8" />
+          <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width,initial-scale=1" />
 
           <HeadElements

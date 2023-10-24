@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.4.1",
+  "version": "0.4.2-beta.6",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -28,10 +28,10 @@
     "picocolors": "^1.0.0"
   },
   "devDependencies": {
-    "@types/inquirer": "^9.0.3",
-    "@types/node": "^20.8.3",
-    "@types/nprogress": "^0.2.1",
-    "hono": "^3.7.5",
+    "@types/inquirer": "^9.0.6",
+    "@types/node": "^20.8.7",
+    "@types/nprogress": "^0.2.2",
+    "hono": "^3.8.3",
     "hwy": "workspace:*",
     "nprogress": "^0.2.0",
     "prettier": "^3.0.3",

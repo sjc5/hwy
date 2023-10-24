@@ -24,7 +24,6 @@ function ClientScripts({
         .map((x) => {
           return (
             <script
-              key={x.path}
               src={getPublicUrl("dist/pages/" + x.fileRefFromPagesDirWithJsExt)}
               {...{ [pageStrategy]: true }}
             />

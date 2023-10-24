@@ -11,4 +11,6 @@ function increment() {
   }
 }
 
-const bob = "hi1";
+if (el) {
+  el.addEventListener("click", increment);
+}

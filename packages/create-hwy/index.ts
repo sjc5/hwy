@@ -355,8 +355,8 @@ async function main() {
       is_jsx: false,
     });
 
-    // pages
-    const pages_to_copy = [
+    // pages dir in __common
+    const tsx_list = [
       "about.page",
       "$.page",
       "_index.page",
@@ -365,15 +365,24 @@ async function main() {
       "__auth/login.page",
     ];
 
+    const ts_list = ["_index.client"];
+
+    const files_to_copy = [...tsx_list, ...ts_list];
+
     await Promise.all(
-      pages_to_copy.map(async (page) => {
+      files_to_copy.map(async (file) => {
+        const is_jsx = tsx_list.includes(file);
+
         return handle_ts_or_js_file_copy({
           code: fs.readFileSync(
-            path.join(root_dir_path, "__common/pages/" + page + ".tsx"),
+            path.join(
+              root_dir_path,
+              "__common/pages/" + file + (is_jsx ? ".tsx" : ".ts"),
+            ),
             "utf8",
           ),
-          destination_without_extension: "src/pages/" + page,
-          is_jsx: true,
+          destination_without_extension: "src/pages/" + file,
+          is_jsx,
         });
       }),
     );
