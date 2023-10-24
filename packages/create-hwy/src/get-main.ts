@@ -65,11 +65,7 @@ ${
     : `await hwyInit({
   app,
   importMetaUrl: import.meta.url,
-  serveStatic,${
-    options.css_preference === "tailwind"
-      ? `\n  watchExclusions: ["src/styles/tw-output.bundle.css"],`
-      : ""
-  }
+  serveStatic,
 });`
 }
 
