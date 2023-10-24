@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "hwy-prebuild": "tailwindcss -i src/styles/tw-input.css -o src/styles/tw-output.bundle.css",
-    "build": "hwy-build",
+    "build": "tsc --noEmit && hwy-build",
     "start": "node dist/main.js",
     "dev:serve": "hwy-dev-serve",
     "dev:wrangler": "wrangler pages dev ./dist --compatibility-flag=\"nodejs_compat\" --port=5432 --live-reload",

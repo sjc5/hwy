@@ -13,7 +13,7 @@ export default function () {
 
       <p>
         Click the button below to increment the number (my click handler is in{" "}
-        <code>src/pages/_index.client.tsx</code>):
+        <code>src/pages/_index.client.ts</code>):
       </p>
 
       <button id="increment-button" class="btn">
