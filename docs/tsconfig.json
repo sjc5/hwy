@@ -9,8 +9,7 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "types": ["@hwy-js/dev"]
+    "jsxImportSource": "hono/jsx"
   },
   "exclude": ["node_modules", "dist"]
 }

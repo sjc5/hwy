@@ -13,7 +13,6 @@ const ts_config = {
     esModuleInterop: true,
     jsx: "react-jsx",
     jsxImportSource: "hono/jsx",
-    types: ["@hwy-js/dev"],
   },
   exclude: ["node_modules", "dist"],
 };
@@ -22,7 +21,6 @@ const js_config = {
   compilerOptions: {
     jsx: "react-jsx",
     jsxImportSource: "hono/jsx",
-    types: ["@hwy-js/dev"],
   },
 };
 
@@ -30,7 +28,6 @@ const deno_config = {
   compilerOptions: {
     jsx: "react-jsx",
     jsxImportSource: "npm:hono/jsx",
-    types: ["@hwy-js/dev"],
   },
 };
 
@@ -48,21 +45,17 @@ function get_ts_config(options: Options) {
     options.deployment_target === "vercel-lambda"
   ) {
     // @ts-ignore
-    ts_config.compilerOptions.types = ["@hwy-js/dev", "node"];
+    ts_config.compilerOptions.types = ["node"];
   }
 
   if (options.deployment_target === "bun") {
     // @ts-ignore
-    ts_config.compilerOptions.types = ["@hwy-js/dev", "bun-types"];
+    ts_config.compilerOptions.types = ["bun-types"];
   }
 
   if (options.deployment_target === "cloudflare-pages") {
     // @ts-ignore
-    ts_config.compilerOptions.types = [
-      "@hwy-js/dev",
-      "@cloudflare/workers-types",
-      "node",
-    ];
+    ts_config.compilerOptions.types = ["@cloudflare/workers-types", "node"];
   }
 
   return JSON.stringify(ts_config).trim() + "\n";

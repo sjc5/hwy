@@ -12,8 +12,7 @@
     "jsxImportSource": "hono/jsx",
     "paths": {
       "~/*": ["./*"]
-    },
-    "types": ["@hwy-js/dev"]
+    }
   },
   "exclude": ["node_modules", "dist"]
 }

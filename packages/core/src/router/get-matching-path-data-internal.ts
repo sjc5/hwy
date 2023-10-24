@@ -13,7 +13,28 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
       : x.realSegmentsLength;
 
     // make sure any remaining matches are not longer than the path itself
-    return x.segments.length <= index_adjusted_real_segments_length;
+    const should_move_on =
+      x.segments.length <= index_adjusted_real_segments_length;
+
+    if (!should_move_on) {
+      return false;
+    }
+
+    // now we need to remove ineligible indices
+    if (!x.isIndex) {
+      // if not an index, then you're already confirmed good
+      return true;
+    }
+
+    const truthy_segments_length = x.segments.filter((x) => x.segment).length;
+
+    const path_segments_length = x.path.split("/").filter(Boolean).length;
+
+    if (truthy_segments_length === path_segments_length) {
+      return true;
+    }
+
+    return false;
   });
 
   // if there are multiple matches, filter out the ultimate catch-all
