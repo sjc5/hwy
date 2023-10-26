@@ -25,7 +25,12 @@ function fully_decorate_paths({
         if (hwy_global.get("deployment_target") === "cloudflare-pages") {
           return (globalThis as any)["./" + _path.importPath];
         }
-        const inner = path.join(ROOT_DIRNAME || "./", _path.importPath);
+
+        const inner = path.join(
+          hwy_global.get("test_dirname") || ROOT_DIRNAME || "./",
+          _path.importPath,
+        );
+
         return import(path_to_file_url_string(inner));
       };
 

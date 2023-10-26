@@ -1,0 +1,184 @@
+import { expect, test } from "vitest";
+import { get_hwy_global } from "../../packages/core/src/utils/get-hwy-global.js";
+import { getMatchingPathData } from "hwy";
+
+const hwy_global = get_hwy_global();
+
+const test_paths = await import("./dist/paths.js" as any).then(
+  (m) => m.__hwy__paths,
+);
+
+hwy_global.set("paths", test_paths);
+hwy_global.set("test_dirname", "testers/routes/dist");
+
+type ExpectedOutput = {
+  params: Record<string, string>;
+  splatSegments: Array<string>;
+  matchingPaths: Array<{
+    endsInDynamic: boolean;
+    endsInSplat: boolean;
+    isIndex: boolean;
+    isUltimateCatch: boolean;
+    filePath: string;
+  }>;
+};
+
+function gmpd_tester({
+  path,
+  expected_output,
+}: {
+  path: string;
+  expected_output: ExpectedOutput;
+}) {
+  test(`getMatchingPathData: ${path}`, async () => {
+    const raw = await getMatchingPathData({
+      c: {
+        req: {
+          method: "GET",
+          path,
+          raw: {
+            headers: new Map(),
+          },
+        },
+      } as any,
+    });
+
+    const simplified = {
+      params: raw.params || {},
+      splatSegments: raw.splatSegments || [],
+      matchingPaths:
+        raw.matchingPaths?.map((path) => {
+          return {
+            endsInDynamic: path.endsInDynamic,
+            endsInSplat: path.endsInSplat,
+            isIndex: path.isIndex,
+            isUltimateCatch: path.isUltimateCatch,
+            filePath: path.importPath.replace(".js", ".page.tsx"),
+          };
+        }) || [],
+    } satisfies ExpectedOutput;
+
+    expect(simplified).toEqual(expected_output);
+  });
+}
+
+type IndividualMatch = ExpectedOutput["matchingPaths"][number];
+
+const ultimate_catch: IndividualMatch = {
+  endsInDynamic: false,
+  endsInSplat: true,
+  isIndex: false,
+  isUltimateCatch: true,
+  filePath: "pages/$.page.tsx",
+};
+
+gmpd_tester({
+  path: "/this-should-be-ignored",
+  expected_output: {
+    matchingPaths: [ultimate_catch],
+    params: {},
+    splatSegments: ["this-should-be-ignored"],
+  },
+});
+
+gmpd_tester({
+  path: "/does-not-exist",
+  expected_output: {
+    matchingPaths: [ultimate_catch],
+    params: {},
+    splatSegments: ["does-not-exist"],
+  },
+});
+
+gmpd_tester({
+  path: "/",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath: "pages/_index.page.tsx",
+      },
+    ],
+    params: {},
+    splatSegments: [],
+  },
+});
+
+gmpd_tester({
+  path: "/hyena",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/hyena.page.tsx", // LAYOUT
+      },
+
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath: "pages/hyena/_index.page.tsx", // INDEX
+      },
+    ],
+    params: {},
+    splatSegments: [],
+  },
+});
+
+// "/hyena/123"
+
+gmpd_tester({
+  path: "/hyena/123",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/hyena.page.tsx", // LAYOUT ("hyena")
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/hyena/$hyena_id.page.tsx", // LAYOUT ("$hyena_id")
+      },
+    ],
+    params: { hyena_id: "123" },
+    splatSegments: [],
+  },
+});
+
+// "/hyena/123/456"
+// "/hyena/123/456/789"
+
+// "/lion"
+// "/lion/123"
+// "/lion/123/456"
+// "/lion/123/456/789"
+
+// "/tiger"
+// "/tiger/123"
+// "/tiger/123/456"
+// "/tiger/123/456/789"
+
+// "/dashboard"
+// "/dashboard/asdf"
+// "/dashboard/customers"
+// "/dashboard/customers/123"
+// "/dashboard/customers/123/orders"
+// "/dashboard/customers/123/orders/456"
+
+// "/articles"
+// "/articles/test"
+// "/articles/test/articles"
+// "/articles/bob"
