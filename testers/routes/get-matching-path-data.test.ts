@@ -108,7 +108,7 @@ gmpd_tester({
 });
 
 gmpd_tester({
-  path: "/hyena",
+  path: "/bear",
   expected_output: {
     matchingPaths: [
       {
@@ -116,7 +116,7 @@ gmpd_tester({
         endsInSplat: false,
         isIndex: false,
         isUltimateCatch: false,
-        filePath: "pages/hyena.page.tsx", // LAYOUT
+        filePath: "pages/bear.page.tsx", // LAYOUT
       },
 
       {
@@ -124,7 +124,7 @@ gmpd_tester({
         endsInSplat: false,
         isIndex: true,
         isUltimateCatch: false,
-        filePath: "pages/hyena/_index.page.tsx", // INDEX
+        filePath: "pages/bear/_index.page.tsx", // INDEX
       },
     ],
     params: {},
@@ -132,10 +132,10 @@ gmpd_tester({
   },
 });
 
-// "/hyena/123"
+// "/bear/123"
 
 gmpd_tester({
-  path: "/hyena/123",
+  path: "/bear/123",
   expected_output: {
     matchingPaths: [
       {
@@ -143,23 +143,23 @@ gmpd_tester({
         endsInSplat: false,
         isIndex: false,
         isUltimateCatch: false,
-        filePath: "pages/hyena.page.tsx", // LAYOUT ("hyena")
+        filePath: "pages/bear.page.tsx", // LAYOUT ("bear")
       },
       {
         endsInDynamic: true,
         endsInSplat: false,
         isIndex: false,
         isUltimateCatch: false,
-        filePath: "pages/hyena/$hyena_id.page.tsx", // LAYOUT ("$hyena_id")
+        filePath: "pages/bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
       },
     ],
-    params: { hyena_id: "123" },
+    params: { bear_id: "123" },
     splatSegments: [],
   },
 });
 
-// "/hyena/123/456"
-// "/hyena/123/456/789"
+// "/bear/123/456"
+// "/bear/123/456/789"
 
 // "/lion"
 // "/lion/123"

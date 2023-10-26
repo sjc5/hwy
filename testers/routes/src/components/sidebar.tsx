@@ -4,10 +4,10 @@ function Sidebar() {
       <LinkListItem href="/this-should-be-ignored" />
       <LinkListItem href="/does-not-exist" />
       <LinkListItem href="/" />
-      <LinkListItem href="/hyena" />
-      <LinkListItem href="/hyena/123" />
-      <LinkListItem href="/hyena/123/456" />
-      <LinkListItem href="/hyena/123/456/789" />
+      <LinkListItem href="/bear" />
+      <LinkListItem href="/bear/123" />
+      <LinkListItem href="/bear/123/456" />
+      <LinkListItem href="/bear/123/456/789" />
       <LinkListItem href="/lion" />
       <LinkListItem href="/lion/123" />
       <LinkListItem href="/lion/123/456" />
