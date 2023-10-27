@@ -26,21 +26,14 @@ const exec = promisify(exec_callback);
 
 const hwy_config = await get_hwy_config();
 
-let pkg_json: Record<string, any> = {};
-
-try {
-  pkg_json = JSON.parse(
-    fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"),
-  );
-} catch (error) {
-  console.error("Error parsing package.json:", error);
-}
-
-const prebuild_script = pkg_json.scripts?.["hwy-prebuild"];
-const prebuild_dev_script = pkg_json.scripts?.["hwy-prebuild-dev"];
-
 async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
   try {
+    const pkg_json = JSON.parse(
+      fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"),
+    );
+    const prebuild_script = pkg_json.scripts?.["hwy-prebuild"];
+    const prebuild_dev_script = pkg_json.scripts?.["hwy-prebuild-dev"];
+
     if (!prebuild_script && !prebuild_dev_script) {
       return;
     }
@@ -57,13 +50,19 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
 
     hwyLog(`Running ${script_to_run}`);
 
+    const prebuild_p0 = performance.now();
+
     const { stdout, stderr } = await exec(script_to_run);
+
+    const prebuild_p1 = performance.now();
 
     console.log(stdout);
 
     if (stderr) {
       console.error(stderr);
     }
+
+    logPerf("pre-build tasks", prebuild_p0, prebuild_p1);
   } catch (error) {
     console.error("Error running pre-build tasks:", error);
   }
@@ -72,12 +71,7 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
 async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
 
-  hwyLog(`Running pre-build tasks...`);
-
-  const prebuild_p0 = performance.now();
   await handle_prebuild({ is_dev: isDev });
-  const prebuild_p1 = performance.now();
-  logPerf("pre-build tasks", prebuild_p0, prebuild_p1);
 
   hwyLog(`Running standard build tasks...`);
 
