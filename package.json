@@ -38,8 +38,9 @@
     "typecheck:dev": "pnpm -r --filter @hwy-js/dev run typecheck",
     "typecheck:create-hwy": "pnpm -r --filter create-hwy run typecheck",
     "typecheck": "npm-run-all --parallel typecheck:*",
-    "publish-beta": "pnpm run typecheck && pnpm run test && pnpm run build && pnpm -r publish-beta",
-    "publish-non-beta": "pnpm run typecheck && pnpm run test && pnpm run build && pnpm -r publish-non-beta",
+    "pre-publish": "pnpm run typecheck && pnpm run test && pnpm run build",
+    "publish-beta": "pnpm run pre-publish && pnpm -r publish-beta",
+    "publish-non-beta": "pnpm run pre-publish && pnpm -r publish-non-beta",
     "update-latest": "pnpm update --latest && pnpm -r update-latest && pnpm i"
   },
   "devDependencies": {
