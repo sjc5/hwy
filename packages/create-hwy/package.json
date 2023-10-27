@@ -17,7 +17,8 @@
     "build": "rm -rf dist && tsup-node index.ts --format esm",
     "lint": "tsc",
     "create-hwy": "pnpm run build && node dist/index.js",
-    "publish-beta": "npm publish --tag beta"
+    "publish-beta": "npm publish --tag beta",
+    "publish-non-beta": "npm publish"
   },
   "bin": {
     "create-hwy": "./scripts/create-hwy.js"

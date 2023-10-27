@@ -23,7 +23,6 @@
     "dev:core": "pnpm -r --filter hwy run dev",
     "dev:dev": "pnpm -r --filter @hwy-js/dev run dev",
     "dev": "npm-run-all --parallel dev:*",
-    "publish-beta": "pnpm run build && pnpm -r publish-beta",
     "add-beta": "node scripts/add-beta.js",
     "remove-beta": "node scripts/remove-beta.js",
     "bump-beta": "node scripts/bump-beta.js",
@@ -31,7 +30,9 @@
     "bump-minor": "node scripts/bump-minor.js",
     "bump-major": "node scripts/bump-major.js",
     "current-version": "node scripts/current-version.js",
-    "set-version": "node scripts/set-version.js"
+    "set-version": "node scripts/set-version.js",
+    "publish-beta": "pnpm run build && pnpm -r publish-beta",
+    "publish-non-beta": "pnpm run build && pnpm -r publish-non-beta"
   },
   "devDependencies": {
     "@types/node": "^20.8.7",

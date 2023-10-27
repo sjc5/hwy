@@ -18,6 +18,7 @@ import { Nav } from "./components/nav.js";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { FallbackErrorBoundary } from "./components/fallback-error-boundary.js";
+import { make_emoji_data_url } from "./utils/utils.js";
 
 const app = new Hono();
 app.use("*", logger());
@@ -50,7 +51,7 @@ const default_head_blocks: HeadBlock[] = [
     tag: "link",
     props: {
       rel: "icon",
-      href: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 16 16'><text x='0' y='14'>🔥</text></svg>`,
+      href: make_emoji_data_url("⚾"),
     },
   },
   {

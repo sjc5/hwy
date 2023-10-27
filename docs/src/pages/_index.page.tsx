@@ -14,6 +14,16 @@ export default function () {
         <Boldtalic>HTMX</Boldtalic>.
       </h1>
 
+      <a href="https://pkg-size.dev/hwy" target="_blank">
+        <img
+          width="112"
+          height="20"
+          class="bg-[#7777] rounded"
+          src="https://pkg-size.dev/badge/bundle/11742"
+          title="Bundle size for hwy"
+        />
+      </a>
+
       <div class="flex flex-col gap-4">
         <h3 class="text-2xl uppercase font-bold underline-offset-4 underline italic mb-3">
           Quickstart

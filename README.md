@@ -2,6 +2,16 @@
 
 Hwy is a simple, lightweight, and flexible web framework, built on Hono and HTMX.
 
+<a href="https://pkg-size.dev/hwy" target="_blank">
+  <img
+    width="112"
+    height="20"
+    style="background:darkgray;border-radius:4px;"
+    src="https://pkg-size.dev/badge/bundle/11742"
+    title="Bundle size for hwy"
+  />
+</a>
+
 ## Quick Start
 
 ```bash

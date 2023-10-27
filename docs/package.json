@@ -7,7 +7,9 @@
     "hwy-prebuild": "tailwindcss -i src/styles/tw-input.css -o src/styles/tw-output.bundle.css",
     "vercel-build": "tsc --noEmit && hwy-build",
     "start": "node dist/main.js",
-    "dev": "hwy-dev-serve"
+    "dev": "hwy-dev-serve",
+    "to-latest": "node ./scripts/to-latest.js && npm i",
+    "to-workspace": "node ./scripts/to-workspace.js && pnpm i"
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",
