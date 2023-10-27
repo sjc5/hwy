@@ -6,17 +6,18 @@
   "scripts": {
     "build": "tsc --noEmit && hwy-build",
     "start": "node dist/main.js",
-    "dev": "hwy-dev-serve"
+    "dev": "hwy-dev-serve",
+    "update-latest": "pnpm update --latest"
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",
-    "hono": "^3.8.3",
+    "hono": "^3.8.4",
     "hwy": "workspace:*"
   },
   "devDependencies": {
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@types/node": "^20.8.7",
+    "@types/node": "^20.8.9",
     "htmx.org": "^1.9.6",
     "typescript": "^5.2.2"
   },

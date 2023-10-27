@@ -9,17 +9,18 @@
     "start": "node dist/main.js",
     "dev": "hwy-dev-serve",
     "to-latest": "node ./scripts/to-latest.js && npm i",
-    "to-workspace": "node ./scripts/to-workspace.js && pnpm i"
+    "to-workspace": "node ./scripts/to-workspace.js && pnpm i",
+    "update-latest": "pnpm update --latest"
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",
     "highlight.js": "^11.9.0",
     "hono": "^3.8.4",
-    "hwy": "0.5.0-beta.0"
+    "hwy": "0.5.0-beta.2"
   },
   "devDependencies": {
-    "@hwy-js/build": "0.5.0-beta.0",
-    "@hwy-js/dev": "0.5.0-beta.0",
+    "@hwy-js/build": "0.5.0-beta.2",
+    "@hwy-js/dev": "0.5.0-beta.2",
     "@types/node": "^20.8.9",
     "@types/nprogress": "^0.2.2",
     "htmx.org": "^1.9.6",
