@@ -3,29 +3,35 @@ import type { Options } from "../index.js";
 import { get_is_target_deno } from "./utils.js";
 import fs from "node:fs";
 
-const latest_hwy_version = JSON.parse(
+const pkg_json = JSON.parse(
   fs.readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
-).version;
+);
 
-const VERSIONS = {
-  HWY: `^${latest_hwy_version}`,
-  HONO_NODE_SERVER: "^1.2.0",
-  HONO: "^3.7.5",
-  HTMX: "^1.9.6",
-  TYPESCRIPT: "^5.2.2",
-  TAILWIND: "^3.3.3",
-  NPROGRESS: "^0.2.0",
-  NPROGRESS_TYPES: "^0.2.1",
-  NODE_TYPES: "^20.8.3",
-  BUN_TYPES: "^1.0.5-canary.20231007T140129",
+const third_party_packages = [
+  "@hono/node-server",
+  "hono",
+  "htmx.org",
+  "typescript",
+  "tailwind",
+  "nprogress",
+  "@types/nprogress",
+  "@types/node",
+  "bun-types",
+  "@cloudflare/workers-types",
+  "npm-run-all",
+  "wrangler",
+] as const;
 
-  // Cloudflare
-  CLOUDFLARE_WORKER_TYPES: "^4.20231002.0",
-  NPM_RUN_ALL: "^4.1.5",
-  WRANGLER: "^3.11.0",
-} as const;
+const versions_map = third_party_packages.map((pkg) => {
+  return [pkg, pkg_json.devDependencies[pkg]];
+});
 
-export const LATEST_HWY_VERSION = VERSIONS.HWY;
+const VERSIONS = Object.fromEntries(versions_map) as Record<
+  (typeof third_party_packages)[number],
+  string
+>;
+
+export const LATEST_HWY_VERSION = pkg_json.version;
 
 function get_package_json(options: Options) {
   /* TAILWIND PREBUILD */
@@ -72,45 +78,50 @@ function get_package_json(options: Options) {
         },
         dependencies: {
           ...(!is_targeting_deno && options.deployment_target !== "bun"
-            ? { "@hono/node-server": VERSIONS.HONO_NODE_SERVER }
+            ? { "@hono/node-server": VERSIONS["@hono/node-server"] }
             : {}),
-          hono: VERSIONS.HONO,
+          hono: VERSIONS["hono"],
           hwy: LATEST_HWY_VERSION,
         },
         devDependencies: {
           ...(options.deployment_target === "cloudflare-pages" &&
           options.lang_preference === "typescript"
-            ? { "@cloudflare/workers-types": VERSIONS.CLOUDFLARE_WORKER_TYPES }
+            ? {
+                "@cloudflare/workers-types":
+                  VERSIONS["@cloudflare/workers-types"],
+              }
             : {}),
           "@hwy-js/build": LATEST_HWY_VERSION,
           "@hwy-js/dev": LATEST_HWY_VERSION,
           ...(options.lang_preference === "typescript"
             ? {
                 ...(!is_targeting_deno && options.deployment_target !== "bun"
-                  ? { "@types/node": VERSIONS.NODE_TYPES }
+                  ? { "@types/node": VERSIONS["@types/node"] }
                   : {}),
                 ...(options.with_nprogress
-                  ? { "@types/nprogress": VERSIONS.NPROGRESS_TYPES }
+                  ? { "@types/nprogress": VERSIONS["@types/nprogress"] }
                   : {}),
               }
             : {}),
           ...(options.deployment_target === "bun" &&
           options.lang_preference === "typescript"
-            ? { "bun-types": VERSIONS.BUN_TYPES }
+            ? { "bun-types": VERSIONS["bun-types"] }
             : {}),
-          "htmx.org": VERSIONS.HTMX,
+          "htmx.org": VERSIONS["htmx.org"],
           ...(options.deployment_target === "cloudflare-pages"
-            ? { "npm-run-all": VERSIONS.NPM_RUN_ALL }
+            ? { "npm-run-all": VERSIONS["npm-run-all"] }
             : {}),
-          ...(options.with_nprogress ? { nprogress: VERSIONS.NPROGRESS } : {}),
+          ...(options.with_nprogress
+            ? { nprogress: VERSIONS["nprogress"] }
+            : {}),
           ...(options.css_preference === "tailwind"
-            ? { tailwindcss: VERSIONS.TAILWIND }
+            ? { tailwindcss: VERSIONS["tailwind"] }
             : {}),
           ...(options.lang_preference === "typescript"
-            ? { typescript: VERSIONS.TYPESCRIPT }
+            ? { typescript: VERSIONS["typescript"] }
             : {}),
           ...(options.deployment_target === "cloudflare-pages"
-            ? { wrangler: VERSIONS.WRANGLER }
+            ? { wrangler: VERSIONS["wrangler"] }
             : {}),
         },
         engines: {

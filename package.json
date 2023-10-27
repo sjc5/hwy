@@ -32,7 +32,8 @@
     "current-version": "node scripts/current-version.js",
     "set-version": "node scripts/set-version.js",
     "publish-beta": "pnpm run build && pnpm -r publish-beta",
-    "publish-non-beta": "pnpm run build && pnpm -r publish-non-beta"
+    "publish-non-beta": "pnpm run build && pnpm -r publish-non-beta",
+    "update-latest": "pnpm -r update-latest"
   },
   "devDependencies": {
     "@types/node": "^20.8.7",
