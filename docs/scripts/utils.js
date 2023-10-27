@@ -1,6 +1,6 @@
 import fs from "node:fs";
 
-const current_docs_hwy_version = "0.4.2-beta.6";
+const current_docs_hwy_version = "0.5.0-beta.0";
 
 function to_workspace() {
   let pkg_json_string = fs.readFileSync("package.json", "utf-8");
