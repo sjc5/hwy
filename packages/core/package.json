@@ -17,7 +17,8 @@
     "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
     "publish-beta": "npm publish --tag beta",
     "publish-non-beta": "npm publish",
-    "update-latest": "pnpm update --latest"
+    "update-latest": "pnpm update --latest",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@hono/node-server": "^1.2.0",

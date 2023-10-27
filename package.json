@@ -33,8 +33,13 @@
     "current-version": "node scripts/current-version.js",
     "set-version": "node scripts/set-version.js",
     "test": "npx vitest run",
-    "publish-beta": "pnpm run test && pnpm run build && pnpm -r publish-beta",
-    "publish-non-beta": "pnpm run test && pnpm run build && pnpm -r publish-non-beta",
+    "typecheck:build": "pnpm -r --filter @hwy-js/build run typecheck",
+    "typecheck:core": "pnpm -r --filter hwy run typecheck",
+    "typecheck:dev": "pnpm -r --filter @hwy-js/dev run typecheck",
+    "typecheck:create-hwy": "pnpm -r --filter create-hwy run typecheck",
+    "typecheck": "npm-run-all --parallel typecheck:*",
+    "publish-beta": "pnpm run typecheck && pnpm run test && pnpm run build && pnpm -r publish-beta",
+    "publish-non-beta": "pnpm run typecheck && pnpm run test && pnpm run build && pnpm -r publish-non-beta",
     "update-latest": "pnpm update --latest && pnpm -r update-latest && pnpm i"
   },
   "devDependencies": {
