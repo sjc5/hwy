@@ -19,6 +19,7 @@
     "lint:dev": "pnpm -r --filter @hwy-js/dev run lint",
     "lint:create-hwy": "pnpm -r --filter create-hwy run lint",
     "lint": "npm-run-all --parallel lint:*",
+    "dev:test": "npx vitest",
     "dev:build": "pnpm -r --filter @hwy-js/build run dev",
     "dev:core": "pnpm -r --filter hwy run dev",
     "dev:dev": "pnpm -r --filter @hwy-js/dev run dev",
@@ -31,8 +32,9 @@
     "bump-major": "node scripts/bump-major.js",
     "current-version": "node scripts/current-version.js",
     "set-version": "node scripts/set-version.js",
-    "publish-beta": "pnpm run build && pnpm -r publish-beta",
-    "publish-non-beta": "pnpm run build && pnpm -r publish-non-beta",
+    "test": "npx vitest run",
+    "publish-beta": "pnpm run test && pnpm run build && pnpm -r publish-beta",
+    "publish-non-beta": "pnpm run test && pnpm run build && pnpm -r publish-non-beta",
     "update-latest": "pnpm -r update-latest"
   },
   "devDependencies": {
