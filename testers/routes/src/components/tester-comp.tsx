@@ -6,16 +6,18 @@ async function TesterComp({ outlet, params, splatSegments }: PageProps) {
   const is_splat = pathname.endsWith("$.js");
 
   return (
-    <div class="tester-comp-wrapper">
-      <p>Pathname: {pathname}</p>
+    <div class="outlet-wrapper">
+      <div class="tester-comp-wrapper">
+        <p>Pathname: {pathname}</p>
 
-      {is_splat && <p>SPLAT! {JSON.stringify(splatSegments)}</p>}
+        {is_splat && <p>SPLAT! {JSON.stringify(splatSegments)}</p>}
 
-      {!is_splat && Object.keys(params).length ? (
-        <p>Params: {JSON.stringify(params)}</p>
-      ) : null}
+        {!is_splat && Object.keys(params).length ? (
+          <p>Params: {JSON.stringify(params)}</p>
+        ) : null}
 
-      <div class="outlet-wrapper">{await outlet()}</div>
+        {await outlet()}
+      </div>
     </div>
   );
 }

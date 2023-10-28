@@ -498,17 +498,321 @@ gmpd_tester({
 });
 
 /******************
-OH MY
+OH MY!
+******************/
+
+/******************
+DASHBOARD
 ******************/
 
 // "/dashboard"
+// should render "/pages/dashboard.page.tsx" (LAYOUT)
+// and "/pages/dashboard/_index.page.tsx" (INDEX)
+
+gmpd_tester({
+  path: "/dashboard",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/_index.page.tsx", // INDEX
+      },
+    ],
+    params: {},
+    splatSegments: [],
+  },
+});
+
 // "/dashboard/asdf"
+// should render "/pages/dashboard.page.tsx" (LAYOUT)
+// and "/pages/dashboard/$.page.tsx" (CATCH)
+
+gmpd_tester({
+  path: "/dashboard/asdf",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: true,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/$.page.tsx", // CATCH
+      },
+    ],
+    params: {},
+    splatSegments: ["asdf"],
+  },
+});
+
 // "/dashboard/customers"
+// should render "/pages/dashboard.page.tsx" (LAYOUT)
+// and "/pages/dashboard/customers.page.tsx" (customers LAYOUT)
+// and "/pages/dashboard/customers/_index.page.tsx" (customers INDEX)
+
+gmpd_tester({
+  path: "/dashboard/customers",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers/_index.page.tsx", // customers INDEX
+      },
+    ],
+    params: {},
+    splatSegments: [],
+  },
+});
+
 // "/dashboard/customers/123"
+// should render "/pages/dashboard.page.tsx" (LAYOUT)
+// and "/pages/dashboard/customers.page.tsx" (customers LAYOUT)
+// and "/pages/dashboard/customers/$customer_id.page.tsx" ($customer_id LAYOUT)
+// and "/pages/dashboard/customers/$customer_id/_index.page.tsx" ($customer_id INDEX)
+
+gmpd_tester({
+  path: "/dashboard/customers/123",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers/$customer_id/_index.page.tsx", // $customer_id INDEX
+      },
+    ],
+    params: {
+      customer_id: "123",
+    },
+    splatSegments: [],
+  },
+});
+
 // "/dashboard/customers/123/orders"
+// should render "/pages/dashboard.page.tsx" (LAYOUT)
+// and "/pages/dashboard/customers.page.tsx" (customers LAYOUT)
+// and "/pages/dashboard/customers/$customer_id.page.tsx" ($customer_id LAYOUT)
+// and "/pages/dashboard/customers/$customer_id/orders.page.tsx" (orders LAYOUT)
+// and "/pages/dashboard/customers/$customer_id/orders/_index.page.tsx" (orders INDEX)
+
+gmpd_tester({
+  path: "/dashboard/customers/123/orders",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers/$customer_id/orders.page.tsx", // orders LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath:
+          "pages/dashboard/customers/$customer_id/orders/_index.page.tsx", // orders INDEX
+      },
+    ],
+    params: {
+      customer_id: "123",
+    },
+    splatSegments: [],
+  },
+});
+
 // "/dashboard/customers/123/orders/456"
+// should render "/pages/dashboard.page.tsx" (LAYOUT)
+// and "/pages/dashboard/customers.page.tsx" (customers LAYOUT)
+// and "/pages/dashboard/customers/$customer_id.page.tsx" ($customer_id LAYOUT)
+// and "/pages/dashboard/customers/$customer_id/orders.page.tsx" (orders LAYOUT)
+// and "/pages/dashboard/customers/$customer_id/orders/$order_id.page.tsx" ($order_id LAYOUT)
+
+gmpd_tester({
+  path: "/dashboard/customers/123/orders/456",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/dashboard/customers/$customer_id/orders.page.tsx", // orders LAYOUT
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath:
+          "pages/dashboard/customers/$customer_id/orders/$order_id.page.tsx", // $order_id LAYOUT
+      },
+    ],
+    params: {
+      customer_id: "123",
+      order_id: "456",
+    },
+    splatSegments: [],
+  },
+});
 
 // "/articles"
-// "/articles/test"
-// "/articles/test/articles"
+// should render "/pages/articles/_index.page.tsx" (INDEX)
+
+gmpd_tester({
+  path: "/articles",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath: "pages/articles/_index.page.tsx", // INDEX
+      },
+    ],
+    params: {},
+    splatSegments: [],
+  },
+});
+
 // "/articles/bob"
+// should render ultimate catch
+gmpd_tester({
+  path: "/articles/bob",
+  expected_output: {
+    matchingPaths: [ultimate_catch],
+    params: {},
+    splatSegments: ["articles", "bob"],
+  },
+});
+
+// "/articles/test"
+// should render ultimate catch (even though "test" directory exists)
+
+gmpd_tester({
+  path: "/articles/test",
+  expected_output: {
+    matchingPaths: [ultimate_catch],
+    params: {},
+    splatSegments: ["articles", "test"],
+  },
+});
+
+// "/articles/test/articles"
+// should render "/pages/articles/test/articles/_index.page.tsx" (articles-test-articles INDEX)
+
+gmpd_tester({
+  path: "/articles/test/articles",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath: "pages/articles/test/articles/_index.page.tsx", // INDEX
+      },
+    ],
+    params: {},
+    splatSegments: [],
+  },
+});

@@ -28,9 +28,9 @@ function Sidebar() {
       <LinkListItem href="/dashboard/customers/123/orders/456" />
       -------------
       <LinkListItem href="/articles" />
+      <LinkListItem href="/articles/bob" />
       <LinkListItem href="/articles/test" />
       <LinkListItem href="/articles/test/articles" />
-      <LinkListItem href="/articles/bob" />
     </ul>
   );
 }
