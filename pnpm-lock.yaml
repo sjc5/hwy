@@ -33,14 +33,14 @@ importers:
         specifier: ^3.9.0
         version: 3.9.0
       hwy:
-        specifier: 0.5.0-beta.3
+        specifier: 0.5.0-beta.5
         version: link:../packages/core
     devDependencies:
       '@hwy-js/build':
-        specifier: 0.5.0-beta.3
+        specifier: 0.5.0-beta.5
         version: link:../packages/build
       '@hwy-js/dev':
-        specifier: 0.5.0-beta.3
+        specifier: 0.5.0-beta.5
         version: link:../packages/dev
       '@types/node':
         specifier: ^20.8.9

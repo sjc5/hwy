@@ -7,18 +7,18 @@
     "vercel-build": "tsc --noEmit && hwy-build",
     "start": "node dist/main.js",
     "dev": "hwy-dev-serve",
-    "to-latest": "node ./scripts/to-latest.js && npm i",
+    "to-latest": "node ./scripts/to-latest.js && pnpm i && npm i",
     "to-workspace": "node ./scripts/to-workspace.js && pnpm i",
     "update-latest": "pnpm update --latest"
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",
     "hono": "^3.9.0",
-    "hwy": "0.5.0-beta.3"
+    "hwy": "0.5.0-beta.5"
   },
   "devDependencies": {
-    "@hwy-js/build": "0.5.0-beta.3",
-    "@hwy-js/dev": "0.5.0-beta.3",
+    "@hwy-js/build": "0.5.0-beta.5",
+    "@hwy-js/dev": "0.5.0-beta.5",
     "@types/node": "^20.8.9",
     "@types/nprogress": "^0.2.2",
     "htmx.org": "^1.9.6",
