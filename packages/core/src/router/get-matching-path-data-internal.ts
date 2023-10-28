@@ -16,6 +16,8 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
     const should_move_on =
       x.segments.length <= index_adjusted_real_segments_length;
 
+    // return should_move_on; // HISTORY: THIS IS HOW IT WAS BEFORE 0.5.0
+
     if (!should_move_on) {
       return false;
     }

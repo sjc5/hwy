@@ -159,7 +159,73 @@ gmpd_tester({
 });
 
 // "/bear/123/456"
+// should render bear.page.tsx (bear layout), and bear/$bear_id.page.tsx (123 layout), and bear/$bear_id/$.page.tsx (456 catch)
+// params should be { bear_id: "123" } and splatSegments should be ["456"]
+
+gmpd_tester({
+  path: "/bear/123/456",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/bear.page.tsx", // LAYOUT ("bear")
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: true,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/bear/$bear_id/$.page.tsx", // CATCH ("456")
+      },
+    ],
+    params: { bear_id: "123" },
+    splatSegments: ["456"],
+  },
+});
+
 // "/bear/123/456/789"
+// same as above but with two splat segments
+
+gmpd_tester({
+  path: "/bear/123/456/789",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/bear.page.tsx", // LAYOUT ("bear")
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: true,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/bear/$bear_id/$.page.tsx", // CATCH ("456" & "789")
+      },
+    ],
+    params: { bear_id: "123" },
+    splatSegments: ["456", "789"],
+  },
+});
 
 // "/lion"
 // "/lion/123"

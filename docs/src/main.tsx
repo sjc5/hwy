@@ -9,6 +9,7 @@ import {
   HeadBlock,
   getDefaultBodyProps,
   renderRoot,
+  getPublicUrl,
 } from "hwy";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
@@ -51,7 +52,7 @@ const default_head_blocks: HeadBlock[] = [
     tag: "link",
     props: {
       rel: "icon",
-      href: make_emoji_data_url("⚾"),
+      href: make_emoji_data_url("⭐"),
     },
   },
   {
@@ -98,16 +99,15 @@ app.all("*", async (c, next) => {
           <CssImports />
           <ClientScripts activePathData={activePathData} />
           <DevLiveRefreshScript />
+          <script defer src={getPublicUrl("prism.js")} />
         </head>
 
-        <body
-          {...getDefaultBodyProps({ nProgress: true })}
-          class="p-2 sm:p-4 flex"
-        >
-          <div class="px-5 lg:px-8 w-full flex flex-col">
-            <div class="grow">
+        <body {...getDefaultBodyProps({ nProgress: true })}>
+          <div class="body-inner">
+            <div style={{ flexGrow: 1 }}>
               <Nav />
-              <div class="flex flex-col gap-8 lg:gap-12 max-w-[640px] mb-8 mt-12 mx-auto">
+
+              <div class="root-outlet-wrapper">
                 {await rootOutlet({
                   c,
                   activePathData,
@@ -116,8 +116,8 @@ app.all("*", async (c, next) => {
               </div>
             </div>
 
-            <footer class="text-xs border-t border-t-solid border-1 border-[#7773] pt-3 pb-4 shrink mt-6">
-              <span class="opacity-60">
+            <footer>
+              <span style={{ opacity: 0.6 }}>
                 MIT License. Copyright (c) 2023 Samuel J. Cook.
               </span>
             </footer>

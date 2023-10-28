@@ -15,6 +15,3 @@ public/dist
 # vercel
 api/**/*
 !api/main.js
-
-# tailwind artifacts
-src/styles/tw-output.bundle.css

@@ -6,7 +6,7 @@ function UnorderedList({
   ...rest
 }: { children: ChildrenPermissive } & JSX.IntrinsicElements["ul"]) {
   return (
-    <ul {...rest} class={cx("space-y-6", rest.class)}>
+    <ul {...rest} class={cx("flex-col-wrapper-bigger", rest.class)}>
       {children}
     </ul>
   );
@@ -17,7 +17,7 @@ function ListItem({
   ...rest
 }: { children: ChildrenPermissive } & JSX.IntrinsicElements["li"]) {
   return (
-    <li {...rest} class={cx("list-disc ml-6 pl-1 leading-7", rest.class)}>
+    <li {...rest} class={cx("list-item", rest.class)}>
       {children}
     </li>
   );

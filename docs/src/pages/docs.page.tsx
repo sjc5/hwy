@@ -1,4 +1,4 @@
-import { HeadFunction, HeadProps } from "hwy";
+import { HeadFunction } from "hwy";
 import { CodeBlock } from "../components/code-block.js";
 import { AnchorHeading } from "../components/anchor-heading.js";
 import { Paragraph } from "../components/paragraph.js";
@@ -22,8 +22,8 @@ export const head: HeadFunction = () => {
 
 export default function () {
   return (
-    <div class="space-y-6">
-      <h2 class="text-3xl font-bold mb-4">Docs</h2>
+    <div class="flex-col-wrapper-bigger">
+      <h2 class="h2">Docs</h2>
       <AnchorHeading content="Creating a new project" />
       <Paragraph>
         To create a new project, open a terminal and run the following commands
@@ -157,7 +157,7 @@ root
         <InlineCode>src/pages/about.page.tsx</InlineCode> is a page file.
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 // src/pages/about.page.tsx
 
@@ -176,7 +176,7 @@ export default function () {
         available on the PageProps object:
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 export default function ({
   c,
@@ -201,7 +201,13 @@ export default function ({
             <InlineCode>c</InlineCode> - This is the Hono Context object. It
             contains the request and response objects, as well as some other
             useful properties and methods. See the{" "}
-            <a href="https://hono.dev" target="_blank" class="underline">
+            <a
+              href="https://hono.dev"
+              target="_blank"
+              style={{
+                textDecoration: "underline",
+              }}
+            >
               Hono docs
             </a>{" "}
             for more info.
@@ -271,7 +277,7 @@ export default function ({
         from loaders and actions if you prefer.
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 import { PageProps } from 'hwy'
 
@@ -304,7 +310,7 @@ export default function ({ c }: PageProps) {
         the loader, like this:
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 import type { DataFunctionArgs } from 'hwy'
 
@@ -334,7 +340,7 @@ export default function ({ loaderData }: PageProps<typeof loader>) {
         is built to work nicely with the HTMX request lifecycle.
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 import { redirect, type DataFunctionArgs } from 'hwy'
 
@@ -356,7 +362,7 @@ export function loader({ c }: DataFunctionArgs) {
         to you in Hwy.
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 // src/some-page.page.tsx
 
@@ -378,7 +384,7 @@ export default async function ({ outlet }: PageProps) {
         available in the child page component's props. Here's how that would
         look in the parent page component:
       </Paragraph>
-      <CodeBlock language="typescript" code={`{await outlet({ someData })}`} />
+      <CodeBlock language="tsx" code={`{await outlet({ someData })}`} />
       <Paragraph>
         And in the child component, you'll want to use{" "}
         <InlineCode>{`PageProps & { someData: SomeType }`}</InlineCode> as your
@@ -418,7 +424,7 @@ export default async function ({ outlet }: PageProps) {
         intended to show how actions work.
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 import { DataFunctionArgs, PageProps } from 'hwy'
 import { extractFormData, logUserIn } from './pretend-lib.js'
@@ -463,7 +469,7 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
         from your loader or action. For example:
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 // src/pages/api/example-resource-root.ts
 
@@ -501,7 +507,7 @@ export function loader() {
         <InlineCode>main.tsx</InlineCode>) like so:
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 import type { ErrorBoundaryProps } from 'hwy'
 
@@ -524,7 +530,7 @@ import type { ErrorBoundaryProps } from 'hwy'
         components. Here's how you might do it:
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 app.use('*', async (c, next) => {
   const user = await getUserFromCtx(c)
@@ -542,7 +548,7 @@ app.use('*', async (c, next) => {
         type as a generic to the PageProps object. For example:
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 import type { DataFunctionArgs } from 'hwy'
 
@@ -566,7 +572,7 @@ export async function loader({ c }: AppDataFunctionArgs) {
         that looks something like this.
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 import {
   CssImports,
@@ -622,7 +628,7 @@ app.all('*', async (c, next) => {
         <InlineCode>main.tsx</InlineCode> file, like this:
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 <HeadElements
   activePathData={activePathData}
@@ -653,7 +659,7 @@ app.all('*', async (c, next) => {
         exporting a <InlineCode>head</InlineCode> function. For example:
       </Paragraph>
       <CodeBlock
-        language="typescript"
+        language="tsx"
         code={`
 import { HeadFunction } from 'hwy'
 
@@ -734,7 +740,7 @@ export const head: HeadFunction = (props) => {
         form submissions will be automatically progressively enhanced. For
         forms, include the traditional attributes, like this:
         <CodeBlock
-          language="typescript"
+          language="tsx"
           code={`<form action="/login" method="POST">`}
         />
       </Paragraph>
@@ -774,7 +780,7 @@ export const head: HeadFunction = (props) => {
 
           <br />
           <CodeBlock
-            language="typescript"
+            language="tsx"
             code={`
 <script
   dangerouslySetInnerHTML={{
@@ -804,7 +810,7 @@ export const head: HeadFunction = (props) => {
         <InlineCode>/public</InlineCode> directory and referencing them in a
         script. For example:
         <CodeBlock
-          language="typescript"
+          language="tsx"
           code={`
 <script
   src={getPublicUrl('your-script.js')}

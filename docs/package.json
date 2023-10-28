@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "hwy-prebuild": "tailwindcss -i src/styles/tw-input.css -o src/styles/tw-output.bundle.css",
     "vercel-build": "tsc --noEmit && hwy-build",
     "start": "node dist/main.js",
     "dev": "hwy-dev-serve",
@@ -14,8 +13,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",
-    "highlight.js": "^11.9.0",
-    "hono": "^3.8.4",
+    "hono": "^3.9.0",
     "hwy": "0.5.0-beta.3"
   },
   "devDependencies": {
@@ -25,7 +23,6 @@
     "@types/nprogress": "^0.2.2",
     "htmx.org": "^1.9.6",
     "nprogress": "^0.2.0",
-    "tailwindcss": "^3.3.5",
     "typescript": "^5.2.2"
   },
   "engines": {

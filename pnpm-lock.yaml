@@ -33,8 +33,8 @@ importers:
         specifier: ^11.9.0
         version: 11.9.0
       hono:
-        specifier: ^3.8.4
-        version: 3.8.4
+        specifier: ^3.9.0
+        version: 3.9.0
       hwy:
         specifier: 0.5.0-beta.3
         version: link:../packages/core
@@ -57,9 +57,6 @@ importers:
       nprogress:
         specifier: ^0.2.0
         version: 0.2.0
-      tailwindcss:
-        specifier: ^3.3.5
-        version: 3.3.5
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -86,8 +83,8 @@ importers:
         specifier: ^20.8.9
         version: 20.8.9
       hono:
-        specifier: ^3.8.4
-        version: 3.8.4
+        specifier: ^3.9.0
+        version: 3.9.0
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(postcss@8.4.31)(typescript@5.2.2)
@@ -110,8 +107,8 @@ importers:
         specifier: ^20.8.9
         version: 20.8.9
       hono:
-        specifier: ^3.8.4
-        version: 3.8.4
+        specifier: ^3.9.0
+        version: 3.9.0
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(postcss@8.4.31)(typescript@5.2.2)
@@ -147,8 +144,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7
       hono:
-        specifier: ^3.8.4
-        version: 3.8.4
+        specifier: ^3.9.0
+        version: 3.9.0
       htmx.org:
         specifier: ^1.9.6
         version: 1.9.6
@@ -187,8 +184,8 @@ importers:
         specifier: ^20.8.9
         version: 20.8.9
       hono:
-        specifier: ^3.8.4
-        version: 3.8.4
+        specifier: ^3.9.0
+        version: 3.9.0
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(postcss@8.4.31)(typescript@5.2.2)
@@ -202,8 +199,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
       hono:
-        specifier: ^3.8.4
-        version: 3.8.4
+        specifier: ^3.9.0
+        version: 3.9.0
       hwy:
         specifier: workspace:*
         version: link:../../packages/core
@@ -242,8 +239,8 @@ importers:
         specifier: ^1.2.0
         version: 1.2.0
       hono:
-        specifier: ^3.8.4
-        version: 3.8.4
+        specifier: ^3.9.0
+        version: 3.9.0
       hwy:
         specifier: workspace:*
         version: link:../../packages/core
@@ -1445,8 +1442,8 @@ packages:
     engines: {node: '>=0.4.0'}
     dev: true
 
-  /acorn@8.11.1:
-    resolution: {integrity: sha512-IJTNCJMRHfRfb8un89z1QtS0x890C2QUrUxFMK8zy+RizcId6mfnqOf68Bu9YkDgpLYuvCm6aYbwDatXVZPjMQ==}
+  /acorn@8.11.2:
+    resolution: {integrity: sha512-nc0Axzp/0FILLEVsm4fNwLCwMttvhEI263QtVPQcbpfZZ3ts0hLsZGOpE6czNlid7CJ9MlyH8reXkpsf3YUY4w==}
     engines: {node: '>=0.4.0'}
     hasBin: true
     dev: true
@@ -2283,8 +2280,8 @@ packages:
     engines: {node: '>=12.0.0'}
     dev: false
 
-  /hono@3.8.4:
-    resolution: {integrity: sha512-phh1Nl1QrdSqXqnxBH5mRRVcor+2qDXjBiQ55xOGNT69Zqb65FBc07FOZKvcmYA0Iji1NLWhgtpfNHr033UvqQ==}
+  /hono@3.9.0:
+    resolution: {integrity: sha512-MSGmerYD69jwDkBa631lY7y3xtEwbKFg2huFZ0TruzCdfJlmPd/rFzyvmMheePKsiA7CZp/KqL3mflBOzEmjLA==}
     engines: {node: '>=16.0.0'}
 
   /hosted-git-info@2.8.9:
@@ -2636,7 +2633,7 @@ packages:
     resolution: {integrity: sha512-pFcr2BRaGIQ26UfdDo8BMJ6kkd/Jo/FkQ/4K7UG/eORlDepsLrR/sTJddcSSIGl07MA+MGjhzopFTPpFskkS+g==}
     engines: {node: '>=16.13'}
     dependencies:
-      acorn: 8.11.1
+      acorn: 8.11.2
       acorn-walk: 8.3.0
       capnp-ts: 0.7.0
       exit-hook: 2.2.1
@@ -2663,7 +2660,7 @@ packages:
   /mlly@1.4.2:
     resolution: {integrity: sha512-i/Ykufi2t1EZ6NaPLdfnZk2AX8cs0d+mTzVKuPfqPKPatxLApaBoxJQ9x1/uckXtrS/U5oisPMDkNs0yQTaBRg==}
     dependencies:
-      acorn: 8.11.1
+      acorn: 8.11.2
       pathe: 1.1.1
       pkg-types: 1.0.3
       ufo: 1.3.1
@@ -3373,7 +3370,7 @@ packages:
   /strip-literal@1.3.0:
     resolution: {integrity: sha512-PugKzOsyXpArk0yWmUwqOZecSO0GH0bPoctLcqNDH9J04pVW3lflYE0ujElBGTloevcxF5MofAOZ7C5l2b+wLg==}
     dependencies:
-      acorn: 8.11.1
+      acorn: 8.11.2
     dev: true
 
   /sucrase@3.34.0:
@@ -3730,7 +3727,7 @@ packages:
       '@vitest/snapshot': 0.34.6
       '@vitest/spy': 0.34.6
       '@vitest/utils': 0.34.6
-      acorn: 8.11.1
+      acorn: 8.11.2
       acorn-walk: 8.3.0
       cac: 6.7.14
       chai: 4.3.10

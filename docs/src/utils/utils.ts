@@ -1,4 +1,4 @@
-function cx(...classes: (string | boolean | undefined)[]) {
+function cx(...classes: Array<string | boolean | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
