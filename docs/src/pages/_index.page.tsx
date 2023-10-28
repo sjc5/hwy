@@ -34,7 +34,11 @@ function BigHeading() {
 
 function BundleBadge() {
   return (
-    <a href="https://pkg-size.dev/hwy" target="_blank">
+    <a
+      href="https://pkg-size.dev/hwy"
+      target="_blank"
+      style={{ alignSelf: "start" }}
+    >
       <img
         style={{
           width: "112px",
