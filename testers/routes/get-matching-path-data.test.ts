@@ -72,14 +72,11 @@ const ultimate_catch: IndividualMatch = {
   filePath: "pages/$.page.tsx",
 };
 
-gmpd_tester({
-  path: "/this-should-be-ignored",
-  expected_output: {
-    matchingPaths: [ultimate_catch],
-    params: {},
-    splatSegments: ["this-should-be-ignored"],
-  },
-});
+/******************
+ULTIMATE CATCH
+******************/
+
+// does not exist
 
 gmpd_tester({
   path: "/does-not-exist",
@@ -89,6 +86,21 @@ gmpd_tester({
     splatSegments: ["does-not-exist"],
   },
 });
+
+// ".page." not in file name, otherwise a valid component
+
+gmpd_tester({
+  path: "/this-should-be-ignored",
+  expected_output: {
+    matchingPaths: [ultimate_catch],
+    params: {},
+    splatSegments: ["this-should-be-ignored"],
+  },
+});
+
+/******************
+ULTIMATE INDEX
+******************/
 
 gmpd_tester({
   path: "/",
@@ -106,6 +118,264 @@ gmpd_tester({
     splatSegments: [],
   },
 });
+
+/******************
+LIONS
+******************/
+
+// "/lion"
+// should render "pages/lion.page.tsx" (LAYOUT)
+// and "pages/lion/_index.page.tsx" (INDEX)
+
+gmpd_tester({
+  path: "/lion",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/lion.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath: "pages/lion/_index.page.tsx", // INDEX
+      },
+    ],
+    params: {},
+    splatSegments: [],
+  },
+});
+
+// "/lion/123"
+// should render "pages/lion.page.tsx" (LAYOUT)
+// and "pages/lion/$.page.tsx" (SPLAT)
+
+gmpd_tester({
+  path: "/lion/123",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/lion.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: true,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/lion/$.page.tsx", // SPLAT
+      },
+    ],
+    params: {},
+    splatSegments: ["123"],
+  },
+});
+
+// "/lion/123/456"
+// same as above but with two splat segments
+
+gmpd_tester({
+  path: "/lion/123/456",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/lion.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: true,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/lion/$.page.tsx", // SPLAT
+      },
+    ],
+    params: {},
+    splatSegments: ["123", "456"],
+  },
+});
+
+// "/lion/123/456/789"
+// same as above but with three splat segments
+
+gmpd_tester({
+  path: "/lion/123/456/789",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/lion.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: true,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/lion/$.page.tsx", // SPLAT
+      },
+    ],
+    params: {},
+    splatSegments: ["123", "456", "789"],
+  },
+});
+
+/******************
+AND TIGERS
+******************/
+
+// "/tiger"
+// should render "pages/tiger.page.tsx" (LAYOUT)
+// and "pages/tiger/_index.page.tsx" (INDEX)
+
+gmpd_tester({
+  path: "/tiger",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/tiger.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath: "pages/tiger/_index.page.tsx", // INDEX
+      },
+    ],
+    params: {},
+    splatSegments: [],
+  },
+});
+
+// "/tiger/123"
+// should render "pages/tiger.page.tsx" (LAYOUT)
+// and "pages/tiger/$tiger_id.page.tsx" ($tiger_id LAYOUT)
+// and "pages/tiger/$tiger_id/_index.page.tsx" ($tiger_id INDEX)
+
+gmpd_tester({
+  path: "/tiger/123",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/tiger.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: true,
+        isUltimateCatch: false,
+        filePath: "pages/tiger/$tiger_id/_index.page.tsx", // $tiger_id INDEX
+      },
+    ],
+    params: { tiger_id: "123" },
+    splatSegments: [],
+  },
+});
+
+// "/tiger/123/456"
+// should render "pages/tiger.page.tsx" (LAYOUT)
+// and "pages/tiger/$tiger_id.page.tsx" ($tiger_id LAYOUT)
+// and "pages/tiger/$tiger_id/$tiger_cub_id.page.tsx" ($tiger_cub_id LAYOUT)
+
+gmpd_tester({
+  path: "/tiger/123/456",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/tiger.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/tiger/$tiger_id/$tiger_cub_id.page.tsx", // $tiger_id LAYOUT
+      },
+    ],
+    params: { tiger_id: "123", tiger_cub_id: "456" },
+    splatSegments: [],
+  },
+});
+
+// "/tiger/123/456/789"
+// should render "pages/tiger.page.tsx" (LAYOUT)
+// and "pages/tiger/$tiger_id.page.tsx" ($tiger_id LAYOUT)
+// and "pages/tiger/$tiger_id/$.page.tsx" (CATCH)
+
+gmpd_tester({
+  path: "/tiger/123/456/789",
+  expected_output: {
+    matchingPaths: [
+      {
+        endsInDynamic: false,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/tiger.page.tsx", // LAYOUT
+      },
+      {
+        endsInDynamic: true,
+        endsInSplat: false,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
+      },
+      {
+        endsInDynamic: false,
+        endsInSplat: true,
+        isIndex: false,
+        isUltimateCatch: false,
+        filePath: "pages/tiger/$tiger_id/$.page.tsx", // CATCH
+      },
+    ],
+    params: { tiger_id: "123" },
+    splatSegments: ["789"],
+  },
+});
+
+/******************
+AND BEARS
+******************/
 
 gmpd_tester({
   path: "/bear",
@@ -227,15 +497,9 @@ gmpd_tester({
   },
 });
 
-// "/lion"
-// "/lion/123"
-// "/lion/123/456"
-// "/lion/123/456/789"
-
-// "/tiger"
-// "/tiger/123"
-// "/tiger/123/456"
-// "/tiger/123/456/789"
+/******************
+OH MY
+******************/
 
 // "/dashboard"
 // "/dashboard/asdf"
