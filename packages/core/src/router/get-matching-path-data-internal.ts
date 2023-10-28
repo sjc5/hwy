@@ -129,19 +129,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
         set_aside_splat = splat;
       }
 
-      const data = winner.path.split("/").filter(Boolean);
-
-      const number_of_non_splat_segments = winner.segments.filter(
-        (x) => !x.isSplat,
-      ).length;
-
-      const number_of_splat_segments =
-        data.length - number_of_non_splat_segments;
-
-      splat_segments = data.slice(
-        data.length - number_of_splat_segments,
-        data.length,
-      );
+      splat_segments = get_splat_segments_from_winning_path(winner);
     }
 
     xformed_maybes.push(winner);
@@ -173,6 +161,8 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
 
     if (we_need_a_different_splat && set_aside_splat) {
       maybe_final_paths[maybe_final_paths.length - 1] = set_aside_splat;
+
+      splat_segments = get_splat_segments_from_winning_path(set_aside_splat);
     }
 
     if (we_need_a_different_splat && !set_aside_splat) {
@@ -200,6 +190,18 @@ function get_highest_scores_by_segment_length(matches: SemiDecoratedPath[]) {
     },
     {} as Record<number, number>,
   );
+}
+
+function get_splat_segments_from_winning_path(winner: SemiDecoratedPath) {
+  const data = winner.path.split("/").filter(Boolean);
+
+  const number_of_non_splat_segments = winner.segments.filter(
+    (x) => !x.isSplat,
+  ).length;
+
+  const number_of_splat_segments = data.length - number_of_non_splat_segments;
+
+  return data.slice(data.length - number_of_splat_segments, data.length);
 }
 
 export { get_matching_paths_internal };

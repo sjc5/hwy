@@ -369,7 +369,7 @@ gmpd_tester({
       },
     ],
     params: { tiger_id: "123" },
-    splatSegments: ["789"],
+    splatSegments: ["456", "789"],
   },
 });
 
