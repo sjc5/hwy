@@ -9,6 +9,7 @@ import { get_match_strength } from "./get-match-strength.js";
 import type { DataFunctionArgs } from "../types.js";
 import { path_to_file_url_string } from "../utils/url-polyfills.js";
 import { get_hwy_global } from "../utils/get-hwy-global.js";
+import { SPLAT_SEGMENT } from "../../../common/index.mjs";
 
 const hwy_global = get_hwy_global();
 
@@ -36,7 +37,10 @@ function fully_decorate_paths({
 
       // public
       return {
-        ..._path,
+        hasSiblingClientFile: _path.hasSiblingClientFile,
+        importPath: _path.importPath,
+        params: _path.params,
+        pathType: _path.pathType,
         splatSegments: splat_segments,
         componentImporter: async () => {
           try {
@@ -94,7 +98,6 @@ type SemiDecoratedPath = Paths[number] & {
   pattern: string;
   matches: boolean;
   params: Record<string, string>;
-  isUltimateCatch: boolean;
 } & ReturnType<typeof get_match_strength>;
 
 function semi_decorate_paths({
@@ -114,7 +117,8 @@ function semi_decorate_paths({
         pattern: path.path,
         path: get_path_to_use(c, redirectTo),
       }),
-      isUltimateCatch: path.path === "/:catch*",
+      pathType:
+        path.path === `/${SPLAT_SEGMENT}` ? "ultimate-catch" : path.pathType,
     };
   });
 }

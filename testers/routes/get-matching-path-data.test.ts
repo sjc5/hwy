@@ -15,10 +15,9 @@ type ExpectedOutput = {
   params: Record<string, string>;
   splatSegments: Array<string>;
   matchingPaths: Array<{
-    endsInDynamic: boolean;
-    endsInSplat: boolean;
-    isIndex: boolean;
-    isUltimateCatch: boolean;
+    pathType: NonNullable<
+      Awaited<ReturnType<typeof getMatchingPathData>>["matchingPaths"]
+    >[number]["pathType"];
     filePath: string;
   }>;
 };
@@ -49,10 +48,7 @@ function gmpd_tester({
       matchingPaths:
         raw.matchingPaths?.map((path) => {
           return {
-            endsInDynamic: path.endsInDynamic,
-            endsInSplat: path.endsInSplat,
-            isIndex: path.isIndex,
-            isUltimateCatch: path.isUltimateCatch,
+            pathType: path.pathType,
             filePath: path.importPath.replace(".js", ".page.tsx"),
           };
         }) || [],
@@ -64,13 +60,10 @@ function gmpd_tester({
 
 type IndividualMatch = ExpectedOutput["matchingPaths"][number];
 
-const ultimate_catch: IndividualMatch = {
-  endsInDynamic: false,
-  endsInSplat: true,
-  isIndex: false,
-  isUltimateCatch: true,
+const ultimate_catch = {
+  pathType: "ultimate-catch",
   filePath: "pages/$.page.tsx",
-};
+} as const satisfies IndividualMatch;
 
 /******************
 ULTIMATE CATCH
@@ -107,10 +100,7 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath: "pages/_index.page.tsx",
       },
     ],
@@ -132,17 +122,11 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/lion.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath: "pages/lion/_index.page.tsx", // INDEX
       },
     ],
@@ -160,17 +144,11 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/lion.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: true,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "non-ultimate-splat",
         filePath: "pages/lion/$.page.tsx", // SPLAT
       },
     ],
@@ -187,17 +165,11 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/lion.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: true,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "non-ultimate-splat",
         filePath: "pages/lion/$.page.tsx", // SPLAT
       },
     ],
@@ -214,17 +186,11 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/lion.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: true,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "non-ultimate-splat",
         filePath: "pages/lion/$.page.tsx", // SPLAT
       },
     ],
@@ -246,17 +212,11 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/tiger.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath: "pages/tiger/_index.page.tsx", // INDEX
       },
     ],
@@ -275,24 +235,15 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/tiger.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath: "pages/tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath: "pages/tiger/$tiger_id/_index.page.tsx", // $tiger_id INDEX
       },
     ],
@@ -311,24 +262,15 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/tiger.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath: "pages/tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath: "pages/tiger/$tiger_id/$tiger_cub_id.page.tsx", // $tiger_id LAYOUT
       },
     ],
@@ -347,24 +289,15 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/tiger.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath: "pages/tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: true,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "non-ultimate-splat",
         filePath: "pages/tiger/$tiger_id/$.page.tsx", // CATCH
       },
     ],
@@ -382,18 +315,12 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/bear.page.tsx", // LAYOUT
       },
 
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath: "pages/bear/_index.page.tsx", // INDEX
       },
     ],
@@ -409,17 +336,11 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/bear.page.tsx", // LAYOUT ("bear")
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath: "pages/bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
       },
     ],
@@ -437,24 +358,15 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/bear.page.tsx", // LAYOUT ("bear")
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath: "pages/bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
       },
       {
-        endsInDynamic: false,
-        endsInSplat: true,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "non-ultimate-splat",
         filePath: "pages/bear/$bear_id/$.page.tsx", // CATCH ("456")
       },
     ],
@@ -471,24 +383,15 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/bear.page.tsx", // LAYOUT ("bear")
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath: "pages/bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
       },
       {
-        endsInDynamic: false,
-        endsInSplat: true,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "non-ultimate-splat",
         filePath: "pages/bear/$bear_id/$.page.tsx", // CATCH ("456" & "789")
       },
     ],
@@ -514,17 +417,11 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath: "pages/dashboard/_index.page.tsx", // INDEX
       },
     ],
@@ -542,17 +439,11 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: true,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "non-ultimate-splat",
         filePath: "pages/dashboard/$.page.tsx", // CATCH
       },
     ],
@@ -571,24 +462,15 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath: "pages/dashboard/customers/_index.page.tsx", // customers INDEX
       },
     ],
@@ -608,31 +490,19 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath: "pages/dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath: "pages/dashboard/customers/$customer_id/_index.page.tsx", // $customer_id INDEX
       },
     ],
@@ -655,38 +525,23 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath: "pages/dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard/customers/$customer_id/orders.page.tsx", // orders LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath:
           "pages/dashboard/customers/$customer_id/orders/_index.page.tsx", // orders INDEX
       },
@@ -710,38 +565,23 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath: "pages/dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
       },
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "static-layout",
         filePath: "pages/dashboard/customers/$customer_id/orders.page.tsx", // orders LAYOUT
       },
       {
-        endsInDynamic: true,
-        endsInSplat: false,
-        isIndex: false,
-        isUltimateCatch: false,
+        pathType: "dynamic-layout",
         filePath:
           "pages/dashboard/customers/$customer_id/orders/$order_id.page.tsx", // $order_id LAYOUT
       },
@@ -762,10 +602,7 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath: "pages/articles/_index.page.tsx", // INDEX
       },
     ],
@@ -805,10 +642,7 @@ gmpd_tester({
   expected_output: {
     matchingPaths: [
       {
-        endsInDynamic: false,
-        endsInSplat: false,
-        isIndex: true,
-        isUltimateCatch: false,
+        pathType: "index",
         filePath: "pages/articles/test/articles/_index.page.tsx", // INDEX
       },
     ],
