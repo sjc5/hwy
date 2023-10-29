@@ -1,36 +1,29 @@
 # Release Directions
 
-1. Run:
+From release branch, and assuming there have been beta releases, do the following from monorepo root:
 
 ```sh
 pnpm remove-beta
-```
 
-2. Run:
-
-```sh
 pnpm current-version
-```
 
-3. Make sure it's the right version now.
-
-4. Run:
-
-```sh
 pnpm publish-non-beta
-```
 
-5. Run:
+cd docs
+pnpm to-latest
+cd ..
 
-```sh
 git add .
 git commit -am "vX.X.X"
 git tag vX.X.X
-```
 
-6. Run:
-
-```sh
-git push --tags
 git push
+git push --tags
 ```
+
+Then:
+
+1. Make sure the new docs preview deploy is OK.
+2. Merge release branch into main.
+3. Make sure the new docs production deploy is OK.
+4. Create a new release on GitHub, pointing to the tag created above.
