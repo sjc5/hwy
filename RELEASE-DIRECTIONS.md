@@ -31,5 +31,6 @@ git tag vX.X.X
 6. Run:
 
 ```sh
-git push origin --tags
+git push --tags
+git push
 ```
