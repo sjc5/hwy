@@ -1,74 +1,29 @@
 # Release Directions
 
-From feature branch, and assuming there have been beta releases,
-do the following from the Hwy monorepo root:
-
-1. Remove the beta tag from the package.json files:
+From release branch, and assuming there have been beta releases, do the following from monorepo root:
 
 ```sh
 pnpm remove-beta
-```
 
----
-
-2. Check the new version:
-
-```sh
 pnpm current-version
-```
 
----
-
-3. Make sure it's the right version now.
-
----
-
-4. Publish:
-
-```sh
 pnpm publish-non-beta
-```
 
----
-
-5. Update the docs to latest:
-
-```sh
 cd docs
 pnpm to-latest
 cd ..
-```
 
----
-
-6. Commit and tag:
-
-```sh
 git add .
 git commit -am "vX.X.X"
 git tag vX.X.X
+
+git push
+git push --tags
 ```
 
----
+Then:
 
-7. Push:
-
-```sh
-git push && git push --tags
-```
-
----
-
-8. Make sure the new docs preview deploy is OK.
-
----
-
-9. Merge release branch into main.
-
----
-
-10. Make sure the new docs production deploy is OK.
-
----
-
-11. Create a new release on GitHub, pointing to the tag created above.
+1. Make sure the new docs preview deploy is OK.
+2. Merge release branch into main.
+3. Make sure the new docs production deploy is OK.
+4. Create a new release on GitHub, pointing to the tag created above.
