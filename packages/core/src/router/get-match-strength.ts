@@ -1,3 +1,5 @@
+import { SPLAT_SEGMENT } from "../../../common/index.mjs";
+
 function get_match_strength({
   pattern,
   path,
@@ -17,7 +19,7 @@ function get_match_strength({
       continue;
     }
 
-    if (pattern_segments[i] === ":catch*") {
+    if (pattern_segments[i] === SPLAT_SEGMENT) {
       // catch-all match
       score = score + 1;
       continue;

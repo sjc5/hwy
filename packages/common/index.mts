@@ -29,3 +29,5 @@ export type HwyConfig = {
   };
   deploymentTarget: DeploymentTarget;
 };
+
+export const SPLAT_SEGMENT = ":catch*";

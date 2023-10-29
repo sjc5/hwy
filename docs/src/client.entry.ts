@@ -8,3 +8,7 @@ __window.NProgress = NProgress;
 
 // @ts-ignore
 import("htmx.org/dist/ext/head-support.js");
+
+document.addEventListener("htmx:afterSettle", () => {
+  __window.Prism.highlightAll();
+});
