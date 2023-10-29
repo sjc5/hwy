@@ -9,11 +9,8 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
     // if it's dash route (home), no need to compare segments length
     if (x.realSegmentsLength === 0) return true;
 
-    const is_index = x.pathType === "index";
-
-    const index_adjusted_real_segments_length = is_index
-      ? x.realSegmentsLength + 1
-      : x.realSegmentsLength;
+    const index_adjusted_real_segments_length =
+      x.pathType === "index" ? x.realSegmentsLength + 1 : x.realSegmentsLength;
 
     // make sure any remaining matches are not longer than the path itself
     const should_move_on =
@@ -24,7 +21,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
     }
 
     // now we need to remove ineligible indices
-    if (!is_index) {
+    if (x.pathType !== "index") {
       // if not an index, then you're already confirmed good
       return true;
     }
@@ -62,9 +59,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
   // now we only have real child paths
 
   // these are essentially any matching static layout routes
-  const definite_matches = paths.filter(
-    (x) => x.pathType === "static-layout", // !x.isIndex && !x.endsInDynamic && !x.endsInSplat,
-  );
+  const definite_matches = paths.filter((x) => x.pathType === "static-layout");
 
   const highest_scores_by_segment_length_of_definite_matches =
     get_highest_scores_by_segment_length(definite_matches);
@@ -75,9 +70,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
   const grouped_by_segment_length: Record<number, SemiDecoratedPath[]> = {};
 
   for (const x of paths) {
-    const is_special = x.pathType !== "static-layout";
-
-    if (is_special) {
+    if (x.pathType !== "static-layout") {
       const segment_length = x.segments.length;
 
       const highest_score_for_this_segment_length =
@@ -104,7 +97,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
 
   const xformed_maybes: SemiDecoratedPath[] = [];
 
-  let set_aside_splat: SemiDecoratedPath | null = null;
+  let wild_card_splat: SemiDecoratedPath | null = null;
 
   for (const paths of sorted_grouped_by_segment_length) {
     let winner = paths[0];
@@ -131,8 +124,8 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
     const splat = paths.find((x) => x.pathType === "non-ultimate-splat");
 
     if (splat) {
-      if (!set_aside_splat || splat.score > set_aside_splat.score) {
-        set_aside_splat = splat;
+      if (!wild_card_splat || splat.score > wild_card_splat.score) {
+        wild_card_splat = splat;
       }
 
       splat_segments = get_splat_segments_from_winning_path(winner);
@@ -166,13 +159,13 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
     const we_need_a_different_splat =
       splat_too_far_out || (splat_needed && not_a_splat);
 
-    if (we_need_a_different_splat && set_aside_splat) {
-      maybe_final_paths[maybe_final_paths.length - 1] = set_aside_splat;
+    if (we_need_a_different_splat && wild_card_splat) {
+      maybe_final_paths[maybe_final_paths.length - 1] = wild_card_splat;
 
-      splat_segments = get_splat_segments_from_winning_path(set_aside_splat);
+      splat_segments = get_splat_segments_from_winning_path(wild_card_splat);
     }
 
-    if (we_need_a_different_splat && !set_aside_splat) {
+    if (we_need_a_different_splat && !wild_card_splat) {
       return {
         splat_segments: paths[0].path.split("/").filter(Boolean),
         paths: __paths.filter(
