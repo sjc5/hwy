@@ -12,7 +12,7 @@ const third_party_packages = [
   "hono",
   "htmx.org",
   "typescript",
-  "tailwind",
+  "tailwindcss",
   "nprogress",
   "@types/nprogress",
   "@types/node",
@@ -31,7 +31,7 @@ const VERSIONS = Object.fromEntries(versions_map) as Record<
   string
 >;
 
-export const LATEST_HWY_VERSION = pkg_json.version;
+export const LATEST_HWY_VERSION = "^" + pkg_json.version;
 
 function get_package_json(options: Options) {
   /* TAILWIND PREBUILD */
@@ -115,7 +115,7 @@ function get_package_json(options: Options) {
             ? { nprogress: VERSIONS["nprogress"] }
             : {}),
           ...(options.css_preference === "tailwind"
-            ? { tailwindcss: VERSIONS["tailwind"] }
+            ? { tailwindcss: VERSIONS["tailwindcss"] }
             : {}),
           ...(options.lang_preference === "typescript"
             ? { typescript: VERSIONS["typescript"] }
