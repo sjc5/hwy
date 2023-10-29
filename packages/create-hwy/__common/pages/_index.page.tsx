@@ -10,6 +10,15 @@ export default function () {
         The nav bar above is being rendered from <code>src/main.tsx</code>,
         which is your site's main server "entry point".
       </p>
+
+      <p>
+        Click the button below to increment the number (my click handler is in{" "}
+        <code>src/pages/_index.client.ts</code>):
+      </p>
+
+      <button id="increment-button" class="btn">
+        0
+      </button>
     </>
   );
 }

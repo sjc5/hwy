@@ -1,22 +1,23 @@
 {
-  "name": "tester",
+  "name": "tester-routes",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && hwy-build",
     "start": "node dist/main.js",
-    "dev": "hwy-dev-serve"
+    "dev": "hwy-dev-serve",
+    "update-latest": "pnpm update --latest"
   },
   "dependencies": {
     "@hono/node-server": "^1.2.0",
-    "hono": "^3.7.5",
+    "hono": "^3.9.0",
     "hwy": "workspace:*"
   },
   "devDependencies": {
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@types/node": "^20.8.3",
+    "@types/node": "^20.8.9",
     "htmx.org": "^1.9.6",
     "typescript": "^5.2.2"
   },

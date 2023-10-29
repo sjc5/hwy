@@ -11,13 +11,7 @@ function InlineCode({
   return (
     <code
       {...rest}
-      class={cx(
-        "py-[2px] px-1 whitespace-nowrap",
-        high_contrast
-          ? "bg-black text-white dark:bg-white dark:text-black"
-          : "bg-[#7772] dark:bg-[#7773] rounded",
-        rest.class
-      )}
+      class={cx("inline-code", high_contrast && "high-contrast", rest.class)}
     >
       {children}
     </code>

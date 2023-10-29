@@ -9,6 +9,7 @@ import {
   HeadBlock,
   getDefaultBodyProps,
   renderRoot,
+  getPublicUrl,
 } from "hwy";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
@@ -18,6 +19,7 @@ import { Nav } from "./components/nav.js";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { FallbackErrorBoundary } from "./components/fallback-error-boundary.js";
+import { make_emoji_data_url } from "./utils/utils.js";
 
 const app = new Hono();
 app.use("*", logger());
@@ -50,7 +52,7 @@ const default_head_blocks: HeadBlock[] = [
     tag: "link",
     props: {
       rel: "icon",
-      href: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 16 16'><text x='0' y='14'>🔥</text></svg>`,
+      href: make_emoji_data_url("⭐"),
     },
   },
   {
@@ -85,7 +87,7 @@ app.all("*", async (c, next) => {
     return (
       <html lang="en">
         <head>
-          <meta charSet="UTF-8" />
+          <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width,initial-scale=1" />
 
           <HeadElements
@@ -97,16 +99,15 @@ app.all("*", async (c, next) => {
           <CssImports />
           <ClientScripts activePathData={activePathData} />
           <DevLiveRefreshScript />
+          <script defer src={getPublicUrl("prism.js")} />
         </head>
 
-        <body
-          {...getDefaultBodyProps({ nProgress: true })}
-          class="p-2 sm:p-4 flex"
-        >
-          <div class="px-5 lg:px-8 w-full flex flex-col">
-            <div class="grow">
+        <body {...getDefaultBodyProps({ nProgress: true })}>
+          <div class="body-inner">
+            <div style={{ flexGrow: 1 }}>
               <Nav />
-              <div class="flex flex-col gap-8 lg:gap-12 max-w-[640px] mb-8 mt-12 mx-auto">
+
+              <div class="root-outlet-wrapper">
                 {await rootOutlet({
                   c,
                   activePathData,
@@ -115,8 +116,8 @@ app.all("*", async (c, next) => {
               </div>
             </div>
 
-            <footer class="text-xs border-t border-t-solid border-1 border-[#7773] pt-3 pb-4 shrink mt-6">
-              <span class="opacity-60">
+            <footer>
+              <span style={{ opacity: 0.6 }}>
                 MIT License. Copyright (c) 2023 Samuel J. Cook.
               </span>
             </footer>

@@ -9,6 +9,7 @@ type HwyGlobal = Partial<{
   paths: Paths;
   public_map: Record<string, string>;
   public_reverse_map: Record<string, string>;
+  test_dirname?: string;
 }>;
 
 type HwyGlobalKey = keyof HwyGlobal;

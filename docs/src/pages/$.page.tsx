@@ -1,8 +1,15 @@
 export default function () {
   return (
     <div>
-      <h2 class="text-6xl">404</h2>
-      <p class="mt-4 mb-8">Nothing found!</p>
+      <h2 style={{ fontSize: "3.75rem" }}>404</h2>
+      <p
+        style={{
+          marginTop: "1rem",
+          marginBottom: "2rem",
+        }}
+      >
+        Nothing found!
+      </p>
     </div>
   );
 }

@@ -34,7 +34,9 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
     const prebuild_script = pkg_json.scripts?.["hwy-prebuild"];
     const prebuild_dev_script = pkg_json.scripts?.["hwy-prebuild-dev"];
 
-    if (!prebuild_script && !prebuild_dev_script) return;
+    if (!prebuild_script && !prebuild_dev_script) {
+      return;
+    }
 
     const should_use_dev_script = is_dev && prebuild_dev_script;
 
@@ -42,13 +44,25 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
       ? prebuild_dev_script
       : prebuild_script;
 
-    if (!script_to_run) return;
+    if (!script_to_run) {
+      return;
+    }
 
     hwyLog(`Running ${script_to_run}`);
 
+    const prebuild_p0 = performance.now();
+
     const { stdout, stderr } = await exec(script_to_run);
+
+    const prebuild_p1 = performance.now();
+
     console.log(stdout);
-    if (stderr) console.error(stderr);
+
+    if (stderr) {
+      console.error(stderr);
+    }
+
+    logPerf("pre-build tasks", prebuild_p0, prebuild_p1);
   } catch (error) {
     console.error("Error running pre-build tasks:", error);
   }
@@ -57,12 +71,7 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
 async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
 
-  hwyLog(`Running pre-build tasks...`);
-
-  const prebuild_p0 = performance.now();
   await handle_prebuild({ is_dev: isDev });
-  const prebuild_p1 = performance.now();
-  logPerf("pre-build tasks", prebuild_p0, prebuild_p1);
 
   hwyLog(`Running standard build tasks...`);
 

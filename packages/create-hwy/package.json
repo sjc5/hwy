@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -17,7 +17,10 @@
     "build": "rm -rf dist && tsup-node index.ts --format esm",
     "lint": "tsc",
     "create-hwy": "pnpm run build && node dist/index.js",
-    "publish-beta": "npm publish --tag beta"
+    "publish-beta": "npm publish --tag beta",
+    "publish-non-beta": "npm publish",
+    "update-latest": "pnpm update --latest",
+    "typecheck": "tsc --noEmit"
   },
   "bin": {
     "create-hwy": "./scripts/create-hwy.js"
@@ -28,16 +31,22 @@
     "picocolors": "^1.0.0"
   },
   "devDependencies": {
-    "@types/inquirer": "^9.0.3",
-    "@types/node": "^20.8.3",
-    "@types/nprogress": "^0.2.1",
-    "hono": "^3.7.5",
+    "@cloudflare/workers-types": "^4.20231025.0",
+    "@hono/node-server": "^1.2.0",
+    "@types/inquirer": "^9.0.6",
+    "@types/node": "^20.8.9",
+    "@types/nprogress": "^0.2.2",
+    "bun-types": "^1.0.7",
+    "hono": "^3.9.0",
+    "htmx.org": "^1.9.6",
     "hwy": "workspace:*",
+    "npm-run-all": "^4.1.5",
     "nprogress": "^0.2.0",
     "prettier": "^3.0.3",
-    "tailwindcss": "^3.3.3",
+    "tailwindcss": "^3.3.5",
     "tsup": "^7.2.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "wrangler": "^3.15.0"
   },
   "repository": {
     "type": "git",

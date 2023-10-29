@@ -3,7 +3,7 @@ import fs from "node:fs";
 import crypto from "node:crypto";
 import readdirp from "readdirp";
 import esbuild from "esbuild";
-import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
+import { HWY_GLOBAL_KEYS, SPLAT_SEGMENT } from "../../common/index.mjs";
 import { smart_normalize } from "./smart-normalize.js";
 
 const permitted_extensions = [
@@ -17,23 +17,21 @@ const permitted_extensions = [
   "cts",
 ];
 
+type PathType =
+  | "ultimate-catch"
+  | "index"
+  | "static-layout"
+  | "dynamic-layout"
+  | "non-ultimate-splat";
+
 async function walk_pages() {
   const paths: {
     // ultimately public
-    entry: string;
     importPath: string;
     path: string;
-    segments: Array<{
-      isSplat: boolean;
-      isDynamic: boolean;
-      name: string;
-      segment: string;
-    }>;
-    isIndex: boolean;
-    endsInSplat: boolean;
-    endsInDynamic: boolean;
+    segments: Array<string | undefined>;
+    pathType: PathType;
     hasSiblingClientFile: boolean;
-    fileRefFromPagesDirWithJsExt: string;
   }[] = [];
 
   for await (const entry of readdirp(path.resolve("./src/pages"))) {
@@ -68,28 +66,35 @@ async function walk_pages() {
         return true;
       })
       .map((segment) => {
-        let new_segment = segment.replace("$", ":");
+        let new_segment: string | undefined = segment.replace("$", ":");
 
         let is_splat = false;
 
         if (new_segment === ":") {
-          new_segment = ":catch*";
+          new_segment = SPLAT_SEGMENT;
           is_splat = true;
         }
 
         if (new_segment === "_index") {
-          new_segment = "";
+          new_segment = undefined;
           is_index = true;
         }
 
-        const name = new_segment.replace(":", "");
+        type SegmentType = "normal" | "index" | "splat" | "dynamic";
+
+        let segment_type: SegmentType = "normal";
+
+        if (is_splat) {
+          segment_type = "splat";
+        } else if (new_segment?.startsWith(":")) {
+          segment_type = "dynamic";
+        } else if (is_index) {
+          segment_type = "index";
+        }
 
         return {
-          // ultimately public
-          isSplat: is_splat,
-          isDynamic: !is_splat && new_segment.startsWith(":"),
-          name,
-          segment: new_segment,
+          segment: new_segment || undefined,
+          segmentType: segment_type,
         };
       });
 
@@ -118,16 +123,22 @@ async function walk_pages() {
         }
       }
 
+      let path_type: PathType = "static-layout";
+
+      if (is_index) {
+        path_type = "index";
+      } else if (segments[segments.length - 1].segmentType === "splat") {
+        path_type = "non-ultimate-splat";
+      } else if (segments[segments.length - 1].segmentType === "dynamic") {
+        path_type = "dynamic-layout";
+      }
+
       paths.push({
-        entry: entry.path,
         importPath: smart_normalize(path.join("pages/", _path + ".js")),
         path: path_to_use,
-        segments,
-        isIndex: is_index,
-        endsInSplat: segments[segments.length - 1].isSplat,
-        endsInDynamic: segments[segments.length - 1].isDynamic,
+        segments: segments.map((x) => x.segment),
+        pathType: path_type,
         hasSiblingClientFile: has_sibling_client_file,
-        fileRefFromPagesDirWithJsExt: _path + ".js",
       });
     }
 

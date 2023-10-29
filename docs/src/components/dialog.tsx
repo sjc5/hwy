@@ -20,14 +20,7 @@ function DialogModal({
         {open_button_inner}
       </button>
 
-      <dialog
-        onclick="event.target==this && this.close()"
-        style={{
-          padding: 0,
-          border: "none",
-          background: "transparent",
-        }}
-      >
+      <dialog onclick="event.target==this && this.close()" class="dialog-reset">
         <form method="dialog">{dialog_inner}</form>
       </dialog>
     </div>

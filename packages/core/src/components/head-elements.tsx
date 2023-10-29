@@ -86,9 +86,9 @@ function HeadElements(props: {
     <>
       {head_blocks.map((block, i) => {
         if ("title" in block) {
-          return <title key={i}>{block.title}</title>;
+          return <title>{block.title}</title>;
         } else {
-          return <block.tag key={i} {...block.props} />;
+          return <block.tag {...block.props} />;
         }
       })}
     </>
