@@ -3,43 +3,33 @@
 1. Run:
 
 ```sh
-pnpm bump-patch
-```
-
-OR
-
-```sh
-pnpm bump-minor
-```
-
-OR
-
-```sh
-pnpm bump-major
+pnpm remove-beta
 ```
 
 2. Run:
 
 ```sh
-pnpm publish-non-beta
-```
-
-3. Run:
-
-```sh
 pnpm current-version
 ```
 
-4. Copy the current version
+3. Make sure it's the right version now.
+
+4. Run:
+
+```sh
+pnpm publish-non-beta
+```
 
 5. Run:
 
 ```sh
-git tag v<version>
+git add .
+git commit -am "vX.X.X"
+git tag vX.X.X
 ```
 
 6. Run:
 
 ```sh
-git push --tags
+git push origin --tags
 ```
