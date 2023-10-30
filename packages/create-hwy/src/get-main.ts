@@ -113,7 +113,9 @@ app.all("*", async (c, next) => {
 
         <body
           {...getDefaultBodyProps(${
-            options.with_nprogress ? "{ nProgress: true }" : ""
+            options.with_nprogress
+              ? "{ idiomorph: true, nProgress: true }"
+              : "{ idiomorph: true }"
           })}
         >
           <nav>

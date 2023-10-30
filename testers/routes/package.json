@@ -20,6 +20,7 @@
     "@hwy-js/dev": "workspace:*",
     "@types/node": "^20.8.9",
     "htmx.org": "^1.9.6",
+    "idiomorph": "^0.0.9",
     "typescript": "^5.2.2"
   },
   "engines": {

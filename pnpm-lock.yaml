@@ -33,14 +33,17 @@ importers:
         specifier: ^3.9.0
         version: 3.9.0
       hwy:
-        specifier: 0.5.0
+        specifier: 0.6.0-beta.0
         version: link:../packages/core
     devDependencies:
       '@hwy-js/build':
-        specifier: 0.5.0
+        specifier: 0.6.0-beta.0
         version: link:../packages/build
+      '@hwy-js/client':
+        specifier: 0.6.0-beta.0
+        version: link:../packages/client
       '@hwy-js/dev':
-        specifier: 0.5.0
+        specifier: 0.6.0-beta.0
         version: link:../packages/dev
       '@types/node':
         specifier: ^20.8.9
@@ -51,6 +54,9 @@ importers:
       htmx.org:
         specifier: ^1.9.6
         version: 1.9.6
+      idiomorph:
+        specifier: ^0.0.9
+        version: 0.0.9
       nprogress:
         specifier: ^0.2.0
         version: 0.2.0
@@ -170,6 +176,9 @@ importers:
       hwy:
         specifier: workspace:*
         version: link:../core
+      idiomorph:
+        specifier: ^0.0.9
+        version: 0.0.9
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
@@ -278,6 +287,9 @@ importers:
       htmx.org:
         specifier: ^1.9.6
         version: 1.9.6
+      idiomorph:
+        specifier: ^0.0.9
+        version: 0.0.9
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -1593,7 +1605,7 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001557
+      caniuse-lite: 1.0.30001558
       electron-to-chromium: 1.4.569
       node-releases: 2.0.13
       update-browserslist-db: 1.0.13(browserslist@4.22.1)
@@ -1641,8 +1653,8 @@ packages:
     engines: {node: '>= 6'}
     dev: true
 
-  /caniuse-lite@1.0.30001557:
-    resolution: {integrity: sha512-91oR7hLNUP3gG6MLU+n96em322a8Xzes8wWdBKhLgUoiJsAF5irZnxSUCbc+qUZXNnPCfUwLOi9ZCZpkvjQajw==}
+  /caniuse-lite@1.0.30001558:
+    resolution: {integrity: sha512-/Et7DwLqpjS47JPEcz6VnxU9PwcIdVi0ciLXRWBQdj1XFye68pSQYpV0QtPTfUKWuOaEig+/Vez2l74eDc1tPQ==}
     dev: false
 
   /capnp-ts@0.7.0:

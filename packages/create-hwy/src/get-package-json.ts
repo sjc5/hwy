@@ -20,6 +20,7 @@ const third_party_packages = [
   "@cloudflare/workers-types",
   "npm-run-all",
   "wrangler",
+  "idiomorph",
 ] as const;
 
 const versions_map = third_party_packages.map((pkg) => {
@@ -92,6 +93,7 @@ function get_package_json(options: Options) {
               }
             : {}),
           "@hwy-js/build": LATEST_HWY_VERSION,
+          "@hwy-js/client": LATEST_HWY_VERSION,
           "@hwy-js/dev": LATEST_HWY_VERSION,
           ...(options.lang_preference === "typescript"
             ? {
@@ -108,6 +110,7 @@ function get_package_json(options: Options) {
             ? { "bun-types": VERSIONS["bun-types"] }
             : {}),
           "htmx.org": VERSIONS["htmx.org"],
+          idiomorph: VERSIONS["idiomorph"],
           ...(options.deployment_target === "cloudflare-pages"
             ? { "npm-run-all": VERSIONS["npm-run-all"] }
             : {}),
