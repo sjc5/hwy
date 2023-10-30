@@ -1,3 +1,3 @@
-import { initHtmx, initIdiomorph } from "@hwy-js/client";
+import { initHtmx, initIdiomorph, initNProgress } from "@hwy-js/client";
 
-initHtmx().then(initIdiomorph);
+initHtmx().then(initIdiomorph).then(initNProgress);
