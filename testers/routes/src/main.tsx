@@ -7,6 +7,7 @@ import {
   HeadElements,
   HeadBlock,
   renderRoot,
+  getDefaultBodyProps,
 } from "hwy";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
@@ -57,7 +58,7 @@ app.all("*", async (c, next) => {
           <DevLiveRefreshScript />
         </head>
 
-        <body hx-boost="true" hx-target="this">
+        <body {...getDefaultBodyProps({ idiomorph: true })}>
           <Sidebar />
           <main>
             {await rootOutlet({

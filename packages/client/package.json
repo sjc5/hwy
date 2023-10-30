@@ -1,11 +1,11 @@
 {
-  "name": "hwy",
+  "name": "@hwy-js/client",
   "version": "0.6.0-beta.0",
   "author": {
     "name": "Samuel J. Cook"
   },
   "license": "MIT",
-  "description": "Simple, lightweight, and flexible web framework, built on Hono and HTMX.",
+  "description": "Browser-targeted utilities for Hwy framework",
   "type": "module",
   "main": "dist/index.js",
   "files": [
@@ -21,36 +21,35 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@hono/node-server": "^1.2.0",
-    "@hwy-js/build": "workspace:*",
-    "@hwy-js/dev": "workspace:*",
-    "@types/node": "^20.8.9",
-    "hono": "^3.9.0",
-    "tsup": "^7.2.0"
+    "@types/nprogress": "^0.2.2",
+    "htmx.org": "^1.9.6",
+    "idiomorph": "^0.0.9",
+    "nprogress": "^0.2.0",
+    "tsup": "^7.2.0",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "htmx.org": ">=1.9.6",
+    "idiomorph": ">=0.0.9",
+    "nprogress": ">=0.2.0"
+  },
+  "peerDependenciesMeta": {
+    "htmx.org": {
+      "optional": true
+    },
+    "idiomorph": {
+      "optional": true
+    },
+    "nprogress": {
+      "optional": true
+    }
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/hwy-js/hwy",
-    "directory": "packages/core"
+    "directory": "packages/client"
   },
   "homepage": "https://hwy.dev",
   "bugs": "https://github.com/hwy-js/hwy/issues",
-  "keywords": [
-    "simple",
-    "lightweight",
-    "flexible",
-    "framework",
-    "metaframework",
-    "web",
-    "typescript",
-    "htmx",
-    "hono",
-    "router",
-    "nested",
-    "routing",
-    "jsx",
-    "tsx",
-    "nextjs",
-    "remix"
-  ]
+  "sideEffects": false
 }

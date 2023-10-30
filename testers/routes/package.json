@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@hwy-js/build": "workspace:*",
+    "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@types/node": "^20.8.9",
     "htmx.org": "^1.9.6",

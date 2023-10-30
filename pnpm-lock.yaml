@@ -89,6 +89,27 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
+  packages/client:
+    devDependencies:
+      '@types/nprogress':
+        specifier: ^0.2.2
+        version: 0.2.2
+      htmx.org:
+        specifier: ^1.9.6
+        version: 1.9.6
+      idiomorph:
+        specifier: ^0.0.9
+        version: 0.0.9
+      nprogress:
+        specifier: ^0.2.0
+        version: 0.2.0
+      tsup:
+        specifier: ^7.2.0
+        version: 7.2.0(postcss@8.4.31)(typescript@5.2.2)
+      typescript:
+        specifier: ^5.2.2
+        version: 5.2.2
+
   packages/core:
     devDependencies:
       '@hono/node-server':
@@ -245,6 +266,9 @@ importers:
       '@hwy-js/build':
         specifier: workspace:*
         version: link:../../packages/build
+      '@hwy-js/client':
+        specifier: workspace:*
+        version: link:../../packages/client
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
@@ -2295,6 +2319,10 @@ packages:
     dependencies:
       safer-buffer: 2.1.2
     dev: false
+
+  /idiomorph@0.0.9:
+    resolution: {integrity: sha512-X7SGsldE5jQD+peLjNLAnIJDEZtGpuLrNRUBrTWMMnzrx9gwy5U+SCRhaifO2v2Z+8j09IY2J+EYaxHsOLTD0A==}
+    dev: true
 
   /ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
