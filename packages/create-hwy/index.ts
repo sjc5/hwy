@@ -23,7 +23,7 @@ import { get_css_hooks_setup } from "./src/get-css-hooks-setup.js";
 type Options = {
   project_name: string;
   lang_preference: "typescript" | "javascript";
-  css_preference: "vanilla" | "tailwind" | "css-hooks" | "none";
+  css_preference: "vanilla" | "tailwind" | "css-hooks";
   deployment_target: DeploymentTarget;
   with_nprogress: boolean;
 };
@@ -114,11 +114,9 @@ function get_options(
     css_preference:
       choices.css_choice === "Tailwind"
         ? "tailwind"
-        : choices.css_choice === "Vanilla"
-        ? "vanilla"
         : choices.css_choice === "CSS Hooks"
         ? "css-hooks"
-        : "none",
+        : "vanilla",
     lang_preference:
       choices.lang_preference === "TypeScript" ? "typescript" : "javascript",
     deployment_target:
@@ -335,7 +333,7 @@ async function main() {
       );
     }
 
-    if (options.css_preference === "vanilla") {
+    if (options.css_preference !== "tailwind") {
       fs.cpSync(
         path.join(root_dir_path, "__common/styles/_preflight.bundle.css"),
         path.join(new_dir_path, "src/styles/_preflight.bundle.css"),
