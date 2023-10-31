@@ -21,6 +21,7 @@ const third_party_packages = [
   "npm-run-all",
   "wrangler",
   "idiomorph",
+  "@css-hooks/core",
 ] as const;
 
 const versions_map = third_party_packages.map((pkg) => {
@@ -78,6 +79,11 @@ function get_package_json(options: Options) {
               : "hwy-dev-serve",
         },
         dependencies: {
+          ...(options.css_preference === "css-hooks"
+            ? {
+                "@css-hooks/core": VERSIONS["@css-hooks/core"],
+              }
+            : {}),
           ...(!is_targeting_deno && options.deployment_target !== "bun"
             ? { "@hono/node-server": VERSIONS["@hono/node-server"] }
             : {}),

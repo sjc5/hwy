@@ -10,6 +10,7 @@
     "update-latest": "pnpm update --latest"
   },
   "dependencies": {
+    "@css-hooks/core": "^1.1.0",
     "@hono/node-server": "^1.2.0",
     "hono": "^3.9.0",
     "hwy": "workspace:*"

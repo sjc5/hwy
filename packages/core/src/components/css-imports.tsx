@@ -7,7 +7,9 @@ const hwy_global = get_hwy_global();
 function CriticalCss(): HtmlEscapedString {
   const critical_css = hwy_global.get("critical_bundled_css");
 
-  if (!critical_css) return <></>;
+  if (!critical_css) {
+    return <></>;
+  }
 
   return (
     <style
@@ -25,7 +27,9 @@ function NonCriticalCss(): HtmlEscapedString {
     "standard_bundled_css_exists",
   );
 
-  if (!standard_bundled_css_exists) return <></>;
+  if (!standard_bundled_css_exists) {
+    return <></>;
+  }
 
   return <link rel="stylesheet" href={getPublicUrl(CSS_IMPORT_URL)} />;
 }

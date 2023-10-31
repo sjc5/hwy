@@ -13,6 +13,7 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Sidebar } from "./components/sidebar.js";
+import { hooks, CssHooksStyleSheet } from "./setup/css-hooks.js";
 
 const app = new Hono();
 
@@ -56,9 +57,18 @@ app.all("*", async (c, next) => {
           <CssImports />
           <ClientScripts activePathData={activePathData} />
           <DevLiveRefreshScript />
+          <CssHooksStyleSheet />
         </head>
 
-        <body {...getDefaultBodyProps({ idiomorph: true })}>
+        <body
+          {...getDefaultBodyProps({ idiomorph: true })}
+          style={hooks({
+            background: "orange",
+            dark: {
+              background: "black",
+            },
+          })}
+        >
           <Sidebar />
           <main>
             {await rootOutlet({

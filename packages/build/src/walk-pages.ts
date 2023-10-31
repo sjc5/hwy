@@ -29,7 +29,7 @@ async function walk_pages() {
     // ultimately public
     importPath: string;
     path: string;
-    segments: Array<string | undefined>;
+    segments: Array<string | null>;
     pathType: PathType;
     hasSiblingClientFile: boolean;
   }[] = [];
@@ -66,7 +66,7 @@ async function walk_pages() {
         return true;
       })
       .map((segment) => {
-        let new_segment: string | undefined = segment.replace("$", ":");
+        let new_segment: string | null = segment.replace("$", ":");
 
         let is_splat = false;
 
@@ -76,7 +76,7 @@ async function walk_pages() {
         }
 
         if (new_segment === "_index") {
-          new_segment = undefined;
+          new_segment = null;
           is_index = true;
         }
 
@@ -136,7 +136,7 @@ async function walk_pages() {
       paths.push({
         importPath: smart_normalize(path.join("pages/", _path + ".js")),
         path: path_to_use,
-        segments: segments.map((x) => x.segment),
+        segments: segments.map((x) => x.segment || null),
         pathType: path_type,
         hasSiblingClientFile: has_sibling_client_file,
       });

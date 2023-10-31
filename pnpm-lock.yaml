@@ -152,6 +152,9 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^4.20231025.0
         version: 4.20231025.0
+      '@css-hooks/core':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@hono/node-server':
         specifier: ^1.2.0
         version: 1.2.0
@@ -262,6 +265,9 @@ importers:
 
   testers/routes:
     dependencies:
+      '@css-hooks/core':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@hono/node-server':
         specifier: ^1.2.0
         version: 1.2.0
@@ -676,6 +682,9 @@ packages:
   /@cloudflare/workers-types@4.20231025.0:
     resolution: {integrity: sha512-TkcZkntUTOcvJ4vgmwpNfLTclpMbmbClZCe62B25/VTukmyv91joRa4eKzSjzCZUXTbFHNmVdOpmGaaJU2U3+A==}
     dev: true
+
+  /@css-hooks/core@1.1.0:
+    resolution: {integrity: sha512-IfQnrTIXpjhGiIxvkLC3Hv8RdS5bbT9EHuAcaTGBZo6B9fATk3xI+TIZBAPaKFEXTZEpMtZh7/SqzzoOHkwZLg==}
 
   /@esbuild-plugins/node-globals-polyfill@0.2.3(esbuild@0.17.19):
     resolution: {integrity: sha512-r3MIryXDeXDOZh7ih1l/yE9ZLORCd5e8vWg02azWRGj5SPTuoh69A2AIyn0Z31V/kHBfZ4HgWJ+OK3GTTwLmnw==}
@@ -1606,7 +1615,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001558
-      electron-to-chromium: 1.4.569
+      electron-to-chromium: 1.4.571
       node-releases: 2.0.13
       update-browserslist-db: 1.0.13(browserslist@4.22.1)
     dev: false
@@ -1895,8 +1904,8 @@ packages:
     engines: {node: '>=12'}
     dev: false
 
-  /electron-to-chromium@1.4.569:
-    resolution: {integrity: sha512-LsrJjZ0IbVy12ApW3gpYpcmHS3iRxH4bkKOW98y1/D+3cvDUWGcbzbsFinfUS8knpcZk/PG/2p/RnkMCYN7PVg==}
+  /electron-to-chromium@1.4.571:
+    resolution: {integrity: sha512-Sc+VtKwKCDj3f/kLBjdyjMpNzoZsU6WuL/wFb6EH8USmHEcebxRXcRrVpOpayxd52tuey4RUDpUsw5OS5LhJqg==}
     dev: false
 
   /emoji-regex@8.0.0:
@@ -2520,8 +2529,8 @@ packages:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
     dev: true
 
-  /jiti@1.20.0:
-    resolution: {integrity: sha512-3TV69ZbrvV6U5DfQimop50jE9Dl6J8O1ja1dvBbMba/sZ3YBEQqJ2VZRoQPVnhlzjNtU1vaXRZVrVjU4qtm8yA==}
+  /jiti@1.21.0:
+    resolution: {integrity: sha512-gFqAIbuKyyso/3G2qhiO2OM6shY6EPP/R0+mkDbyspxKazh8BXDC5FiFsUjlczgdNz/vfra0da2y+aHrusLG/Q==}
     hasBin: true
     dev: true
 
@@ -3450,7 +3459,7 @@ packages:
       fast-glob: 3.3.1
       glob-parent: 6.0.2
       is-glob: 4.0.3
-      jiti: 1.20.0
+      jiti: 1.21.0
       lilconfig: 2.1.0
       micromatch: 4.0.5
       normalize-path: 3.0.0

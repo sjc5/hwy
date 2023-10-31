@@ -74,9 +74,7 @@ function fully_decorate_paths({
             const imported = await get_imported();
             return imported.loader ? imported.loader(loaderArgs) : undefined;
           } catch (e) {
-            if (e instanceof Response) return e;
-            console.error(e);
-            throw e;
+            handle_caught_maybe_response(e);
           }
         },
         action: async (actionArgs: DataFunctionArgs) => {
@@ -84,9 +82,7 @@ function fully_decorate_paths({
             const imported = await get_imported();
             return imported.action ? imported.action(actionArgs) : undefined;
           } catch (e) {
-            if (e instanceof Response) return e;
-            console.error(e);
-            throw e;
+            handle_caught_maybe_response(e);
           }
         },
       };
@@ -123,6 +119,28 @@ function semi_decorate_paths({
   });
 }
 
+type FullyDecoratedPath = ReturnType<typeof fully_decorate_paths>[number];
+
+async function get_action_data({
+  c,
+  last_path,
+}: {
+  c: Context;
+  last_path: FullyDecoratedPath;
+}) {
+  try {
+    if (c.req.method !== "GET") {
+      return await last_path?.action?.({
+        c,
+        params: last_path?.params,
+        splatSegments: last_path?.splatSegments,
+      });
+    }
+  } catch (e) {
+    handle_caught_maybe_response(e);
+  }
+}
+
 async function getMatchingPathData({
   c,
   redirectTo,
@@ -157,27 +175,11 @@ async function getMatchingPathData({
 
   const params = last_path?.params;
 
-  async function get_action_data() {
-    try {
-      if (c.req.method !== "GET") {
-        return await last_path?.action?.({
-          c,
-          params,
-          splatSegments: splat_segments,
-        });
-      }
-    } catch (e) {
-      if (e instanceof Response) return e;
-      console.error(e);
-      throw e;
-    }
-  }
-
   let action_data: any;
   let action_data_error: any;
 
   try {
-    action_data = await get_action_data();
+    action_data = await get_action_data({ c, last_path });
   } catch (e) {
     action_data_error = e;
   }
@@ -300,6 +302,14 @@ async function getMatchingPathData({
     splatSegments: splat_segments,
     outermostErrorBoundaryIndex: closest_parent_error_boundary_index,
   };
+}
+
+function handle_caught_maybe_response(e: any) {
+  if (e instanceof Response) {
+    return e;
+  }
+  console.error(e);
+  throw e;
 }
 
 export { getMatchingPathData };

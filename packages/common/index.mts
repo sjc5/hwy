@@ -23,11 +23,11 @@ export type DeploymentTarget =
   | "cloudflare-pages";
 
 export type HwyConfig = {
+  deploymentTarget: DeploymentTarget;
   dev?: {
     port?: number;
     watchExclusions?: Array<string>;
   };
-  deploymentTarget: DeploymentTarget;
 };
 
 export const SPLAT_SEGMENT = ":catch*";

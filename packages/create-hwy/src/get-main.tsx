@@ -49,6 +49,17 @@ function get_main(options: Options) {
       imports + "\n" + `import { handle } from "@hono/node-server/vercel";`;
   }
 
+  if (options.css_preference === "css-hooks") {
+    imports =
+      imports +
+      "\n" +
+      `import { hooks, CssHooksStyleSheet } from "./setup/css-hooks.js";`;
+  }
+
+  const arg_to_get_default_body_props = options.with_nprogress
+    ? "{ idiomorph: true, nProgress: true }"
+    : "{ idiomorph: true }";
+
   return (
     imports.trim() +
     "\n\n" +
@@ -108,16 +119,36 @@ app.all("*", async (c, next) => {
 
           <CssImports />
           <ClientScripts activePathData={activePathData} />
-          <DevLiveRefreshScript />
+          <DevLiveRefreshScript />${
+            options.css_preference === "css-hooks"
+              ? "\n" +
+                add_prefix_spaces_to_each_line({
+                  str: `<CssHooksStyleSheet />`,
+                  number_of_spaces: 10,
+                })
+              : ""
+          }
         </head>
 
-        <body
-          {...getDefaultBodyProps(${
-            options.with_nprogress
-              ? "{ idiomorph: true, nProgress: true }"
-              : "{ idiomorph: true }"
-          })}
-        >
+        ${
+          options.css_preference === "css-hooks"
+            ? add_prefix_spaces_to_each_line({
+                str: `<body
+              {...getDefaultBodyProps(${arg_to_get_default_body_props})}
+              style={hooks({
+                background: "orange",
+                dark: {
+                  background: "black",
+                },
+              })}
+            >`,
+                number_of_spaces: 8,
+              })
+            : add_prefix_spaces_to_each_line({
+                str: `<body {...getDefaultBodyProps(${arg_to_get_default_body_props})}>`,
+                number_of_spaces: 8,
+              })
+        }
           <nav>
             <a href="/">
               <h1>Hwy</h1>
@@ -224,3 +255,16 @@ const server = Bun.serve({
 
 console.log(\`\\nListening on http://\${server.hostname}:\${PORT}\\n\`);
 `.trim();
+
+function add_prefix_spaces_to_each_line({
+  str,
+  number_of_spaces,
+}: {
+  str: string;
+  number_of_spaces: number;
+}) {
+  return str
+    .split("\n")
+    .map((line) => " ".repeat(number_of_spaces) + line)
+    .join("\n");
+}
