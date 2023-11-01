@@ -1,41 +1,25 @@
 import type { Options } from "../index.js";
-import { get_is_target_deno } from "./utils.js";
+
+const base_version =
+  `
+import { initHtmx, initIdiomorph } from "@hwy-js/client";
+
+initHtmx().then(initIdiomorph);
+`.trim() + "\n";
+
+const with_nprogress_version =
+  `
+import { initHtmx, initIdiomorph, initNProgress } from "@hwy-js/client";
+
+initHtmx().then(initIdiomorph).then(initNProgress);
+`.trim() + "\n";
 
 function get_client_entry(options: Options) {
-  const is_targeting_deno = get_is_target_deno(options);
+  if (options.with_nprogress) {
+    return with_nprogress_version;
+  }
 
-  return (
-    `
-${
-  is_targeting_deno
-    ? "// deno-lint-ignore-file\n"
-    : options.deployment_target === "bun" &&
-      options.lang_preference === "typescript"
-    ? `/// <reference lib="dom" />\n`
-    : ""
-}
-const __window = window${
-      options.lang_preference === "typescript" ? " as any" : ""
-    };
-
-import htmx from "htmx.org";
-__window.htmx = htmx;
-${
-  options.with_nprogress
-    ? `
-import NProgress from "nprogress";
-__window.NProgress = NProgress;
-`
-    : ``
-}
-${
-  options.lang_preference === "typescript" && !is_targeting_deno
-    ? `// @ts-ignore`
-    : ``
-}
-import("htmx.org/dist/ext/head-support.js");
-`.trim() + "\n"
-  );
+  return base_version;
 }
 
 export { get_client_entry };

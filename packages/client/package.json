@@ -1,11 +1,11 @@
 {
-  "name": "@hwy-js/dev",
+  "name": "@hwy-js/client",
   "version": "0.6.0",
   "author": {
     "name": "Samuel J. Cook"
   },
   "license": "MIT",
-  "description": "Development tools for Hwy framework",
+  "description": "Browser-targeted utilities for Hwy framework",
   "type": "module",
   "main": "dist/index.js",
   "files": [
@@ -20,20 +20,36 @@
     "update-latest": "pnpm update --latest",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "picocolors": "^1.0.0"
-  },
   "devDependencies": {
-    "@types/node": "^20.8.10",
-    "hono": "^3.9.1",
+    "@types/nprogress": "^0.2.2",
+    "htmx.org": "^1.9.6",
+    "idiomorph": "^0.0.9",
+    "nprogress": "^0.2.0",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "htmx.org": ">=1.9.6",
+    "idiomorph": ">=0.0.9",
+    "nprogress": ">=0.2.0"
+  },
+  "peerDependenciesMeta": {
+    "htmx.org": {
+      "optional": true
+    },
+    "idiomorph": {
+      "optional": true
+    },
+    "nprogress": {
+      "optional": true
+    }
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/hwy-js/hwy",
-    "directory": "packages/dev"
+    "directory": "packages/client"
   },
   "homepage": "https://hwy.dev",
-  "bugs": "https://github.com/hwy-js/hwy/issues"
+  "bugs": "https://github.com/hwy-js/hwy/issues",
+  "sideEffects": false
 }

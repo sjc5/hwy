@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -32,14 +32,16 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231025.0",
+    "@css-hooks/core": "^1.1.0",
     "@hono/node-server": "^1.2.0",
     "@types/inquirer": "^9.0.6",
-    "@types/node": "^20.8.9",
+    "@types/node": "^20.8.10",
     "@types/nprogress": "^0.2.2",
     "bun-types": "^1.0.7",
-    "hono": "^3.9.0",
+    "hono": "^3.9.1",
     "htmx.org": "^1.9.6",
     "hwy": "workspace:*",
+    "idiomorph": "^0.0.9",
     "npm-run-all": "^4.1.5",
     "nprogress": "^0.2.0",
     "prettier": "^3.0.3",

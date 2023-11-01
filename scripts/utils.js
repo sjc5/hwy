@@ -2,13 +2,13 @@ import path from "node:path";
 import fs from "node:fs";
 import readline from "node:readline";
 
-const packages = ["core", "build", "dev", "create-hwy"];
+const dirs_in_slash_packages = ["core", "build", "dev", "create-hwy", "client"];
 
 function get_current_pkg_jsons() {
-  return packages.map((pkg) => {
+  return dirs_in_slash_packages.map((pkg_dirname) => {
     return JSON.parse(
       fs.readFileSync(
-        path.join(process.cwd(), "packages", pkg, "package.json"),
+        path.join(process.cwd(), "packages", pkg_dirname, "package.json"),
         "utf-8",
       ),
     );
@@ -29,9 +29,9 @@ function save_new_pkg_jsons(new_version) {
     );
   });
 
-  packages.forEach((pkg, i) => {
+  dirs_in_slash_packages.forEach((pkg_dirname, i) => {
     fs.writeFileSync(
-      path.join(process.cwd(), "packages", pkg, "package.json"),
+      path.join(process.cwd(), "packages", pkg_dirname, "package.json"),
       new_pkg_jsons_stringified[i],
       "utf-8",
     );

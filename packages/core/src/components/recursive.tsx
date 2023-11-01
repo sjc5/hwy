@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
 import type { HtmlEscapedString } from "hono/utils/html";
+import type { ErrorBoundaryProps, PageProps } from "../types.js";
 
 async function rootOutlet(props: {
   activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
@@ -17,11 +18,11 @@ async function rootOutlet(props: {
 
   const index_to_use = index ?? 0;
 
-  const current_active_path = active_path_data?.activePaths?.[index_to_use];
-
   const CurrentComponent = active_path_data?.activeComponents?.[index_to_use];
 
-  if (!CurrentComponent) return <></>;
+  if (!CurrentComponent) {
+    return <></>;
+  }
 
   const current_data = active_path_data?.activeData?.[index_to_use];
 
@@ -46,15 +47,15 @@ async function rootOutlet(props: {
         splatSegments: active_path_data?.splatSegments,
         params: active_path_data?.params,
         c: props.c,
-      });
+      } satisfies ErrorBoundaryProps);
     }
 
     return CurrentComponent({
       ...props,
       c: props.c,
-      params: active_path_data?.params,
-      splatSegments: active_path_data?.splatSegments,
-      outlet: async (local_props: Record<string, any>) => {
+      params: active_path_data?.params || {},
+      splatSegments: active_path_data?.splatSegments || [],
+      outlet: async (local_props: Record<string, any> | undefined) => {
         return await rootOutlet({
           ...local_props,
           activePathData: active_path_data,
@@ -62,11 +63,9 @@ async function rootOutlet(props: {
           c: props.c,
         });
       },
-      path: current_active_path,
       loaderData: current_data,
       actionData: active_path_data.actionData,
-      error: active_path_data?.errorToRender,
-    });
+    } satisfies PageProps);
   } catch (error) {
     console.error(error);
 
