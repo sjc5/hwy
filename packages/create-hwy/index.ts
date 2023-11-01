@@ -432,9 +432,6 @@ async function main() {
               "hono/deno": "npm:hono/deno",
               "hono/logger": "npm:hono/logger",
               "hono/secure-headers": "npm:hono/secure-headers",
-              ...(options.css_preference === "tailwind"
-                ? { tailwindcss: "npm:tailwindcss" }
-                : {}),
             },
             compilerOptions: {
               jsx: "react-jsx",
@@ -459,7 +456,11 @@ async function main() {
       pc.cyan(
         `\nNice. Your new Hwy project is ready to go.\n\nTo get started, run:\n\n  ${pc.green(
           `cd ` + choices.new_dir_name + applicable_instructions,
-        )}\n\nBe sure to check out the docs at ${pc.bold(
+        )}\n\nPlease be sure to:\n\n${pc.bold(
+          "  1.",
+        )} Read the README.md file in your project root for any instructions specific to your deployment target; and\n${pc.bold(
+          "  2.",
+        )} Check out the Hwy docs at ${pc.bold(
           pc.underline(`https://hwy.dev/docs`),
         )}.\n\nHappy hacking!\n`,
       ),

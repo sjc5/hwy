@@ -12,14 +12,14 @@
   "dependencies": {
     "@css-hooks/core": "^1.1.0",
     "@hono/node-server": "^1.2.0",
-    "hono": "^3.9.0",
+    "hono": "^3.9.1",
     "hwy": "workspace:*"
   },
   "devDependencies": {
     "@hwy-js/build": "workspace:*",
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@types/node": "^20.8.9",
+    "@types/node": "^20.8.10",
     "htmx.org": "^1.9.6",
     "idiomorph": "^0.0.9",
     "typescript": "^5.2.2"

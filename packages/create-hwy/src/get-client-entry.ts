@@ -1,5 +1,4 @@
 import type { Options } from "../index.js";
-import { get_is_target_deno } from "./utils.js";
 
 const base_version =
   `

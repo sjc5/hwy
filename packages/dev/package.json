@@ -24,8 +24,8 @@
     "picocolors": "^1.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.8.9",
-    "hono": "^3.9.0",
+    "@types/node": "^20.8.10",
+    "hono": "^3.9.1",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
   },
