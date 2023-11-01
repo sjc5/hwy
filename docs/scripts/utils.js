@@ -19,12 +19,14 @@ console.log("Using hwy version:", hwy_version + "\n");
 
 const hwy_pkg_regex = /"hwy": "([^"]+)"/;
 const build_pkg_regex = /"@hwy-js\/build": "([^"]+)"/;
+const client_pkg_regex = /"@hwy-js\/client": "([^"]+)"/;
 const dev_pkg_regex = /"@hwy-js\/dev": "([^"]+)"/;
 
 function replace_versions(pkg_json_string, version) {
   return pkg_json_string
     .replace(hwy_pkg_regex, `"hwy": "${version}"`)
     .replace(build_pkg_regex, `"@hwy-js/build": "${version}"`)
+    .replace(client_pkg_regex, `"@hwy-js/client": "${version}"`)
     .replace(dev_pkg_regex, `"@hwy-js/dev": "${version}"`);
 }
 

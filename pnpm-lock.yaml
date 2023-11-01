@@ -33,17 +33,17 @@ importers:
         specifier: ^3.9.1
         version: 3.9.1
       hwy:
-        specifier: workspace:0.6.0-beta.2
+        specifier: 0.6.0
         version: link:../packages/core
     devDependencies:
       '@hwy-js/build':
-        specifier: workspace:0.6.0-beta.2
+        specifier: 0.6.0
         version: link:../packages/build
       '@hwy-js/client':
-        specifier: workspace:0.6.0-beta.2
+        specifier: 0.6.0
         version: link:../packages/client
       '@hwy-js/dev':
-        specifier: workspace:0.6.0-beta.2
+        specifier: 0.6.0
         version: link:../packages/dev
       '@types/node':
         specifier: ^20.8.10

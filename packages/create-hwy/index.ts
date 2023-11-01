@@ -458,7 +458,7 @@ async function main() {
           `cd ` + choices.new_dir_name + applicable_instructions,
         )}\n\nPlease be sure to:\n\n${pc.bold(
           "  1.",
-        )} Read the README.md file in your project root for any instructions specific to your deployment target; and\n${pc.bold(
+        )} Read the README.md file in your project root for any instructions specific to your deployment target; and\n\n${pc.bold(
           "  2.",
         )} Check out the Hwy docs at ${pc.bold(
           pc.underline(`https://hwy.dev/docs`),
