@@ -102,7 +102,7 @@ app.all("*", async (c, next) => {
           <script defer src={getPublicUrl("prism.js")} />
         </head>
 
-        <body {...getDefaultBodyProps({ nProgress: true })}>
+        <body {...getDefaultBodyProps({ idiomorph: true, nProgress: true })}>
           <div class="body-inner">
             <div style={{ flexGrow: 1 }}>
               <Nav />

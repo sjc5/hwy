@@ -56,10 +56,14 @@ function get_head_blocks_array(props: {
   const non_deduped =
     active_path_data?.activeHeads?.flatMap((head: HeadFunction, i) => {
       const current_active_path = active_path_data?.activePaths?.[i];
-      if (!current_active_path) return [];
+
+      if (!current_active_path) {
+        return [];
+      }
+
       const current_data = active_path_data?.activeData?.[i];
+
       return head({
-        path: current_active_path,
         loaderData: current_data,
         actionData: active_path_data.actionData,
         c: props.c,

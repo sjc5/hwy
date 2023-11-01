@@ -1,6 +1,6 @@
 {
   "name": "hwy",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -24,8 +24,8 @@
     "@hono/node-server": "^1.2.0",
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@types/node": "^20.8.9",
-    "hono": "^3.9.0",
+    "@types/node": "^20.8.10",
+    "hono": "^3.9.1",
     "tsup": "^7.2.0"
   },
   "repository": {

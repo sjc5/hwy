@@ -4,10 +4,14 @@ import type { SemiDecoratedPath } from "./get-matching-path-data.js";
 function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
   let paths = __paths.filter((x) => {
     // only continue if the path matches
-    if (!x.matches) return false;
+    if (!x.matches) {
+      return false;
+    }
 
     // if it's dash route (home), no need to compare segments length
-    if (x.realSegmentsLength === 0) return true;
+    if (x.realSegmentsLength === 0) {
+      return true;
+    }
 
     const index_adjusted_real_segments_length =
       x.pathType === "index" ? x.realSegmentsLength + 1 : x.realSegmentsLength;

@@ -18,11 +18,12 @@ import { get_is_target_deno } from "./src/utils.js";
 import { format } from "prettier";
 import type { DeploymentTarget } from "../common/index.mjs";
 import { get_hwy_config } from "./src/get-hwy-config.js";
+import { get_css_hooks_setup } from "./src/get-css-hooks-setup.js";
 
 type Options = {
   project_name: string;
   lang_preference: "typescript" | "javascript";
-  css_preference: "tailwind" | "vanilla" | "none";
+  css_preference: "vanilla" | "tailwind" | "css-hooks";
   deployment_target: DeploymentTarget;
   with_nprogress: boolean;
 };
@@ -42,7 +43,7 @@ const deployment_choices = [
   "Deno Deploy",
 ] as const;
 
-const css_choices = ["Tailwind", "Vanilla"] as const;
+const css_choices = ["Vanilla", "Tailwind", "CSS Hooks"] as const;
 
 type Prompts = Parameters<(typeof inquirer)["prompt"]>[0];
 
@@ -67,7 +68,7 @@ const prompts = [
   {
     type: "list",
     name: "css_choice",
-    message: `How do you feel about CSS?`,
+    message: `Choose a styling solution:`,
     choices: css_choices,
     prefix: "\n",
   },
@@ -113,9 +114,9 @@ function get_options(
     css_preference:
       choices.css_choice === "Tailwind"
         ? "tailwind"
-        : choices.css_choice === "Vanilla"
-        ? "vanilla"
-        : "none",
+        : choices.css_choice === "CSS Hooks"
+        ? "css-hooks"
+        : "vanilla",
     lang_preference:
       choices.lang_preference === "TypeScript" ? "typescript" : "javascript",
     deployment_target:
@@ -155,6 +156,24 @@ async function main() {
       throw new Error(`Directory ${new_dir_path} already exists.`);
     }
 
+    function handle_ts_or_js_file_copy({
+      code,
+      destination_without_extension,
+      is_jsx,
+    }: {
+      code: string;
+      destination_without_extension: string;
+      is_jsx: boolean;
+    }) {
+      return handle_ts_or_js_file_copy_low_level({
+        code,
+        destination_without_extension,
+        is_jsx,
+        options,
+        new_dir_path,
+      });
+    }
+
     // create all the folders we need
     fs.mkdirSync(new_dir_path, { recursive: true });
     fs.mkdirSync(path.join(new_dir_path, "src"), { recursive: true });
@@ -168,6 +187,16 @@ async function main() {
     fs.mkdirSync(path.join(new_dir_path, "src/pages/about"), {
       recursive: true,
     });
+
+    if (options.css_preference === "css-hooks") {
+      fs.mkdirSync(path.join(new_dir_path, "src/setup"), { recursive: true });
+
+      await handle_ts_or_js_file_copy({
+        code: get_css_hooks_setup(),
+        destination_without_extension: "src/setup/css-hooks",
+        is_jsx: true,
+      });
+    }
 
     // ts-config (still needed for JavaScript to do JSX)
     fs.writeFileSync(
@@ -225,40 +254,6 @@ async function main() {
       }),
       "utf8",
     );
-
-    async function handle_ts_or_js_file_copy({
-      code,
-      destination_without_extension,
-      is_jsx,
-    }: {
-      code: string;
-      destination_without_extension: string;
-      is_jsx: boolean;
-    }) {
-      const ts_ext = is_jsx ? ".tsx" : ".ts";
-      if (options.lang_preference === "typescript") {
-        fs.writeFileSync(
-          path.join(new_dir_path, destination_without_extension + ts_ext),
-          code,
-          "utf8",
-        );
-      } else {
-        const ext = is_jsx ? ".jsx" : ".js";
-        let str = await transform(
-          code,
-          destination_without_extension + ts_ext,
-          {
-            prettierOptions: {},
-          },
-        );
-        str = str.replaceAll(".tsx", ".jsx"); // modifies file references in tutorial copy
-        fs.writeFileSync(
-          path.join(new_dir_path, destination_without_extension + ext),
-          str,
-          "utf8",
-        );
-      }
-    }
 
     // main
     await handle_ts_or_js_file_copy({
@@ -338,7 +333,7 @@ async function main() {
       );
     }
 
-    if (options.css_preference === "vanilla") {
+    if (options.css_preference !== "tailwind") {
       fs.cpSync(
         path.join(root_dir_path, "__common/styles/_preflight.bundle.css"),
         path.join(new_dir_path, "src/styles/_preflight.bundle.css"),
@@ -437,9 +432,6 @@ async function main() {
               "hono/deno": "npm:hono/deno",
               "hono/logger": "npm:hono/logger",
               "hono/secure-headers": "npm:hono/secure-headers",
-              ...(options.css_preference === "tailwind"
-                ? { tailwindcss: "npm:tailwindcss" }
-                : {}),
             },
             compilerOptions: {
               jsx: "react-jsx",
@@ -464,7 +456,11 @@ async function main() {
       pc.cyan(
         `\nNice. Your new Hwy project is ready to go.\n\nTo get started, run:\n\n  ${pc.green(
           `cd ` + choices.new_dir_name + applicable_instructions,
-        )}\n\nBe sure to check out the docs at ${pc.bold(
+        )}\n\nPlease be sure to:\n\n${pc.bold(
+          "  1.",
+        )} Read the README.md file in your project root for any instructions specific to your deployment target; and\n\n${pc.bold(
+          "  2.",
+        )} Check out the Hwy docs at ${pc.bold(
           pc.underline(`https://hwy.dev/docs`),
         )}.\n\nHappy hacking!\n`,
       ),
@@ -479,5 +475,39 @@ const deno_instructions = `\n  npm i\n  deno task dev`;
 const bun_instructions = `\n  bun i\n  bun run --bun dev`;
 
 await main();
+
+async function handle_ts_or_js_file_copy_low_level({
+  code,
+  destination_without_extension,
+  is_jsx,
+  options,
+  new_dir_path,
+}: {
+  code: string;
+  destination_without_extension: string;
+  is_jsx: boolean;
+  options: Options;
+  new_dir_path: string;
+}) {
+  const ts_ext = is_jsx ? ".tsx" : ".ts";
+  if (options.lang_preference === "typescript") {
+    fs.writeFileSync(
+      path.join(new_dir_path, destination_without_extension + ts_ext),
+      code,
+      "utf8",
+    );
+  } else {
+    const ext = is_jsx ? ".jsx" : ".js";
+    let str = await transform(code, destination_without_extension + ts_ext, {
+      prettierOptions: {},
+    });
+    str = str.replaceAll(".tsx", ".jsx"); // modifies file references in tutorial copy
+    fs.writeFileSync(
+      path.join(new_dir_path, destination_without_extension + ext),
+      str,
+      "utf8",
+    );
+  }
+}
 
 export type { Options };

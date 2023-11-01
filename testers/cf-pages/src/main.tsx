@@ -11,6 +11,7 @@ import {
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
+import type { HtmxConfig } from "htmx.org";
 
 const app = new Hono();
 
@@ -47,6 +48,8 @@ app.all("*", async (c, next) => {
                     selfRequestsOnly: true,
                     refreshOnHistoryMiss: true,
                     scrollBehavior: "auto",
+                  } satisfies HtmxConfig & {
+                    selfRequestsOnly: boolean;
                   }),
                 },
               },

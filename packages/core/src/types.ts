@@ -22,7 +22,6 @@ type PageProps<
   loaderData: Awaited<ReturnType<LoaderType>>;
   actionData: Awaited<ReturnType<ActionType>> | undefined;
   outlet: (props?: Record<string, any>) => Promise<JSX.Element>;
-  path: string | undefined;
   c: Context<EnvType>;
   params: Record<string, string>;
   splatSegments: string[];

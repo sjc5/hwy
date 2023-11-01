@@ -184,7 +184,6 @@ export default function ({
   actionData,
   outlet,
   params,
-  path,
   splatSegments,
 }: PageProps<typeof loader, typeof action>) {
   return (
@@ -435,7 +434,9 @@ export async function action({ c }: DataFunctionArgs) {
 }
 
 export default function ({ actionData }: PageProps<never, typeof action>) {
-  if (actionData?.success) return <p>Success!</p>
+  if (actionData?.success) {
+    return <p>Success!</p>
+  }
 
   return (
     <form action="/login" method="POST">

@@ -20,6 +20,8 @@ const third_party_packages = [
   "@cloudflare/workers-types",
   "npm-run-all",
   "wrangler",
+  "idiomorph",
+  "@css-hooks/core",
 ] as const;
 
 const versions_map = third_party_packages.map((pkg) => {
@@ -77,6 +79,11 @@ function get_package_json(options: Options) {
               : "hwy-dev-serve",
         },
         dependencies: {
+          ...(options.css_preference === "css-hooks"
+            ? {
+                "@css-hooks/core": VERSIONS["@css-hooks/core"],
+              }
+            : {}),
           ...(!is_targeting_deno && options.deployment_target !== "bun"
             ? { "@hono/node-server": VERSIONS["@hono/node-server"] }
             : {}),
@@ -92,6 +99,7 @@ function get_package_json(options: Options) {
               }
             : {}),
           "@hwy-js/build": LATEST_HWY_VERSION,
+          "@hwy-js/client": LATEST_HWY_VERSION,
           "@hwy-js/dev": LATEST_HWY_VERSION,
           ...(options.lang_preference === "typescript"
             ? {
@@ -108,6 +116,7 @@ function get_package_json(options: Options) {
             ? { "bun-types": VERSIONS["bun-types"] }
             : {}),
           "htmx.org": VERSIONS["htmx.org"],
+          idiomorph: VERSIONS["idiomorph"],
           ...(options.deployment_target === "cloudflare-pages"
             ? { "npm-run-all": VERSIONS["npm-run-all"] }
             : {}),

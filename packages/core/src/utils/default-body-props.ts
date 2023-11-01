@@ -11,10 +11,21 @@ const base_props = {
   "hx-target": "this",
 } as const;
 
-function getDefaultBodyProps(options?: { nProgress: boolean }) {
+const idiomorph_props = {
+  "hx-ext": "head-support, morph",
+  "hx-swap": "morph:innerHTML",
+} as const;
+
+type ClientOptions = {
+  nProgress?: boolean;
+  idiomorph?: boolean;
+};
+
+function getDefaultBodyProps(options?: ClientOptions) {
   return {
     ...base_props,
     ...(options?.nProgress ? nprogress_callback_props : {}),
+    ...(options?.idiomorph ? idiomorph_props : {}),
   } as const;
 }
 

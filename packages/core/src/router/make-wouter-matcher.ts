@@ -22,7 +22,9 @@ function make_wouter_matcher(
     const { regexp, keys } = get_regexp(pattern || "");
     const out = regexp.exec(path);
 
-    if (!out) return [false, {} as Record<string, string>];
+    if (!out) {
+      return [false, {} as Record<string, string>];
+    }
 
     // formats an object with matched params
     const params = keys.reduce(
