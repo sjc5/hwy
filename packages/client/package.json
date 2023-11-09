@@ -21,8 +21,8 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/nprogress": "^0.2.2",
-    "htmx.org": "^1.9.6",
+    "@types/nprogress": "^0.2.3",
+    "htmx.org": "^1.9.8",
     "idiomorph": "^0.0.9",
     "nprogress": "^0.2.0",
     "tsup": "^7.2.0",
