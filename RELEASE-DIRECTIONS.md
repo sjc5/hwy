@@ -27,3 +27,4 @@ Then:
 2. Merge release branch into main.
 3. Make sure the new docs production deploy is OK.
 4. Create a new release on GitHub, pointing to the tag created above.
+5. Delete the release branch.

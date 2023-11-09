@@ -153,7 +153,7 @@ async function walk_pages() {
         ),
         treeShaking: !is_client_file,
         platform: is_client_file ? "browser" : "node",
-        packages: "external",
+        packages: is_client_file ? undefined : "external",
         format: "esm",
       });
     } catch (e) {

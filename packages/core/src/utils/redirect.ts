@@ -5,12 +5,14 @@ function redirect({
   c,
   to,
   status,
+  hxBoosted,
 }: {
   c: Context;
   to: string;
   status?: number;
+  hxBoosted?: boolean;
 }) {
-  if (c.req.headers.get("HX-Request")) {
+  if (c.req.raw.headers.get("HX-Request")) {
     if (to.startsWith("http")) {
       c.res.headers.set("HX-Redirect", to);
       return c.res;
@@ -28,12 +30,13 @@ function redirect({
     return new Response(null, {
       status: status ?? 302,
       headers: {
-        Location: to,
+        "HX-Location": to,
+        ...(hxBoosted === false ? {} : { "HX-Boosted": "true" }),
       },
     });
   }
 
-  return c.redirect(to);
+  return c.redirect(to, status ?? 302);
 }
 
 export { redirect };

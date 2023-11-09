@@ -1,4 +1,4 @@
-import type { DataFunctionArgs, PageProps } from "hwy";
+import { redirect, type DataFunctionArgs, type PageProps } from "hwy";
 import { extractSimpleFormData } from "../../utils/extract-simple-form-data.js";
 
 export async function action({ c }: DataFunctionArgs) {
@@ -63,7 +63,12 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
       </p>
 
       {!actionData?.success && (
-        <form action={thisRoute} method="POST" style={colStyles}>
+        <form
+          action={thisRoute}
+          method="POST"
+          style={colStyles}
+          hx-swap="scroll:none"
+        >
           <label style={labelStyles}>
             Email
             <input

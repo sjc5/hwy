@@ -114,9 +114,9 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       outdir: "dist",
       treeShaking: true,
       platform: "node",
-      packages: "external",
       format: "esm",
       write: false,
+      packages: "external",
     }),
 
     write_paths_to_file(),

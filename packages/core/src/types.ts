@@ -6,6 +6,8 @@ type DataFunctionArgs<EnvType extends Env = {}> = {
   splatSegments: string[];
 };
 
+type DataProps<EnvType extends Env = {}> = DataFunctionArgs<EnvType>;
+
 type Loader<EnvType extends Env = {}> = (
   args: DataFunctionArgs<EnvType>,
 ) => Promise<any> | any;
@@ -55,6 +57,7 @@ type HeadFunction<
 
 export type {
   DataFunctionArgs,
+  DataProps, // same as DataFunctionArgs, just a nicer name
   Loader,
   Action,
   PageProps,
