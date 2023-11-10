@@ -5,7 +5,7 @@ import type { Paths } from "@hwy-js/build";
 import { ROOT_DIRNAME } from "../setup.js";
 import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
 import { get_match_strength } from "./get-match-strength.js";
-import type { DataFunctionArgs } from "../types.js";
+import type { DataProps } from "../types.js";
 import { path_to_file_url_string } from "../utils/url-polyfills.js";
 import { get_hwy_global } from "../utils/get-hwy-global.js";
 import { SPLAT_SEGMENT } from "../../../common/index.mjs";
@@ -68,7 +68,7 @@ function fully_decorate_paths({
             throw e;
           }
         },
-        loader: async (loaderArgs: DataFunctionArgs) => {
+        loader: async (loaderArgs: DataProps) => {
           try {
             const imported = await get_imported();
             return imported.loader ? imported.loader(loaderArgs) : undefined;
@@ -76,7 +76,7 @@ function fully_decorate_paths({
             return handle_caught_maybe_response(e);
           }
         },
-        action: async (actionArgs: DataFunctionArgs) => {
+        action: async (actionArgs: DataProps) => {
           try {
             const imported = await get_imported();
             return imported.action ? imported.action(actionArgs) : undefined;

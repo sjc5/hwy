@@ -1,7 +1,7 @@
-import type { DataFunctionArgs, PageProps } from "hwy";
+import type { DataProps, PageProps } from "hwy";
 import { extractSimpleFormData } from "../../utils/extract-simple-form-data.js";
 
-export async function action({ c }: DataFunctionArgs) {
+export async function action({ c }: DataProps) {
   const data = await extractSimpleFormData<"email" | "password">({ c });
 
   if (!data.email || !data.password) {

@@ -293,9 +293,9 @@ export default function ({ c }: PageProps) {
         file. They are passed a subset of the PageProps object:{" "}
         <InlineCode>c</InlineCode>, <InlineCode>params</InlineCode>, and{" "}
         <InlineCode>splatSegments</InlineCode>. The typescript type exported by
-        Hwy for this object is called <InlineCode>DataFunctionArgs</InlineCode>,
-        which can take an optional generic of your Hono Env type (see the Hono
-        docs for more details on that, and why you might want to do that).
+        Hwy for this object is called <InlineCode>DataProps</InlineCode>, which
+        can take an optional generic of your Hono Env type (see the Hono docs
+        for more details on that, and why you might want to do that).
       </Paragraph>
       <Paragraph>
         Loaders run before your page is returned, and they all run in parallel.
@@ -311,9 +311,9 @@ export default function ({ c }: PageProps) {
       <CodeBlock
         language="tsx"
         code={`
-import type { DataFunctionArgs } from 'hwy'
+import type { DataProps } from 'hwy'
 
-export function loader({ c }: DataFunctionArgs) {
+export function loader({ c }: DataProps) {
   return "baseball" as const
 }
 
@@ -341,9 +341,9 @@ export default function ({ loaderData }: PageProps<typeof loader>) {
       <CodeBlock
         language="tsx"
         code={`
-import { redirect, type DataFunctionArgs } from 'hwy'
+import { redirect, type DataProps } from 'hwy'
 
-export function loader({ c }: DataFunctionArgs) {
+export function loader({ c }: DataProps) {
   return redirect({ c, to: '/login' })
 }
 `}
@@ -425,10 +425,10 @@ export default async function ({ outlet }: PageProps) {
       <CodeBlock
         language="tsx"
         code={`
-import { DataFunctionArgs, PageProps } from 'hwy'
+import { DataProps, PageProps } from 'hwy'
 import { extractFormData, logUserIn } from './pretend-lib.js'
 
-export async function action({ c }: DataFunctionArgs) {
+export async function action({ c }: DataProps) {
   const { email, password } = await extractFormData({ c })
   return await logUserIn({ email, password })
 }
@@ -551,7 +551,7 @@ app.use('*', async (c, next) => {
       <CodeBlock
         language="tsx"
         code={`
-import type { DataFunctionArgs } from 'hwy'
+import type { DataProps } from 'hwy'
 
 type AppEnv = {
   Variables: {
@@ -559,9 +559,9 @@ type AppEnv = {
   }
 }
 
-type AppDataFunctionArgs = DataFunctionArgs<AppEnv>
+type AppDataProps = DataProps<AppEnv>
 
-export async function loader({ c }: AppDataFunctionArgs) {
+export async function loader({ c }: AppDataProps) {
   // this will be type safe!
   const user = c.get('user')
 }

@@ -5,6 +5,7 @@ export { hwyInit } from "./src/setup.jsx";
 export type {
   Loader,
   DataFunctionArgs,
+  DataProps,
   Action,
   PageComponent,
   PageProps,
