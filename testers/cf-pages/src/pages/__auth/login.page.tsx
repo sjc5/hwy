@@ -1,8 +1,12 @@
-import { type DataProps, type PageProps } from "hwy";
-import { extractSimpleFormData } from "../../utils/extract-simple-form-data.js";
+import { redirect, type DataProps, type PageProps } from "hwy";
+import { extractFormDataStrings } from "../../utils/extract-form-data-strings.js";
 
 export async function action({ c }: DataProps) {
-  const data = await extractSimpleFormData<"email" | "password">({ c });
+  const data = await extractFormDataStrings<"email" | "password">({ c });
+
+  if (!data) {
+    throw new Error("No data was returned from extractFormDataStrings.");
+  }
 
   if (!data.email || !data.password) {
     return {

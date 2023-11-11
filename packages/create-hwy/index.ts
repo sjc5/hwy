@@ -343,10 +343,10 @@ async function main() {
     // utils
     await handle_ts_or_js_file_copy({
       code: fs.readFileSync(
-        path.join(root_dir_path, "__common/utils/extract-simple-form-data.ts"),
+        path.join(root_dir_path, "__common/utils/extract-form-data-strings.ts"),
         "utf8",
       ),
-      destination_without_extension: "src/utils/extract-simple-form-data",
+      destination_without_extension: "src/utils/extract-form-data-strings",
       is_jsx: false,
     });
 
