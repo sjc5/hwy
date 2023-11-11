@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/client",
-  "version": "0.7.0-beta.6",
+  "version": "0.7.0-beta.10",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@types/nprogress": "^0.2.3",
+    "hono": "^3.9.2",
     "htmx.org": "^1.9.8",
     "idiomorph": "^0.0.9",
     "nprogress": "^0.2.0",

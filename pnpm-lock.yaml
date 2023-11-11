@@ -34,17 +34,17 @@ importers:
         version: 3.9.2
       hwy:
         specifier: 0.7.0-beta.0
-        version: link:../packages/core
+        version: 0.7.0-beta.0
     devDependencies:
       '@hwy-js/build':
         specifier: 0.7.0-beta.0
-        version: link:../packages/build
+        version: 0.7.0-beta.0
       '@hwy-js/client':
         specifier: 0.7.0-beta.0
-        version: link:../packages/client
+        version: 0.7.0-beta.0(htmx.org@1.9.8)(idiomorph@0.0.9)(nprogress@0.2.0)
       '@hwy-js/dev':
         specifier: 0.7.0-beta.0
-        version: link:../packages/dev
+        version: 0.7.0-beta.0
       '@types/node':
         specifier: ^20.9.0
         version: 20.9.0
@@ -100,6 +100,9 @@ importers:
       '@types/nprogress':
         specifier: ^0.2.3
         version: 0.2.3
+      hono:
+        specifier: ^3.9.2
+        version: 3.9.2
       htmx.org:
         specifier: ^1.9.8
         version: 1.9.8
@@ -728,7 +731,6 @@ packages:
     cpu: [arm64]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/android-arm@0.17.19:
@@ -755,7 +757,6 @@ packages:
     cpu: [arm]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/android-x64@0.17.19:
@@ -782,7 +783,6 @@ packages:
     cpu: [x64]
     os: [android]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/darwin-arm64@0.17.19:
@@ -809,7 +809,6 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/darwin-x64@0.17.19:
@@ -836,7 +835,6 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/freebsd-arm64@0.17.19:
@@ -863,7 +861,6 @@ packages:
     cpu: [arm64]
     os: [freebsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/freebsd-x64@0.17.19:
@@ -890,7 +887,6 @@ packages:
     cpu: [x64]
     os: [freebsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-arm64@0.17.19:
@@ -917,7 +913,6 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-arm@0.17.19:
@@ -944,7 +939,6 @@ packages:
     cpu: [arm]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-ia32@0.17.19:
@@ -971,7 +965,6 @@ packages:
     cpu: [ia32]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-loong64@0.17.19:
@@ -998,7 +991,6 @@ packages:
     cpu: [loong64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-mips64el@0.17.19:
@@ -1025,7 +1017,6 @@ packages:
     cpu: [mips64el]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-ppc64@0.17.19:
@@ -1052,7 +1043,6 @@ packages:
     cpu: [ppc64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-riscv64@0.17.19:
@@ -1079,7 +1069,6 @@ packages:
     cpu: [riscv64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-s390x@0.17.19:
@@ -1106,7 +1095,6 @@ packages:
     cpu: [s390x]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/linux-x64@0.17.19:
@@ -1133,7 +1121,6 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/netbsd-x64@0.17.19:
@@ -1160,7 +1147,6 @@ packages:
     cpu: [x64]
     os: [netbsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/openbsd-x64@0.17.19:
@@ -1187,7 +1173,6 @@ packages:
     cpu: [x64]
     os: [openbsd]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/sunos-x64@0.17.19:
@@ -1214,7 +1199,6 @@ packages:
     cpu: [x64]
     os: [sunos]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-arm64@0.17.19:
@@ -1241,7 +1225,6 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-ia32@0.17.19:
@@ -1268,7 +1251,6 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@esbuild/win32-x64@0.17.19:
@@ -1295,7 +1277,6 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
-    dev: false
     optional: true
 
   /@fastify/busboy@2.0.0:
@@ -1306,6 +1287,42 @@ packages:
   /@hono/node-server@1.2.0:
     resolution: {integrity: sha512-aHT8lDMLpd7ioXJ1/057+h+oE/k7rCOWmjklYDsE0jE4CoNB9XzG4f8dRHvw4s5HJFocaYDiGgYM/V0kYbQ0ww==}
     engines: {node: '>=18.0.0'}
+
+  /@hwy-js/build@0.7.0-beta.0:
+    resolution: {integrity: sha512-gis7n1KbXJm6Hx2vHG0ITTQaEefAM1+vxDr+8XdGGfWWpVzAWREj5yP9oBAlLvw2tZpmygXtiqw4VG8P8BtDrg==}
+    hasBin: true
+    dependencies:
+      chokidar: 3.5.3
+      dotenv: 16.3.1
+      esbuild: 0.19.5
+      picocolors: 1.0.0
+      readdirp: 3.6.0
+    dev: true
+
+  /@hwy-js/client@0.7.0-beta.0(htmx.org@1.9.8)(idiomorph@0.0.9)(nprogress@0.2.0):
+    resolution: {integrity: sha512-4aEKnkxUqy2yBwIemwkDOAEhF7WOTs8geb4tco/NawCtkEIoDAqCUtdZyzZdGuu9RlaitRHrtg4hjZu/eILjcw==}
+    peerDependencies:
+      htmx.org: '>=1.9.6'
+      idiomorph: '>=0.0.9'
+      nprogress: '>=0.2.0'
+    peerDependenciesMeta:
+      htmx.org:
+        optional: true
+      idiomorph:
+        optional: true
+      nprogress:
+        optional: true
+    dependencies:
+      htmx.org: 1.9.8
+      idiomorph: 0.0.9
+      nprogress: 0.2.0
+    dev: true
+
+  /@hwy-js/dev@0.7.0-beta.0:
+    resolution: {integrity: sha512-bEGZ0Gvh5LQoxsAzhx2j9pBe60HqzDXemxMbQSX3xl/lH7HZ18nAFa/DwV/UF2GLXYvyw322zwImLz7NY/kDOw==}
+    dependencies:
+      picocolors: 1.0.0
+    dev: true
 
   /@jest/schemas@29.6.3:
     resolution: {integrity: sha512-mo5j5X+jIZmJQveBKeS/clAueipV7KgiX1vMgCxam1RNYiqE1w62n0/tJJnHtjW8ZHcQco5gY85jA3mi0L+nSA==}
@@ -1902,7 +1919,6 @@ packages:
   /dotenv@16.3.1:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
     engines: {node: '>=12'}
-    dev: false
 
   /electron-to-chromium@1.4.579:
     resolution: {integrity: sha512-bJKvA+awBIzYR0xRced7PrQuRIwGQPpo6ZLP62GAShahU9fWpsNN2IP6BSP1BLDDSbxvBVRGAMWlvVVq3npmLA==}
@@ -2066,7 +2082,6 @@ packages:
       '@esbuild/win32-arm64': 0.19.5
       '@esbuild/win32-ia32': 0.19.5
       '@esbuild/win32-x64': 0.19.5
-    dev: false
 
   /escalade@3.1.1:
     resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
@@ -2333,6 +2348,10 @@ packages:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
     dev: true
+
+  /hwy@0.7.0-beta.0:
+    resolution: {integrity: sha512-42N7cpq/OQAPG+hPnsZ6AMfY42UjnK1f5LBDmxh1fp+n/wrR7r4UeuwM/TfTofNubLXeJ3AGqE7B2NDPPKKZXw==}
+    dev: false
 
   /iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
