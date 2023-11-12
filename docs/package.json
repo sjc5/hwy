@@ -14,12 +14,12 @@
   "dependencies": {
     "@hono/node-server": "^1.2.2",
     "hono": "^3.9.2",
-    "hwy": "workspace:0.7.0-beta.12"
+    "hwy": "0.7.0-beta.13"
   },
   "devDependencies": {
-    "@hwy-js/build": "workspace:0.7.0-beta.12",
-    "@hwy-js/client": "workspace:0.7.0-beta.12",
-    "@hwy-js/dev": "workspace:0.7.0-beta.12",
+    "@hwy-js/build": "0.7.0-beta.13",
+    "@hwy-js/client": "0.7.0-beta.13",
+    "@hwy-js/dev": "0.7.0-beta.13",
     "@types/node": "^20.9.0",
     "@types/nprogress": "^0.2.3",
     "htmx.org": "^1.9.8",
