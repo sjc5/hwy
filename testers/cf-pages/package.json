@@ -13,7 +13,7 @@
     "update-latest": "pnpm update --latest"
   },
   "dependencies": {
-    "@hono/node-server": "^1.2.0",
+    "@hono/node-server": "^1.2.2",
     "hono": "^3.9.2",
     "hwy": "workspace:*"
   },

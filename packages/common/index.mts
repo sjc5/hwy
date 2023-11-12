@@ -12,7 +12,7 @@ export const HWY_GLOBAL_KEYS = {
   public_reverse_map: `${HWY_PREFIX}public_reverse_map`,
 } as const;
 
-export const DEFAULT_PORT = 5555;
+export const DEFAULT_PORT = 3000;
 
 export type DeploymentTarget =
   | "bun"
