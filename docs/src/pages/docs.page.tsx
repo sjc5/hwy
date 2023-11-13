@@ -426,10 +426,11 @@ export default async function ({ outlet }: PageProps) {
         language="tsx"
         code={`
 import { DataProps, PageProps } from 'hwy'
-import { extractFormData, logUserIn } from './pretend-lib.js'
+import { getFormStrings } from '@hwy-js/utils'
+import { logUserIn } from './somewhere.js'
 
 export async function action({ c }: DataProps) {
-  const { email, password } = await extractFormData({ c })
+  const { email, password } = await getFormStrings({ c })
   return await logUserIn({ email, password })
 }
 

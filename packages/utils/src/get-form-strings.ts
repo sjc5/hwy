@@ -1,6 +1,6 @@
 import type { Context } from "hono";
 
-async function extractFormDataStrings<T extends string>({
+async function getFormStrings<T extends string>({
   c,
   doNotTrim,
 }: {
@@ -45,4 +45,4 @@ async function extractFormDataStrings<T extends string>({
   }
 }
 
-export { extractFormDataStrings };
+export { getFormStrings };

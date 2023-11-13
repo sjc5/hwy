@@ -1,11 +1,11 @@
 import type { DataProps, PageProps } from "hwy";
-import { extractFormDataStrings } from "../../utils/extract-form-data-strings.js";
+import { getFormStrings } from "@hwy-js/utils";
 
 export async function action({ c }: DataProps) {
-  const data = await extractFormDataStrings<"email" | "password">({ c });
+  const data = await getFormStrings<"email" | "password">({ c });
 
   if (!data) {
-    throw new Error("No data was returned from extractFormDataStrings.");
+    throw new Error("No data was returned from getFormStrings.");
   }
 
   if (!data.email || !data.password) {

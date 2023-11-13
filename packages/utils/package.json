@@ -1,11 +1,11 @@
 {
-  "name": "@hwy-js/build",
+  "name": "@hwy-js/utils",
   "version": "0.7.0-beta.17",
   "author": {
     "name": "Samuel J. Cook"
   },
   "license": "MIT",
-  "description": "Build tools for Hwy framework",
+  "description": "Various utilities for Hwy framework",
   "type": "module",
   "main": "dist/index.js",
   "files": [
@@ -20,19 +20,7 @@
     "update-latest": "pnpm update --latest",
     "typecheck": "tsc --noEmit"
   },
-  "bin": {
-    "hwy-dev-serve": "./scripts/dev-serve.js",
-    "hwy-build": "./scripts/run-build-tasks.js"
-  },
-  "dependencies": {
-    "chokidar": "^3.5.3",
-    "dotenv": "^16.3.1",
-    "esbuild": "^0.19.5",
-    "picocolors": "^1.0.0",
-    "readdirp": "^3.6.0"
-  },
   "devDependencies": {
-    "@types/node": "^20.9.0",
     "hono": "^3.9.2",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2"
@@ -40,8 +28,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/hwy-js/hwy",
-    "directory": "packages/build"
+    "directory": "packages/utils"
   },
   "homepage": "https://hwy.dev",
-  "bugs": "https://github.com/hwy-js/hwy/issues"
+  "bugs": "https://github.com/hwy-js/hwy/issues",
+  "sideEffects": false
 }
