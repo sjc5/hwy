@@ -1,7 +1,7 @@
 import {
   hwyInit,
   CssImports,
-  rootOutlet,
+  RootOutlet,
   DevLiveRefreshScript,
   ClientScripts,
   HeadElements,
@@ -71,10 +71,7 @@ app.all("*", async (c, next) => {
         >
           <Sidebar />
           <main>
-            {await rootOutlet({
-              activePathData,
-              c,
-            })}
+            <RootOutlet activePathData={activePathData} c={c} />
           </main>
         </body>
       </html>

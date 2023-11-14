@@ -1,4 +1,6 @@
-export default function () {
+export default async function () {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
   return (
     <>
       <p>
@@ -7,6 +9,14 @@ export default function () {
       </p>
 
       <a href="/about">Back to index route</a>
+
+      <Bob />
     </>
   );
+}
+
+async function Bob() {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  return <div>Hi</div>;
 }

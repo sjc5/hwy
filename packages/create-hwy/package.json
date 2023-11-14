@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.7.0-beta.17",
+  "version": "0.7.0-beta.19",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -39,13 +39,13 @@
     "@types/node": "^20.9.0",
     "@types/nprogress": "^0.2.3",
     "bun-types": "^1.0.11",
-    "hono": "^3.9.2",
+    "hono": "^3.10.0",
     "htmx.org": "^1.9.8",
     "hwy": "workspace:*",
     "idiomorph": "^0.0.9",
     "npm-run-all": "^4.1.5",
     "nprogress": "^0.2.0",
-    "prettier": "^3.0.3",
+    "prettier": "^3.1.0",
     "tailwindcss": "^3.3.5",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2",

@@ -1,7 +1,7 @@
 import {
   hwyInit,
   CssImports,
-  rootOutlet,
+  RootOutlet,
   DevLiveRefreshScript,
   ClientScripts,
   HeadElements,
@@ -78,13 +78,13 @@ app.all("*", async (c, next) => {
           </nav>
 
           <main>
-            {await rootOutlet({
-              activePathData,
-              c,
-              fallbackErrorBoundary: () => {
+            <RootOutlet
+              activePathData={activePathData}
+              c={c}
+              fallbackErrorBoundary={() => {
                 return <div>Something went wrong.</div>;
-              },
-            })}
+              }}
+            />
           </main>
         </body>
       </html>

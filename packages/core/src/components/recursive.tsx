@@ -3,7 +3,7 @@ import { getMatchingPathData } from "../router/get-matching-path-data.js";
 import type { HtmlEscapedString } from "hono/utils/html";
 import type { ErrorBoundaryProps, PageProps } from "../types.js";
 
-async function rootOutlet(props: {
+async function RootOutlet(props: {
   activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
   index?: number;
   c: Context;
@@ -12,7 +12,7 @@ async function rootOutlet(props: {
     splatSegments: string[];
     params: Record<string, string>;
     c: Context;
-  }) => HtmlEscapedString;
+  }) => Promise<HtmlEscapedString> | HtmlEscapedString;
 }): Promise<HtmlEscapedString> {
   const { index, activePathData: active_path_data } = props;
 
@@ -50,22 +50,43 @@ async function rootOutlet(props: {
       } satisfies ErrorBoundaryProps);
     }
 
-    return CurrentComponent({
-      ...props,
-      c: props.c,
-      params: active_path_data?.params || {},
-      splatSegments: active_path_data?.splatSegments || [],
-      outlet: async (local_props: Record<string, any> | undefined) => {
-        return await rootOutlet({
-          ...local_props,
-          activePathData: active_path_data,
-          index: index_to_use + 1,
-          c: props.c,
-        });
-      },
-      loaderData: current_data,
-      actionData: active_path_data.actionData,
-    } satisfies PageProps);
+    return (
+      <CurrentComponent
+        {...props}
+        c={props.c}
+        params={active_path_data?.params || {}}
+        splatSegments={active_path_data?.splatSegments || []}
+        outlet={async (local_props: Record<string, any> | undefined) => {
+          return (
+            <RootOutlet
+              {...local_props}
+              activePathData={active_path_data}
+              index={index_to_use + 1}
+              c={props.c}
+            />
+          );
+        }}
+        loaderData={current_data}
+        actionData={active_path_data.actionData}
+      />
+    );
+
+    // return CurrentComponent({
+    //   ...props,
+    //   c: props.c,
+    //   params: active_path_data?.params || {},
+    //   splatSegments: active_path_data?.splatSegments || [],
+    //   outlet: async (local_props: Record<string, any> | undefined) => {
+    //     return await rootOutlet({
+    //       ...local_props,
+    //       activePathData: active_path_data,
+    //       index: index_to_use + 1,
+    //       c: props.c,
+    //     });
+    //   },
+    //   loaderData: current_data,
+    //   actionData: active_path_data.actionData,
+    // } satisfies PageProps);
   } catch (error) {
     console.error(error);
 
@@ -88,4 +109,4 @@ async function rootOutlet(props: {
   }
 }
 
-export { rootOutlet };
+export { RootOutlet };

@@ -1,6 +1,6 @@
 import type { PageProps } from "hwy";
 
-export default async function ({ outlet }: PageProps) {
+export default async function ({ outlet: Outlet }: PageProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <p>
@@ -13,7 +13,9 @@ export default async function ({ outlet }: PageProps) {
         Outlet:
       </div>
 
-      <div class="outlet-wrapper">{await outlet()}</div>
+      <div class="outlet-wrapper">
+        <Outlet />
+      </div>
     </div>
   );
 }

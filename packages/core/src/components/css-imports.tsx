@@ -1,10 +1,9 @@
-import type { HtmlEscapedString } from "hono/utils/html";
 import { getPublicUrl } from "../utils/hashed-public-url.js";
 import { get_hwy_global } from "../utils/get-hwy-global.js";
 
 const hwy_global = get_hwy_global();
 
-function CriticalCss(): HtmlEscapedString {
+function CriticalCss() {
   const critical_css = hwy_global.get("critical_bundled_css");
 
   if (!critical_css) {
@@ -22,7 +21,7 @@ function CriticalCss(): HtmlEscapedString {
 
 const CSS_IMPORT_URL = `dist/standard-bundled.css`;
 
-function NonCriticalCss(): HtmlEscapedString {
+function NonCriticalCss() {
   const standard_bundled_css_exists = hwy_global.get(
     "standard_bundled_css_exists",
   );
@@ -34,7 +33,7 @@ function NonCriticalCss(): HtmlEscapedString {
   return <link rel="stylesheet" href={getPublicUrl(CSS_IMPORT_URL)} />;
 }
 
-function CssImports(): HtmlEscapedString {
+function CssImports() {
   return (
     <>
       <CriticalCss />

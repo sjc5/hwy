@@ -1,5 +1,4 @@
 import { LIVE_REFRESH_SSE_PATH } from "../../../common/index.mjs";
-import type { HtmlEscapedString } from "hono/utils/html";
 import { get_hwy_global } from "../utils/get-hwy-global.js";
 
 const get_dev_live_refresh_script_inner_html = (timeout_ms = 300) => {
@@ -10,9 +9,7 @@ const get_dev_live_refresh_script_inner_html = (timeout_ms = 300) => {
 
 const hwy_global = get_hwy_global();
 
-function DevLiveRefreshScript(props?: {
-  timeoutInMs?: number;
-}): HtmlEscapedString {
+function DevLiveRefreshScript(props?: { timeoutInMs?: number }) {
   if (
     hwy_global.get("is_dev") &&
     // Wrangler does its own live reload

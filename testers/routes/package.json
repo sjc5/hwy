@@ -12,7 +12,7 @@
   "dependencies": {
     "@css-hooks/core": "^1.2.1",
     "@hono/node-server": "^1.2.2",
-    "hono": "^3.9.2",
+    "hono": "^3.10.0",
     "hwy": "workspace:*"
   },
   "devDependencies": {

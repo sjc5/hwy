@@ -15,8 +15,8 @@ importers:
         specifier: ^4.1.5
         version: 4.1.5
       prettier:
-        specifier: ^3.0.3
-        version: 3.0.3
+        specifier: ^3.1.0
+        version: 3.1.0
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -30,21 +30,21 @@ importers:
         specifier: ^1.2.2
         version: 1.2.2
       hono:
-        specifier: ^3.9.2
-        version: 3.9.2
+        specifier: ^3.10.0
+        version: 3.10.0
       hwy:
-        specifier: 0.7.0-beta.13
-        version: 0.7.0-beta.13
+        specifier: workspace:*
+        version: link:../packages/core
     devDependencies:
       '@hwy-js/build':
-        specifier: 0.7.0-beta.13
-        version: 0.7.0-beta.13
+        specifier: workspace:*
+        version: link:../packages/build
       '@hwy-js/client':
-        specifier: 0.7.0-beta.13
-        version: 0.7.0-beta.13(htmx.org@1.9.8)(idiomorph@0.0.9)(nprogress@0.2.0)
+        specifier: workspace:*
+        version: link:../packages/client
       '@hwy-js/dev':
-        specifier: 0.7.0-beta.13
-        version: 0.7.0-beta.13
+        specifier: workspace:*
+        version: link:../packages/dev
       '@types/node':
         specifier: ^20.9.0
         version: 20.9.0
@@ -86,8 +86,8 @@ importers:
         specifier: ^20.9.0
         version: 20.9.0
       hono:
-        specifier: ^3.9.2
-        version: 3.9.2
+        specifier: ^3.10.0
+        version: 3.10.0
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(postcss@8.4.31)(typescript@5.2.2)
@@ -101,8 +101,8 @@ importers:
         specifier: ^0.2.3
         version: 0.2.3
       hono:
-        specifier: ^3.9.2
-        version: 3.9.2
+        specifier: ^3.10.0
+        version: 3.10.0
       htmx.org:
         specifier: ^1.9.8
         version: 1.9.8
@@ -134,8 +134,8 @@ importers:
         specifier: ^20.9.0
         version: 20.9.0
       hono:
-        specifier: ^3.9.2
-        version: 3.9.2
+        specifier: ^3.10.0
+        version: 3.10.0
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(postcss@8.4.31)(typescript@5.2.2)
@@ -177,8 +177,8 @@ importers:
         specifier: ^1.0.11
         version: 1.0.11
       hono:
-        specifier: ^3.9.2
-        version: 3.9.2
+        specifier: ^3.10.0
+        version: 3.10.0
       htmx.org:
         specifier: ^1.9.8
         version: 1.9.8
@@ -195,8 +195,8 @@ importers:
         specifier: ^0.2.0
         version: 0.2.0
       prettier:
-        specifier: ^3.0.3
-        version: 3.0.3
+        specifier: ^3.1.0
+        version: 3.1.0
       tailwindcss:
         specifier: ^3.3.5
         version: 3.3.5
@@ -220,8 +220,8 @@ importers:
         specifier: ^20.9.0
         version: 20.9.0
       hono:
-        specifier: ^3.9.2
-        version: 3.9.2
+        specifier: ^3.10.0
+        version: 3.10.0
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(postcss@8.4.31)(typescript@5.2.2)
@@ -232,8 +232,8 @@ importers:
   packages/utils:
     devDependencies:
       hono:
-        specifier: ^3.9.2
-        version: 3.9.2
+        specifier: ^3.10.0
+        version: 3.10.0
       tsup:
         specifier: ^7.2.0
         version: 7.2.0(postcss@8.4.31)(typescript@5.2.2)
@@ -247,8 +247,8 @@ importers:
         specifier: ^1.2.2
         version: 1.2.2
       hono:
-        specifier: ^3.9.2
-        version: 3.9.2
+        specifier: ^3.10.0
+        version: 3.10.0
       hwy:
         specifier: workspace:*
         version: link:../../packages/core
@@ -293,8 +293,8 @@ importers:
         specifier: ^1.2.2
         version: 1.2.2
       hono:
-        specifier: ^3.9.2
-        version: 3.9.2
+        specifier: ^3.10.0
+        version: 3.10.0
       hwy:
         specifier: workspace:*
         version: link:../../packages/core
@@ -749,6 +749,7 @@ packages:
     cpu: [arm64]
     os: [android]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/android-arm@0.17.19:
@@ -775,6 +776,7 @@ packages:
     cpu: [arm]
     os: [android]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/android-x64@0.17.19:
@@ -801,6 +803,7 @@ packages:
     cpu: [x64]
     os: [android]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/darwin-arm64@0.17.19:
@@ -827,6 +830,7 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/darwin-x64@0.17.19:
@@ -853,6 +857,7 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/freebsd-arm64@0.17.19:
@@ -879,6 +884,7 @@ packages:
     cpu: [arm64]
     os: [freebsd]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/freebsd-x64@0.17.19:
@@ -905,6 +911,7 @@ packages:
     cpu: [x64]
     os: [freebsd]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/linux-arm64@0.17.19:
@@ -931,6 +938,7 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/linux-arm@0.17.19:
@@ -957,6 +965,7 @@ packages:
     cpu: [arm]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/linux-ia32@0.17.19:
@@ -983,6 +992,7 @@ packages:
     cpu: [ia32]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/linux-loong64@0.17.19:
@@ -1009,6 +1019,7 @@ packages:
     cpu: [loong64]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/linux-mips64el@0.17.19:
@@ -1035,6 +1046,7 @@ packages:
     cpu: [mips64el]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/linux-ppc64@0.17.19:
@@ -1061,6 +1073,7 @@ packages:
     cpu: [ppc64]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/linux-riscv64@0.17.19:
@@ -1087,6 +1100,7 @@ packages:
     cpu: [riscv64]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/linux-s390x@0.17.19:
@@ -1113,6 +1127,7 @@ packages:
     cpu: [s390x]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/linux-x64@0.17.19:
@@ -1139,6 +1154,7 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/netbsd-x64@0.17.19:
@@ -1165,6 +1181,7 @@ packages:
     cpu: [x64]
     os: [netbsd]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/openbsd-x64@0.17.19:
@@ -1191,6 +1208,7 @@ packages:
     cpu: [x64]
     os: [openbsd]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/sunos-x64@0.17.19:
@@ -1217,6 +1235,7 @@ packages:
     cpu: [x64]
     os: [sunos]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/win32-arm64@0.17.19:
@@ -1243,6 +1262,7 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/win32-ia32@0.17.19:
@@ -1269,6 +1289,7 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@esbuild/win32-x64@0.17.19:
@@ -1295,6 +1316,7 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
+    dev: false
     optional: true
 
   /@fastify/busboy@2.0.0:
@@ -1305,42 +1327,6 @@ packages:
   /@hono/node-server@1.2.2:
     resolution: {integrity: sha512-ER8nfFRw7u3BU/44G1GXth9m2Gqa9hneZ4c6yZ4nexGHdBYMJYHlDS6cOo556EugqASi1bBLDpoVbFA9nCgjGQ==}
     engines: {node: '>=18.14.1'}
-
-  /@hwy-js/build@0.7.0-beta.13:
-    resolution: {integrity: sha512-tOkbbjN7ermZ+MuhN3g/udExN1hfuOBCL71ZtlnZ11XedCuAAScks0TO0b6qC0SA1BV2X+iJa8ooamKlAIqXgQ==}
-    hasBin: true
-    dependencies:
-      chokidar: 3.5.3
-      dotenv: 16.3.1
-      esbuild: 0.19.5
-      picocolors: 1.0.0
-      readdirp: 3.6.0
-    dev: true
-
-  /@hwy-js/client@0.7.0-beta.13(htmx.org@1.9.8)(idiomorph@0.0.9)(nprogress@0.2.0):
-    resolution: {integrity: sha512-TsYyTizfrvMlORRRZOZq5V8VQR+dEzFOi+tMICs8+hLz1rFh3alTYgkyip4IDvwj3e/yqEeNEXb/4X28e+TLlg==}
-    peerDependencies:
-      htmx.org: '>=1.9.6'
-      idiomorph: '>=0.0.9'
-      nprogress: '>=0.2.0'
-    peerDependenciesMeta:
-      htmx.org:
-        optional: true
-      idiomorph:
-        optional: true
-      nprogress:
-        optional: true
-    dependencies:
-      htmx.org: 1.9.8
-      idiomorph: 0.0.9
-      nprogress: 0.2.0
-    dev: true
-
-  /@hwy-js/dev@0.7.0-beta.13:
-    resolution: {integrity: sha512-BTsSYmITJkyoYaYpF0L7LkdOPns0kt26LGlwy7B7kuhng2HOHuoC/X8iyk7P3Up5lnFy3OXz/4tr6XnFj2wDHg==}
-    dependencies:
-      picocolors: 1.0.0
-    dev: true
 
   /@jest/schemas@29.6.3:
     resolution: {integrity: sha512-mo5j5X+jIZmJQveBKeS/clAueipV7KgiX1vMgCxam1RNYiqE1w62n0/tJJnHtjW8ZHcQco5gY85jA3mi0L+nSA==}
@@ -1937,6 +1923,7 @@ packages:
   /dotenv@16.3.1:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
     engines: {node: '>=12'}
+    dev: false
 
   /electron-to-chromium@1.4.581:
     resolution: {integrity: sha512-6uhqWBIapTJUxgPTCHH9sqdbxIMPt7oXl0VcAL1kOtlU6aECdcMncCrX5Z7sHQ/invtrC9jUQUef7+HhO8vVFw==}
@@ -2100,6 +2087,7 @@ packages:
       '@esbuild/win32-arm64': 0.19.5
       '@esbuild/win32-ia32': 0.19.5
       '@esbuild/win32-x64': 0.19.5
+    dev: false
 
   /escalade@3.1.1:
     resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
@@ -2350,8 +2338,8 @@ packages:
     dependencies:
       function-bind: 1.1.2
 
-  /hono@3.9.2:
-    resolution: {integrity: sha512-180NOiMadqU3lGmN6ajPDZvZPWus3a9mtVaAUR9uG0SImngBwRLA8vbnV0oUfUAgFT4nX55sGV9dVA06OuikHA==}
+  /hono@3.10.0:
+    resolution: {integrity: sha512-rN8PNMt66U58Qj3+L8gr7EsaYnj56cBDS2MjhUnMgDaXoyw44/OeFDsmXXzn/YQ7CAWeENC3Dq/kp+4RJSNE3Q==}
     engines: {node: '>=16.0.0'}
 
   /hosted-git-info@2.8.9:
@@ -2366,10 +2354,6 @@ packages:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
     dev: true
-
-  /hwy@0.7.0-beta.13:
-    resolution: {integrity: sha512-WPmrdtSwBYQRwvVcGEPvVT0/BTj6+t+o777Mf3ulCq230ZCfZLVGUebs9MW+cQunnwAix8YA/IHbXPI3K1unEQ==}
-    dev: false
 
   /iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
@@ -3052,8 +3036,8 @@ packages:
     hasBin: true
     dev: false
 
-  /prettier@3.0.3:
-    resolution: {integrity: sha512-L/4pUDMxcNa8R/EthV08Zt42WBO4h1rarVtK0K+QJG0X187OLo7l699jWw0GKuwzkPQ//jMFA/8Xm6Fh3J/DAg==}
+  /prettier@3.1.0:
+    resolution: {integrity: sha512-TQLvXjq5IAibjh8EpBIkNKxO749UEWABoiIZehEPiY4GNpVdhaFKqSTu+QrlU6D2dPAfubRmtJTi4K4YkQ5eXw==}
     engines: {node: '>=14'}
     hasBin: true
     dev: true
@@ -3362,8 +3346,8 @@ packages:
       get-source: 2.0.12
     dev: true
 
-  /std-env@3.4.3:
-    resolution: {integrity: sha512-f9aPhy8fYBuMN+sNfakZV18U39PbalgjXG3lLB9WkaYTxijru61wb57V9wxxNthXM5Sd88ETBWi29qLAsHO52Q==}
+  /std-env@3.5.0:
+    resolution: {integrity: sha512-JGUEaALvL0Mf6JCfYnJOTcobY+Nc7sG/TemDRBqCA0wEr4DER7zDchaaixTlmOxAjG1uRJmX82EQcxwTQTkqVA==}
     dev: true
 
   /stoppable@1.1.0:
@@ -3814,7 +3798,7 @@ packages:
       magic-string: 0.30.5
       pathe: 1.1.1
       picocolors: 1.0.0
-      std-env: 3.4.3
+      std-env: 3.5.0
       strip-literal: 1.3.0
       tinybench: 2.5.1
       tinypool: 0.7.0
