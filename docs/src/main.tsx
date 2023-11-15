@@ -2,7 +2,7 @@ import { IS_DEV } from "./utils/constants.js";
 import {
   hwyInit,
   CssImports,
-  rootOutlet,
+  RootOutlet,
   DevLiveRefreshScript,
   ClientScripts,
   HeadElements,
@@ -76,55 +76,64 @@ const default_head_blocks: HeadBlock[] = [
 ];
 
 app.all("*", async (c, next) => {
-  if (IS_DEV) await new Promise((r) => setTimeout(r, 150));
+  if (IS_DEV) {
+    await new Promise((r) => setTimeout(r, 150));
+  }
 
   // 31 days vercel edge cache (invalidated each deploy)
   c.header("CDN-Cache-Control", "public, max-age=2678400");
   // 10 seconds client cache
   c.header("Cache-Control", "public, max-age=10");
 
-  return await renderRoot(c, next, async ({ activePathData }) => {
-    return (
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
+  return await renderRoot({
+    c,
+    next,
+    root: ({ activePathData }) => {
+      return (
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta
+              name="viewport"
+              content="width=device-width,initial-scale=1"
+            />
 
-          <HeadElements
-            c={c}
-            activePathData={activePathData}
-            defaults={default_head_blocks}
-          />
+            <HeadElements
+              c={c}
+              activePathData={activePathData}
+              defaults={default_head_blocks}
+            />
 
-          <CssImports />
-          <ClientScripts activePathData={activePathData} />
-          <DevLiveRefreshScript />
-          <script defer src={getPublicUrl("prism.js")} />
-        </head>
+            <CssImports />
+            <ClientScripts activePathData={activePathData} />
+            <DevLiveRefreshScript />
+            <script defer src={getPublicUrl("prism.js")} />
+          </head>
 
-        <body {...getDefaultBodyProps({ idiomorph: true, nProgress: true })}>
-          <div class="body-inner">
-            <div style={{ flexGrow: 1 }}>
-              <Nav />
+          <body {...getDefaultBodyProps({ idiomorph: true, nProgress: true })}>
+            <div class="body-inner">
+              <div style={{ flexGrow: 1 }}>
+                <Nav />
 
-              <div class="root-outlet-wrapper">
-                {await rootOutlet({
-                  c,
-                  activePathData,
-                  fallbackErrorBoundary: FallbackErrorBoundary,
-                })}
+                <div class="root-outlet-wrapper">
+                  <RootOutlet
+                    c={c}
+                    activePathData={activePathData}
+                    fallbackErrorBoundary={FallbackErrorBoundary}
+                  />
+                </div>
               </div>
-            </div>
 
-            <footer>
-              <span style={{ opacity: 0.6 }}>
-                MIT License. Copyright (c) 2023 Samuel J. Cook.
-              </span>
-            </footer>
-          </div>
-        </body>
-      </html>
-    );
+              <footer>
+                <span style={{ opacity: 0.6 }}>
+                  MIT License. Copyright (c) 2023 Samuel J. Cook.
+                </span>
+              </footer>
+            </div>
+          </body>
+        </html>
+      );
+    },
   });
 });
 

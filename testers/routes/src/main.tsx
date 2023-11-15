@@ -41,41 +41,48 @@ const default_head_blocks: HeadBlock[] = [
 ];
 
 app.all("*", async (c, next) => {
-  return await renderRoot(c, next, async ({ activePathData }) => {
-    return (
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
+  return await renderRoot({
+    c,
+    next,
+    root: ({ activePathData }) => {
+      return (
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta
+              name="viewport"
+              content="width=device-width,initial-scale=1"
+            />
 
-          <HeadElements
-            activePathData={activePathData}
-            c={c}
-            defaults={default_head_blocks}
-          />
+            <HeadElements
+              activePathData={activePathData}
+              c={c}
+              defaults={default_head_blocks}
+            />
 
-          <CssImports />
-          <ClientScripts activePathData={activePathData} />
-          <DevLiveRefreshScript />
-          <CssHooksStyleSheet />
-        </head>
+            <CssImports />
+            <ClientScripts activePathData={activePathData} />
+            <DevLiveRefreshScript />
+            <CssHooksStyleSheet />
+          </head>
 
-        <body
-          {...getDefaultBodyProps({ idiomorph: true })}
-          style={hooks({
-            background: "orange",
-            dark: {
-              background: "black",
-            },
-          })}
-        >
-          <Sidebar />
-          <main>
-            <RootOutlet activePathData={activePathData} c={c} />
-          </main>
-        </body>
-      </html>
-    );
+          <body
+            {...getDefaultBodyProps({ idiomorph: true })}
+            style={hooks({
+              background: "orange",
+              dark: {
+                background: "black",
+              },
+            })}
+          >
+            <Sidebar />
+            <main>
+              <RootOutlet activePathData={activePathData} c={c} />
+            </main>
+          </body>
+        </html>
+      );
+    },
   });
 });
 

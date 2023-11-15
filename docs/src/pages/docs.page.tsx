@@ -182,14 +182,15 @@ export default function ({
   c,
   loaderData,
   actionData,
-  outlet,
+  Outlet,
   params,
   splatSegments,
 }: PageProps<typeof loader, typeof action>) {
   return (
-    <p>
+    <div>
       I like {loaderData?.sport}.
-    </p>
+      <Outlet />
+    </div>
   )
 }
         `}
@@ -230,11 +231,10 @@ export default function ({
           </ListItem>
 
           <ListItem>
-            <InlineCode>outlet</InlineCode> - This is the outlet for the page,
-            and it's where child routes get rendered. Because page components
-            are async, you should render outlets like this:{" "}
-            <InlineCode>{`{await outlet()}`}</InlineCode>, regardless of whether
-            you're actually doing anything asynchronous inside of them.
+            <InlineCode>Outlet</InlineCode> - This is the outlet for the page,
+            and it's where child routes get rendered. You render outlets just
+            like any other component (you can even pass in props if you want): (
+            <InlineCode>{`<Outlet whatever={whatever} />`}</InlineCode>)
           </ListItem>
 
           <ListItem>
@@ -365,14 +365,14 @@ export function loader({ c }: DataProps) {
         code={`
 // src/some-page.page.tsx
 
-export default async function ({ outlet }: PageProps) {
+export default async function ({ Outlet }: PageProps) {
   const someData = await getSomeData()
 
   return (
     <div>
       {JSON.stringify(someData)}
 
-      {await outlet()}
+      <Outlet />
     </div>
   )
 }
@@ -383,17 +383,11 @@ export default async function ({ outlet }: PageProps) {
         available in the child page component's props. Here's how that would
         look in the parent page component:
       </Paragraph>
-      <CodeBlock language="tsx" code={`{await outlet({ someData })}`} />
+      <CodeBlock language="tsx" code={`<Outlet someData={someData} />`} />
       <Paragraph>
         And in the child component, you'll want to use{" "}
         <InlineCode>{`PageProps & { someData: SomeType }`}</InlineCode> as your
         prop type.
-      </Paragraph>
-      <Paragraph>
-        Because page components are async and let you fetch data inside them, be
-        sure to always await your <InlineCode>outlet</InlineCode> calls, like
-        this: <InlineCode>{`{await outlet()}`}</InlineCode>. If you don't,
-        things might not render correctly.
       </Paragraph>
       <Paragraph>
         Another way of doing this would be to use Hono's{" "}
@@ -505,7 +499,7 @@ export function loader() {
         error is thrown in the page or any of its children, the error will be
         caught and passed to the nearest applicable parent error boundary
         component. You can also pass a default error boundary component that
-        effectively wraps your outermost <InlineCode>rootOutlet</InlineCode> (in{" "}
+        effectively wraps your outermost <InlineCode>RootOutlet</InlineCode> (in{" "}
         <InlineCode>main.tsx</InlineCode>) like so:
       </Paragraph>
       <CodeBlock
@@ -515,13 +509,13 @@ import type { ErrorBoundaryProps } from 'hwy'
 
 ...
 
-{await rootOutlet({
-  activePathData,
-  c,
-  fallbackErrorBoundary: (props: ErrorBoundaryProps) => {
+<RootOutlet
+  c={c}
+  activePathData={activePathData}
+  fallbackErrorBoundary={(props: ErrorBoundaryProps) => {
     return <div>{props.error.message}</div>
-  },
-})}
+  }}
+/>
       `}
       />
       <AnchorHeading content="Hono middleware and variables" />
@@ -578,7 +572,7 @@ export async function loader({ c }: AppDataProps) {
         code={`
 import {
   CssImports,
-  rootOutlet,
+  RootOutlet,
   DevLiveRefreshScript,
   ClientScripts,
   getDefaultBodyProps,
@@ -586,36 +580,39 @@ import {
 } from 'hwy'
 
 app.all('*', async (c, next) => {
-  return await renderRoot(c, next, async ({ activePathData }) => {
-    return (
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-          <HeadElements
-            c={c}
-            activePathData={activePathData}
-            defaults={defaultHeadBlocks}
-          />
-
-          <CssImports />
-          <ClientScripts activePathData={activePathData} />
-          <DevLiveRefreshScript />
-        </head>
-
-        <body {...getDefaultBodyProps()}>
-          {await rootOutlet({
-            c,
-            activePathData,
-            fallbackErrorBoundary: () => {
-              return <div>Something went wrong!</div>
-            },
-          })}
-        </body>
-      </html>
-    )
-  }
+  return await renderRoot({ 
+    c,
+    next,
+    root: ({ activePathData }) => {
+      return (
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
+            <HeadElements
+              c={c}
+              activePathData={activePathData}
+              defaults={defaultHeadBlocks}
+            />
+  
+            <CssImports />
+            <ClientScripts activePathData={activePathData} />
+            <DevLiveRefreshScript />
+          </head>
+  
+          <body {...getDefaultBodyProps()}>
+            <RootOulet
+              c={c}
+              activePathData={activePathData}
+              fallbackErrorBoundary={FallbackErrorBoundary}
+            />
+          </body>
+        </html>
+      )
+    },
+    shouldStream: true, // optional (defaults to true)
+  })
 })
       `}
       />
@@ -666,7 +663,7 @@ app.all('*', async (c, next) => {
 import { HeadFunction } from 'hwy'
 
 export const head: HeadFunction = (props) => {
-  // props are the same as PageProps, but without the outlet
+  // props are the same as PageProps, but without the Outlet
 
   return [
     { title: 'Some Child Page' },
@@ -686,7 +683,7 @@ export const head: HeadFunction = (props) => {
         This will override any conflicting head elements set either by an
         ancestor page component or by the root defaults. The{" "}
         <InlineCode>head</InlineCode> function is passed all the same props as a
-        page component, excluding <InlineCode>outlet</InlineCode>.
+        page component, excluding <InlineCode>Outlet</InlineCode>.
       </Paragraph>
       <AnchorHeading content="Styling" />
       <Paragraph>

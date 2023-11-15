@@ -21,74 +21,81 @@ app.use("*", logger());
 app.get("*", secureHeaders());
 
 app.all("*", async (c, next) => {
-  return await renderRoot(c, next, async ({ activePathData }) => {
-    return (
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-          <HeadElements
-            c={c}
-            activePathData={activePathData}
-            defaults={[
-              { title: "cf-pages-tester" },
-              {
-                tag: "meta",
-                props: {
-                  name: "description",
-                  content: "Take the Hwy!",
-                },
-              },
-              {
-                tag: "meta",
-                props: {
-                  name: "htmx-config",
-                  content: JSON.stringify({
-                    selfRequestsOnly: true,
-                    refreshOnHistoryMiss: true,
-                    scrollBehavior: "auto",
-                  } satisfies HtmxConfig & {
-                    selfRequestsOnly: boolean;
-                  }),
-                },
-              },
-            ]}
-          />
-
-          <CssImports />
-          <ClientScripts activePathData={activePathData} />
-          <DevLiveRefreshScript />
-        </head>
-
-        <body {...getDefaultBodyProps()}>
-          <nav>
-            <a href="/">
-              <h1>Hwy</h1>
-            </a>
-
-            <ul>
-              <li>
-                <a href="/about">About</a>
-              </li>
-              <li>
-                <a href="/login">Login</a>
-              </li>
-            </ul>
-          </nav>
-
-          <main>
-            <RootOutlet
-              activePathData={activePathData}
-              c={c}
-              fallbackErrorBoundary={() => {
-                return <div>Something went wrong.</div>;
-              }}
+  return await renderRoot({
+    c,
+    next,
+    root: ({ activePathData }) => {
+      return (
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta
+              name="viewport"
+              content="width=device-width,initial-scale=1"
             />
-          </main>
-        </body>
-      </html>
-    );
+
+            <HeadElements
+              c={c}
+              activePathData={activePathData}
+              defaults={[
+                { title: "cf-pages-tester" },
+                {
+                  tag: "meta",
+                  props: {
+                    name: "description",
+                    content: "Take the Hwy!",
+                  },
+                },
+                {
+                  tag: "meta",
+                  props: {
+                    name: "htmx-config",
+                    content: JSON.stringify({
+                      selfRequestsOnly: true,
+                      refreshOnHistoryMiss: true,
+                      scrollBehavior: "auto",
+                    } satisfies HtmxConfig & {
+                      selfRequestsOnly: boolean;
+                    }),
+                  },
+                },
+              ]}
+            />
+
+            <CssImports />
+            <ClientScripts activePathData={activePathData} />
+            <DevLiveRefreshScript />
+          </head>
+
+          <body {...getDefaultBodyProps()}>
+            <nav>
+              <a href="/">
+                <h1>Hwy</h1>
+              </a>
+
+              <ul>
+                <li>
+                  <a href="/about">About</a>
+                </li>
+                <li>
+                  <a href="/login">Login</a>
+                </li>
+              </ul>
+            </nav>
+
+            <main>
+              <RootOutlet
+                activePathData={activePathData}
+                c={c}
+                fallbackErrorBoundary={() => {
+                  return <div>Something went wrong.</div>;
+                }}
+              />
+            </main>
+          </body>
+        </html>
+      );
+    },
   });
 });
 

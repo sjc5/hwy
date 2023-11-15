@@ -6,7 +6,7 @@ let imports = `
 import {
   hwyInit,
   CssImports,
-  rootOutlet,
+  RootOutlet,
   DevLiveRefreshScript,
   ClientScripts,
   HeadElements,
@@ -84,98 +84,102 @@ app.use("*", logger());
 app.get("*", secureHeaders());
 
 app.all("*", async (c, next) => {
-  return await renderRoot(c, next, async ({ activePathData }) => {
-    return (
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-          <HeadElements
-            c={c}
-            activePathData={activePathData}
-            defaults={[
-              { title: "${options.project_name}" },
-              {
-                tag: "meta",
-                props: {
-                  name: "description",
-                  content: "Take the Hwy!",
+  return await renderRoot({
+    c,
+    next,
+    root: ({ activePathData }) => {
+      return (
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
+            <HeadElements
+              c={c}
+              activePathData={activePathData}
+              defaults={[
+                { title: "${options.project_name}" },
+                {
+                  tag: "meta",
+                  props: {
+                    name: "description",
+                    content: "Take the Hwy!",
+                  },
                 },
-              },
-              {
-                tag: "meta",
-                props: {
-                  name: "htmx-config",
-                  content: JSON.stringify({
-                    selfRequestsOnly: true,
-                    refreshOnHistoryMiss: true,
-                    scrollBehavior: "auto",
-                  }),
+                {
+                  tag: "meta",
+                  props: {
+                    name: "htmx-config",
+                    content: JSON.stringify({
+                      selfRequestsOnly: true,
+                      refreshOnHistoryMiss: true,
+                      scrollBehavior: "auto",
+                    }),
+                  },
                 },
-              },
-            ]}
-          />
-
-          <CssImports />
-          <ClientScripts activePathData={activePathData} />
-          <DevLiveRefreshScript />${
+              ]}
+            />
+  
+            <CssImports />
+            <ClientScripts activePathData={activePathData} />
+            <DevLiveRefreshScript />${
+              options.css_preference === "css-hooks"
+                ? "\n" +
+                  add_prefix_spaces_to_each_line({
+                    str: `<CssHooksStyleSheet />`,
+                    number_of_spaces: 10,
+                  })
+                : ""
+            }
+          </head>
+  
+          ${
             options.css_preference === "css-hooks"
-              ? "\n" +
-                add_prefix_spaces_to_each_line({
-                  str: `<CssHooksStyleSheet />`,
-                  number_of_spaces: 10,
+              ? add_prefix_spaces_to_each_line({
+                  str: `<body
+                {...getDefaultBodyProps(${arg_to_get_default_body_props})}
+                style={hooks({
+                  background: "orange",
+                  dark: {
+                    background: "black",
+                  },
+                })}
+              >`,
+                  number_of_spaces: 8,
                 })
-              : ""
+              : add_prefix_spaces_to_each_line({
+                  str: `<body {...getDefaultBodyProps(${arg_to_get_default_body_props})}>`,
+                  number_of_spaces: 8,
+                })
           }
-        </head>
-
-        ${
-          options.css_preference === "css-hooks"
-            ? add_prefix_spaces_to_each_line({
-                str: `<body
-              {...getDefaultBodyProps(${arg_to_get_default_body_props})}
-              style={hooks({
-                background: "orange",
-                dark: {
-                  background: "black",
-                },
-              })}
-            >`,
-                number_of_spaces: 8,
-              })
-            : add_prefix_spaces_to_each_line({
-                str: `<body {...getDefaultBodyProps(${arg_to_get_default_body_props})}>`,
-                number_of_spaces: 8,
-              })
-        }
-          <nav>
-            <a href="/">
-              <h1>Hwy</h1>
-            </a>
-
-            <ul>
-              <li>
-                <a href="/about">About</a>
-              </li>
-              <li>
-                <a href="/login">Login</a>
-              </li>
-            </ul>
-          </nav>
-
-          <main>
-            {await rootOutlet({
-              activePathData,
-              c,
-              fallbackErrorBoundary: () => {
-                return <div>Something went wrong.</div>
-              },
-            })}
-          </main>
-        </body>
-      </html>
-    );
+            <nav>
+              <a href="/">
+                <h1>Hwy</h1>
+              </a>
+  
+              <ul>
+                <li>
+                  <a href="/about">About</a>
+                </li>
+                <li>
+                  <a href="/login">Login</a>
+                </li>
+              </ul>
+            </nav>
+  
+            <main>
+              <RootOutlet
+                c={c}
+                activePathData={activePathData}
+                fallbackErrorBoundary={() => {
+                  return <div>Something went wrong.</div>;
+                }}
+              />
+            </main>
+          </body>
+        </html>
+      );
+    },
   });
 });
 

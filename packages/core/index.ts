@@ -13,6 +13,7 @@ export type {
   HeadFunction,
   HeadProps,
   ErrorBoundaryProps,
+  ActivePathData,
 } from "./src/types.js";
 
 // components

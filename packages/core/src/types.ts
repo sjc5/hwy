@@ -1,5 +1,6 @@
 import type { Context, Env } from "hono";
 import type { HtmlEscapedString } from "hono/utils/html";
+import type { getMatchingPathData } from "../index.js";
 
 type DataFunctionArgs<EnvType extends Env = {}> = {
   c: Context<EnvType>;
@@ -24,7 +25,7 @@ type PageProps<
 > = {
   loaderData: Awaited<ReturnType<LoaderType>>;
   actionData: Awaited<ReturnType<ActionType>> | undefined;
-  outlet: (props?: Record<string, any>) => Promise<HtmlEscapedString>;
+  Outlet: (props?: Record<string, any>) => Promise<HtmlEscapedString>;
   c: Context<EnvType>;
   params: Record<string, string>;
   splatSegments: string[];
@@ -50,13 +51,15 @@ type HeadProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
   EnvType extends Env = {},
-> = Omit<PageProps<LoaderType, ActionType, EnvType>, "outlet">;
+> = Omit<PageProps<LoaderType, ActionType, EnvType>, "Outlet">;
 
 type HeadFunction<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
   EnvType extends Env = {},
 > = (props: HeadProps<LoaderType, ActionType, EnvType>) => Array<HeadBlock>;
+
+type ActivePathData = Awaited<ReturnType<typeof getMatchingPathData>>;
 
 export type {
   DataFunctionArgs,
@@ -69,4 +72,5 @@ export type {
   HeadProps,
   HeadFunction,
   ErrorBoundaryProps,
+  ActivePathData,
 };
