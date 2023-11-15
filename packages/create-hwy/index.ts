@@ -340,16 +340,6 @@ async function main() {
       );
     }
 
-    // utils
-    await handle_ts_or_js_file_copy({
-      code: fs.readFileSync(
-        path.join(root_dir_path, "__common/utils/get-form-strings.ts"),
-        "utf8",
-      ),
-      destination_without_extension: "src/utils/get-form-strings",
-      is_jsx: false,
-    });
-
     // pages dir in __common
     const tsx_list = [
       "about.page",

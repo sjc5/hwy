@@ -611,7 +611,7 @@ app.all('*', async (c, next) => {
         </html>
       )
     },
-    shouldStream: true, // optional (defaults to true)
+    useStreaming: false, // optional
   })
 })
       `}
