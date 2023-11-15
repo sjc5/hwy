@@ -88,6 +88,7 @@ app.all("*", async (c, next) => {
   return await renderRoot({
     c,
     next,
+    useStreaming: true,
     root: ({ activePathData }) => {
       return (
         <html lang="en">
@@ -148,15 +149,12 @@ app.onError((error, c) => {
 
 export default handle(app);
 
-if (IS_DEV) {
-  serve(
-    { fetch: app.fetch, port: Number(process.env.PORT || 3000) },
-    (info) => {
-      console.log(
-        `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
-          info.port
-        }\n`,
-      );
-    },
+// if (IS_DEV) {
+serve({ fetch: app.fetch, port: Number(process.env.PORT || 3000) }, (info) => {
+  console.log(
+    `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
+      info.port
+    }\n`,
   );
-}
+});
+// }

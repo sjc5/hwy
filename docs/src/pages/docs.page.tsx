@@ -5,6 +5,7 @@ import { Paragraph } from "../components/paragraph.js";
 import { InlineCode } from "../components/inline-code.js";
 import { ListItem, UnorderedList } from "../components/unordered-list.js";
 import { Boldtalic } from "../components/bold-italic.js";
+import { Suspense } from "hono/jsx/streaming";
 
 export const head: HeadFunction = () => {
   return [
@@ -20,7 +21,7 @@ export const head: HeadFunction = () => {
   ];
 };
 
-export default function () {
+export default async function () {
   return (
     <div class="flex-col-wrapper-bigger">
       <h2 class="h2">Docs</h2>
