@@ -1,7 +1,6 @@
 import type { Context } from "hono";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
 import type { HeadFunction, HeadBlock } from "../types.js";
-import type { HtmlEscapedString } from "hono/utils/html";
 
 function stable_hash(obj: Record<string, any>): string {
   return JSON.stringify(
@@ -83,7 +82,7 @@ function HeadElements(props: {
   activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
   c: Context;
   defaults?: HeadBlock[];
-}): HtmlEscapedString {
+}) {
   const head_blocks = get_head_blocks_array(props);
 
   return (

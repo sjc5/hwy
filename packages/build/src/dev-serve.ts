@@ -69,10 +69,14 @@ async function devServe() {
   watcher.on("all", async (_, path) => {
     hwyLog("Change detected, restarting server...");
 
-    await runBuildTasks({
-      isDev: true,
-      log: "triggered from chokidar watcher: " + path,
-    });
+    try {
+      await runBuildTasks({
+        isDev: true,
+        log: "triggered from chokidar watcher: " + path,
+      });
+    } catch (e) {
+      console.error("ERROR: Build tasks failed:", e);
+    }
   });
 
   let current_proc: ChildProcess | null = null;

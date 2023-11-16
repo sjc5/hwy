@@ -101,6 +101,7 @@ function get_package_json(options: Options) {
           "@hwy-js/build": LATEST_HWY_VERSION,
           "@hwy-js/client": LATEST_HWY_VERSION,
           "@hwy-js/dev": LATEST_HWY_VERSION,
+          "@hwy-js/utils": LATEST_HWY_VERSION,
           ...(options.lang_preference === "typescript"
             ? {
                 ...(!is_targeting_deno && options.deployment_target !== "bun"

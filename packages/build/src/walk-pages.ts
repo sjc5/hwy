@@ -151,10 +151,11 @@ async function walk_pages() {
         outfile: path.resolve(
           `./${is_client_file ? "public/" : ""}dist/pages/` + _path + ".js",
         ),
-        treeShaking: !is_client_file,
+        treeShaking: true,
         platform: is_client_file ? "browser" : "node",
-        packages: "external",
+        packages: is_client_file ? undefined : "external",
         format: "esm",
+        minify: is_client_file,
       });
     } catch (e) {
       console.error(e);

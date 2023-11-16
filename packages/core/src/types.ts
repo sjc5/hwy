@@ -1,17 +1,19 @@
 import type { Context, Env } from "hono";
+import type { HtmlEscapedString } from "hono/utils/html";
+import type { getMatchingPathData } from "../index.js";
 
-type DataFunctionArgs<EnvType extends Env = {}> = {
+type DataProps<EnvType extends Env = {}> = {
   c: Context<EnvType>;
   params: Record<string, string>;
   splatSegments: string[];
 };
 
 type Loader<EnvType extends Env = {}> = (
-  args: DataFunctionArgs<EnvType>,
+  args: DataProps<EnvType>,
 ) => Promise<any> | any;
 
 type Action<EnvType extends Env = {}> = (
-  args: DataFunctionArgs<EnvType>,
+  args: DataProps<EnvType>,
 ) => Promise<any> | any;
 
 type PageProps<
@@ -21,7 +23,7 @@ type PageProps<
 > = {
   loaderData: Awaited<ReturnType<LoaderType>>;
   actionData: Awaited<ReturnType<ActionType>> | undefined;
-  outlet: (props?: Record<string, any>) => Promise<JSX.Element>;
+  Outlet: (props?: Record<string, any>) => Promise<HtmlEscapedString>;
   c: Context<EnvType>;
   params: Record<string, string>;
   splatSegments: string[];
@@ -29,13 +31,15 @@ type PageProps<
 
 type ErrorBoundaryProps<EnvType extends Env = {}> = {
   error: unknown;
-} & DataFunctionArgs<EnvType>;
+} & DataProps<EnvType>;
 
 type PageComponent<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
   EnvType extends Env = {},
-> = (props: PageProps<LoaderType, ActionType, EnvType>) => Promise<JSX.Element>;
+> = (
+  props: PageProps<LoaderType, ActionType, EnvType>,
+) => Promise<HtmlEscapedString>;
 
 type HeadBlock =
   | { title: string }
@@ -45,7 +49,7 @@ type HeadProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
   EnvType extends Env = {},
-> = Omit<PageProps<LoaderType, ActionType, EnvType>, "outlet">;
+> = Omit<PageProps<LoaderType, ActionType, EnvType>, "Outlet">;
 
 type HeadFunction<
   LoaderType extends Loader<any> = Loader<any>,
@@ -53,8 +57,10 @@ type HeadFunction<
   EnvType extends Env = {},
 > = (props: HeadProps<LoaderType, ActionType, EnvType>) => Array<HeadBlock>;
 
+type ActivePathData = Awaited<ReturnType<typeof getMatchingPathData>>;
+
 export type {
-  DataFunctionArgs,
+  DataProps,
   Loader,
   Action,
   PageProps,
@@ -63,4 +69,5 @@ export type {
   HeadProps,
   HeadFunction,
   ErrorBoundaryProps,
+  ActivePathData,
 };
