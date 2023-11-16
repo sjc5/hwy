@@ -5,8 +5,6 @@ From release branch, and assuming there have been beta releases, do the followin
 ```sh
 pnpm remove-beta
 
-pnpm current-version
-
 pnpm publish-non-beta
 
 cd docs
