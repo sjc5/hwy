@@ -1,19 +1,19 @@
 import type { Context } from "hono";
-import { Suspense as HonoSuspense } from "hono/jsx/streaming";
+import { Suspense } from "hono/jsx/streaming";
 import { get_is_hx_request } from "../utils/get-is-hx-request.js";
 
 /**
  * @experimental
  * This component is experimental, as is Hono's Suspense support.
  */
-function Suspense({
+async function HwySuspense({
   c,
   children,
   fallback,
 }: {
   c: Context;
-  children: Parameters<typeof HonoSuspense>[0]["children"];
-  fallback: Parameters<typeof HonoSuspense>[0]["fallback"];
+  children: Parameters<typeof Suspense>[0]["children"];
+  fallback: Parameters<typeof Suspense>[0]["fallback"];
 }) {
   /*
    * Streaming Suspense doesn't work for HTMX requests,
@@ -26,7 +26,7 @@ function Suspense({
     return <>{children}</>;
   }
 
-  return <HonoSuspense fallback={fallback}>{children}</HonoSuspense>;
+  return <Suspense fallback={fallback}>{children}</Suspense>;
 }
 
-export { Suspense };
+export { HwySuspense as Suspense };
