@@ -179,7 +179,6 @@ async function main() {
     fs.mkdirSync(path.join(new_dir_path, "src"), { recursive: true });
     fs.mkdirSync(path.join(new_dir_path, "public"), { recursive: true });
     fs.mkdirSync(path.join(new_dir_path, "src/styles"), { recursive: true });
-    fs.mkdirSync(path.join(new_dir_path, "src/utils"), { recursive: true });
     fs.mkdirSync(path.join(new_dir_path, "src/pages"), { recursive: true });
     fs.mkdirSync(path.join(new_dir_path, "src/pages/__auth"), {
       recursive: true,
