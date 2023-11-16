@@ -612,7 +612,7 @@ app.all('*', async (c, next) => {
         </html>
       )
     },
-    useStreaming: false, // optional
+    experimentalStreaming: false, // optional
   })
 })
       `}

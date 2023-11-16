@@ -7,7 +7,7 @@ async function renderRoot({
   c,
   next,
   root: Root,
-  useStreaming,
+  experimentalStreaming,
 }: {
   c: Context;
   next: Next;
@@ -16,7 +16,7 @@ async function renderRoot({
   }: {
     activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
   }) => JSX.Element;
-  useStreaming?: boolean;
+  experimentalStreaming?: boolean;
 }) {
   const activePathData = await getMatchingPathData({ c });
 
@@ -28,7 +28,7 @@ async function renderRoot({
     return await next();
   }
 
-  if (useStreaming) {
+  if (experimentalStreaming) {
     const readable_stream = renderToReadableStream(
       html`<!doctype html>${(<Root activePathData={activePathData} />)}`,
     );

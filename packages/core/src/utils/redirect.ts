@@ -1,4 +1,5 @@
 import type { Context } from "hono";
+import { get_is_hx_request } from "./get-is-hx-request.js";
 
 // public
 function redirect({
@@ -14,7 +15,9 @@ function redirect({
 }) {
   c.status(status ?? 302);
 
-  if (!c.req.raw.headers.get("HX-Request")) {
+  const is_hx_request = get_is_hx_request(c);
+
+  if (!is_hx_request) {
     return c.redirect(to);
   }
 
