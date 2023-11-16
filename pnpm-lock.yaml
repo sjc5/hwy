@@ -100,9 +100,6 @@ importers:
       '@types/nprogress':
         specifier: ^0.2.3
         version: 0.2.3
-      hono:
-        specifier: ^3.10.1
-        version: 3.10.1
       htmx.org:
         specifier: ^1.9.8
         version: 1.9.8

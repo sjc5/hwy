@@ -22,7 +22,6 @@
   },
   "devDependencies": {
     "@types/nprogress": "^0.2.3",
-    "hono": "^3.10.1",
     "htmx.org": "^1.9.8",
     "idiomorph": "^0.0.9",
     "nprogress": "^0.2.0",
