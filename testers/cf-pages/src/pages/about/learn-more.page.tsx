@@ -1,4 +1,8 @@
-export default function () {
+import { renderToReadableStream, Suspense } from "hono/jsx/streaming";
+
+export default async function () {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
   return (
     <>
       <p>
@@ -6,7 +10,19 @@ export default function () {
         <code>src/pages/about/learn-more.page.tsx</code>.
       </p>
 
-      <a href="/about">Back to index route</a>
+      <a href="/about" hx-boost="false">
+        Back to index route
+      </a>
+
+      <Suspense fallback={<div>loading...</div>}>
+        <Bob />
+      </Suspense>
     </>
   );
+}
+
+async function Bob() {
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  return <div>Hi</div>;
 }

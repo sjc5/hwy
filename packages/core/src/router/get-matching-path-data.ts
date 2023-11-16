@@ -1,12 +1,11 @@
 import path from "node:path";
 import type { Context } from "hono";
 import { matcher } from "../router/matcher.js";
-import { get_path_to_use } from "../utils/get-path-to-use.js";
 import type { Paths } from "@hwy-js/build";
 import { ROOT_DIRNAME } from "../setup.js";
 import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
 import { get_match_strength } from "./get-match-strength.js";
-import type { DataFunctionArgs } from "../types.js";
+import type { DataProps } from "../types.js";
 import { path_to_file_url_string } from "../utils/url-polyfills.js";
 import { get_hwy_global } from "../utils/get-hwy-global.js";
 import { SPLAT_SEGMENT } from "../../../common/index.mjs";
@@ -69,20 +68,20 @@ function fully_decorate_paths({
             throw e;
           }
         },
-        loader: async (loaderArgs: DataFunctionArgs) => {
+        loader: async (loaderArgs: DataProps) => {
           try {
             const imported = await get_imported();
             return imported.loader ? imported.loader(loaderArgs) : undefined;
           } catch (e) {
-            handle_caught_maybe_response(e);
+            return handle_caught_maybe_response(e);
           }
         },
-        action: async (actionArgs: DataFunctionArgs) => {
+        action: async (actionArgs: DataProps) => {
           try {
             const imported = await get_imported();
             return imported.action ? imported.action(actionArgs) : undefined;
           } catch (e) {
-            handle_caught_maybe_response(e);
+            return handle_caught_maybe_response(e);
           }
         },
       };
@@ -98,20 +97,24 @@ type SemiDecoratedPath = Paths[number] & {
 
 function semi_decorate_paths({
   c,
-  redirectTo,
   paths,
 }: {
   c: Context;
-  redirectTo?: string;
   paths: Paths;
 }): SemiDecoratedPath[] {
   return paths?.map((path) => {
+    let path_to_use = c.req.path;
+
+    if (path_to_use !== "/" && path_to_use.endsWith("/")) {
+      path_to_use = path_to_use.slice(0, -1);
+    }
+
     return {
       // public shape
       ...path,
       ...matcher({
         pattern: path.path,
-        path: get_path_to_use(c, redirectTo),
+        path: path_to_use,
       }),
       pathType:
         path.path === `/${SPLAT_SEGMENT}` ? "ultimate-catch" : path.pathType,
@@ -137,17 +140,11 @@ async function get_action_data({
       });
     }
   } catch (e) {
-    handle_caught_maybe_response(e);
+    return handle_caught_maybe_response(e);
   }
 }
 
-async function getMatchingPathData({
-  c,
-  redirectTo,
-}: {
-  c: Context;
-  redirectTo?: string;
-}) {
+async function getMatchingPathData({ c }: { c: Context }) {
   const paths = hwy_global.get("paths");
 
   if (!paths) {
@@ -156,7 +153,6 @@ async function getMatchingPathData({
 
   const semi_decorated_paths = semi_decorate_paths({
     c,
-    redirectTo,
     paths,
   });
 

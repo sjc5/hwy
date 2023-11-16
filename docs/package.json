@@ -12,17 +12,17 @@
     "update-latest": "pnpm update --latest"
   },
   "dependencies": {
-    "@hono/node-server": "^1.2.0",
-    "hono": "^3.9.1",
-    "hwy": "0.6.0"
+    "@hono/node-server": "^1.2.3",
+    "hono": "^3.10.1",
+    "hwy": "0.7.0"
   },
   "devDependencies": {
-    "@hwy-js/build": "0.6.0",
-    "@hwy-js/client": "0.6.0",
-    "@hwy-js/dev": "0.6.0",
-    "@types/node": "^20.8.10",
-    "@types/nprogress": "^0.2.2",
-    "htmx.org": "^1.9.6",
+    "@hwy-js/build": "0.7.0",
+    "@hwy-js/client": "0.7.0",
+    "@hwy-js/dev": "0.7.0",
+    "@types/node": "^20.9.0",
+    "@types/nprogress": "^0.2.3",
+    "htmx.org": "^1.9.8",
     "idiomorph": "^0.0.9",
     "nprogress": "^0.2.0",
     "typescript": "^5.2.2"

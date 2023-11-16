@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -27,24 +27,25 @@
   },
   "dependencies": {
     "detype": "^0.6.3",
-    "inquirer": "^9.2.11",
+    "inquirer": "^9.2.12",
     "picocolors": "^1.0.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231025.0",
-    "@css-hooks/core": "^1.1.0",
-    "@hono/node-server": "^1.2.0",
-    "@types/inquirer": "^9.0.6",
-    "@types/node": "^20.8.10",
-    "@types/nprogress": "^0.2.2",
-    "bun-types": "^1.0.7",
-    "hono": "^3.9.1",
-    "htmx.org": "^1.9.6",
+    "@css-hooks/core": "^1.2.1",
+    "@hono/node-server": "^1.2.3",
+    "@hwy-js/utils": "workspace:*",
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.9.0",
+    "@types/nprogress": "^0.2.3",
+    "bun-types": "^1.0.11",
+    "hono": "^3.10.1",
+    "htmx.org": "^1.9.8",
     "hwy": "workspace:*",
     "idiomorph": "^0.0.9",
     "npm-run-all": "^4.1.5",
     "nprogress": "^0.2.0",
-    "prettier": "^3.0.3",
+    "prettier": "^3.1.0",
     "tailwindcss": "^3.3.5",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2",

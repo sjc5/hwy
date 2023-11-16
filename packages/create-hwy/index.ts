@@ -179,7 +179,6 @@ async function main() {
     fs.mkdirSync(path.join(new_dir_path, "src"), { recursive: true });
     fs.mkdirSync(path.join(new_dir_path, "public"), { recursive: true });
     fs.mkdirSync(path.join(new_dir_path, "src/styles"), { recursive: true });
-    fs.mkdirSync(path.join(new_dir_path, "src/utils"), { recursive: true });
     fs.mkdirSync(path.join(new_dir_path, "src/pages"), { recursive: true });
     fs.mkdirSync(path.join(new_dir_path, "src/pages/__auth"), {
       recursive: true,
@@ -339,16 +338,6 @@ async function main() {
         path.join(new_dir_path, "src/styles/_preflight.bundle.css"),
       );
     }
-
-    // utils
-    await handle_ts_or_js_file_copy({
-      code: fs.readFileSync(
-        path.join(root_dir_path, "__common/utils/extract-simple-form-data.ts"),
-        "utf8",
-      ),
-      destination_without_extension: "src/utils/extract-simple-form-data",
-      is_jsx: false,
-    });
 
     // pages dir in __common
     const tsx_list = [

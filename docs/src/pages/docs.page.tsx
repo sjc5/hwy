@@ -5,6 +5,7 @@ import { Paragraph } from "../components/paragraph.js";
 import { InlineCode } from "../components/inline-code.js";
 import { ListItem, UnorderedList } from "../components/unordered-list.js";
 import { Boldtalic } from "../components/bold-italic.js";
+import { Suspense } from "hono/jsx/streaming";
 
 export const head: HeadFunction = () => {
   return [
@@ -20,7 +21,7 @@ export const head: HeadFunction = () => {
   ];
 };
 
-export default function () {
+export default async function () {
   return (
     <div class="flex-col-wrapper-bigger">
       <h2 class="h2">Docs</h2>
@@ -182,14 +183,15 @@ export default function ({
   c,
   loaderData,
   actionData,
-  outlet,
+  Outlet,
   params,
   splatSegments,
 }: PageProps<typeof loader, typeof action>) {
   return (
-    <p>
+    <div>
       I like {loaderData?.sport}.
-    </p>
+      <Outlet />
+    </div>
   )
 }
         `}
@@ -230,11 +232,10 @@ export default function ({
           </ListItem>
 
           <ListItem>
-            <InlineCode>outlet</InlineCode> - This is the outlet for the page,
-            and it's where child routes get rendered. Because page components
-            are async, you should render outlets like this:{" "}
-            <InlineCode>{`{await outlet()}`}</InlineCode>, regardless of whether
-            you're actually doing anything asynchronous inside of them.
+            <InlineCode>Outlet</InlineCode> - This is the outlet for the page,
+            and it's where child routes get rendered. You render outlets just
+            like any other component (you can even pass in props if you want): (
+            <InlineCode>{`<Outlet whatever={whatever} />`}</InlineCode>)
           </ListItem>
 
           <ListItem>
@@ -293,9 +294,9 @@ export default function ({ c }: PageProps) {
         file. They are passed a subset of the PageProps object:{" "}
         <InlineCode>c</InlineCode>, <InlineCode>params</InlineCode>, and{" "}
         <InlineCode>splatSegments</InlineCode>. The typescript type exported by
-        Hwy for this object is called <InlineCode>DataFunctionArgs</InlineCode>,
-        which can take an optional generic of your Hono Env type (see the Hono
-        docs for more details on that, and why you might want to do that).
+        Hwy for this object is called <InlineCode>DataProps</InlineCode>, which
+        can take an optional generic of your Hono Env type (see the Hono docs
+        for more details on that, and why you might want to do that).
       </Paragraph>
       <Paragraph>
         Loaders run before your page is returned, and they all run in parallel.
@@ -311,9 +312,9 @@ export default function ({ c }: PageProps) {
       <CodeBlock
         language="tsx"
         code={`
-import type { DataFunctionArgs } from 'hwy'
+import type { DataProps } from 'hwy'
 
-export function loader({ c }: DataFunctionArgs) {
+export function loader({ c }: DataProps) {
   return "baseball" as const
 }
 
@@ -341,9 +342,9 @@ export default function ({ loaderData }: PageProps<typeof loader>) {
       <CodeBlock
         language="tsx"
         code={`
-import { redirect, type DataFunctionArgs } from 'hwy'
+import { redirect, type DataProps } from 'hwy'
 
-export function loader({ c }: DataFunctionArgs) {
+export function loader({ c }: DataProps) {
   return redirect({ c, to: '/login' })
 }
 `}
@@ -365,14 +366,14 @@ export function loader({ c }: DataFunctionArgs) {
         code={`
 // src/some-page.page.tsx
 
-export default async function ({ outlet }: PageProps) {
+export default async function ({ Outlet }: PageProps) {
   const someData = await getSomeData()
 
   return (
     <div>
       {JSON.stringify(someData)}
 
-      {await outlet()}
+      <Outlet />
     </div>
   )
 }
@@ -383,17 +384,11 @@ export default async function ({ outlet }: PageProps) {
         available in the child page component's props. Here's how that would
         look in the parent page component:
       </Paragraph>
-      <CodeBlock language="tsx" code={`{await outlet({ someData })}`} />
+      <CodeBlock language="tsx" code={`<Outlet someData={someData} />`} />
       <Paragraph>
         And in the child component, you'll want to use{" "}
         <InlineCode>{`PageProps & { someData: SomeType }`}</InlineCode> as your
         prop type.
-      </Paragraph>
-      <Paragraph>
-        Because page components are async and let you fetch data inside them, be
-        sure to always await your <InlineCode>outlet</InlineCode> calls, like
-        this: <InlineCode>{`{await outlet()}`}</InlineCode>. If you don't,
-        things might not render correctly.
       </Paragraph>
       <Paragraph>
         Another way of doing this would be to use Hono's{" "}
@@ -425,11 +420,12 @@ export default async function ({ outlet }: PageProps) {
       <CodeBlock
         language="tsx"
         code={`
-import { DataFunctionArgs, PageProps } from 'hwy'
-import { extractFormData, logUserIn } from './pretend-lib.js'
+import { DataProps, PageProps } from 'hwy'
+import { getFormStrings } from '@hwy-js/utils'
+import { logUserIn } from './somewhere.js'
 
-export async function action({ c }: DataFunctionArgs) {
-  const { email, password } = await extractFormData({ c })
+export async function action({ c }: DataProps) {
+  const { email, password } = await getFormStrings({ c })
   return await logUserIn({ email, password })
 }
 
@@ -504,7 +500,7 @@ export function loader() {
         error is thrown in the page or any of its children, the error will be
         caught and passed to the nearest applicable parent error boundary
         component. You can also pass a default error boundary component that
-        effectively wraps your outermost <InlineCode>rootOutlet</InlineCode> (in{" "}
+        effectively wraps your outermost <InlineCode>RootOutlet</InlineCode> (in{" "}
         <InlineCode>main.tsx</InlineCode>) like so:
       </Paragraph>
       <CodeBlock
@@ -514,13 +510,13 @@ import type { ErrorBoundaryProps } from 'hwy'
 
 ...
 
-{await rootOutlet({
-  activePathData,
-  c,
-  fallbackErrorBoundary: (props: ErrorBoundaryProps) => {
+<RootOutlet
+  c={c}
+  activePathData={activePathData}
+  fallbackErrorBoundary={(props: ErrorBoundaryProps) => {
     return <div>{props.error.message}</div>
-  },
-})}
+  }}
+/>
       `}
       />
       <AnchorHeading content="Hono middleware and variables" />
@@ -551,7 +547,7 @@ app.use('*', async (c, next) => {
       <CodeBlock
         language="tsx"
         code={`
-import type { DataFunctionArgs } from 'hwy'
+import type { DataProps } from 'hwy'
 
 type AppEnv = {
   Variables: {
@@ -559,9 +555,9 @@ type AppEnv = {
   }
 }
 
-type AppDataFunctionArgs = DataFunctionArgs<AppEnv>
+type AppDataProps = DataProps<AppEnv>
 
-export async function loader({ c }: AppDataFunctionArgs) {
+export async function loader({ c }: AppDataProps) {
   // this will be type safe!
   const user = c.get('user')
 }
@@ -577,7 +573,7 @@ export async function loader({ c }: AppDataFunctionArgs) {
         code={`
 import {
   CssImports,
-  rootOutlet,
+  RootOutlet,
   DevLiveRefreshScript,
   ClientScripts,
   getDefaultBodyProps,
@@ -585,36 +581,39 @@ import {
 } from 'hwy'
 
 app.all('*', async (c, next) => {
-  return await renderRoot(c, next, async ({ activePathData }) => {
-    return (
-      <html lang="en">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-          <HeadElements
-            c={c}
-            activePathData={activePathData}
-            defaults={defaultHeadBlocks}
-          />
-
-          <CssImports />
-          <ClientScripts activePathData={activePathData} />
-          <DevLiveRefreshScript />
-        </head>
-
-        <body {...getDefaultBodyProps()}>
-          {await rootOutlet({
-            c,
-            activePathData,
-            fallbackErrorBoundary: () => {
-              return <div>Something went wrong!</div>
-            },
-          })}
-        </body>
-      </html>
-    )
-  }
+  return await renderRoot({ 
+    c,
+    next,
+    root: ({ activePathData }) => {
+      return (
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
+            <HeadElements
+              c={c}
+              activePathData={activePathData}
+              defaults={defaultHeadBlocks}
+            />
+  
+            <CssImports />
+            <ClientScripts activePathData={activePathData} />
+            <DevLiveRefreshScript />
+          </head>
+  
+          <body {...getDefaultBodyProps()}>
+            <RootOulet
+              c={c}
+              activePathData={activePathData}
+              fallbackErrorBoundary={FallbackErrorBoundary}
+            />
+          </body>
+        </html>
+      )
+    },
+    experimentalStreaming: false, // optional
+  })
 })
       `}
       />
@@ -665,7 +664,7 @@ app.all('*', async (c, next) => {
 import { HeadFunction } from 'hwy'
 
 export const head: HeadFunction = (props) => {
-  // props are the same as PageProps, but without the outlet
+  // props are the same as PageProps, but without the Outlet
 
   return [
     { title: 'Some Child Page' },
@@ -685,7 +684,7 @@ export const head: HeadFunction = (props) => {
         This will override any conflicting head elements set either by an
         ancestor page component or by the root defaults. The{" "}
         <InlineCode>head</InlineCode> function is passed all the same props as a
-        page component, excluding <InlineCode>outlet</InlineCode>.
+        page component, excluding <InlineCode>Outlet</InlineCode>.
       </Paragraph>
       <AnchorHeading content="Styling" />
       <Paragraph>

@@ -64,10 +64,10 @@ Below is an example of a simple Hwy page. You'll notice it looks a lot like Remi
 ```tsx
 // src/pages/user/$user_id.page.tsx
 
-import type { DataFunctionArgs, PageProps } from "hwy";
+import type { DataProps, PageProps } from "hwy";
 import { UserProfile, getUser } from "./somewhere.js";
 
-export async function loader({ params }: DataFunctionArgs) {
+export async function loader({ params }: DataProps) {
   return await getUser(params.user_id);
 }
 
