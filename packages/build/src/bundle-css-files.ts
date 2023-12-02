@@ -6,6 +6,13 @@ import { get_hashed_public_url_low_level } from "./hashed-public-url.js";
 import { pathToFileURL } from "node:url";
 import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
 
+/*
+NOTE: This fille assume it's run (and therefore imported / initiated)
+only after the public-map.js file has been generated. That means you
+should import it lazily and only after the public-map.js file has been
+generated.
+*/
+
 const public_map_path = path.resolve("dist", "public-map.js");
 
 const public_map: Record<string, string> | undefined = (

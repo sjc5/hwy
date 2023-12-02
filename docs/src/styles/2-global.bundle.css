@@ -211,3 +211,8 @@ footer {
   padding-left: 0.25rem;
   line-height: 1.75;
 }
+
+body {
+  background: indigo;
+  padding: 3rem;
+}

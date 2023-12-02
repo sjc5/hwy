@@ -1,16 +1,16 @@
 import path from "node:path";
 import fs from "node:fs";
-import {
-  generate_public_file_map,
-  write_paths_to_file,
-  type Paths,
-} from "./walk-pages.js";
+import { generate_public_file_map, write_paths_to_file } from "./walk-pages.js";
 import esbuild from "esbuild";
 import { hwyLog, logPerf } from "./hwy-log.js";
 import { exec as exec_callback } from "child_process";
 import { promisify } from "node:util";
 import { pathToFileURL } from "node:url";
-import { HWY_GLOBAL_KEYS, HWY_PREFIX } from "../../common/index.mjs";
+import {
+  HWY_GLOBAL_KEYS,
+  HWY_PREFIX,
+  type RefreshFilePayload,
+} from "../../common/index.mjs";
 import { get_hwy_config } from "./get-hwy-config.js";
 import { smart_normalize } from "./smart-normalize.js";
 
@@ -68,7 +68,42 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
   }
 }
 
-async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
+function write_refresh_txt({
+  changeType,
+}: {
+  changeType: RefreshFilePayload["changeType"];
+}) {
+  fs.writeFileSync(
+    path.join(process.cwd(), "dist", "refresh.txt"),
+    JSON.stringify({
+      changeType,
+      at: Date.now().toString(),
+    } satisfies RefreshFilePayload),
+  );
+}
+
+async function runBuildTasks({
+  log,
+  isDev,
+  changeType,
+}: {
+  isDev: boolean;
+  log?: string;
+  changeType?: RefreshFilePayload["changeType"];
+}) {
+  const hot_reload_only =
+    hwy_config.dev?.hotReloadCssBundle && changeType === "css-bundle";
+
+  if (hot_reload_only) {
+    // Why is this imported here? See the note in bundle-css-files.ts.
+    // In this case, you're hot reloading, so we expect you to already
+    // have the public-map.js file generated.
+    const { bundle_css_files } = await import("./bundle-css-files.js");
+    await bundle_css_files();
+    write_refresh_txt({ changeType });
+    return;
+  }
+
   hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
 
   await handle_prebuild({ is_dev: isDev });
@@ -86,11 +121,14 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
 
   const is_using_client_entry =
     fs.existsSync(path.join(process.cwd(), "src/client.entry.ts")) ||
-    fs.existsSync(path.join(process.cwd(), "src/client.entry.js"));
+    fs.existsSync(path.join(process.cwd(), "src/client.entry.tsx")) ||
+    fs.existsSync(path.join(process.cwd(), "src/client.entry.js")) ||
+    fs.existsSync(path.join(process.cwd(), "src/client.entry.jsx"));
 
+  // Why is this imported here? See the note in bundle-css-files.ts
   const { bundle_css_files } = await import("./bundle-css-files.js");
 
-  // needs to come first for file map generation
+  // these need to come first for file map generation
   await Promise.all([
     bundle_css_files(),
 
@@ -167,22 +205,15 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
     dev_line + dep_target_line + to_be_appended + main_code,
   );
 
-  const page_paths = (
-    await import(
-      pathToFileURL(path.join(process.cwd(), "dist", "paths.js")).href
-    )
-  )[HWY_GLOBAL_KEYS.paths].map((x: Paths[number]) => "./" + x.importPath);
+  const path_import_snippet = `
+await Promise.all(__hwy__paths.map(async function (x) {
+  const path_from_dist = "./" + x.importPath;
+  return import(path_from_dist).then((x) => globalThis[path_from_dist] = x);
+}));
+`.trim();
 
   if (hwy_config.deploymentTarget === "cloudflare-pages") {
     hwyLog("Customizing build output for Cloudflare Pages...");
-
-    function get_line(path_from_dist: string) {
-      return `import("${path_from_dist}").then((x) => globalThis["${path_from_dist}"] = x);`;
-    }
-
-    function get_code(paths: string[]) {
-      return paths.map(get_line).join("\n");
-    }
 
     fs.writeFileSync(
       "dist/_worker.js",
@@ -190,11 +221,27 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
         `globalThis.process = process;\n` +
         fs.readFileSync("./dist/main.js", "utf8") +
         "\n" +
-        get_code([...page_paths]),
+        path_import_snippet,
     );
 
     // copy public folder into dist
     fs.cpSync("./public", "./dist/public", { recursive: true });
+
+    if (hwy_config.warmPaths === false) {
+      // Everything is bundled anyway if target is cloudflare-pages
+      hwyLog(
+        "Setting warmPaths to false has no effect when deploymentTarget is cloudflare-pages.",
+      );
+    }
+  }
+
+  if (hwy_config.warmPaths !== false) {
+    if (hwy_config.deploymentTarget !== "cloudflare-pages") {
+      fs.writeFileSync(
+        "dist/main.js",
+        fs.readFileSync("./dist/main.js", "utf8") + "\n" + path_import_snippet,
+      );
+    }
   }
 
   if (hwy_config.deploymentTarget === "deno-deploy" && !isDev) {
@@ -224,11 +271,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
       main_path,
       fs.readFileSync(main_path, "utf8") +
         "\n" +
-        get_code([
-          ...page_paths,
-          ...public_paths,
-          ...FILE_NAMES.map((x) => "./" + x),
-        ]),
+        get_code([...public_paths, ...FILE_NAMES.map((x) => "./" + x)]),
     );
   }
 
@@ -239,10 +282,7 @@ async function runBuildTasks({ log, isDev }: { isDev: boolean; log?: string }) {
   }
 
   if (isDev) {
-    fs.writeFileSync(
-      path.join(process.cwd(), "dist", "refresh.txt"),
-      Date.now().toString(),
-    );
+    write_refresh_txt({ changeType: "standard" });
   }
 
   const standard_tasks_p1 = performance.now();

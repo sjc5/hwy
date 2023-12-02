@@ -12,6 +12,25 @@ import { SPLAT_SEGMENT } from "../../../common/index.mjs";
 
 const hwy_global = get_hwy_global();
 
+async function get_path(import_path: string) {
+  let _path = (globalThis as any)["./" + import_path];
+
+  if (_path) {
+    return _path;
+  }
+
+  const inner = path.join(
+    hwy_global.get("test_dirname") || ROOT_DIRNAME || "./",
+    import_path,
+  );
+
+  _path = await import(path_to_file_url_string(inner));
+
+  (globalThis as any)["./" + import_path] = _path;
+
+  return _path;
+}
+
 function fully_decorate_paths({
   matching_paths,
   splat_segments,
@@ -21,19 +40,6 @@ function fully_decorate_paths({
 }) {
   return (
     matching_paths?.map((_path) => {
-      const get_imported = () => {
-        if (hwy_global.get("deployment_target") === "cloudflare-pages") {
-          return (globalThis as any)["./" + _path.importPath];
-        }
-
-        const inner = path.join(
-          hwy_global.get("test_dirname") || ROOT_DIRNAME || "./",
-          _path.importPath,
-        );
-
-        return import(path_to_file_url_string(inner));
-      };
-
       // public
       return {
         hasSiblingClientFile: _path.hasSiblingClientFile,
@@ -43,7 +49,7 @@ function fully_decorate_paths({
         splatSegments: splat_segments,
         componentImporter: async () => {
           try {
-            const imported = await get_imported();
+            const imported = await get_path(_path.importPath);
             return imported.default;
           } catch (e) {
             console.error(e);
@@ -52,7 +58,7 @@ function fully_decorate_paths({
         },
         errorBoundaryImporter: async () => {
           try {
-            const imported = await get_imported();
+            const imported = await get_path(_path.importPath);
             return imported.ErrorBoundary ? imported.ErrorBoundary : undefined;
           } catch (e) {
             console.error(e);
@@ -61,7 +67,7 @@ function fully_decorate_paths({
         },
         headImporter: async () => {
           try {
-            const imported = await get_imported();
+            const imported = await get_path(_path.importPath);
             return imported.head ? imported.head : () => [];
           } catch (e) {
             console.error(e);
@@ -70,7 +76,7 @@ function fully_decorate_paths({
         },
         loader: async (loaderArgs: DataProps) => {
           try {
-            const imported = await get_imported();
+            const imported = await get_path(_path.importPath);
             return imported.loader ? imported.loader(loaderArgs) : undefined;
           } catch (e) {
             return handle_caught_maybe_response(e);
@@ -78,7 +84,7 @@ function fully_decorate_paths({
         },
         action: async (actionArgs: DataProps) => {
           try {
-            const imported = await get_imported();
+            const imported = await get_path(_path.importPath);
             return imported.action ? imported.action(actionArgs) : undefined;
           } catch (e) {
             return handle_caught_maybe_response(e);

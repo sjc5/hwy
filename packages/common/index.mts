@@ -24,10 +24,17 @@ export type DeploymentTarget =
 
 export type HwyConfig = {
   deploymentTarget: DeploymentTarget;
+  warmPaths?: boolean;
   dev?: {
     port?: number;
     watchExclusions?: Array<string>;
+    hotReloadCssBundle?: boolean;
   };
 };
 
 export const SPLAT_SEGMENT = ":catch*";
+
+export type RefreshFilePayload = {
+  changeType: "critical-css" | "css-bundle" | "standard";
+  at: string;
+};

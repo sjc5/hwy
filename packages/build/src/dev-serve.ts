@@ -4,8 +4,12 @@ import chokidar from "chokidar";
 import dotenv from "dotenv";
 import { runBuildTasks } from "./run-build-tasks.js";
 import { hwyLog } from "./hwy-log.js";
-import { LIVE_REFRESH_RPC_PATH } from "../../common/index.mjs";
+import {
+  LIVE_REFRESH_RPC_PATH,
+  type RefreshFilePayload,
+} from "../../common/index.mjs";
 import { get_hwy_config } from "./get-hwy-config.js";
+import fs from "node:fs";
 
 declare const Deno: Record<any, any>;
 
@@ -29,10 +33,16 @@ async function devServe() {
     );
 
     refresh_watcher.on("all", async () => {
+      const refresh_txt_path = path.join(process.cwd(), "dist", "refresh.txt");
+
+      const refresh_obj = JSON.parse(
+        fs.readFileSync(refresh_txt_path, "utf8"),
+      ) as RefreshFilePayload;
+
       if (has_run_one_time) {
         try {
           await fetch(
-            `http://127.0.0.1:${dev_config?.port}${LIVE_REFRESH_RPC_PATH}`,
+            `http://127.0.0.1:${dev_config?.port}${LIVE_REFRESH_RPC_PATH}?changeType=${refresh_obj.changeType}`,
           );
         } catch (e) {
           console.error("Live refresh RPC failed:", e);
@@ -41,17 +51,23 @@ async function devServe() {
 
       has_run_one_time = true;
 
-      if (is_targeting_deno) {
-        run_command_with_spawn_deno().catch((error) => {
+      const hot_reload_only =
+        dev_config?.hotReloadCssBundle &&
+        refresh_obj.changeType === "css-bundle";
+
+      if (!hot_reload_only) {
+        if (is_targeting_deno) {
+          run_command_with_spawn_deno().catch((error) => {
+            console.error(error);
+          });
+
+          return;
+        }
+
+        run_command_with_spawn().catch((error) => {
           console.error(error);
         });
-
-        return;
       }
-
-      run_command_with_spawn().catch((error) => {
-        console.error(error);
-      });
     });
   }
 
@@ -66,13 +82,33 @@ async function devServe() {
     },
   );
 
-  watcher.on("all", async (_, path) => {
-    hwyLog("Change detected, restarting server...");
+  watcher.on("all", async (type, path) => {
+    const is_change = type === "change";
+    const normalized_path = path.replace(/\\/g, "/");
+    const is_css_change =
+      is_change &&
+      normalized_path.includes("/src/styles/") &&
+      normalized_path.endsWith(".css");
+    const is_css_change_to_bundle =
+      is_css_change && normalized_path.endsWith(".bundle.css");
+    const is_css_change_to_critical =
+      is_css_change && normalized_path.endsWith(".critical.css");
+
+    hwyLog(
+      is_css_change_to_bundle
+        ? "Hot reloading CSS bundle..."
+        : "Change detected, restarting server...",
+    );
 
     try {
       await runBuildTasks({
         isDev: true,
         log: "triggered from chokidar watcher: " + path,
+        changeType: is_css_change_to_critical
+          ? "critical-css"
+          : is_css_change_to_bundle
+            ? "css-bundle"
+            : "standard",
       });
     } catch (e) {
       console.error("ERROR: Build tasks failed:", e);

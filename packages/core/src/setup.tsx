@@ -31,6 +31,13 @@ function immutable_cache() {
     deployment_target === "cloudflare-pages";
 
   return function (c: Context, next: Next) {
+    if (hwy_global.get("is_dev")) {
+      if (c.req.path.includes("public/dist/standard-bundled.css")) {
+        c.header("Cache-Control", "no-cache");
+        return next();
+      }
+    }
+
     c.header("Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
 
     if (should_set_cdn_cache_control) {

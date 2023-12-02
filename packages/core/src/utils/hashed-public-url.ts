@@ -4,11 +4,21 @@ import { get_hwy_global } from "./get-hwy-global.js";
 
 const hwy_global = get_hwy_global();
 
+export const DEV_BUNDLED_CSS_LINK_BASE =
+  "public/dist/standard-bundled.css?NOTE_TO_DEV=this_will_be_hashed_and_served_with_an_immutable_header_in_production_similar_to_your_client_entry_file";
+
 function getPublicUrl(url: string): string {
   let hashed_url: string | undefined;
 
   if (url.startsWith("/")) url = url.slice(1);
   if (url.startsWith("./")) url = url.slice(2);
+
+  if (hwy_global.get("is_dev")) {
+    const normalized_url = url.replace(/\\/g, "/");
+    if (normalized_url === "dist/standard-bundled.css") {
+      return "./" + PUBLIC_URL_PREFIX + DEV_BUNDLED_CSS_LINK_BASE;
+    }
+  }
 
   const public_map = hwy_global.get("public_map");
 
@@ -27,6 +37,14 @@ function get_original_public_url({
   hashed_url: string;
 }): string {
   const sliced_url = path.normalize(hashed_url.slice(1));
+
+  if (hwy_global.get("is_dev")) {
+    const normalized_sliced_url = sliced_url.replace(/\\/g, "/");
+
+    if (normalized_sliced_url.startsWith("public/dist/standard-bundled")) {
+      return "./" + PUBLIC_URL_PREFIX + "public/dist/standard-bundled.css";
+    }
+  }
 
   const reverse_public_map = hwy_global.get("public_reverse_map");
 
