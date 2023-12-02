@@ -42,7 +42,14 @@ async function devServe() {
       if (has_run_one_time) {
         try {
           await fetch(
-            `http://127.0.0.1:${dev_config?.port}${LIVE_REFRESH_RPC_PATH}?changeType=${refresh_obj.changeType}`,
+            `http://127.0.0.1:${dev_config?.port}${LIVE_REFRESH_RPC_PATH}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(refresh_obj),
+            },
           );
         } catch (e) {
           console.error("Live refresh RPC failed:", e);
@@ -53,7 +60,8 @@ async function devServe() {
 
       const hot_reload_only =
         dev_config?.hotReloadCssBundle &&
-        refresh_obj.changeType === "css-bundle";
+        refresh_obj.changeType &&
+        refresh_obj.changeType !== "standard";
 
       if (!hot_reload_only) {
         if (is_targeting_deno) {
@@ -97,7 +105,9 @@ async function devServe() {
     hwyLog(
       is_css_change_to_bundle
         ? "Hot reloading CSS bundle..."
-        : "Change detected, restarting server...",
+        : is_css_change_to_critical
+          ? "Hot reloading critical CSS..."
+          : "Change detected, restarting server...",
     );
 
     try {

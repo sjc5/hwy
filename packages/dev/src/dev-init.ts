@@ -9,7 +9,7 @@ import { refreshMiddleware } from "./refresh-middleware.js";
 import type { Hono } from "hono";
 
 function send_signal_to_sinks(payload: Omit<RefreshFilePayload, "at">) {
-  if (payload.changeType !== "css-bundle") {
+  if (payload.changeType === "standard") {
     hwyLog("Doing a full browser reload...");
   }
 
@@ -22,11 +22,11 @@ function setupLiveRefreshEndpoints({ app }: { app: Hono<any> }) {
   app.use(LIVE_REFRESH_SSE_PATH, refreshMiddleware());
 
   app.all(LIVE_REFRESH_RPC_PATH, async (c) => {
-    const payload = c.req.query() as Omit<RefreshFilePayload, "at">;
+    const payload = (await c.req.json()) as Omit<RefreshFilePayload, "at">;
 
     send_signal_to_sinks(payload);
 
-    if (payload.changeType !== "css-bundle") {
+    if (payload.changeType === "standard") {
       for (const sink of sinks) {
         sink.close();
       }

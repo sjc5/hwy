@@ -1,4 +1,7 @@
-import { LIVE_REFRESH_SSE_PATH } from "../../../common/index.mjs";
+import {
+  CRITICAL_CSS_ELEMENT_ID,
+  LIVE_REFRESH_SSE_PATH,
+} from "../../../common/index.mjs";
 import { get_hwy_global } from "../utils/get-hwy-global.js";
 import { DEV_BUNDLED_CSS_LINK } from "../utils/hashed-public-url.js";
 
@@ -19,7 +22,7 @@ const getRefreshScript = (timeoutInMs = 300) => {
 
   return `
   new EventSource("${LIVE_REFRESH_SSE_PATH}").addEventListener("message", (e) => {
-    const { changeType } = JSON.parse(e.data);
+    const { changeType, criticalCss } = JSON.parse(e.data);
     function refresh() {
       if (changeType === "css-bundle") {
         for (const link of document.querySelectorAll('link[rel="stylesheet"]')) {
@@ -33,6 +36,11 @@ const getRefreshScript = (timeoutInMs = 300) => {
             next.onload = () => link.remove();
             link.parentNode?.insertBefore(next, link.nextSibling);
           }
+        }
+      } else if (changeType === "critical-css") {
+        const inline_style_el = document.getElementById("${CRITICAL_CSS_ELEMENT_ID}");
+        if (inline_style_el) {
+          inline_style_el.innerHTML = criticalCss;
         }
       } else {
         setTimeout(() => window.location.reload(), ${timeoutInMs});

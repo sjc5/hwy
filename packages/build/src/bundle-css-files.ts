@@ -7,7 +7,7 @@ import { pathToFileURL } from "node:url";
 import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
 
 /*
-NOTE: This fille assume it's run (and therefore imported / initiated)
+NOTE: This file assumes it's run (and therefore imported / initiated)
 only after the public-map.js file has been generated. That means you
 should import it lazily and only after the public-map.js file has been
 generated.
@@ -112,6 +112,8 @@ async function bundle_css_files() {
         path.join(process.cwd(), "dist/critical-bundled-css.js"),
         `export const ${HWY_GLOBAL_KEYS.critical_bundled_css} = \`${css}\`;`,
       );
+
+      return css;
     } else {
       fs.writeFileSync(
         path.join(process.cwd(), "dist/critical-bundled-css.js"),
@@ -120,7 +122,12 @@ async function bundle_css_files() {
     }
   }
 
-  await Promise.all([build_standard_css(), build_critical_css()]);
+  const [_, critical_css] = await Promise.all([
+    build_standard_css(),
+    build_critical_css(),
+  ]);
+
+  return { critical_css };
 }
 
 export { bundle_css_files };

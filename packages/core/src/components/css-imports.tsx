@@ -12,6 +12,7 @@ function CriticalCss() {
 
   return (
     <style
+      id={utils.getCriticalCssElementId()}
       dangerouslySetInnerHTML={{
         __html: critical_css,
       }}

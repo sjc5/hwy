@@ -36,5 +36,8 @@ export const SPLAT_SEGMENT = ":catch*";
 
 export type RefreshFilePayload = {
   changeType: "critical-css" | "css-bundle" | "standard";
+  criticalCss?: string;
   at: string;
 };
+
+export const CRITICAL_CSS_ELEMENT_ID = "__hwy-critical-css";

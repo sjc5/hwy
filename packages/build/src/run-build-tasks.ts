@@ -70,13 +70,16 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
 
 function write_refresh_txt({
   changeType,
+  criticalCss,
 }: {
   changeType: RefreshFilePayload["changeType"];
+  criticalCss?: string;
 }) {
   fs.writeFileSync(
     path.join(process.cwd(), "dist", "refresh.txt"),
     JSON.stringify({
       changeType,
+      criticalCss,
       at: Date.now().toString(),
     } satisfies RefreshFilePayload),
   );
@@ -92,15 +95,20 @@ async function runBuildTasks({
   changeType?: RefreshFilePayload["changeType"];
 }) {
   const hot_reload_only =
-    hwy_config.dev?.hotReloadCssBundle && changeType === "css-bundle";
+    hwy_config.dev?.hotReloadCssBundle &&
+    changeType &&
+    changeType !== "standard";
 
   if (hot_reload_only) {
     // Why is this imported here? See the note in bundle-css-files.ts.
     // In this case, you're hot reloading, so we expect you to already
     // have the public-map.js file generated.
     const { bundle_css_files } = await import("./bundle-css-files.js");
-    await bundle_css_files();
-    write_refresh_txt({ changeType });
+    const css_bundle_res = await bundle_css_files();
+    write_refresh_txt({
+      changeType,
+      criticalCss: css_bundle_res?.critical_css,
+    });
     return;
   }
 
