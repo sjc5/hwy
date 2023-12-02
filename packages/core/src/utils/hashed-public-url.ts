@@ -4,8 +4,14 @@ import { get_hwy_global } from "./get-hwy-global.js";
 
 const hwy_global = get_hwy_global();
 
-export const DEV_BUNDLED_CSS_LINK_BASE =
-  "public/dist/standard-bundled.css?NOTE_TO_DEV=this_will_be_hashed_and_served_with_an_immutable_header_in_production_similar_to_your_client_entry_file";
+function get_dev_bundled_css_link() {
+  const root = "/public/dist/standard-bundled.css?NOTE_TO_DEV=";
+  const val_part_1 = "this-will-be-hashed-and-cached-in-production-";
+  const val_part_2 = "just-like-your-client-entry-file";
+  return root + val_part_1 + val_part_2;
+}
+
+export const DEV_BUNDLED_CSS_LINK = get_dev_bundled_css_link();
 
 function getPublicUrl(url: string): string {
   let hashed_url: string | undefined;
@@ -16,7 +22,7 @@ function getPublicUrl(url: string): string {
   if (hwy_global.get("is_dev")) {
     const normalized_url = url.replace(/\\/g, "/");
     if (normalized_url === "dist/standard-bundled.css") {
-      return "./" + PUBLIC_URL_PREFIX + DEV_BUNDLED_CSS_LINK_BASE;
+      return DEV_BUNDLED_CSS_LINK;
     }
   }
 

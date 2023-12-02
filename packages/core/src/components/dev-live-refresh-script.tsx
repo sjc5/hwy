@@ -1,6 +1,6 @@
 import { LIVE_REFRESH_SSE_PATH } from "../../../common/index.mjs";
 import { get_hwy_global } from "../utils/get-hwy-global.js";
-import { DEV_BUNDLED_CSS_LINK_BASE } from "../utils/hashed-public-url.js";
+import { DEV_BUNDLED_CSS_LINK } from "../utils/hashed-public-url.js";
 
 const hwy_global = get_hwy_global();
 
@@ -29,8 +29,7 @@ const getRefreshScript = (timeoutInMs = 300) => {
             url.pathname.startsWith("/public/dist/standard-bundled.")
           ) {
             const next = link.cloneNode();
-            // const buster = Math.random().toString().replace("0.", "");
-            next.href = "${DEV_BUNDLED_CSS_LINK_BASE}"; // + buster;
+            next.href = "${DEV_BUNDLED_CSS_LINK}";
             next.onload = () => link.remove();
             link.parentNode?.insertBefore(next, link.nextSibling);
           }
