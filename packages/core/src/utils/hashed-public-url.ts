@@ -45,7 +45,7 @@ function get_original_public_url({
     const normalized_sliced_url = sliced_url.replace(/\\/g, "/");
 
     if (normalized_sliced_url.startsWith("public/dist/standard-bundled")) {
-      return "./" + PUBLIC_URL_PREFIX + "public/dist/standard-bundled.css";
+      return "./" + "public/dist/standard-bundled.css";
     }
   }
 

@@ -19,16 +19,16 @@ const public_map: Record<string, string> | undefined = (
   await import(pathToFileURL(public_map_path).href)
 )[HWY_GLOBAL_KEYS.public_map];
 
-const URL_REGEX = /url\(\s*['"]([^'"]*)['"]\s*\)/g;
+const URL_REGEX = /url\(\s*(?:(['"]?)(.*?)\1)\s*\)/gi;
 
-function replacer(_: string, p1: string) {
+function replacer(_: string, __: string, p2: string) {
   if (!public_map) {
     throw new Error("No public map found");
   }
 
   const hashed = get_hashed_public_url_low_level({
     public_map,
-    url: p1,
+    url: p2,
   });
 
   return `url("${hashed}")`;
