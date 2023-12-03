@@ -76,10 +76,7 @@ const default_head_blocks: HeadBlock[] = [
 ];
 
 app.all("*", async (c, next) => {
-  // 31 days vercel edge cache (invalidated each deploy)
-  c.header("CDN-Cache-Control", "public, max-age=2678400");
-  // 10 seconds client cache
-  c.header("Cache-Control", "public, max-age=10");
+  c.header("Cache-Control", "public, max-age=10, s-maxage=2678400");
 
   return await renderRoot({
     c,
