@@ -13,8 +13,9 @@ import fs from "node:fs";
 
 declare const Deno: Record<any, any>;
 
-const { deploymentTarget: deployment_target, dev: dev_config } =
-  await get_hwy_config();
+const hwy_config = await get_hwy_config();
+const deployment_target = hwy_config.deploymentTarget;
+let dev_config = hwy_config.dev;
 
 async function devServe() {
   const is_targeting_deno =
@@ -143,6 +144,14 @@ async function devServe() {
         ...process.env,
       };
 
+      // Make sure your .env overrides your Hwy config
+      if (env.PORT) {
+        if (!dev_config) {
+          dev_config = {};
+        }
+        dev_config.port = Number(env.PORT);
+      }
+
       const proc = spawn("node", ["dist/main.js"], {
         env,
         stdio: "inherit",
@@ -191,6 +200,14 @@ async function devServe() {
       ...base_env,
       ...Deno.env.toObject(),
     };
+
+    // Make sure your .env overrides your Hwy config
+    if (env.PORT) {
+      if (!dev_config) {
+        dev_config = {};
+      }
+      dev_config.port = Number(env.PORT);
+    }
 
     const cmd = new Deno.Command(Deno.execPath(), {
       args: ["run", "-A", "dist/main.js"],

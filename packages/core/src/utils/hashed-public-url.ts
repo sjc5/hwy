@@ -4,14 +4,11 @@ import { get_hwy_global } from "./get-hwy-global.js";
 
 const hwy_global = get_hwy_global();
 
-function get_dev_bundled_css_link() {
-  const root = "/public/dist/standard-bundled.css?NOTE_TO_DEV=";
-  const val_part_1 = "this-will-be-hashed-and-cached-in-production-";
-  const val_part_2 = "just-like-your-client-entry-file";
-  return root + val_part_1 + val_part_2;
-}
+export const DEV_BUNDLED_CSS_QUERY_PARAM =
+  "?NOTE_TO_DEV=this-will-be-hashed-and-cached-in-prod-just-like-your-client-entry-file";
 
-export const DEV_BUNDLED_CSS_LINK = get_dev_bundled_css_link();
+export const DEV_BUNDLED_CSS_LINK =
+  "/public/dist/standard-bundled.css" + DEV_BUNDLED_CSS_QUERY_PARAM;
 
 function getPublicUrl(url: string): string {
   let hashed_url: string | undefined;

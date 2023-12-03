@@ -48,7 +48,7 @@ async function get_hwy_config() {
         internal_hwy_config?.dev?.hotReloadCssBundle === false ? false : true,
     },
     deploymentTarget: internal_hwy_config?.deploymentTarget || "node",
-    warmPaths: internal_hwy_config?.warmPaths === false ? false : true,
+    routeStrategy: internal_hwy_config?.routeStrategy || "always-lazy",
   };
 
   // delete the file now that we're done with it

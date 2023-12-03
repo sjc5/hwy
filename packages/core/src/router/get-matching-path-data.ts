@@ -13,8 +13,13 @@ import { SPLAT_SEGMENT } from "../../../common/index.mjs";
 const hwy_global = get_hwy_global();
 
 async function get_path(import_path: string) {
+  const route_strategy = hwy_global.get("route_strategy");
+
   let _path = (globalThis as any)["./" + import_path];
 
+  // If "bundle" this should definitely be true
+  // If "warm-cache-at-startup" or "lazy-once-then-cache", this might be true
+  // If "always-lazy", this should definitely be false
   if (_path) {
     return _path;
   }
@@ -23,6 +28,10 @@ async function get_path(import_path: string) {
     hwy_global.get("test_dirname") || ROOT_DIRNAME || "./",
     import_path,
   );
+
+  if (route_strategy === "always-lazy") {
+    return import(path_to_file_url_string(inner));
+  }
 
   _path = await import(path_to_file_url_string(inner));
 

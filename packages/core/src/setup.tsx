@@ -2,6 +2,7 @@ import type { Hono, Context, Next } from "hono";
 import type { serveStatic as serveStaticFn } from "@hono/node-server/serve-static";
 import path from "node:path";
 import {
+  DEV_BUNDLED_CSS_QUERY_PARAM,
   getPublicUrl,
   get_original_public_url,
   get_serve_static_options,
@@ -86,13 +87,25 @@ async function hwyInit({
 
   if (deployment_target === "cloudflare-pages") {
     app.get(static_path, async (c) => {
-      const original_public_url = get_original_public_url({
+      let original_public_url = get_original_public_url({
         hashed_url: c.req.path,
       });
 
-      const hostname = c.req.url.replace(c.req.path, "");
+      let hostname = c.req.url.replace(c.req.path, "");
 
-      const new_url = hostname + "/" + original_public_url.slice(2);
+      const is_dev_css_bundle =
+        hwy_global.get("is_dev") &&
+        hostname.includes(DEV_BUNDLED_CSS_QUERY_PARAM);
+
+      if (is_dev_css_bundle) {
+        hostname = hostname.replace(DEV_BUNDLED_CSS_QUERY_PARAM, "");
+      }
+
+      let new_url = hostname + "/" + original_public_url.slice(2);
+
+      if (is_dev_css_bundle) {
+        new_url = new_url + DEV_BUNDLED_CSS_QUERY_PARAM;
+      }
 
       const new_req = new Request(new_url, c.req);
 
