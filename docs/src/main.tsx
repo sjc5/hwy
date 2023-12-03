@@ -76,7 +76,7 @@ const default_head_blocks: HeadBlock[] = [
 ];
 
 app.all("*", async (c, next) => {
-  c.header("Cache-Control", "public, max-age=10, s-maxage=60");
+  c.header("Cache-Control", "max-age=0, s-maxage=2678400");
 
   return await renderRoot({
     c,
