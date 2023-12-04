@@ -25,11 +25,11 @@
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@types/node": "^20.10.3",
-    "hono": "^3.10.5",
+    "hono": "^3.11.1",
     "tsup": "^8.0.1"
   },
   "peerDependencies": {
-    "hono": "^3.10.4"
+    "hono": "^3.11.1"
   },
   "repository": {
     "type": "git",
