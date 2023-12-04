@@ -8,8 +8,13 @@
   "description": "Simple, lightweight, and flexible web framework, built on Hono and HTMX.",
   "type": "module",
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./types/htmx": "./types/htmx.d.ts"
+  },
   "files": [
-    "dist"
+    "dist",
+    "types"
   ],
   "scripts": {
     "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
