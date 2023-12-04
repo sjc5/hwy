@@ -1,6 +1,4 @@
-import { type ChildrenPermissive } from "../types.js";
-
-function Boldtalic({ children }: { children: ChildrenPermissive }) {
+function Boldtalic({ children }: { children: string }) {
   return (
     <b>
       <i>{children}</i>

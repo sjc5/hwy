@@ -211,13 +211,3 @@ footer {
   padding-left: 0.25rem;
   line-height: 1.75;
 }
-
-.link {
-  text-decoration: underline;
-  text-decoration-color: rgba(255, 255, 255, 0.6);
-  text-decoration-thickness: 0.15rem;
-  transition: text-decoration-color 200ms;
-  &:hover {
-    text-decoration-color: rgba(255, 255, 255, 1);
-  }
-}

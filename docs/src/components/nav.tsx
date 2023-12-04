@@ -1,15 +1,8 @@
-import { Boldtalic } from "./bold-italic.js";
-
 function Nav() {
   return (
     <nav>
       <a class="logo" href="/">
-        <h1>
-          Hwy{" "}
-          <span style={{ fontSize: "1rem" }}>
-            (<Boldtalic>BETA</Boldtalic>)
-          </span>
-        </h1>
+        <h1>Hwy</h1>
       </a>
 
       <div style={{ display: "flex" }}>
