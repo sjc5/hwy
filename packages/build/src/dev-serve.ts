@@ -17,6 +17,17 @@ const hwy_config = await get_hwy_config();
 const deployment_target = hwy_config.deploymentTarget;
 let dev_config = hwy_config.dev;
 
+function get_is_hot_reload_only(
+  changeType: RefreshFilePayload["changeType"] | undefined,
+): changeType is "css-bundle" | "critical-css" {
+  return Boolean(
+    hwy_config.deploymentTarget !== "cloudflare-pages" &&
+      hwy_config.dev?.hotReloadCssBundle &&
+      changeType &&
+      changeType !== "standard",
+  );
+}
+
 async function devServe() {
   const is_targeting_deno =
     deployment_target === "deno" || deployment_target === "deno-deploy";
@@ -59,12 +70,9 @@ async function devServe() {
 
       has_run_one_time = true;
 
-      const hot_reload_only =
-        dev_config?.hotReloadCssBundle &&
-        refresh_obj.changeType &&
-        refresh_obj.changeType !== "standard";
+      const HOT_RELOAD_ONLY = get_is_hot_reload_only(refresh_obj.changeType);
 
-      if (!hot_reload_only) {
+      if (!HOT_RELOAD_ONLY) {
         if (is_targeting_deno) {
           run_command_with_spawn_deno().catch((error) => {
             console.error(error);
@@ -226,4 +234,4 @@ async function devServe() {
   }
 }
 
-export { devServe };
+export { devServe, get_is_hot_reload_only };

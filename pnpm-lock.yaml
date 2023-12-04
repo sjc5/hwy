@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@types/node':
-        specifier: ^20.10.2
-        version: 20.10.2
+        specifier: ^20.10.3
+        version: 20.10.3
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
@@ -30,8 +30,8 @@ importers:
         specifier: ^1.3.1
         version: 1.3.1
       hono:
-        specifier: ^3.10.4
-        version: 3.10.4
+        specifier: ^3.10.5
+        version: 3.10.5
       hwy:
         specifier: workspace:*
         version: link:../packages/core
@@ -46,8 +46,8 @@ importers:
         specifier: workspace:*
         version: link:../packages/dev
       '@types/node':
-        specifier: ^20.10.2
-        version: 20.10.2
+        specifier: ^20.10.3
+        version: 20.10.3
       '@types/nprogress':
         specifier: ^0.2.3
         version: 0.2.3
@@ -83,14 +83,14 @@ importers:
         version: 3.6.0
     devDependencies:
       '@types/node':
-        specifier: ^20.10.2
-        version: 20.10.2
+        specifier: ^20.10.3
+        version: 20.10.3
       hono:
-        specifier: ^3.10.4
-        version: 3.10.4
+        specifier: ^3.10.5
+        version: 3.10.5
       tsup:
         specifier: ^8.0.1
-        version: 8.0.1(postcss@8.4.31)(typescript@5.3.2)
+        version: 8.0.1(postcss@8.4.32)(typescript@5.3.2)
       typescript:
         specifier: ^5.3.2
         version: 5.3.2
@@ -111,7 +111,7 @@ importers:
         version: 0.2.0
       tsup:
         specifier: ^8.0.1
-        version: 8.0.1(postcss@8.4.31)(typescript@5.3.2)
+        version: 8.0.1(postcss@8.4.32)(typescript@5.3.2)
       typescript:
         specifier: ^5.3.2
         version: 5.3.2
@@ -128,14 +128,14 @@ importers:
         specifier: workspace:*
         version: link:../dev
       '@types/node':
-        specifier: ^20.10.2
-        version: 20.10.2
+        specifier: ^20.10.3
+        version: 20.10.3
       hono:
-        specifier: ^3.10.4
-        version: 3.10.4
+        specifier: ^3.10.5
+        version: 3.10.5
       tsup:
         specifier: ^8.0.1
-        version: 8.0.1(postcss@8.4.31)(typescript@5.3.2)
+        version: 8.0.1(postcss@8.4.32)(typescript@5.3.2)
 
   packages/create-hwy:
     dependencies:
@@ -165,17 +165,17 @@ importers:
         specifier: ^9.0.7
         version: 9.0.7
       '@types/node':
-        specifier: ^20.10.2
-        version: 20.10.2
+        specifier: ^20.10.3
+        version: 20.10.3
       '@types/nprogress':
         specifier: ^0.2.3
         version: 0.2.3
       bun-types:
-        specifier: ^1.0.14
-        version: 1.0.14
+        specifier: ^1.0.15
+        version: 1.0.15
       hono:
-        specifier: ^3.10.4
-        version: 3.10.4
+        specifier: ^3.10.5
+        version: 3.10.5
       htmx.org:
         specifier: ^1.9.9
         version: 1.9.9
@@ -199,7 +199,7 @@ importers:
         version: 3.3.5
       tsup:
         specifier: ^8.0.1
-        version: 8.0.1(postcss@8.4.31)(typescript@5.3.2)
+        version: 8.0.1(postcss@8.4.32)(typescript@5.3.2)
       typescript:
         specifier: ^5.3.2
         version: 5.3.2
@@ -214,14 +214,14 @@ importers:
         version: 1.0.0
     devDependencies:
       '@types/node':
-        specifier: ^20.10.2
-        version: 20.10.2
+        specifier: ^20.10.3
+        version: 20.10.3
       hono:
-        specifier: ^3.10.4
-        version: 3.10.4
+        specifier: ^3.10.5
+        version: 3.10.5
       tsup:
         specifier: ^8.0.1
-        version: 8.0.1(postcss@8.4.31)(typescript@5.3.2)
+        version: 8.0.1(postcss@8.4.32)(typescript@5.3.2)
       typescript:
         specifier: ^5.3.2
         version: 5.3.2
@@ -229,11 +229,11 @@ importers:
   packages/utils:
     devDependencies:
       hono:
-        specifier: ^3.10.4
-        version: 3.10.4
+        specifier: ^3.10.5
+        version: 3.10.5
       tsup:
         specifier: ^8.0.1
-        version: 8.0.1(postcss@8.4.31)(typescript@5.3.2)
+        version: 8.0.1(postcss@8.4.32)(typescript@5.3.2)
       typescript:
         specifier: ^5.3.2
         version: 5.3.2
@@ -244,8 +244,8 @@ importers:
         specifier: ^1.3.1
         version: 1.3.1
       hono:
-        specifier: ^3.10.4
-        version: 3.10.4
+        specifier: ^3.10.5
+        version: 3.10.5
       hwy:
         specifier: workspace:*
         version: link:../../packages/core
@@ -263,8 +263,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/utils
       '@types/node':
-        specifier: ^20.10.2
-        version: 20.10.2
+        specifier: ^20.10.3
+        version: 20.10.3
       htmx.org:
         specifier: ^1.9.9
         version: 1.9.9
@@ -290,8 +290,8 @@ importers:
         specifier: ^1.3.1
         version: 1.3.1
       hono:
-        specifier: ^3.10.4
-        version: 3.10.4
+        specifier: ^3.10.5
+        version: 3.10.5
       hwy:
         specifier: workspace:*
         version: link:../../packages/core
@@ -306,8 +306,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/dev
       '@types/node':
-        specifier: ^20.10.2
-        version: 20.10.2
+        specifier: ^20.10.3
+        version: 20.10.3
       htmx.org:
         specifier: ^1.9.9
         version: 1.9.9
@@ -392,7 +392,7 @@ packages:
     dependencies:
       '@babel/compat-data': 7.23.5
       '@babel/helper-validator-option': 7.23.5
-      browserslist: 4.22.1
+      browserslist: 4.22.2
       lru-cache: 5.1.1
       semver: 6.3.1
     dev: false
@@ -1282,11 +1282,11 @@ packages:
   /@types/node-forge@1.3.10:
     resolution: {integrity: sha512-y6PJDYN4xYBxwd22l+OVH35N+1fCYWiuC3aiP2SlXVE6Lo7SS+rSx9r89hLxrP4pn6n1lBGhHJ12pj3F3Mpttw==}
     dependencies:
-      '@types/node': 20.10.2
+      '@types/node': 20.10.3
     dev: true
 
-  /@types/node@20.10.2:
-    resolution: {integrity: sha512-37MXfxkb0vuIlRKHNxwCkb60PNBpR94u4efQuN4JgIAm66zfCDXGSAFCef9XUWFovX2R1ok6Z7MHhtdVXXkkIw==}
+  /@types/node@20.10.3:
+    resolution: {integrity: sha512-XJavIpZqiXID5Yxnxv3RUDKTN5b81ddNC3ecsA0SoFXz/QU8OGBwZGMomiq0zw+uuqbL/krztv/DINAQ/EV4gg==}
     dependencies:
       undici-types: 5.26.5
     dev: true
@@ -1298,7 +1298,7 @@ packages:
   /@types/through@0.0.33:
     resolution: {integrity: sha512-HsJ+z3QuETzP3cswwtzt2vEIiHBk/dCcHGhbmG5X3ecnwFD/lPrMpliGXxSCg03L9AhrdwA4Oz/qfspkDW+xGQ==}
     dependencies:
-      '@types/node': 20.10.2
+      '@types/node': 20.10.3
     dev: true
 
   /@vitest/expect@0.34.6:
@@ -1503,15 +1503,15 @@ packages:
     dependencies:
       fill-range: 7.0.1
 
-  /browserslist@4.22.1:
-    resolution: {integrity: sha512-FEVc202+2iuClEhZhrWy6ZiAcRLvNMyYcxZ8raemul1DYVOVdFsbqckWLdsixQZCpJlwe77Z3UTalE7jsjnKfQ==}
+  /browserslist@4.22.2:
+    resolution: {integrity: sha512-0UgcrvQmBDvZHFGdYUehrCNIazki7/lUP3kkoi/r3YB2amZbFM9J43ZRkJTXBUZK4gmx56+Sqk9+Vs9mwZx9+A==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001565
+      caniuse-lite: 1.0.30001566
       electron-to-chromium: 1.4.601
       node-releases: 2.0.14
-      update-browserslist-db: 1.0.13(browserslist@4.22.1)
+      update-browserslist-db: 1.0.13(browserslist@4.22.2)
     dev: false
 
   /buffer-from@1.1.2:
@@ -1525,8 +1525,8 @@ packages:
       ieee754: 1.2.1
     dev: false
 
-  /bun-types@1.0.14:
-    resolution: {integrity: sha512-hLVfM2fk8xSJeobfuPGilfvxM5gLtEy1bn7RJhrtw3u4OaC0kieXKYFFTVHU8jZ3hj8YyPLIFClIUodkFSrMBQ==}
+  /bun-types@1.0.15:
+    resolution: {integrity: sha512-XkEvWLV1JIhcVIpf2Lu6FXnZUxRUkQVJmgY+VT7os6Tk5X1nkXx11q4Rtu6txsqpDJZfUeZXblnnD59K+6wsVA==}
     dev: true
 
   /bundle-require@4.0.2(esbuild@0.19.8):
@@ -1556,8 +1556,8 @@ packages:
     engines: {node: '>= 6'}
     dev: true
 
-  /caniuse-lite@1.0.30001565:
-    resolution: {integrity: sha512-xrE//a3O7TP0vaJ8ikzkD2c2NgcVUvsEe2IvFTntV4Yd1Z9FVzh+gW+enX96L0psrbaFMcVcH2l90xNuGDWc8w==}
+  /caniuse-lite@1.0.30001566:
+    resolution: {integrity: sha512-ggIhCsTxmITBAMmK8yZjEhCO5/47jKXPu6Dha/wuCS4JePVL+3uiDEBuhu2aIoT+bqTOR8L76Ip1ARL9xYsEJA==}
     dev: false
 
   /capnp-ts@0.7.0:
@@ -2180,8 +2180,8 @@ packages:
     dependencies:
       function-bind: 1.1.2
 
-  /hono@3.10.4:
-    resolution: {integrity: sha512-2LJd+a3qyvSuyFlyJSRN1CeH5wg6/Rjua/5L5gdT1W+4U7EUZtnHph74klbyysGg69sfZNXsIrR7PJWSjf2Vww==}
+  /hono@3.10.5:
+    resolution: {integrity: sha512-qNKibuEs+xzFVcKD9HHzAs2nUXQniQgXU6q9FRIwd7TFpkI9dGtkSHddWxdNoxX/7MGd7unaIisVOGMqiER4pw==}
     engines: {node: '>=16.0.0'}
 
   /hosted-git-info@2.8.9:
@@ -2808,29 +2808,29 @@ packages:
       pathe: 1.1.1
     dev: true
 
-  /postcss-import@15.1.0(postcss@8.4.31):
+  /postcss-import@15.1.0(postcss@8.4.32):
     resolution: {integrity: sha512-hpr+J05B2FVYUAXHeK1YyI267J/dDDhMU6B6civm8hSY1jYJnBXxzKDKDswzJmtLHryrjhnDjqqp/49t8FALew==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       postcss: ^8.0.0
     dependencies:
-      postcss: 8.4.31
+      postcss: 8.4.32
       postcss-value-parser: 4.2.0
       read-cache: 1.0.0
       resolve: 1.22.8
     dev: true
 
-  /postcss-js@4.0.1(postcss@8.4.31):
+  /postcss-js@4.0.1(postcss@8.4.32):
     resolution: {integrity: sha512-dDLF8pEO191hJMtlHFPRa8xsizHaM82MLfNkUHdUtVEV3tgTp5oj+8qbEqYM57SLfc74KSbw//4SeJma2LRVIw==}
     engines: {node: ^12 || ^14 || >= 16}
     peerDependencies:
       postcss: ^8.4.21
     dependencies:
       camelcase-css: 2.0.1
-      postcss: 8.4.31
+      postcss: 8.4.32
     dev: true
 
-  /postcss-load-config@4.0.2(postcss@8.4.31):
+  /postcss-load-config@4.0.2(postcss@8.4.32):
     resolution: {integrity: sha512-bSVhyJGL00wMVoPUzAVAnbEoWyqRxkjv64tUl427SKnPrENtq6hJwUojroMz2VB+Q1edmi4IfrAPpami5VVgMQ==}
     engines: {node: '>= 14'}
     peerDependencies:
@@ -2843,17 +2843,17 @@ packages:
         optional: true
     dependencies:
       lilconfig: 3.0.0
-      postcss: 8.4.31
+      postcss: 8.4.32
       yaml: 2.3.4
     dev: true
 
-  /postcss-nested@6.0.1(postcss@8.4.31):
+  /postcss-nested@6.0.1(postcss@8.4.32):
     resolution: {integrity: sha512-mEp4xPMi5bSWiMbsgoPfcP74lsWLHkQbZc3sY+jWYd65CUwXrUaTp0fmNpa01ZcETKlIgUdFN/MpS2xZtqL9dQ==}
     engines: {node: '>=12.0'}
     peerDependencies:
       postcss: ^8.2.14
     dependencies:
-      postcss: 8.4.31
+      postcss: 8.4.32
       postcss-selector-parser: 6.0.13
     dev: true
 
@@ -2869,8 +2869,8 @@ packages:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
     dev: true
 
-  /postcss@8.4.31:
-    resolution: {integrity: sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ==}
+  /postcss@8.4.32:
+    resolution: {integrity: sha512-D/kj5JNu6oo2EIy+XL/26JEDTlIbB8hw85G8StOE6L74RQAVVP5rej6wxCNqyMbR4RkPfqvezVbPw81Ngd6Kcw==}
     engines: {node: ^10 || ^12 || >=14}
     dependencies:
       nanoid: 3.3.7
@@ -3346,11 +3346,11 @@ packages:
       normalize-path: 3.0.0
       object-hash: 3.0.0
       picocolors: 1.0.0
-      postcss: 8.4.31
-      postcss-import: 15.1.0(postcss@8.4.31)
-      postcss-js: 4.0.1(postcss@8.4.31)
-      postcss-load-config: 4.0.2(postcss@8.4.31)
-      postcss-nested: 6.0.1(postcss@8.4.31)
+      postcss: 8.4.32
+      postcss-import: 15.1.0(postcss@8.4.32)
+      postcss-js: 4.0.1(postcss@8.4.32)
+      postcss-load-config: 4.0.2(postcss@8.4.32)
+      postcss-nested: 6.0.1(postcss@8.4.32)
       postcss-selector-parser: 6.0.13
       resolve: 1.22.8
       sucrase: 3.34.0
@@ -3421,7 +3421,7 @@ packages:
   /tslib@2.6.2:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
 
-  /tsup@8.0.1(postcss@8.4.31)(typescript@5.3.2):
+  /tsup@8.0.1(postcss@8.4.32)(typescript@5.3.2):
     resolution: {integrity: sha512-hvW7gUSG96j53ZTSlT4j/KL0q1Q2l6TqGBFc6/mu/L46IoNWqLLUzLRLP1R8Q7xrJTmkDxxDoojV5uCVs1sVOg==}
     engines: {node: '>=18'}
     hasBin: true
@@ -3448,8 +3448,8 @@ packages:
       execa: 5.1.1
       globby: 11.1.0
       joycon: 3.1.1
-      postcss: 8.4.31
-      postcss-load-config: 4.0.2(postcss@8.4.31)
+      postcss: 8.4.32
+      postcss-load-config: 4.0.2(postcss@8.4.32)
       resolve-from: 5.0.0
       rollup: 4.6.1
       source-map: 0.8.0-beta.0
@@ -3534,13 +3534,13 @@ packages:
       '@fastify/busboy': 2.1.0
     dev: true
 
-  /update-browserslist-db@1.0.13(browserslist@4.22.1):
+  /update-browserslist-db@1.0.13(browserslist@4.22.2):
     resolution: {integrity: sha512-xebP81SNcPuNpPP3uzeW1NYXxI3rxyJzF3pD6sH4jE7o/IX+WtSpwnVU+qIsDPyk0d3hmFQ7mjqc6AtV604hbg==}
     hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
     dependencies:
-      browserslist: 4.22.1
+      browserslist: 4.22.2
       escalade: 3.1.1
       picocolors: 1.0.0
     dev: false
@@ -3555,7 +3555,7 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /vite-node@0.34.6(@types/node@20.10.2):
+  /vite-node@0.34.6(@types/node@20.10.3):
     resolution: {integrity: sha512-nlBMJ9x6n7/Amaz6F3zJ97EBwR2FkzhBRxF5e+jE6LA3yi6Wtc2lyTij1OnDMIr34v5g/tVQtsVAzhT0jc5ygA==}
     engines: {node: '>=v14.18.0'}
     hasBin: true
@@ -3565,7 +3565,7 @@ packages:
       mlly: 1.4.2
       pathe: 1.1.1
       picocolors: 1.0.0
-      vite: 5.0.4(@types/node@20.10.2)
+      vite: 5.0.4(@types/node@20.10.3)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -3577,7 +3577,7 @@ packages:
       - terser
     dev: true
 
-  /vite@5.0.4(@types/node@20.10.2):
+  /vite@5.0.4(@types/node@20.10.3):
     resolution: {integrity: sha512-RzAr8LSvM8lmhB4tQ5OPcBhpjOZRZjuxv9zO5UcxeoY2bd3kP3Ticd40Qma9/BqZ8JS96Ll/jeBX9u+LJZrhVg==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -3605,9 +3605,9 @@ packages:
       terser:
         optional: true
     dependencies:
-      '@types/node': 20.10.2
+      '@types/node': 20.10.3
       esbuild: 0.19.8
-      postcss: 8.4.31
+      postcss: 8.4.32
       rollup: 4.6.1
     optionalDependencies:
       fsevents: 2.3.3
@@ -3646,7 +3646,7 @@ packages:
     dependencies:
       '@types/chai': 4.3.11
       '@types/chai-subset': 1.3.5
-      '@types/node': 20.10.2
+      '@types/node': 20.10.3
       '@vitest/expect': 0.34.6
       '@vitest/runner': 0.34.6
       '@vitest/snapshot': 0.34.6
@@ -3665,8 +3665,8 @@ packages:
       strip-literal: 1.3.0
       tinybench: 2.5.1
       tinypool: 0.7.0
-      vite: 5.0.4(@types/node@20.10.2)
-      vite-node: 0.34.6(@types/node@20.10.2)
+      vite: 5.0.4(@types/node@20.10.3)
+      vite-node: 0.34.6(@types/node@20.10.3)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:
       - less

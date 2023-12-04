@@ -17,6 +17,7 @@ import {
 } from "../../common/index.mjs";
 import { get_hwy_config } from "./get-hwy-config.js";
 import { smart_normalize } from "./smart-normalize.js";
+import { get_is_hot_reload_only } from "./dev-serve.js";
 
 const FILE_NAMES = [
   "critical-bundled-css.js",
@@ -43,11 +44,11 @@ async function runBuildTasks({
 }) {
   const IS_DEV = isDev;
   const IS_PROD = !isDev;
-  const HOT_RELOAD_ONLY =
-    hwy_config.deploymentTarget !== "cloudflare-pages" &&
-    hwy_config.dev?.hotReloadCssBundle &&
-    changeType &&
-    changeType !== "standard";
+
+  hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
+  await handle_prebuild({ is_dev: IS_DEV });
+
+  const HOT_RELOAD_ONLY = get_is_hot_reload_only(changeType);
 
   if (HOT_RELOAD_ONLY) {
     /*
@@ -68,8 +69,6 @@ async function runBuildTasks({
     return;
   }
 
-  hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
-  await handle_prebuild({ is_dev: IS_DEV });
   hwyLog(`Running standard build tasks...`);
   const standard_tasks_p0 = performance.now();
   const dist_path = path.join(process.cwd(), "dist");
