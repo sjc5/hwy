@@ -1,5 +1,5 @@
-/* These types have been adapted from https://github.com/kitajs/html/blob/
-master/htmx.d.ts - Also based on prior source from Desdaemon/typed-htmx and bigskysoftware/htmx.*/
+// These types have been adapted from https://github.com/kitajs/html/blob/master/htmx.d.ts
+// Also based on prior source from Desdaemon/typed-htmx and bigskysoftware/htmx.
 
 /*
 Author: Desdaemon/typed-htmx - (license created by Desdaemon)
