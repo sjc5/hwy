@@ -1,5 +1,5 @@
 // init stuff
-export { hwyInit } from "./src/setup.jsx";
+export { hwyInit } from "./src/setup.js";
 
 // types
 export type {

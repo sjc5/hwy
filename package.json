@@ -47,7 +47,7 @@
     "typecheck:client": "pnpm -r --filter @hwy-js/client run typecheck",
     "typecheck:utils": "pnpm -r --filter @hwy-js/utils run typecheck",
     "typecheck": "npm-run-all --parallel typecheck:*",
-    "pre-publish": "pnpm typecheck && pnpm test",
+    "pre-publish": "pnpm -r --filter create-hwy clear-asdf && pnpm typecheck && pnpm test",
     "publish-beta": "pnpm pre-publish && pnpm -r publish-beta",
     "publish-non-beta": "pnpm pre-publish && pnpm -r publish-non-beta",
     "update-latest": "pnpm update --latest && pnpm -r update-latest && pnpm i"

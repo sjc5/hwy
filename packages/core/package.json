@@ -1,15 +1,19 @@
 {
   "name": "hwy",
-  "version": "0.8.0-beta.6",
+  "version": "0.8.0-beta.7",
   "author": {
     "name": "Samuel J. Cook"
   },
   "license": "MIT",
   "description": "Simple, lightweight, and flexible web framework, built on Hono and HTMX.",
   "type": "module",
-  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./types/htmx": "./types/htmx.d.ts"
+  },
   "files": [
-    "dist"
+    "dist",
+    "types"
   ],
   "scripts": {
     "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
