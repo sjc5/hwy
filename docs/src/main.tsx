@@ -6,8 +6,7 @@ import {
   DevLiveRefreshScript,
   ClientScripts,
   HeadElements,
-  HeadBlock,
-  getDefaultBodyProps,
+  type HeadBlock,
   renderRoot,
   getPublicUrl,
 } from "hwy";
@@ -81,51 +80,47 @@ app.all("*", async (c, next) => {
   return await renderRoot({
     c,
     next,
-    experimentalStreaming: true,
-    root: ({ activePathData }) => {
+    htmlProps: { lang: "en" },
+    defaultHeadBlocks: default_head_blocks,
+    head: function ({ activePathData }) {
       return (
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <meta
-              name="viewport"
-              content="width=device-width,initial-scale=1"
-            />
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width,initial-scale=1" />
+          <HeadElements
+            c={c}
+            activePathData={activePathData}
+            defaultHeadBlocks={default_head_blocks}
+          />
+          <CssImports />
+          <ClientScripts activePathData={activePathData} />
+          <DevLiveRefreshScript />
+          <script defer src={getPublicUrl("prism.js")} />
+        </head>
+      );
+    },
+    body: function ({ activePathData }) {
+      return (
+        <body>
+          <div class="body-inner">
+            <div style={{ flexGrow: 1 }}>
+              <Nav />
 
-            <HeadElements
-              c={c}
-              activePathData={activePathData}
-              defaults={default_head_blocks}
-            />
-
-            <CssImports />
-            <ClientScripts activePathData={activePathData} />
-            <DevLiveRefreshScript />
-            <script defer src={getPublicUrl("prism.js")} />
-          </head>
-
-          <body {...getDefaultBodyProps({ idiomorph: true, nProgress: true })}>
-            <div class="body-inner">
-              <div style={{ flexGrow: 1 }}>
-                <Nav />
-
-                <div class="root-outlet-wrapper">
-                  <RootOutlet
-                    c={c}
-                    activePathData={activePathData}
-                    fallbackErrorBoundary={FallbackErrorBoundary}
-                  />
-                </div>
+              <div class="root-outlet-wrapper" id={"root-outlet-wrapper"}>
+                <RootOutlet
+                  activePathData={activePathData}
+                  fallbackErrorBoundary={FallbackErrorBoundary}
+                />
               </div>
-
-              <footer>
-                <span style={{ opacity: 0.6 }}>
-                  MIT License. Copyright (c) 2023 Samuel J. Cook.
-                </span>
-              </footer>
             </div>
-          </body>
-        </html>
+
+            <footer>
+              <span style={{ opacity: 0.6 }}>
+                MIT License. Copyright (c) 2023 Samuel J. Cook.
+              </span>
+            </footer>
+          </div>
+        </body>
       );
     },
   });

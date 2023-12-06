@@ -24,8 +24,6 @@ Hwy is a lot like NextJS or Remix, but it uses **_HTMX_** instead of React on th
 
 Hwy lets you write **_React-style JSX_** in **_nested, file-based routes_**, with **_Remix-style actions and parallel loaders_**.
 
-Page components are async, so you can even **_fetch data in JSX_** if you want to (just be careful with waterfalls).
-
 The backend server is built on **_Hono_**, so you have access to a rich, growing ecosystem with lots of middleware and wonderful docs.
 
 Hwy is **_100% server-rendered_**, but with the HTMX defaults Hwy sets up for you out of the box, your app still **_feels like an SPA_**.
@@ -41,7 +39,6 @@ And best of all, **_anything you can do with Hono or HTMX, you can do with Hwy_*
 - Server-rendered JSX / TSX
 - Nested, file-based routing
 - Remix-style actions and parallel loaders
-- Async page components
 - Rich Hono middleware ecosystem
 - 100% type-safe
 - Server built on Hono
@@ -71,18 +68,8 @@ export async function loader({ params }: DataProps) {
   return await getUser(params.user_id);
 }
 
-export default async function ({ loaderData }: PageProps<typeof loader>) {
+export default function ({ loaderData }: PageProps<typeof loader>) {
   return <UserProfile user={loaderData} />;
-}
-```
-
-Or, if you prefer to fetch inside your components:
-
-```tsx
-export default async function ({ params }: PageProps) {
-  const user = await getUser(params.user_id);
-
-  return <UserProfile user={user} />;
 }
 ```
 

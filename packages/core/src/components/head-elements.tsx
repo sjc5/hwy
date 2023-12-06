@@ -45,12 +45,16 @@ function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
   return [...results.values()];
 }
 
-function get_head_blocks_array(props: {
+type HeadProps = {
   activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
   c: Context;
-  defaults?: HeadBlock[];
-}): HeadBlock[] {
+  defaultHeadBlocks?: HeadBlock[];
+};
+
+function get_head_blocks_array(props: HeadProps): HeadBlock[] {
   const { activePathData: active_path_data } = props;
+
+  console.log({ activeHeads: active_path_data?.activeHeads });
 
   const non_deduped =
     active_path_data?.activeHeads?.flatMap((head: HeadFunction, i) => {
@@ -68,21 +72,24 @@ function get_head_blocks_array(props: {
         c: props.c,
         params: active_path_data?.matchingPaths?.[i].params,
         splatSegments: active_path_data?.matchingPaths?.[i].splatSegments,
+        path: current_active_path,
       });
     }) ?? [];
 
-  const defaults = props.defaults ?? [];
+  const defaults = props.defaultHeadBlocks ?? [];
 
   const heads = [...defaults, ...non_deduped];
 
   return dedupe_head_blocks(heads);
 }
 
-function HeadElements(props: {
-  activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
-  c: Context;
-  defaults?: HeadBlock[];
-}) {
+function get_new_title(props: HeadProps): string | undefined {
+  const head_blocks = get_head_blocks_array(props);
+  const title_block = head_blocks.find((x) => "title" in x);
+  return (title_block as any)?.title;
+}
+
+function HeadElements(props: HeadProps) {
   const head_blocks = get_head_blocks_array(props);
 
   return (
@@ -91,6 +98,7 @@ function HeadElements(props: {
         if ("title" in block) {
           return <title>{block.title}</title>;
         } else {
+          // @ts-ignore
           return <block.tag {...block.props} />;
         }
       })}
@@ -98,4 +106,4 @@ function HeadElements(props: {
   );
 }
 
-export { HeadElements };
+export { HeadElements, get_new_title };

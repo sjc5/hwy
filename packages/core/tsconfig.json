@@ -10,7 +10,7 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
+    "jsxImportSource": "preact"
   },
   "exclude": ["node_modules", "dist"]
 }

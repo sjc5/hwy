@@ -8,20 +8,13 @@ const ts_config = {
     moduleResolution: "NodeNext",
     forceConsistentCasingInFileNames: true,
     strict: true,
-    noImplicitAny: true,
     skipLibCheck: true,
     esModuleInterop: true,
+    verbatimModuleSyntax: true,
     jsx: "react-jsx",
-    jsxImportSource: "hono/jsx",
+    jsxImportSource: "preact",
   },
   exclude: ["node_modules", "dist"],
-};
-
-const js_config = {
-  compilerOptions: {
-    jsx: "react-jsx",
-    jsxImportSource: "hono/jsx",
-  },
 };
 
 const deno_config = {
@@ -32,10 +25,6 @@ const deno_config = {
 };
 
 function get_ts_config(options: Options) {
-  if (options.lang_preference === "javascript") {
-    return JSON.stringify(js_config).trim() + "\n";
-  }
-
   if (get_is_target_deno(options)) {
     return JSON.stringify(deno_config).trim() + "\n";
   }

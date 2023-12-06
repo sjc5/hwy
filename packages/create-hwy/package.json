@@ -28,7 +28,6 @@
     "create-hwy": "./scripts/create-hwy.js"
   },
   "dependencies": {
-    "detype": "^0.6.3",
     "inquirer": "^9.2.12",
     "picocolors": "^1.0.0"
   },

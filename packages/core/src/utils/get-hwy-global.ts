@@ -11,6 +11,8 @@ type HwyGlobal = Partial<{
   public_map: Record<string, string>;
   public_reverse_map: Record<string, string>;
   test_dirname?: string;
+  client_lib: HwyConfig["clientLib"];
+  use_dot_server_files: boolean;
 }>;
 
 type HwyGlobalKey = keyof HwyGlobal;

@@ -1,4 +1,4 @@
-import { HeadFunction } from "hwy";
+import type { HeadFunction, PageProps } from "hwy";
 import { CodeBlock } from "../components/code-block.js";
 import { AnchorHeading } from "../components/anchor-heading.js";
 import { Paragraph } from "../components/paragraph.js";
@@ -6,23 +6,19 @@ import { InlineCode } from "../components/inline-code.js";
 import { ListItem, UnorderedList } from "../components/unordered-list.js";
 import { Boldtalic } from "../components/bold-italic.js";
 
-export const head: HeadFunction = () => {
-  return [
-    { title: "Hwy Framework Docs" },
-    {
-      tag: "meta",
-      props: {
-        name: "description",
-        content:
-          "Documentation for the Hwy framework, a simple, lightweight, and flexible web framework, built on Hono and HTMX.",
-      },
-    },
-  ];
-};
+export async function loader() {
+  await new Promise((resolve) => {
+    setTimeout(resolve, 1000);
+  });
 
-export default async function () {
+  return { fromLoader: "YO DUDE THIS IS FROM THE LOADER" + Math.random() };
+}
+
+export default function ({ loaderData }: PageProps) {
   return (
     <div class="flex-col-wrapper-bigger">
+      {loaderData.fromLoader}
+
       <h2 class="h2">Docs</h2>
       <AnchorHeading content="Creating a new project" />
       <Paragraph>
@@ -352,32 +348,6 @@ export function loader({ c }: DataProps) {
         You can also "throw" a <InlineCode>redirect</InlineCode> if you want,
         which can be helpful in keeping your typescript types clean.
       </Paragraph>
-      <AnchorHeading content="Server components" />
-      <Paragraph>
-        In addition to using loaders to load data in parallel before rendering
-        any components, you can also load data inside your Hwy page components.
-        Be careful with this, as it can introduce waterfalls, but if you are
-        doing low-latency data fetching and prefer that pattern, it's available
-        to you in Hwy.
-      </Paragraph>
-      <CodeBlock
-        language="tsx"
-        code={`
-// src/some-page.page.tsx
-
-export default async function ({ Outlet }: PageProps) {
-  const someData = await getSomeData()
-
-  return (
-    <div>
-      {JSON.stringify(someData)}
-
-      <Outlet />
-    </div>
-  )
-}
-      `}
-      />
       <Paragraph>
         You can also pass data to the child outlet if you want, and it will be
         available in the child page component's props. Here's how that would
@@ -611,7 +581,6 @@ app.all('*', async (c, next) => {
         </html>
       )
     },
-    experimentalStreaming: false, // optional
   })
 })
       `}
@@ -738,11 +707,8 @@ export const head: HeadFunction = (props) => {
         <InlineCode>getDefaultBodyProps</InlineCode>), anchor tags (links) and
         form submissions will be automatically progressively enhanced. For
         forms, include the traditional attributes, like this:
-        <CodeBlock
-          language="tsx"
-          code={`<form action="/login" method="POST">`}
-        />
       </Paragraph>
+      <CodeBlock language="tsx" code={`<form action="/login" method="POST">`} />
       <AnchorHeading content="Random" />
       <Paragraph>
         Here is some random stuff that is worth noting, but doesn't fit well
@@ -808,16 +774,16 @@ export const head: HeadFunction = (props) => {
         esbuild), you can do so simply by including your dependencies in the{" "}
         <InlineCode>/public</InlineCode> directory and referencing them in a
         script. For example:
-        <CodeBlock
-          language="tsx"
-          code={`
+      </Paragraph>
+      <CodeBlock
+        language="tsx"
+        code={`
 <script
   src={getPublicUrl('your-script.js')}
   defer
 />
         `}
-        />
-      </Paragraph>
+      />
       <AnchorHeading content="Roadmap" />
       <Paragraph>
         Other than the obvious (stabilize APIs, more tests, better docs, etc.),

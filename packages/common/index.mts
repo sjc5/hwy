@@ -11,6 +11,8 @@ export const HWY_GLOBAL_KEYS = {
   paths: `${HWY_PREFIX}paths`,
   public_map: `${HWY_PREFIX}public_map`,
   public_reverse_map: `${HWY_PREFIX}public_reverse_map`,
+  client_lib: `${HWY_PREFIX}client_lib`,
+  use_dot_server_files: `${HWY_PREFIX}use_dot_server_files`,
 } as const;
 
 export const DEFAULT_PORT = 3000;
@@ -25,6 +27,7 @@ export type DeploymentTarget =
 
 export type HwyConfig = {
   deploymentTarget: DeploymentTarget;
+  clientLib: "htmx" | "preact";
   routeStrategy?:
     | "bundle"
     | "warm-cache-at-startup"
@@ -35,6 +38,7 @@ export type HwyConfig = {
     watchExclusions?: Array<string>;
     hotReloadCssBundle?: boolean;
   };
+  useDotServerFiles?: boolean;
 };
 
 export const SPLAT_SEGMENT = ":catch*";

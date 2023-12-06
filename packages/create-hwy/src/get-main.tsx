@@ -87,7 +87,7 @@ app.all("*", async (c, next) => {
   return await renderRoot({
     c,
     next,
-    root: async ({ activePathData }) => {
+    root: ({ activePathData }) => {
       return (
         <html lang="en">
           <head>
@@ -169,7 +169,6 @@ app.all("*", async (c, next) => {
   
             <main>
               <RootOutlet
-                c={c}
                 activePathData={activePathData}
                 fallbackErrorBoundary={() => {
                   return <div>Something went wrong.</div>;

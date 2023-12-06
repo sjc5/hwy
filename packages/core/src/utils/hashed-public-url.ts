@@ -1,6 +1,6 @@
-import path from "node:path";
 import { PUBLIC_URL_PREFIX } from "../setup.js";
 import { get_hwy_global } from "./get-hwy-global.js";
+import { node_path } from "./url-polyfills.js";
 
 const hwy_global = get_hwy_global();
 
@@ -25,7 +25,11 @@ function getPublicUrl(url: string): string {
 
   const public_map = hwy_global.get("public_map");
 
-  hashed_url = public_map?.[path.join("public", url)];
+  if (!node_path) {
+    throw new Error("node_path is not defined");
+  }
+
+  hashed_url = public_map?.[node_path.join("public", url)];
 
   if (!hashed_url) {
     throw new Error(`No hashed URL found for ${url}`);
@@ -39,7 +43,11 @@ function get_original_public_url({
 }: {
   hashed_url: string;
 }): string {
-  const sliced_url = path.normalize(hashed_url.slice(1));
+  if (!node_path) {
+    throw new Error("node_path is not defined");
+  }
+
+  const sliced_url = node_path.normalize(hashed_url.slice(1));
 
   if (hwy_global.get("is_dev")) {
     const normalized_sliced_url = sliced_url.replace(/\\/g, "/");

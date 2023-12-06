@@ -13,7 +13,6 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Sidebar } from "./components/sidebar.js";
-import { hooks, CssHooksStyleSheet } from "./setup/css-hooks.js";
 
 const app = new Hono();
 
@@ -44,49 +43,39 @@ app.all("*", async (c, next) => {
   return await renderRoot({
     c,
     next,
-    root: ({ activePathData }) => {
+    defaultHeadBlocks: default_head_blocks,
+    htmlProps: { lang: "en" },
+    head: ({ activePathData }) => {
       return (
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <meta
-              name="viewport"
-              content="width=device-width,initial-scale=1"
-            />
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-            <HeadElements
+          <HeadElements
+            activePathData={activePathData}
+            c={c}
+            defaultHeadBlocks={default_head_blocks}
+          />
+
+          <CssImports />
+          <ClientScripts activePathData={activePathData} />
+          <DevLiveRefreshScript />
+        </head>
+      );
+    },
+    body: ({ activePathData }) => {
+      return (
+        <body {...getDefaultBodyProps({ idiomorph: true })}>
+          <Sidebar />
+          <main>
+            <RootOutlet
               activePathData={activePathData}
-              c={c}
-              defaults={default_head_blocks}
+              fallbackErrorBoundary={function ErrorBoundary() {
+                return <div>Error Boundary in Root</div>;
+              }}
             />
-
-            <CssImports />
-            <ClientScripts activePathData={activePathData} />
-            <DevLiveRefreshScript />
-            <CssHooksStyleSheet />
-          </head>
-
-          <body
-            {...getDefaultBodyProps({ idiomorph: true })}
-            style={hooks({
-              background: "orange",
-              dark: {
-                background: "black",
-              },
-            })}
-          >
-            <Sidebar />
-            <main>
-              <RootOutlet
-                activePathData={activePathData}
-                c={c}
-                fallbackErrorBoundary={function ErrorBoundary() {
-                  return <div>Error Boundary in Root</div>;
-                }}
-              />
-            </main>
-          </body>
-        </html>
+          </main>
+        </body>
       );
     },
   });

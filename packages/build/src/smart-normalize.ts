@@ -1,8 +1,7 @@
 import { get_hwy_config } from "./get-hwy-config.js";
 
-const hwy_config = await get_hwy_config();
-
-function smart_normalize(str: string) {
+async function smart_normalize(str: string) {
+  const hwy_config = await get_hwy_config();
   if (
     hwy_config.deploymentTarget === "cloudflare-pages" &&
     process.platform === "win32"

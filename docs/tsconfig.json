@@ -9,7 +9,8 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
+    "jsxImportSource": "preact",
+    "verbatimModuleSyntax": true
   },
   "exclude": ["node_modules", "dist"]
 }

@@ -13,13 +13,11 @@ import fs from "node:fs";
 
 declare const Deno: Record<any, any>;
 
-const hwy_config = await get_hwy_config();
-const deployment_target = hwy_config.deploymentTarget;
-let dev_config = hwy_config.dev;
-
-function get_is_hot_reload_only(
+async function get_is_hot_reload_only(
   changeType: RefreshFilePayload["changeType"] | undefined,
-): changeType is "css-bundle" | "critical-css" {
+) {
+  const hwy_config = await get_hwy_config();
+
   return Boolean(
     hwy_config.deploymentTarget !== "cloudflare-pages" &&
       hwy_config.dev?.hotReloadCssBundle &&
@@ -29,6 +27,10 @@ function get_is_hot_reload_only(
 }
 
 async function devServe() {
+  const hwy_config = await get_hwy_config();
+  const deployment_target = hwy_config.deploymentTarget;
+  let dev_config = hwy_config.dev;
+
   const is_targeting_deno =
     deployment_target === "deno" || deployment_target === "deno-deploy";
 
@@ -92,7 +94,11 @@ async function devServe() {
     dev_config?.watchExclusions?.map((x) => path.join(process.cwd(), x)) || [];
 
   const watcher = chokidar.watch(
-    [path.join(process.cwd(), "src"), path.join(process.cwd(), "public")],
+    [
+      path.join(process.cwd(), "src"),
+      path.join(process.cwd(), "public"),
+      path.join(process.cwd(), "hwy.config.*"),
+    ],
     {
       ignoreInitial: true,
       ignored: [path.join(process.cwd(), "public/dist"), ...exclusions],

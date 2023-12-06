@@ -7,7 +7,6 @@ import {
 import { get_is_target_deno } from "./utils.js";
 
 // QUESTIONS
-// Question 1 -- TS or JS
 // Question 2 -- Vanilla, Tailwind, or CSS Hooks
 // Question 3 -- Node, Vercel, Cloudflare Pages, Bun, Deno, or Deno Deploy
 // Question 4 -- NProgress?
@@ -15,20 +14,14 @@ import { get_is_target_deno } from "./utils.js";
 function get_package_json(options: Options) {
   const IS_DENO = get_is_target_deno(options);
   const IS_BUN = options.deployment_target === "bun";
-  const IS_JAVASCRIPT = options.lang_preference === "javascript";
-  const IS_TYPESCRIPT = options.lang_preference === "typescript";
-  const IS_VERCEL = options.deployment_target === "vercel-lambda";
   const IS_TAILWIND = options.css_preference === "tailwind";
   const IS_CF_PAGES = options.deployment_target === "cloudflare-pages";
   const IS_NODE = !IS_DENO && !IS_BUN;
-  const IS_NPROGRESS = options.with_nprogress;
 
   const STATE = {
     // SCRIPTS
     BASE: true,
-    IS_TYPESCRIPT,
-    IS_VERCEL_JAVASCRIPT: IS_VERCEL && IS_JAVASCRIPT,
-    IS_VERCEL_TYPESCRIPT: IS_VERCEL && IS_TYPESCRIPT,
+    IS_VERCEL: options.deployment_target === "vercel-lambda",
     IS_DENO,
     IS_BUN,
     IS_TAILWIND,
@@ -41,11 +34,7 @@ function get_package_json(options: Options) {
     IS_NODE,
 
     // DEV DEPS, if not above
-    IS_CLOUDFLARE_TYPESCRIPT: IS_CF_PAGES && IS_TYPESCRIPT,
-    IS_BUN_TYPESCRIPT: IS_BUN && IS_TYPESCRIPT,
-    IS_NODE_TYPESCRIPT: IS_NODE && IS_TYPESCRIPT,
-    IS_NPROGRESS,
-    IS_NPROGRESS_TYPESCRIPT: IS_NPROGRESS && IS_TYPESCRIPT,
+    IS_NPROGRESS: options.with_nprogress,
     IS_NPM_RUN_ALL: IS_CF_PAGES || (!IS_DENO && IS_TAILWIND),
   } as const;
 

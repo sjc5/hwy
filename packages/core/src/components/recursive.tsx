@@ -1,24 +1,19 @@
-import type { Context } from "hono";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
-import type { HtmlEscapedString } from "hono/utils/html";
 import type { ErrorBoundaryProps } from "../types.js";
+import type { JSX } from "preact";
 
-type ErrorBoundaryComp = (
-  props: ErrorBoundaryProps,
-) => Promise<HtmlEscapedString>;
+type ErrorBoundaryComp = (props: ErrorBoundaryProps) => JSX.Element;
 
-async function RootOutlet(props: {
-  activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
+function RootOutlet(props: {
+  activePathData?: Awaited<ReturnType<typeof getMatchingPathData>>;
   index?: number;
-  c: Context;
   fallbackErrorBoundary?: (props: {
     error: Error;
     splatSegments: string[];
     params: Record<string, string>;
-    c: Context;
-  }) => Promise<HtmlEscapedString> | HtmlEscapedString;
-}): Promise<HtmlEscapedString> {
-  const { index, activePathData: active_path_data } = props;
+  }) => JSX.Element;
+}): JSX.Element {
+  let { index, activePathData: active_path_data } = props;
   const index_to_use = index ?? 0;
 
   try {
@@ -45,36 +40,24 @@ async function RootOutlet(props: {
         return <div>Error: No error boundary found.</div>;
       }
 
-      return (
-        <ErrorBoundary
-          error={active_path_data?.errorToRender}
-          splatSegments={active_path_data?.splatSegments}
-          params={active_path_data?.params}
-          c={props.c}
-        />
-      );
+      return ErrorBoundary({ error: active_path_data?.errorToRender });
     }
 
-    return (
-      <CurrentComponent
-        {...props}
-        c={props.c}
-        params={active_path_data?.params || {}}
-        splatSegments={active_path_data?.splatSegments || []}
-        Outlet={async (local_props: Record<string, any> | undefined) => {
-          return (
-            <RootOutlet
-              {...local_props}
-              activePathData={active_path_data}
-              index={index_to_use + 1}
-              c={props.c}
-            />
-          );
-        }}
-        loaderData={current_data}
-        actionData={active_path_data.actionData}
-      />
-    );
+    return CurrentComponent({
+      ...props,
+      params: active_path_data?.params || {},
+      splatSegments: active_path_data?.splatSegments || [],
+      Outlet: (local_props: Record<string, any> | undefined) => {
+        return RootOutlet({
+          ...local_props,
+          activePathData: active_path_data,
+          index: index_to_use + 1,
+        });
+      },
+      loaderData: current_data,
+      actionData: active_path_data?.actionData,
+      path: active_path_data?.activePaths?.[index_to_use],
+    });
   } catch (error) {
     console.error(error);
 
@@ -88,14 +71,7 @@ async function RootOutlet(props: {
       return <div>Error: No error boundary found.</div>;
     }
 
-    return (
-      <ErrorBoundary
-        error={error}
-        splatSegments={active_path_data?.splatSegments || []}
-        params={active_path_data?.params || {}}
-        c={props.c}
-      />
-    );
+    return ErrorBoundary({ error });
   }
 }
 

@@ -1,6 +1,7 @@
 import type { HwyConfig } from "@hwy-js/build";
 
 export default {
+  clientLib: "preact",
   dev: {
     port: 1275,
   },

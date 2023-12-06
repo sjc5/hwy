@@ -1,6 +1,6 @@
 import type { PageProps } from "hwy";
 
-async function TesterComp({ Outlet, params, splatSegments }: PageProps) {
+function TesterComp({ Outlet, params, splatSegments }: PageProps) {
   let pathname = new URL(import.meta.url).pathname;
   pathname = pathname.split("/dist/pages")[1];
   const is_splat = pathname.endsWith("$.js");
@@ -16,8 +16,6 @@ async function TesterComp({ Outlet, params, splatSegments }: PageProps) {
           <p>Params: {JSON.stringify(params)}</p>
         ) : null}
 
-        {/* <ErrorComp /> */}
-
         <Outlet />
       </div>
     </div>
@@ -25,8 +23,3 @@ async function TesterComp({ Outlet, params, splatSegments }: PageProps) {
 }
 
 export { TesterComp };
-
-function ErrorComp() {
-  throw new Error("BOB");
-  return <></>;
-}

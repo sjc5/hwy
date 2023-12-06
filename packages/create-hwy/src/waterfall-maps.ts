@@ -39,29 +39,14 @@ const SCRIPTS_WATERFALL_MAP = [
   [
     "BASE",
     {
-      build: "hwy-build",
+      build: "tsc --noEmit && hwy-build",
       dev: "hwy-dev-serve",
       start: "node dist/main.js",
     },
   ],
 
   [
-    "IS_TYPESCRIPT",
-    {
-      build: "tsc --noEmit && hwy-build",
-    },
-  ],
-
-  [
-    "IS_VERCEL_JAVASCRIPT",
-    {
-      build: undefined,
-      "vercel-build": "hwy-build",
-    },
-  ],
-
-  [
-    "IS_VERCEL_TYPESCRIPT",
+    "IS_VERCEL",
     {
       build: undefined,
       "vercel-build": "tsc --noEmit && hwy-build",
@@ -139,26 +124,23 @@ const DEV_DEPS_WATERFALL_MAP = [
       "@hwy-js/utils": LATEST_HWY_VERSION,
       "htmx.org": VERSIONS["htmx.org"],
       idiomorph: VERSIONS["idiomorph"],
+      typescript: VERSIONS.typescript,
     },
   ],
 
-  ["IS_TYPESCRIPT", { typescript: VERSIONS.typescript }],
+  ["IS_BUN", { "bun-types": VERSIONS["bun-types"] }],
+
+  ["IS_NODE", { "@types/node": VERSIONS["@types/node"] }],
+
+  ["IS_NPROGRESS", { "@types/nprogress": VERSIONS["@types/nprogress"] }],
 
   [
-    "IS_CLOUDFLARE_TYPESCRIPT",
-    { "@cloudflare/workers-types": VERSIONS["@cloudflare/workers-types"] },
+    "IS_CF_PAGES",
+    {
+      "@cloudflare/workers-types": VERSIONS["@cloudflare/workers-types"],
+      wrangler: VERSIONS.wrangler,
+    },
   ],
-
-  ["IS_BUN_TYPESCRIPT", { "bun-types": VERSIONS["bun-types"] }],
-
-  ["IS_NODE_TYPESCRIPT", { "@types/node": VERSIONS["@types/node"] }],
-
-  [
-    "IS_NPROGRESS_TYPESCRIPT",
-    { "@types/nprogress": VERSIONS["@types/nprogress"] },
-  ],
-
-  ["IS_CF_PAGES", { wrangler: VERSIONS.wrangler }],
 
   ["IS_TAILWIND", { tailwindcss: VERSIONS.tailwindcss }],
 

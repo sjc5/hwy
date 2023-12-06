@@ -1,5 +1,5 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
+import fs from "node:fs";
+import path from "node:path";
 import pc from "picocolors";
 import inquirer from "inquirer";
 import { fileURLToPath } from "node:url";
@@ -8,7 +8,6 @@ import { get_tailwind_config } from "./src/get-tailwind-config.js";
 import { get_ts_config } from "./src/get-tsconfig.js";
 import { get_readme } from "./src/get-readme.js";
 import { get_main } from "./src/get-main.js";
-import { transform } from "detype";
 import { get_gitignore } from "./src/get-gitignore.js";
 import { get_client_entry } from "./src/get-client-entry.js";
 import { get_is_target_deno } from "./src/utils.js";
@@ -20,17 +19,15 @@ import { LATEST_HWY_VERSION } from "./src/waterfall-maps.js";
 
 type Options = {
   project_name: string;
-  lang_preference: "typescript" | "javascript";
   css_preference: "vanilla" | "tailwind" | "css-hooks";
   deployment_target: DeploymentTarget;
+  client_lib: "htmx" | "preact";
   with_nprogress: boolean;
 };
 
 function dirname_from_import_meta(import_meta_url: string) {
   return path.dirname(fileURLToPath(import_meta_url));
 }
-
-const lang_choices = ["TypeScript", "JavaScript"] as const;
 
 const deployment_choices = [
   "Node",
@@ -42,6 +39,7 @@ const deployment_choices = [
 ] as const;
 
 const css_choices = ["Vanilla", "Tailwind", "CSS Hooks"] as const;
+const client_lib_choices = ["htmx", "preact"] as const;
 
 type Prompts = Parameters<(typeof inquirer)["prompt"]>[0];
 
@@ -58,9 +56,9 @@ const prompts = [
   },
   {
     type: "list",
-    name: "lang_preference",
-    message: "TypeScript or JavaScript?",
-    choices: lang_choices,
+    name: "client_lib_choice",
+    message: `Choose your client library:`,
+    choices: client_lib_choices,
     prefix: "\n",
   },
   {
@@ -89,7 +87,7 @@ const prompts = [
 async function ask_questions(): Promise<
   | {
       new_dir_name: string;
-      lang_preference: (typeof lang_choices)[number];
+      client_lib_choice: (typeof client_lib_choices)[number];
       css_choice: (typeof css_choices)[number];
       deployment_target: (typeof deployment_choices)[number];
       nprogress: boolean;
@@ -109,14 +107,13 @@ function get_options(
   return {
     project_name: choices.new_dir_name,
     with_nprogress: choices.nprogress,
+    client_lib: choices.client_lib_choice === "htmx" ? "htmx" : "preact",
     css_preference:
       choices.css_choice === "Tailwind"
         ? "tailwind"
         : choices.css_choice === "CSS Hooks"
           ? "css-hooks"
           : "vanilla",
-    lang_preference:
-      choices.lang_preference === "TypeScript" ? "typescript" : "javascript",
     deployment_target:
       choices.deployment_target === "Vercel (Lambda)"
         ? "vercel-lambda"
@@ -167,7 +164,6 @@ async function main() {
         code,
         destination_without_extension,
         is_jsx,
-        options,
         new_dir_path,
       });
     }
@@ -195,7 +191,7 @@ async function main() {
       });
     }
 
-    // ts-config (still needed for JavaScript to do JSX)
+    // ts-config
     fs.writeFileSync(
       path.join(new_dir_path, "tsconfig.json"),
       await format(get_ts_config(options), {
@@ -206,14 +202,9 @@ async function main() {
 
     // hwy-config
     fs.writeFileSync(
-      path.join(
-        new_dir_path,
-        "hwy.config" +
-          (options.lang_preference === "typescript" ? ".ts" : ".js"),
-      ),
+      path.join(new_dir_path, "hwy.config.ts"),
       await format(get_hwy_config(options), {
-        parser:
-          options.lang_preference === "typescript" ? "typescript" : "babel",
+        parser: "typescript",
       }),
       "utf8",
     );
@@ -221,14 +212,9 @@ async function main() {
     // tailwind-config
     if (options.css_preference === "tailwind") {
       fs.writeFileSync(
-        path.join(
-          new_dir_path,
-          "tailwind.config" +
-            (options.lang_preference === "typescript" ? ".ts" : ".js"),
-        ),
-        await format(get_tailwind_config(options), {
-          parser:
-            options.lang_preference === "typescript" ? "typescript" : "babel",
+        path.join(new_dir_path, "tailwind.config.ts"),
+        await format(get_tailwind_config(), {
+          parser: "typescript",
         }),
         "utf8",
       );
@@ -255,8 +241,7 @@ async function main() {
     // main
     await handle_ts_or_js_file_copy({
       code: await format(get_main(options), {
-        parser:
-          options.lang_preference === "typescript" ? "typescript" : "babel",
+        parser: "typescript",
       }),
       destination_without_extension: "src/main",
       is_jsx: true,
@@ -272,8 +257,7 @@ async function main() {
     // client-entry
     await handle_ts_or_js_file_copy({
       code: await format(get_client_entry(options), {
-        parser:
-          options.lang_preference === "typescript" ? "typescript" : "babel",
+        parser: "typescript",
       }),
       destination_without_extension: "src/client.entry",
       is_jsx: false,
@@ -369,20 +353,6 @@ async function main() {
       }),
     );
 
-    if (options.lang_preference === "javascript") {
-      fs.writeFileSync(
-        path.join(new_dir_path, "src/__ignore.ts"),
-        `
-/* 
- * Ignore this file.
- * It is here so your tsconfig.json does not complain.
- * The tsconfig.json is needed for Hono JSX to work.
- */
-        `.trim() + "\n",
-        "utf8",
-      );
-    }
-
     if (options.deployment_target === "vercel-lambda") {
       fs.mkdirSync(path.join(new_dir_path, "api"), { recursive: true });
       fs.writeFileSync(
@@ -467,34 +437,19 @@ async function handle_ts_or_js_file_copy_low_level({
   code,
   destination_without_extension,
   is_jsx,
-  options,
   new_dir_path,
 }: {
   code: string;
   destination_without_extension: string;
   is_jsx: boolean;
-  options: Options;
   new_dir_path: string;
 }) {
   const ts_ext = is_jsx ? ".tsx" : ".ts";
-  if (options.lang_preference === "typescript") {
-    fs.writeFileSync(
-      path.join(new_dir_path, destination_without_extension + ts_ext),
-      code,
-      "utf8",
-    );
-  } else {
-    const ext = is_jsx ? ".jsx" : ".js";
-    let str = await transform(code, destination_without_extension + ts_ext, {
-      prettierOptions: {},
-    });
-    str = str.replaceAll(".tsx", ".jsx"); // modifies file references in tutorial copy
-    fs.writeFileSync(
-      path.join(new_dir_path, destination_without_extension + ext),
-      str,
-      "utf8",
-    );
-  }
+  fs.writeFileSync(
+    path.join(new_dir_path, destination_without_extension + ts_ext),
+    code,
+    "utf8",
+  );
 }
 
 export type { Options };

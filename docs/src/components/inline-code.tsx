@@ -1,4 +1,5 @@
 import { cx } from "../utils/utils.js";
+import type { JSX } from "preact";
 
 function InlineCode({
   children,
@@ -11,6 +12,7 @@ function InlineCode({
   return (
     <code
       {...rest}
+      // @ts-ignore
       class={cx("inline-code", high_contrast && "high-contrast", rest.class)}
     >
       {children}

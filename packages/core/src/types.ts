@@ -1,6 +1,6 @@
 import type { Context, Env } from "hono";
-import type { HtmlEscapedString } from "hono/utils/html";
 import type { getMatchingPathData } from "../index.js";
+import type { FunctionComponent, JSX } from "preact";
 
 type DataProps<EnvType extends Env = {}> = {
   c: Context<EnvType>;
@@ -19,27 +19,23 @@ type Action<EnvType extends Env = {}> = (
 type PageProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
-  EnvType extends Env = {},
 > = {
   loaderData: Awaited<ReturnType<LoaderType>>;
   actionData: Awaited<ReturnType<ActionType>> | undefined;
-  Outlet: (props?: Record<string, any>) => Promise<HtmlEscapedString>;
-  c: Context<EnvType>;
+  Outlet: FunctionComponent<Record<string, any>>;
   params: Record<string, string>;
   splatSegments: string[];
+  path: string;
 };
 
-type ErrorBoundaryProps<EnvType extends Env = {}> = {
+type ErrorBoundaryProps = {
   error: unknown;
-} & DataProps<EnvType>;
+};
 
 type PageComponent<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
-  EnvType extends Env = {},
-> = (
-  props: PageProps<LoaderType, ActionType, EnvType>,
-) => Promise<HtmlEscapedString>;
+> = (props: PageProps<LoaderType, ActionType>) => JSX.Element;
 
 type HeadBlock =
   | { title: string }
@@ -49,7 +45,9 @@ type HeadProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
   EnvType extends Env = {},
-> = Omit<PageProps<LoaderType, ActionType, EnvType>, "Outlet">;
+> = Omit<PageProps<LoaderType, ActionType>, "Outlet"> & {
+  c: Context<EnvType>;
+};
 
 type HeadFunction<
   LoaderType extends Loader<any> = Loader<any>,
@@ -60,11 +58,14 @@ type HeadFunction<
 type ActivePathData = Awaited<ReturnType<typeof getMatchingPathData>>;
 
 export type {
+  // CLIENT
+  PageProps,
+  PageComponent,
+
+  // SERVER
   DataProps,
   Loader,
   Action,
-  PageProps,
-  PageComponent,
   HeadBlock,
   HeadProps,
   HeadFunction,

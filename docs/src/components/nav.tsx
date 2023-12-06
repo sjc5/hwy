@@ -6,6 +6,10 @@ function Nav() {
       </a>
 
       <div style={{ display: "flex" }}>
+        <a href="/jeff" class="nav-item" title="Hwy Documentation">
+          Jeff
+        </a>
+
         <a href="/docs" class="nav-item" title="Hwy Documentation">
           Docs
         </a>

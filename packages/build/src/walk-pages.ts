@@ -5,6 +5,12 @@ import readdirp from "readdirp";
 import esbuild from "esbuild";
 import { HWY_GLOBAL_KEYS, SPLAT_SEGMENT } from "../../common/index.mjs";
 import { smart_normalize } from "./smart-normalize.js";
+import { get_hwy_config } from "./get-hwy-config.js";
+// import babel from "@babel/core";
+// import parser from "@babel/parser";
+// // @ts-ignore
+// import _traverse from "@babel/traverse";
+// const babel_traverse = _traverse.default;
 
 const permitted_extensions = [
   "js",
@@ -25,6 +31,12 @@ type PathType =
   | "non-ultimate-splat";
 
 async function walk_pages() {
+  const hwy_config = await get_hwy_config();
+
+  console.log("WALK PAGES", hwy_config);
+
+  const IS_PREACT = hwy_config.clientLib === "preact";
+
   const paths: {
     // ultimately public
     importPath: string;
@@ -32,13 +44,16 @@ async function walk_pages() {
     segments: Array<string | null>;
     pathType: PathType;
     hasSiblingClientFile: boolean;
+    hasSiblingServerFile: boolean;
   }[] = [];
 
   for await (const entry of readdirp(path.resolve("./src/pages"))) {
     const is_page_file = entry.path.includes(".page.");
     const is_client_file = entry.path.includes(".client.");
+    const is_server_file =
+      hwy_config.useDotServerFiles && entry.path.includes(".server.");
 
-    if (!is_page_file && !is_client_file) {
+    if (!is_page_file && !is_client_file && !is_server_file) {
       continue;
     }
 
@@ -48,7 +63,11 @@ async function walk_pages() {
       continue;
     }
 
-    const pre_ext_delineator = is_page_file ? ".page" : ".client";
+    const pre_ext_delineator = is_page_file
+      ? ".page"
+      : is_server_file
+        ? ".server"
+        : ".client";
 
     const _path = entry.path
       .replace("." + ext, "")
@@ -111,6 +130,7 @@ async function walk_pages() {
 
     if (is_page_file) {
       let has_sibling_client_file = false;
+      let has_sibling_server_file = false;
 
       for (const sibling of await fs.promises.readdir(
         path.dirname(import_path_with_orig_ext),
@@ -119,6 +139,14 @@ async function walk_pages() {
 
         if (sibling.includes(filename + ".client.")) {
           has_sibling_client_file = true;
+        }
+
+        if (
+          hwy_config.useDotServerFiles &&
+          sibling.includes(filename + ".server.")
+        ) {
+          has_sibling_server_file = true;
+
           break;
         }
       }
@@ -134,11 +162,12 @@ async function walk_pages() {
       }
 
       paths.push({
-        importPath: smart_normalize(path.join("pages/", _path + ".js")),
+        importPath: await smart_normalize(path.join("pages/", _path + ".js")),
         path: path_to_use,
         segments: segments.map((x) => x.segment || null),
         pathType: path_type,
         hasSiblingClientFile: has_sibling_client_file,
+        hasSiblingServerFile: has_sibling_server_file,
       });
     }
 
@@ -149,7 +178,10 @@ async function walk_pages() {
         entryPoints: [import_path_with_orig_ext],
         bundle: true,
         outfile: path.resolve(
-          `./${is_client_file ? "public/" : ""}dist/pages/` + _path + ".js",
+          `./${is_client_file ? "public/" : ""}dist/pages/` +
+            _path +
+            (is_server_file ? ".server" : "") +
+            ".js",
         ),
         treeShaking: true,
         platform: is_client_file ? "browser" : "node",
@@ -157,9 +189,95 @@ async function walk_pages() {
         format: "esm",
         minify: is_client_file,
       });
+
+      if (IS_PREACT && is_page_file) {
+        // const code = fs.readFileSync(
+        //   path.resolve(`./dist/pages/` + _path + ".js"),
+        //   "utf-8",
+        // );
+
+        // const ast = parser.parse(code, {
+        //   sourceType: "module",
+        //   plugins: ["jsx", "typescript"],
+        // });
+
+        // if (!ast) {
+        //   throw new Error("Could not parse AST");
+        // }
+
+        // const server_stuff_to_delete = ["action", "loader"];
+
+        // babel_traverse(ast, {
+        //   FunctionDeclaration(path: any) {
+        //     if (server_stuff_to_delete.includes(path.node.id.name)) {
+        //       console.log("FOUND ONE");
+        //       path.remove();
+        //     }
+        //   },
+        //   ExportNamedDeclaration(path: any) {
+        //     path.node.specifiers = path.node.specifiers.filter((x: any) => {
+        //       return !server_stuff_to_delete.includes(
+        //         x.exported.name || x.exported.value,
+        //       );
+        //     });
+
+        //     // Remove the export statement if it becomes empty
+        //     if (path.node.specifiers.length === 0) {
+        //       path.remove();
+        //     }
+        //   },
+        // });
+
+        // const output = babel.transformFromAstSync(ast)?.code;
+
+        // if (!output) {
+        //   throw new Error("Could not generate code from AST");
+        // }
+
+        await esbuild.build({
+          entryPoints: [path.resolve(`./dist/pages/` + _path + ".js")],
+          bundle: false,
+          outfile: path.resolve(`./public/dist/pages/` + _path + ".hydrate.js"),
+          treeShaking: true,
+          platform: "browser",
+          packages: "external",
+          format: "esm",
+          minify: false,
+        });
+      }
     } catch (e) {
       console.error(e);
     }
+  }
+
+  if (IS_PREACT) {
+    fs.mkdirSync(path.resolve("./public/dist/preact"), { recursive: true });
+
+    await Promise.all([
+      esbuild.build({
+        stdin: {
+          contents: `export * from "preact";export * from "preact/hooks";export * from "preact/jsx-runtime";`,
+          resolveDir: path.resolve("./dist"),
+        },
+        bundle: true,
+        outfile: path.resolve(`./public/dist/preact.js`),
+        format: "esm",
+        platform: "browser",
+        minify: true,
+      }),
+
+      esbuild.build({
+        stdin: {
+          contents: `export { RootOutlet } from "hwy"; export * from "@preact/signals";`,
+          resolveDir: path.resolve("./dist"),
+        },
+        bundle: true,
+        outfile: path.resolve(`./public/dist/hwy.js`),
+        format: "esm",
+        platform: "browser",
+        minify: true,
+      }),
+    ]);
   }
 
   return paths;

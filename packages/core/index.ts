@@ -21,7 +21,6 @@ export { RootOutlet } from "./src/components/recursive.jsx";
 export { ClientScripts } from "./src/components/client-entry-script.jsx";
 export { HeadElements } from "./src/components/head-elements.js";
 export { DevLiveRefreshScript } from "./src/components/dev-live-refresh-script.jsx";
-export { Suspense } from "./src/components/suspense.jsx";
 
 // router
 export { getMatchingPathData } from "./src/router/get-matching-path-data.js";

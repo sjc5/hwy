@@ -28,10 +28,6 @@ const FILE_NAMES = [
 ] as const;
 
 const exec = promisify(exec_callback);
-const hwy_config = await get_hwy_config();
-const SHOULD_BUNDLE_PATHS =
-  hwy_config.routeStrategy === "bundle" ||
-  hwy_config.deploymentTarget === "cloudflare-pages";
 
 async function runBuildTasks({
   log,
@@ -42,13 +38,21 @@ async function runBuildTasks({
   log?: string;
   changeType?: RefreshFilePayload["changeType"];
 }) {
+  const hwy_config = await get_hwy_config();
+
+  console.log("RUN BUILD TASKS", { hwy_config });
+  const SHOULD_BUNDLE_PATHS =
+    hwy_config.routeStrategy === "bundle" ||
+    hwy_config.deploymentTarget === "cloudflare-pages";
+
   const IS_DEV = isDev;
   const IS_PROD = !isDev;
 
+  // IDEA -- Should probably split "pre-build" into CSS pre-processing and other pre-processing
   hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
   await handle_prebuild({ is_dev: IS_DEV });
 
-  const HOT_RELOAD_ONLY = get_is_hot_reload_only(changeType);
+  const HOT_RELOAD_ONLY = await get_is_hot_reload_only(changeType);
 
   if (HOT_RELOAD_ONLY) {
     /*
@@ -62,7 +66,7 @@ async function runBuildTasks({
     const css_bundle_res = await bundle_css_files();
 
     write_refresh_txt({
-      changeType,
+      changeType: changeType as any,
       criticalCss: css_bundle_res?.critical_css,
     });
 
@@ -102,6 +106,7 @@ async function runBuildTasks({
           platform: "browser",
           format: "esm",
           minify: true,
+          external: ["preact"],
         })
       : undefined,
   ]);
@@ -177,7 +182,7 @@ async function runBuildTasks({
    *
    * This is now one big string, separated by double newlines.
    */
-  let to_be_appended = smart_normalize(files_text.join("\n\n"));
+  let to_be_appended = await smart_normalize(files_text.join("\n\n"));
 
   /*
    * This effectively puts each piece of our build outputs into a globally
@@ -201,6 +206,8 @@ async function runBuildTasks({
   const dev_line = `globalThis.${HWY_GLOBAL_KEYS.is_dev} = ${IS_DEV};\n`;
   const dep_target_line = `globalThis.${HWY_GLOBAL_KEYS.deployment_target} = "${hwy_config.deploymentTarget}";\n\n`;
   const route_strategy_line = `globalThis.${HWY_GLOBAL_KEYS.route_strategy} = "${hwy_config.routeStrategy}";\n\n`;
+  const client_lib_line = `globalThis.${HWY_GLOBAL_KEYS.client_lib} = "${hwy_config.clientLib}";\n\n`;
+  const use_dot_server_files_line = `globalThis.${HWY_GLOBAL_KEYS.use_dot_server_files} = ${hwy_config.useDotServerFiles};\n\n`;
 
   /*
    * Now put it all together and write main.js to disk
@@ -210,6 +217,8 @@ async function runBuildTasks({
     dev_line +
       dep_target_line +
       route_strategy_line +
+      client_lib_line +
+      use_dot_server_files_line +
       to_be_appended +
       main_code,
   );
@@ -292,8 +301,12 @@ async function handle_deno_deploy_hacks() {
 
 /* -------------------------------------------------------------------------- */
 
-function handle_cloudflare_pages_hacks(path_import_snippet_bundle: string) {
+async function handle_cloudflare_pages_hacks(
+  path_import_snippet_bundle: string,
+) {
   hwyLog("Customizing build output for Cloudflare Pages...");
+
+  console.log(path_import_snippet_bundle);
 
   fs.writeFileSync(
     "dist/_worker.js",
@@ -306,6 +319,8 @@ function handle_cloudflare_pages_hacks(path_import_snippet_bundle: string) {
 
   // copy public folder into dist
   fs.cpSync("./public", "./dist/public", { recursive: true });
+
+  const hwy_config = await get_hwy_config();
 
   if (hwy_config.routeStrategy !== "bundle") {
     // Everything is bundled anyway if target is cloudflare-pages
@@ -383,7 +398,11 @@ function write_refresh_txt({
 function convert_to_var_name(file_name: string) {
   return (
     HWY_PREFIX +
-    file_name.replace(/-/g, "_").replace(".js", "").replace(/\//g, "")
+    file_name
+      .replace(/-/g, "_")
+      .replace(".js", "")
+      .replace(/\//g, "")
+      .replace(/\./g, "_")
   );
 }
 
@@ -402,11 +421,29 @@ function get_is_using_client_entry() {
 /* -------------------------------------------------------------------------- */
 
 async function get_path_import_snippet() {
+  const hwy_config = await get_hwy_config();
+
+  console.log({ hwy_config });
+
+  const SHOULD_BUNDLE_PATHS =
+    hwy_config.routeStrategy === "bundle" ||
+    hwy_config.deploymentTarget === "cloudflare-pages";
+
   if (hwy_config.routeStrategy === "warm-cache-at-startup") {
     return `
 __hwy__paths.forEach(function (x) {
   const path_from_dist = "./" + x.importPath;
   import(path_from_dist).then((x) => globalThis[path_from_dist] = x);
+  ${
+    hwy_config.useDotServerFiles
+      ? `
+  if (x.hasSiblingServerFile) {
+    const server_path_from_dist = path_from_dist.slice(0, -3) + ".server.js";
+    import(server_path_from_dist).then((x) => globalThis[server_path_from_dist] = x);
+  }
+    `.trim() + "\n"
+      : ""
+  }
 });
         `.trim();
   }
@@ -426,9 +463,21 @@ __hwy__paths.forEach(function (x) {
      */
     return paths_import_list
       .map((x) => {
+        console.log(hwy_config.useDotServerFiles);
+
         return `
 import * as ${convert_to_var_name(x.importPath)} from "./${x.importPath}";
 globalThis["./${x.importPath}"] = ${convert_to_var_name(x.importPath)};
+${
+  hwy_config.useDotServerFiles && x.hasSiblingServerFile
+    ? `import * as ${convert_to_var_name(
+        x.importPath.slice(0, -3) + ".server.js",
+      )} from "./${x.importPath.slice(0, -3) + ".server.js"}";
+  globalThis["./${
+    x.importPath.slice(0, -3) + ".server.js"
+  }"] = ${convert_to_var_name(x.importPath.slice(0, -3) + ".server.js")};`
+    : ""
+}
       `.trim();
       })
       .join("\n");
@@ -442,9 +491,14 @@ globalThis["./${x.importPath}"] = ${convert_to_var_name(x.importPath)};
 async function handle_custom_route_loading_code() {
   const path_import_snippet = await get_path_import_snippet();
 
+  const hwy_config = await get_hwy_config();
+  const SHOULD_BUNDLE_PATHS =
+    hwy_config.routeStrategy === "bundle" ||
+    hwy_config.deploymentTarget === "cloudflare-pages";
+
   if (hwy_config.deploymentTarget === "cloudflare-pages") {
     // This writes the main server entry to disk as _worker.js
-    handle_cloudflare_pages_hacks(path_import_snippet);
+    await handle_cloudflare_pages_hacks(path_import_snippet);
   } else {
     // Write the final main.js to disk again, with the route loading strategy appended
     fs.writeFileSync(

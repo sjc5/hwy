@@ -1,4 +1,3 @@
-import path from "node:path";
 import type { Context } from "hono";
 import { matcher } from "../router/matcher.js";
 import type { Paths } from "@hwy-js/build";
@@ -6,7 +5,7 @@ import { ROOT_DIRNAME } from "../setup.js";
 import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
 import { get_match_strength } from "./get-match-strength.js";
 import type { DataProps } from "../types.js";
-import { path_to_file_url_string } from "../utils/url-polyfills.js";
+import { node_path, path_to_file_url_string } from "../utils/url-polyfills.js";
 import { get_hwy_global } from "../utils/get-hwy-global.js";
 import { SPLAT_SEGMENT } from "../../../common/index.mjs";
 
@@ -24,7 +23,7 @@ async function get_path(import_path: string) {
     return _path;
   }
 
-  const inner = path.join(
+  const inner = node_path?.join(
     hwy_global.get("test_dirname") || ROOT_DIRNAME || "./",
     import_path,
   );
@@ -49,13 +48,20 @@ function fully_decorate_paths({
 }) {
   return (
     matching_paths?.map((_path) => {
+      const server_import_path = hwy_global.get("use_dot_server_files")
+        ? _path.importPath.slice(0, -3) + ".server.js"
+        : _path.importPath;
+
       // public
       return {
         hasSiblingClientFile: _path.hasSiblingClientFile,
+        hasSiblingServerFile: _path.hasSiblingServerFile,
         importPath: _path.importPath,
         params: _path.params,
         pathType: _path.pathType,
         splatSegments: splat_segments,
+
+        // ON CLIENT
         componentImporter: async () => {
           try {
             const imported = await get_path(_path.importPath);
@@ -65,35 +71,48 @@ function fully_decorate_paths({
             throw e;
           }
         },
+
+        // REST ON SERVER
         errorBoundaryImporter: async () => {
+          if (!_path.hasSiblingServerFile) return;
+
           try {
-            const imported = await get_path(_path.importPath);
+            const imported = await get_path(server_import_path);
             return imported.ErrorBoundary ? imported.ErrorBoundary : undefined;
           } catch (e) {
             console.error(e);
             throw e;
           }
         },
+
         headImporter: async () => {
+          if (!_path.hasSiblingServerFile) return () => [];
+
           try {
-            const imported = await get_path(_path.importPath);
+            const imported = await get_path(server_import_path);
             return imported.head ? imported.head : () => [];
           } catch (e) {
             console.error(e);
             throw e;
           }
         },
+
         loader: async (loaderArgs: DataProps) => {
+          if (!_path.hasSiblingServerFile) return;
+
           try {
-            const imported = await get_path(_path.importPath);
+            const imported = await get_path(server_import_path);
             return imported.loader ? imported.loader(loaderArgs) : undefined;
           } catch (e) {
             return handle_caught_maybe_response(e);
           }
         },
+
         action: async (actionArgs: DataProps) => {
+          if (!_path.hasSiblingServerFile) return;
+
           try {
-            const imported = await get_path(_path.importPath);
+            const imported = await get_path(server_import_path);
             return imported.action ? imported.action(actionArgs) : undefined;
           } catch (e) {
             return handle_caught_maybe_response(e);

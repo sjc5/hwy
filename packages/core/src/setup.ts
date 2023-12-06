@@ -1,17 +1,16 @@
 import type { Hono, Context, Next } from "hono";
 import type { serveStatic as serveStaticFn } from "@hono/node-server/serve-static";
-import path from "node:path";
 import {
   DEV_BUNDLED_CSS_QUERY_PARAM,
   getPublicUrl,
   get_original_public_url,
   get_serve_static_options,
 } from "./utils/hashed-public-url.js";
-import { file_url_to_path } from "./utils/url-polyfills.js";
+import { file_url_to_path, node_path } from "./utils/url-polyfills.js";
 import { get_hwy_global } from "./utils/get-hwy-global.js";
 
 function dirname_from_import_meta(import_meta_url: string) {
-  return path.dirname(file_url_to_path(import_meta_url));
+  return node_path?.dirname(file_url_to_path(import_meta_url)) ?? "";
 }
 
 // although instantiated with let, this should only ever be set once inside hwyInit
