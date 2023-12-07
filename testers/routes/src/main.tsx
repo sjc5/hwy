@@ -45,31 +45,26 @@ app.all("*", async (c, next) => {
     next,
     defaultHeadBlocks: default_head_blocks,
     htmlAttributes: { lang: "en" },
-    head: ({ activePathData }) => {
+    head: (baseProps) => {
       return (
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-          <HeadElements
-            activePathData={activePathData}
-            c={c}
-            defaultHeadBlocks={default_head_blocks}
-          />
-
+          <HeadElements {...baseProps} />
           <CssImports />
-          <ClientScripts activePathData={activePathData} />
+          <ClientScripts {...baseProps} />
           <DevLiveRefreshScript />
         </head>
       );
     },
-    body: ({ activePathData }) => {
+    body: (baseProps) => {
       return (
         <body {...getDefaultBodyProps({ idiomorph: true })}>
           <Sidebar />
           <main>
             <RootOutlet
-              activePathData={activePathData}
+              {...baseProps}
               fallbackErrorBoundary={function ErrorBoundary() {
                 return <div>Error Boundary in Root</div>;
               }}

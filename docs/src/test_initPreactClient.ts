@@ -42,8 +42,6 @@ async function initPreactClient(props?: {
     clientActivePathDataPayload,
   );
 
-  console.log((globalThis as any).clientActivePathDataPayloadSignal);
-
   hydrate(
     RootOutlet({
       activePathData: (globalThis as any).clientActivePathDataPayloadSignal
@@ -51,8 +49,6 @@ async function initPreactClient(props?: {
     }),
     document.getElementById("root-outlet-wrapper") as HTMLElement,
   );
-
-  console.log((globalThis as any).clientActivePathDataPayloadSignal.value);
 
   document.body.addEventListener("click", async function (event) {
     // @ts-ignore
