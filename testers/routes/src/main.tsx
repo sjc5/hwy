@@ -44,7 +44,7 @@ app.all("*", async (c, next) => {
     c,
     next,
     defaultHeadBlocks: default_head_blocks,
-    htmlProps: { lang: "en" },
+    htmlAttributes: { lang: "en" },
     head: ({ activePathData }) => {
       return (
         <head>

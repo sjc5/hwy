@@ -17,29 +17,41 @@ export const HWY_GLOBAL_KEYS = {
 
 export const DEFAULT_PORT = 3000;
 
-export type DeploymentTarget =
+type CloudflarePages = "cloudflare-pages";
+type NonCloudflarePages =
   | "bun"
   | "vercel-lambda"
   | "node"
   | "deno-deploy"
-  | "deno"
-  | "cloudflare-pages";
+  | "deno";
+
+export type DeploymentTarget = NonCloudflarePages | CloudflarePages;
 
 export type HwyConfig = {
-  deploymentTarget: DeploymentTarget;
-  clientLib: "htmx" | "preact";
-  routeStrategy?:
-    | "bundle"
-    | "warm-cache-at-startup"
-    | "always-lazy"
-    | "lazy-once-then-cache";
   dev?: {
     port?: number;
     watchExclusions?: Array<string>;
     hotReloadCssBundle?: boolean;
   };
-  useDotServerFiles?: boolean;
-};
+  usePreactCompat?: boolean;
+} & (
+  | { clientLib: "htmx"; useDotServerFiles: boolean }
+  | { clientLib: "preact"; useDotServerFiles: true }
+) &
+  (
+    | {
+        deploymentTarget: NonCloudflarePages;
+        routeStrategy?:
+          | "bundle"
+          | "warm-cache-at-startup"
+          | "always-lazy"
+          | "lazy-once-then-cache";
+      }
+    | {
+        deploymentTarget: "cloudflare-pages";
+        routeStrategy?: "bundle";
+      }
+  );
 
 export const SPLAT_SEGMENT = ":catch*";
 

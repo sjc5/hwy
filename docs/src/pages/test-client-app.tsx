@@ -7,6 +7,9 @@ export function TestClientApp() {
 
   return (
     <div>
+      <div key="1">Bob</div>
+      <div key="2">Bob</div>
+
       <div>IS_SERVER: {JSON.stringify(IS_SERVER)}</div>
       <div>TestClientApp</div>
       <div>{bob}</div>

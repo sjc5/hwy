@@ -48,7 +48,7 @@ app.all("*", async (c, next) => {
   return await renderRoot({
     c,
     next,
-    htmlProps: { lang: "en" },
+    htmlAttributes: { lang: "en" },
     defaultHeadBlocks,
     head: ({ activePathData }) => {
       return (

@@ -2,10 +2,18 @@ import { DEFAULT_PORT, type HwyConfig } from "../../common/index.mjs";
 import type { Options } from "../index.js";
 
 function get_hwy_config(options: Options) {
-  let obj: HwyConfig = {
-    clientLib: options.client_lib,
-    deploymentTarget: options.deployment_target,
-  };
+  let obj: HwyConfig =
+    options.client_lib === "preact"
+      ? {
+          clientLib: "preact",
+          deploymentTarget: options.deployment_target,
+          useDotServerFiles: true,
+        }
+      : {
+          clientLib: "htmx",
+          deploymentTarget: options.deployment_target,
+          useDotServerFiles: false,
+        };
 
   if (options.deployment_target !== "cloudflare-pages") {
     obj.dev = {

@@ -6,11 +6,6 @@ import esbuild from "esbuild";
 import { HWY_GLOBAL_KEYS, SPLAT_SEGMENT } from "../../common/index.mjs";
 import { smart_normalize } from "./smart-normalize.js";
 import { get_hwy_config } from "./get-hwy-config.js";
-// import babel from "@babel/core";
-// import parser from "@babel/parser";
-// // @ts-ignore
-// import _traverse from "@babel/traverse";
-// const babel_traverse = _traverse.default;
 
 const permitted_extensions = [
   "js",
@@ -30,13 +25,11 @@ type PathType =
   | "dynamic-layout"
   | "non-ultimate-splat";
 
-async function walk_pages() {
-  const hwy_config = await get_hwy_config();
+const hwy_config = await get_hwy_config();
 
-  console.log("WALK PAGES", hwy_config);
+const IS_PREACT = hwy_config.clientLib === "preact";
 
-  const IS_PREACT = hwy_config.clientLib === "preact";
-
+async function walk_pages(IS_DEV?: boolean) {
   const paths: {
     // ultimately public
     importPath: string;
@@ -162,7 +155,7 @@ async function walk_pages() {
       }
 
       paths.push({
-        importPath: await smart_normalize(path.join("pages/", _path + ".js")),
+        importPath: smart_normalize(path.join("pages/", _path + ".js")),
         path: path_to_use,
         segments: segments.map((x) => x.segment || null),
         pathType: path_type,
@@ -174,6 +167,15 @@ async function walk_pages() {
     fs.mkdirSync(path.resolve(`./public/dist/pages/`), { recursive: true });
 
     try {
+      const EXTERNAL_LIST = [
+        "hwy",
+        "preact",
+        "preact/hooks",
+        "preact/jsx-runtime",
+        "@preact/signals",
+        "preact/compat",
+      ];
+
       await esbuild.build({
         entryPoints: [import_path_with_orig_ext],
         bundle: true,
@@ -188,67 +190,28 @@ async function walk_pages() {
         packages: is_client_file ? undefined : "external",
         format: "esm",
         minify: is_client_file,
+        external: IS_PREACT ? EXTERNAL_LIST : undefined,
       });
 
       if (IS_PREACT && is_page_file) {
-        // const code = fs.readFileSync(
-        //   path.resolve(`./dist/pages/` + _path + ".js"),
-        //   "utf-8",
-        // );
-
-        // const ast = parser.parse(code, {
-        //   sourceType: "module",
-        //   plugins: ["jsx", "typescript"],
-        // });
-
-        // if (!ast) {
-        //   throw new Error("Could not parse AST");
-        // }
-
-        // const server_stuff_to_delete = ["action", "loader"];
-
-        // babel_traverse(ast, {
-        //   FunctionDeclaration(path: any) {
-        //     if (server_stuff_to_delete.includes(path.node.id.name)) {
-        //       console.log("FOUND ONE");
-        //       path.remove();
-        //     }
-        //   },
-        //   ExportNamedDeclaration(path: any) {
-        //     path.node.specifiers = path.node.specifiers.filter((x: any) => {
-        //       return !server_stuff_to_delete.includes(
-        //         x.exported.name || x.exported.value,
-        //       );
-        //     });
-
-        //     // Remove the export statement if it becomes empty
-        //     if (path.node.specifiers.length === 0) {
-        //       path.remove();
-        //     }
-        //   },
-        // });
-
-        // const output = babel.transformFromAstSync(ast)?.code;
-
-        // if (!output) {
-        //   throw new Error("Could not generate code from AST");
-        // }
-
         await esbuild.build({
           entryPoints: [path.resolve(`./dist/pages/` + _path + ".js")],
-          bundle: false,
+          bundle: true,
           outfile: path.resolve(`./public/dist/pages/` + _path + ".hydrate.js"),
           treeShaking: true,
           platform: "browser",
           packages: "external",
           format: "esm",
           minify: false,
+          external: EXTERNAL_LIST,
         });
       }
     } catch (e) {
       console.error(e);
     }
   }
+
+  const USE_PREACT_COMPAT = false; // TODO
 
   if (IS_PREACT) {
     fs.mkdirSync(path.resolve("./public/dist/preact"), { recursive: true });
@@ -266,6 +229,20 @@ async function walk_pages() {
         minify: true,
       }),
 
+      USE_PREACT_COMPAT
+        ? esbuild.build({
+            stdin: {
+              contents: `export * from "preact/compat";`,
+              resolveDir: path.resolve("./dist"),
+            },
+            bundle: true,
+            outfile: path.resolve(`./public/dist/preact-compat.js`),
+            format: "esm",
+            platform: "browser",
+            minify: true,
+          })
+        : undefined,
+
       esbuild.build({
         stdin: {
           contents: `export { RootOutlet } from "hwy"; export * from "@preact/signals";`,
@@ -278,13 +255,40 @@ async function walk_pages() {
         minify: true,
       }),
     ]);
+
+    if (IS_DEV) {
+      // make needed folders
+      fs.mkdirSync(path.resolve("./public/dist/preact-dev"), {
+        recursive: true,
+      });
+
+      // copy debug and devtools modules and source maps
+      fs.cpSync(
+        path.resolve("./node_modules/preact/debug/dist/debug.module.js"),
+        path.resolve("./public/dist/preact-dev/debug.module.js"),
+      );
+      fs.cpSync(
+        path.resolve("./node_modules/preact/devtools/dist/devtools.module.js"),
+        path.resolve("./public/dist/preact-dev/devtools.module.js"),
+      );
+      fs.cpSync(
+        path.resolve("./node_modules/preact/debug/dist/debug.module.js.map"),
+        path.resolve("./public/dist/preact-dev/debug.module.js.map"),
+      );
+      fs.cpSync(
+        path.resolve(
+          "./node_modules/preact/devtools/dist/devtools.module.js.map",
+        ),
+        path.resolve("./public/dist/preact-dev/devtools.module.js.map"),
+      );
+    }
   }
 
   return paths;
 }
 
-async function write_paths_to_disk() {
-  const paths = await walk_pages();
+async function write_paths_to_disk(IS_DEV?: boolean) {
+  const paths = await walk_pages(IS_DEV);
 
   fs.writeFileSync(
     path.join(process.cwd(), "dist", "paths.js"),

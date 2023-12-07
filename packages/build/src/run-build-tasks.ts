@@ -28,31 +28,27 @@ const FILE_NAMES = [
 ] as const;
 
 const exec = promisify(exec_callback);
+const hwy_config = await get_hwy_config();
+const SHOULD_BUNDLE_PATHS =
+  hwy_config.routeStrategy === "bundle" ||
+  hwy_config.deploymentTarget === "cloudflare-pages";
 
 async function runBuildTasks({
+  IS_DEV,
   log,
-  isDev,
   changeType,
 }: {
-  isDev: boolean;
+  IS_DEV?: boolean;
   log?: string;
   changeType?: RefreshFilePayload["changeType"];
 }) {
-  const hwy_config = await get_hwy_config();
-
-  console.log("RUN BUILD TASKS", { hwy_config });
-  const SHOULD_BUNDLE_PATHS =
-    hwy_config.routeStrategy === "bundle" ||
-    hwy_config.deploymentTarget === "cloudflare-pages";
-
-  const IS_DEV = isDev;
-  const IS_PROD = !isDev;
+  const IS_PROD = !IS_DEV;
 
   // IDEA -- Should probably split "pre-build" into CSS pre-processing and other pre-processing
   hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
-  await handle_prebuild({ is_dev: IS_DEV });
+  await handle_prebuild({ IS_DEV });
 
-  const HOT_RELOAD_ONLY = await get_is_hot_reload_only(changeType);
+  const HOT_RELOAD_ONLY = get_is_hot_reload_only(changeType);
 
   if (HOT_RELOAD_ONLY) {
     /*
@@ -66,7 +62,7 @@ async function runBuildTasks({
     const css_bundle_res = await bundle_css_files();
 
     write_refresh_txt({
-      changeType: changeType as any,
+      changeType,
       criticalCss: css_bundle_res?.critical_css,
     });
 
@@ -94,6 +90,7 @@ async function runBuildTasks({
   /********************* STEP 2 *********************
    * BUNDLE CSS FILES AND CLIENT ENTRY
    */
+
   await Promise.all([
     bundle_css_files(),
 
@@ -131,7 +128,7 @@ async function runBuildTasks({
       packages: "external",
     }),
 
-    write_paths_to_disk(),
+    write_paths_to_disk(IS_DEV),
   ]);
 
   /********************* STEP 4 *********************
@@ -182,7 +179,7 @@ async function runBuildTasks({
    *
    * This is now one big string, separated by double newlines.
    */
-  let to_be_appended = await smart_normalize(files_text.join("\n\n"));
+  let to_be_appended = smart_normalize(files_text.join("\n\n"));
 
   /*
    * This effectively puts each piece of our build outputs into a globally
@@ -236,7 +233,7 @@ async function runBuildTasks({
     SHOULD_BUNDLE_PATHS ||
     hwy_config.routeStrategy === "warm-cache-at-startup"
   ) {
-    await handle_custom_route_loading_code();
+    await handle_custom_route_loading_code(IS_DEV);
   }
 
   // If PROD, handle deploy target revisions
@@ -301,38 +298,7 @@ async function handle_deno_deploy_hacks() {
 
 /* -------------------------------------------------------------------------- */
 
-async function handle_cloudflare_pages_hacks(
-  path_import_snippet_bundle: string,
-) {
-  hwyLog("Customizing build output for Cloudflare Pages...");
-
-  console.log(path_import_snippet_bundle);
-
-  fs.writeFileSync(
-    "dist/_worker.js",
-    `import process from "node:process";\n` +
-      `globalThis.process = process;\n` +
-      fs.readFileSync("./dist/main.js", "utf8") +
-      "\n" +
-      path_import_snippet_bundle,
-  );
-
-  // copy public folder into dist
-  fs.cpSync("./public", "./dist/public", { recursive: true });
-
-  const hwy_config = await get_hwy_config();
-
-  if (hwy_config.routeStrategy !== "bundle") {
-    // Everything is bundled anyway if target is cloudflare-pages
-    hwyLog(
-      "Setting routeStrategy has no effect when deploymentTarget is cloudflare-pages. It will always effectively be 'bundle'.",
-    );
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-
-async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
+async function handle_prebuild({ IS_DEV }: { IS_DEV?: boolean }) {
   try {
     const pkg_json = JSON.parse(
       fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"),
@@ -344,7 +310,7 @@ async function handle_prebuild({ is_dev }: { is_dev: boolean }) {
       return;
     }
 
-    const should_use_dev_script = is_dev && prebuild_dev_script;
+    const should_use_dev_script = IS_DEV && prebuild_dev_script;
 
     const script_to_run = should_use_dev_script
       ? prebuild_dev_script
@@ -421,14 +387,6 @@ function get_is_using_client_entry() {
 /* -------------------------------------------------------------------------- */
 
 async function get_path_import_snippet() {
-  const hwy_config = await get_hwy_config();
-
-  console.log({ hwy_config });
-
-  const SHOULD_BUNDLE_PATHS =
-    hwy_config.routeStrategy === "bundle" ||
-    hwy_config.deploymentTarget === "cloudflare-pages";
-
   if (hwy_config.routeStrategy === "warm-cache-at-startup") {
     return `
 __hwy__paths.forEach(function (x) {
@@ -463,8 +421,6 @@ __hwy__paths.forEach(function (x) {
      */
     return paths_import_list
       .map((x) => {
-        console.log(hwy_config.useDotServerFiles);
-
         return `
 import * as ${convert_to_var_name(x.importPath)} from "./${x.importPath}";
 globalThis["./${x.importPath}"] = ${convert_to_var_name(x.importPath)};
@@ -488,49 +444,62 @@ ${
 
 /* -------------------------------------------------------------------------- */
 
-async function handle_custom_route_loading_code() {
-  const path_import_snippet = await get_path_import_snippet();
-
-  const hwy_config = await get_hwy_config();
-  const SHOULD_BUNDLE_PATHS =
-    hwy_config.routeStrategy === "bundle" ||
-    hwy_config.deploymentTarget === "cloudflare-pages";
-
-  if (hwy_config.deploymentTarget === "cloudflare-pages") {
+async function handle_custom_route_loading_code(IS_DEV?: boolean) {
+  const IS_CLOUDFLARE = hwy_config.deploymentTarget === "cloudflare-pages";
+  if (IS_CLOUDFLARE) {
     // This writes the main server entry to disk as _worker.js
-    await handle_cloudflare_pages_hacks(path_import_snippet);
+    hwyLog("Customizing build output for Cloudflare Pages...");
+
+    fs.writeFileSync(
+      "dist/_worker.js",
+      `import process from "node:process";\n` +
+        `globalThis.process = process;\n` +
+        fs.readFileSync("./dist/main.js", "utf8") +
+        "\n" +
+        (await get_path_import_snippet()),
+    );
+
+    // copy public folder into dist
+    fs.cpSync("./public", "./dist/public", { recursive: true });
+
+    // rmv dist/main.js file -- no longer needed if bundling routes
+    fs.rmSync(path.join(process.cwd(), "dist/main.js"));
   } else {
     // Write the final main.js to disk again, with the route loading strategy appended
     fs.writeFileSync(
       "dist/main.js",
-      fs.readFileSync("./dist/main.js", "utf8") + "\n" + path_import_snippet,
+      fs.readFileSync("./dist/main.js", "utf8") +
+        "\n" +
+        (await get_path_import_snippet()),
     );
-
-    /*
-     * Bundle paths with server entry, if applicable.
-     * Needs to come after appending route loading strategy.
-     */
-    if (SHOULD_BUNDLE_PATHS) {
-      await esbuild.build({
-        entryPoints: ["dist/main.js"],
-        bundle: true,
-        outfile: "dist/main.js",
-        treeShaking: true,
-        platform: "node",
-        format: "esm",
-        minify: false,
-        write: true,
-        packages: "external",
-        allowOverwrite: true,
-      });
-
-      // rmv dist/pages folder -- no longer needed if bundling routes
-      fs.rmSync(path.join(process.cwd(), "dist/pages"), {
-        recursive: true,
-      });
-
-      // rmv dist/paths.js file -- no longer needed if bundling routes
-      fs.rmSync(path.join(process.cwd(), "dist/paths.js"));
-    }
   }
+
+  /*
+   * Bundle paths with server entry, if applicable.
+   * Needs to come after appending route loading strategy.
+   */
+  if (SHOULD_BUNDLE_PATHS) {
+    await esbuild.build({
+      entryPoints: [IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js"],
+      bundle: true,
+      outfile: "dist/main.js",
+      treeShaking: true,
+      platform: "node",
+      format: "esm",
+      minify: false,
+      write: true,
+      packages: "external",
+      allowOverwrite: true,
+    });
+
+    // rmv dist/pages folder -- no longer needed if bundling routes
+    fs.rmSync(path.join(process.cwd(), "dist/pages"), {
+      recursive: true,
+    });
+  }
+
+  // rmv the rest
+  FILE_NAMES.forEach((x) => {
+    fs.rmSync(path.join(process.cwd(), `dist/${x}`));
+  });
 }

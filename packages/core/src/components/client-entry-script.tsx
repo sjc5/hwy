@@ -17,6 +17,8 @@ function ClientScripts({
 }) {
   const IS_PREACT = hwy_global.get("client_lib") === "preact";
 
+  const USE_PREACT_COMPAT = false; // TODO
+
   return (
     <>
       {IS_PREACT && (
@@ -31,16 +33,34 @@ function ClientScripts({
                   preact: getPublicUrl("dist/preact.js"),
                   "preact/hooks": getPublicUrl("dist/preact.js"),
                   "preact/jsx-runtime": getPublicUrl("dist/preact.js"),
+                  ...(USE_PREACT_COMPAT
+                    ? { "preact/compat": getPublicUrl("dist/preact-compat.js") }
+                    : {}),
+                  ...(hwy_global.get("is_dev")
+                    ? {
+                        "preact/debug": getPublicUrl(
+                          "dist/preact-dev/debug.module.js",
+                        ),
+                        "preact/devtools": getPublicUrl(
+                          "dist/preact-dev/devtools.module.js",
+                        ),
+                      }
+                    : {}),
                 },
               }),
             }}
           />
+
           <link rel="modulepreload" href={getPublicUrl("dist/preact.js")} />
+
           <script
             type="module"
             dangerouslySetInnerHTML={{
-              __html: `
+              __html: `${
+                hwy_global.get("is_dev") ? `import "preact/debug";` : ""
+              }
 globalThis.__hwy__ = {};
+globalThis.__hwy__.is_dev = ${uneval(hwy_global.get("is_dev"))};
 globalThis.__hwy__.active_data = ${uneval(activePathData.activeData)};
 globalThis.__hwy__.active_paths = ${uneval(
                 activePathData.matchingPaths?.map((x) => {

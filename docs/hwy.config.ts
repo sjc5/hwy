@@ -7,4 +7,5 @@ export default {
   },
   deploymentTarget: "vercel-lambda",
   routeStrategy: "bundle",
+  useDotServerFiles: true,
 } satisfies HwyConfig;

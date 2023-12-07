@@ -18,10 +18,10 @@
     "preact-render-to-string": "^6.3.1"
   },
   "devDependencies": {
-    "@preact/signals": "^1.2.2",
     "@hwy-js/build": "workspace:*",
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
+    "@preact/signals": "^1.2.2",
     "@types/node": "^20.10.3",
     "@types/nprogress": "^0.2.3",
     "nprogress": "^0.2.0",

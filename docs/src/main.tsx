@@ -80,26 +80,22 @@ app.all("*", async (c, next) => {
   return await renderRoot({
     c,
     next,
-    htmlProps: { lang: "en" },
     defaultHeadBlocks: default_head_blocks,
-    head: function ({ activePathData }) {
+    htmlAttributes: { lang: "en" },
+    head: function (baseProps) {
       return (
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width,initial-scale=1" />
-          <HeadElements
-            c={c}
-            activePathData={activePathData}
-            defaultHeadBlocks={default_head_blocks}
-          />
+          <HeadElements {...baseProps} />
           <CssImports />
-          <ClientScripts activePathData={activePathData} />
+          <ClientScripts {...baseProps} />
           <DevLiveRefreshScript />
           <script defer src={getPublicUrl("prism.js")} />
         </head>
       );
     },
-    body: function ({ activePathData }) {
+    body: function (baseProps) {
       return (
         <body>
           <div class="body-inner">
@@ -108,7 +104,7 @@ app.all("*", async (c, next) => {
 
               <div class="root-outlet-wrapper" id={"root-outlet-wrapper"}>
                 <RootOutlet
-                  activePathData={activePathData}
+                  {...baseProps}
                   fallbackErrorBoundary={FallbackErrorBoundary}
                 />
               </div>

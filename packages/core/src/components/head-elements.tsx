@@ -54,8 +54,6 @@ type HeadProps = {
 function get_head_blocks_array(props: HeadProps): HeadBlock[] {
   const { activePathData: active_path_data } = props;
 
-  console.log({ activeHeads: active_path_data?.activeHeads });
-
   const non_deduped =
     active_path_data?.activeHeads?.flatMap((head: HeadFunction, i) => {
       const current_active_path = active_path_data?.activePaths?.[i];

@@ -7,5 +7,5 @@ export default {
     // hotReloadCssBundle: false,
   },
   deploymentTarget: "cloudflare-pages",
-  useDotServerFiles: false,
+  useDotServerFiles: true,
 } satisfies HwyConfig;

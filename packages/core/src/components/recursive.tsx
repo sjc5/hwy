@@ -1,6 +1,6 @@
-import { getMatchingPathData } from "../router/get-matching-path-data.js";
+import type { getMatchingPathData } from "../router/get-matching-path-data.js";
 import type { ErrorBoundaryProps } from "../types.js";
-import type { JSX } from "preact";
+import { type JSX } from "preact";
 
 type ErrorBoundaryComp = (props: ErrorBoundaryProps) => JSX.Element;
 

@@ -13,11 +13,13 @@ import fs from "node:fs";
 
 declare const Deno: Record<any, any>;
 
-async function get_is_hot_reload_only(
-  changeType: RefreshFilePayload["changeType"] | undefined,
-) {
-  const hwy_config = await get_hwy_config();
+const hwy_config = await get_hwy_config();
+const deployment_target = hwy_config.deploymentTarget;
+let dev_config = hwy_config.dev;
 
+function get_is_hot_reload_only(
+  changeType: RefreshFilePayload["changeType"] | undefined,
+): changeType is "css-bundle" | "critical-css" {
   return Boolean(
     hwy_config.deploymentTarget !== "cloudflare-pages" &&
       hwy_config.dev?.hotReloadCssBundle &&
@@ -27,10 +29,6 @@ async function get_is_hot_reload_only(
 }
 
 async function devServe() {
-  const hwy_config = await get_hwy_config();
-  const deployment_target = hwy_config.deploymentTarget;
-  let dev_config = hwy_config.dev;
-
   const is_targeting_deno =
     deployment_target === "deno" || deployment_target === "deno-deploy";
 
@@ -94,11 +92,7 @@ async function devServe() {
     dev_config?.watchExclusions?.map((x) => path.join(process.cwd(), x)) || [];
 
   const watcher = chokidar.watch(
-    [
-      path.join(process.cwd(), "src"),
-      path.join(process.cwd(), "public"),
-      path.join(process.cwd(), "hwy.config.*"),
-    ],
+    [path.join(process.cwd(), "src"), path.join(process.cwd(), "public")],
     {
       ignoreInitial: true,
       ignored: [path.join(process.cwd(), "public/dist"), ...exclusions],
@@ -127,7 +121,7 @@ async function devServe() {
 
     try {
       await runBuildTasks({
-        isDev: true,
+        IS_DEV: true,
         log: "triggered from chokidar watcher: " + path,
         changeType: is_css_change_to_critical
           ? "critical-css"
@@ -139,6 +133,22 @@ async function devServe() {
       console.error("ERROR: Build tasks failed:", e);
     }
   });
+
+  // Watch for changes to hwy.config.* files
+  // And if found, warn user they need to restart the server
+  const config_watcher = chokidar.watch(
+    path.join(process.cwd(), "hwy.config.*"),
+    { ignoreInitial: true },
+  );
+  config_watcher.on("all", () => {
+    hwyLog(
+      "WARN",
+      "Detected activity in your hwy.config.* file.",
+      "Please restart your dev server for any changes to take effect.",
+    );
+  });
+
+  // --- Node command runner ---
 
   let current_proc: ChildProcess | null = null;
 
@@ -199,6 +209,8 @@ async function devServe() {
     });
   }
 
+  // --- Deno command runner ---
+
   let current_proc_deno: any;
 
   async function run_command_with_spawn_deno() {
@@ -234,7 +246,7 @@ async function devServe() {
   }
 
   try {
-    await runBuildTasks({ isDev: true, log: "triggered from dev-serve.js" });
+    await runBuildTasks({ IS_DEV: true, log: "triggered from dev-serve.js" });
   } catch (e) {
     console.error("ERROR: Build tasks failed:", e);
   }
