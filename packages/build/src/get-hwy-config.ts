@@ -19,7 +19,7 @@ async function get_hwy_config() {
   }
 
   if (!dist_dir_exists) {
-    fs.mkdirSync(dist_dir_path, { recursive: true });
+    await fs.promises.mkdir(dist_dir_path, { recursive: true });
   }
 
   await esbuild.build({
@@ -84,7 +84,7 @@ async function get_hwy_config() {
   } as any;
 
   // delete the file now that we're done with it
-  fs.unlinkSync(path_to_config_in_dist);
+  await fs.promises.unlink(path_to_config_in_dist);
 
   return cached_hwy_config as HwyConfig;
 }

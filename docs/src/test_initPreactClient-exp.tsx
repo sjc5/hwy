@@ -1,52 +1,50 @@
 import { RootOutlet } from "hwy";
 import { hydrate, render } from "preact";
-import { signal } from "@preact/signals";
 import { morph } from "./Idiomorph-fork.js";
+import { signal } from "@preact/signals";
 
 let abortController = new AbortController();
-
-(globalThis as any).clientActivePathDataPayloadSignal = signal({} as any);
 
 async function initPreactClient(props?: {
   onLoadStart?: () => void;
   onLoadDone?: () => void;
 }) {
-  const activeData = (globalThis as any).__hwy__.active_data;
-  const activePaths = (globalThis as any).__hwy__.active_paths;
-  const outermostErrorBoundaryIndex = (globalThis as any).__hwy__
-    .outermostErrorBoundaryIndex;
-  const errorToRender = (globalThis as any).__hwy__.error_to_render;
-  const splatSegments = (globalThis as any).__hwy__.splat_segments;
-  const params = (globalThis as any).__hwy__.params;
-  const actionData = (globalThis as any).__hwy__.action_data;
+  const keys = [
+    "active_data",
+    "active_paths",
+    "outermost_error_boundary_index",
+    "error_to_render",
+    "splat_segments",
+    "params",
+    "action_data",
+    "active_components",
+    "active_error_boundaries",
+  ] as const;
 
-  const components = activePaths.map((x: any) => {
-    return import(("." + x).replace("public/dist/", ""));
-  });
-  const awaited_components = await Promise.all(components);
-  const activeComponents = awaited_components.map((x) => x.default);
-  const activeErrorBoundaries = awaited_components.map((x) => x.ErrorBoundary);
+  console.log(JSON.stringify((globalThis as any).__hwy__, null, 2));
 
-  const clientActivePathDataPayload = {
-    activeData,
-    activeComponents,
-    activeErrorBoundaries,
-    outermostErrorBoundaryIndex,
-    errorToRender,
-    splatSegments,
-    params,
-    actionData,
-  } as any;
+  for (const key of keys) {
+    (globalThis as any).__hwy__[key] = signal((globalThis as any).__hwy__[key]);
 
-  (globalThis as any).clientActivePathDataPayloadSignal = signal(
-    clientActivePathDataPayload,
+    console.log(key, ":", (globalThis as any).__hwy__[key].value);
+  }
+
+  const components = (globalThis as any).__hwy__.active_paths.value.map(
+    (x: any) => {
+      return import(("." + x).replace("public/dist/", ""));
+    },
   );
+  const awaited_components = await Promise.all(components);
+  console.log("awaited_components", awaited_components);
+  (globalThis as any).__hwy__.active_components.value = awaited_components.map(
+    (x) => x.default,
+  );
+  console.log("asdoih", (globalThis as any).__hwy__.active_components.value);
+  (globalThis as any).__hwy__.active_error_boundaries.value =
+    awaited_components.map((x) => x.ErrorBoundary);
 
-  hydrate(
-    RootOutlet({
-      activePathData: (globalThis as any).clientActivePathDataPayloadSignal
-        .value,
-    }),
+  render(
+    <RootOutlet />,
     document.getElementById("root-outlet-wrapper") as HTMLElement,
   );
 
@@ -138,26 +136,28 @@ async function postToAction(
 }
 
 async function reRenderApp(href: string, setHistory: boolean, json: any) {
-  const components = json.activePaths.map((x: any) => {
-    // replaced because the request is already coming from "public/dist"
-    return import(("." + x).replace("public/dist/", ""));
-  });
+  (globalThis as any).__hwy__.active_data.value = json.activeData;
+  (globalThis as any).__hwy__.active_paths.value = json.activePaths;
+  (globalThis as any).__hwy__.outermost_error_boundary_index.value =
+    json.outermostErrorBoundaryIndex;
+  (globalThis as any).__hwy__.error_to_render.value = json.errorToRender;
+  (globalThis as any).__hwy__.splat_segments.value = json.splatSegments;
+  (globalThis as any).__hwy__.params.value = json.params;
+  (globalThis as any).__hwy__.action_data.value = json.actionData;
+  (globalThis as any).__hwy__.active_components.value = json.activeComponents;
+  (globalThis as any).__hwy__.active_error_boundaries.value =
+    json.activeErrorBoundaries;
+  const components = (globalThis as any).__hwy__.active_paths.value.map(
+    (x: any) => {
+      return import(("." + x).replace("public/dist/", ""));
+    },
+  );
   const awaited_components = await Promise.all(components);
-  const activeComponents = awaited_components.map((x) => x.default);
-  const activeErrorBoundaries = awaited_components.map((x) => x.ErrorBoundary);
-
-  document.title = json.newTitle;
-
-  (globalThis as any).clientActivePathDataPayloadSignal.value = {
-    activeData: { ...json.activeData },
-    activeComponents: { ...activeComponents },
-    activeErrorBoundaries: { ...activeErrorBoundaries },
-    outermostErrorBoundaryIndex: json.outermostErrorBoundaryIndex,
-    errorToRender: json.errorToRender,
-    splatSegments: [...json.splatSegments],
-    params: { ...json.params },
-    actionData: json.actionData,
-  };
+  (globalThis as any).__hwy__.active_components.value = awaited_components.map(
+    (x) => x.default,
+  );
+  (globalThis as any).__hwy__.active_error_boundaries.value =
+    awaited_components.map((x) => x.ErrorBoundary);
 
   if (setHistory) {
     if (href !== location.href) {
@@ -167,31 +167,12 @@ async function reRenderApp(href: string, setHistory: boolean, json: any) {
     }
   }
 
-  render(
-    RootOutlet({
-      activePathData: (globalThis as any).clientActivePathDataPayloadSignal
-        .value,
-    }),
-    document.getElementById("root-outlet-wrapper") as HTMLElement,
-  );
-
   const head_el = document.querySelector("head") as HTMLElement;
   morph(head_el, json.head);
 }
 
 async function reRenderAppAfterPost(json: any) {
-  (globalThis as any).clientActivePathDataPayloadSignal.value = {
-    ...(globalThis as any).clientActivePathDataPayloadSignal.value,
-    actionData: json.actionData,
-  };
-
-  render(
-    RootOutlet({
-      activePathData: (globalThis as any).clientActivePathDataPayloadSignal
-        .value,
-    }),
-    document.getElementById("root-outlet-wrapper") as HTMLElement,
-  );
+  (globalThis as any).__hwy__.action_data.value = json.actionData;
 }
 
 export { initPreactClient, postToAction };

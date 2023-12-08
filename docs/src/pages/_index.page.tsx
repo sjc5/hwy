@@ -13,7 +13,7 @@ export function loader() {
 export default function () {
   return (
     <>
-      <TestClientApp />
+      <TestClientApp data="BOB" />
       <BigHeading />
       <BundleBadge />
       <Quickstart />

@@ -164,7 +164,9 @@ async function walk_pages(IS_DEV?: boolean) {
       });
     }
 
-    fs.mkdirSync(path.resolve(`./public/dist/pages/`), { recursive: true });
+    await fs.promises.mkdir(path.resolve(`./public/dist/pages/`), {
+      recursive: true,
+    });
 
     try {
       const EXTERNAL_LIST = [
@@ -176,36 +178,40 @@ async function walk_pages(IS_DEV?: boolean) {
         "preact/compat",
       ];
 
-      await esbuild.build({
-        entryPoints: [import_path_with_orig_ext],
-        bundle: true,
-        outfile: path.resolve(
-          `./${is_client_file ? "public/" : ""}dist/pages/` +
-            _path +
-            (is_server_file ? ".server" : "") +
-            ".js",
-        ),
-        treeShaking: true,
-        platform: is_client_file ? "browser" : "node",
-        packages: is_client_file ? undefined : "external",
-        format: "esm",
-        minify: is_client_file,
-        external: IS_PREACT ? EXTERNAL_LIST : undefined,
-      });
-
-      if (IS_PREACT && is_page_file) {
-        await esbuild.build({
-          entryPoints: [path.resolve(`./dist/pages/` + _path + ".js")],
+      await Promise.all([
+        esbuild.build({
+          entryPoints: [import_path_with_orig_ext],
           bundle: true,
-          outfile: path.resolve(`./public/dist/pages/` + _path + ".hydrate.js"),
+          outfile: path.resolve(
+            `./${is_client_file ? "public/" : ""}dist/pages/` +
+              _path +
+              (is_server_file ? ".server" : "") +
+              ".js",
+          ),
           treeShaking: true,
-          platform: "browser",
-          packages: "external",
+          platform: is_client_file ? "browser" : "node",
+          packages: is_client_file ? undefined : "external",
           format: "esm",
-          minify: false,
-          external: EXTERNAL_LIST,
-        });
-      }
+          minify: is_client_file,
+          external: IS_PREACT ? EXTERNAL_LIST : undefined,
+        }),
+
+        IS_PREACT && is_page_file
+          ? esbuild.build({
+              entryPoints: [import_path_with_orig_ext],
+              bundle: true,
+              outfile: path.resolve(
+                `./public/dist/pages/` + _path + ".hydrate.js",
+              ),
+              treeShaking: true,
+              platform: "browser",
+              packages: "external",
+              format: "esm",
+              minify: true,
+              external: EXTERNAL_LIST,
+            })
+          : "",
+      ]);
     } catch (e) {
       console.error(e);
     }
@@ -214,7 +220,9 @@ async function walk_pages(IS_DEV?: boolean) {
   const USE_PREACT_COMPAT = false; // TODO
 
   if (IS_PREACT) {
-    fs.mkdirSync(path.resolve("./public/dist/preact"), { recursive: true });
+    await fs.promises.mkdir(path.resolve("./public/dist/preact"), {
+      recursive: true,
+    });
 
     await Promise.all([
       esbuild.build({
@@ -258,29 +266,33 @@ async function walk_pages(IS_DEV?: boolean) {
 
     if (IS_DEV) {
       // make needed folders
-      fs.mkdirSync(path.resolve("./public/dist/preact-dev"), {
-        recursive: true,
-      });
+      await Promise.all([
+        fs.promises.mkdir(path.resolve("./public/dist/preact-dev"), {
+          recursive: true,
+        }),
 
-      // copy debug and devtools modules and source maps
-      fs.cpSync(
-        path.resolve("./node_modules/preact/debug/dist/debug.module.js"),
-        path.resolve("./public/dist/preact-dev/debug.module.js"),
-      );
-      fs.cpSync(
-        path.resolve("./node_modules/preact/devtools/dist/devtools.module.js"),
-        path.resolve("./public/dist/preact-dev/devtools.module.js"),
-      );
-      fs.cpSync(
-        path.resolve("./node_modules/preact/debug/dist/debug.module.js.map"),
-        path.resolve("./public/dist/preact-dev/debug.module.js.map"),
-      );
-      fs.cpSync(
-        path.resolve(
-          "./node_modules/preact/devtools/dist/devtools.module.js.map",
+        // copy debug and devtools modules and source maps
+        fs.promises.cp(
+          path.resolve("./node_modules/preact/debug/dist/debug.module.js"),
+          path.resolve("./public/dist/preact-dev/debug.module.js"),
         ),
-        path.resolve("./public/dist/preact-dev/devtools.module.js.map"),
-      );
+        fs.promises.cp(
+          path.resolve(
+            "./node_modules/preact/devtools/dist/devtools.module.js",
+          ),
+          path.resolve("./public/dist/preact-dev/devtools.module.js"),
+        ),
+        fs.promises.cp(
+          path.resolve("./node_modules/preact/debug/dist/debug.module.js.map"),
+          path.resolve("./public/dist/preact-dev/debug.module.js.map"),
+        ),
+        fs.promises.cp(
+          path.resolve(
+            "./node_modules/preact/devtools/dist/devtools.module.js.map",
+          ),
+          path.resolve("./public/dist/preact-dev/devtools.module.js.map"),
+        ),
+      ]);
     }
   }
 
@@ -290,7 +302,7 @@ async function walk_pages(IS_DEV?: boolean) {
 async function write_paths_to_disk(IS_DEV?: boolean) {
   const paths = await walk_pages(IS_DEV);
 
-  fs.writeFileSync(
+  await fs.promises.writeFile(
     path.join(process.cwd(), "dist", "paths.js"),
     `export const ${HWY_GLOBAL_KEYS.paths} = ${JSON.stringify(paths)}`,
   );

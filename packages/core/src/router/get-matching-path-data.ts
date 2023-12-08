@@ -322,7 +322,9 @@ async function getMatchingPathData({ c }: { c: Context }) {
   return {
     matchingPaths: fully_decorated_matching_paths,
     activeData: active_data,
-    actionData: action_data,
+    actionData: fully_decorated_matching_paths?.map((x) => {
+      return x.importPath === last_path?.importPath ? action_data : undefined;
+    }),
     activePaths: active_paths,
     activeComponents: active_components,
     activeHeads: active_heads,

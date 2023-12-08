@@ -69,7 +69,7 @@ globalThis.__hwy__.active_paths = ${uneval(
                   );
                 }),
               )};
-globalThis.__hwy__.outermostErrorBoundaryIndex = ${uneval(
+globalThis.__hwy__.outermost_error_boundary_index = ${uneval(
                 activePathData.outermostErrorBoundaryIndex,
               )};
 globalThis.__hwy__.error_to_render = ${uneval(activePathData.errorToRender)};

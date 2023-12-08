@@ -5,7 +5,7 @@ export default function ({ Outlet }: PageProps) {
   return (
     <>
       <a href="/jeff/child-one">Go to child one</a>
-      <TestClientApp />
+      <TestClientApp data={"MOLLY"} />
     </>
   );
 }

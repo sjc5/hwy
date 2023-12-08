@@ -61,7 +61,7 @@ async function runBuildTasks({
 
     const css_bundle_res = await bundle_css_files();
 
-    write_refresh_txt({
+    await write_refresh_txt({
       changeType,
       criticalCss: css_bundle_res?.critical_css,
     });
@@ -72,7 +72,7 @@ async function runBuildTasks({
   hwyLog(`Running standard build tasks...`);
   const standard_tasks_p0 = performance.now();
   const dist_path = path.join(process.cwd(), "dist");
-  fs.mkdirSync(dist_path, { recursive: true });
+  await fs.promises.mkdir(dist_path, { recursive: true });
   const is_using_client_entry = get_is_using_client_entry();
 
   /********************* STEP 1 *********************
@@ -94,6 +94,7 @@ async function runBuildTasks({
   await Promise.all([
     bundle_css_files(),
 
+    // BUNDLE YOUR MAIN CLIENT ENTRY, BUT EXCLUDE PREACT (PREACT IS BY ITSELF AND IN IMPORT MAP)
     is_using_client_entry
       ? esbuild.build({
           entryPoints: ["src/client.entry.*"],
@@ -156,7 +157,7 @@ async function runBuildTasks({
    */
   let files_text = await Promise.all(
     FILE_NAMES.map((file_name) => {
-      return fs.readFileSync(
+      return fs.promises.readFile(
         path.join(process.cwd(), `dist/${file_name}`),
         "utf-8",
       );
@@ -209,7 +210,7 @@ async function runBuildTasks({
   /*
    * Now put it all together and write main.js to disk
    */
-  fs.writeFileSync(
+  await fs.promises.writeFile(
     path.join(process.cwd(), "dist/main.js"),
     dev_line +
       dep_target_line +
@@ -242,7 +243,7 @@ async function runBuildTasks({
     if (hwy_config.deploymentTarget === "vercel-lambda") {
       hwyLog("Customizing build output for Vercel Serverless (Lambda)...");
 
-      fs.cpSync("./dist", "./api", { recursive: true });
+      await fs.promises.cp("./dist", "./api", { recursive: true });
     }
 
     // DENO DEPLOY
@@ -253,7 +254,7 @@ async function runBuildTasks({
   }
 
   if (IS_DEV) {
-    write_refresh_txt({ changeType: "standard" });
+    await write_refresh_txt({ changeType: "standard" });
   }
 
   const standard_tasks_p1 = performance.now();
@@ -288,9 +289,9 @@ async function handle_deno_deploy_hacks() {
 
   const main_path = path.join(process.cwd(), "dist", "main.js");
 
-  fs.writeFileSync(
+  await fs.promises.writeFile(
     main_path,
-    fs.readFileSync(main_path, "utf8") +
+    (await fs.promises.readFile(main_path, "utf8")) +
       "\n" +
       get_code([...public_paths, ...FILE_NAMES.map((x) => "./" + x)]),
   );
@@ -301,7 +302,10 @@ async function handle_deno_deploy_hacks() {
 async function handle_prebuild({ IS_DEV }: { IS_DEV?: boolean }) {
   try {
     const pkg_json = JSON.parse(
-      fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8"),
+      await fs.promises.readFile(
+        path.join(process.cwd(), "package.json"),
+        "utf-8",
+      ),
     );
     const prebuild_script = pkg_json.scripts?.["hwy-prebuild"];
     const prebuild_dev_script = pkg_json.scripts?.["hwy-prebuild-dev"];
@@ -342,14 +346,14 @@ async function handle_prebuild({ IS_DEV }: { IS_DEV?: boolean }) {
 
 /* -------------------------------------------------------------------------- */
 
-function write_refresh_txt({
+async function write_refresh_txt({
   changeType,
   criticalCss,
 }: {
   changeType: RefreshFilePayload["changeType"];
   criticalCss?: string;
 }) {
-  fs.writeFileSync(
+  await fs.promises.writeFile(
     path.join(process.cwd(), "dist", "refresh.txt"),
     JSON.stringify({
       changeType,
@@ -450,25 +454,27 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
     // This writes the main server entry to disk as _worker.js
     hwyLog("Customizing build output for Cloudflare Pages...");
 
-    fs.writeFileSync(
-      "dist/_worker.js",
-      `import process from "node:process";\n` +
-        `globalThis.process = process;\n` +
-        fs.readFileSync("./dist/main.js", "utf8") +
-        "\n" +
-        (await get_path_import_snippet()),
-    );
+    await Promise.all([
+      fs.promises.writeFile(
+        "dist/_worker.js",
+        `import process from "node:process";\n` +
+          `globalThis.process = process;\n` +
+          fs.readFileSync("./dist/main.js", "utf8") +
+          "\n" +
+          (await get_path_import_snippet()),
+      ),
 
-    // copy public folder into dist
-    fs.cpSync("./public", "./dist/public", { recursive: true });
+      // copy public folder into dist
+      fs.promises.cp("./public", "./dist/public", { recursive: true }),
 
-    // rmv dist/main.js file -- no longer needed if bundling routes
-    fs.rmSync(path.join(process.cwd(), "dist/main.js"));
+      // rmv dist/main.js file -- no longer needed if bundling routes
+      fs.promises.rm(path.join(process.cwd(), "dist/main.js")),
+    ]);
   } else {
     // Write the final main.js to disk again, with the route loading strategy appended
-    fs.writeFileSync(
+    await fs.promises.writeFile(
       "dist/main.js",
-      fs.readFileSync("./dist/main.js", "utf8") +
+      (await fs.promises.readFile("./dist/main.js", "utf8")) +
         "\n" +
         (await get_path_import_snippet()),
     );
@@ -493,13 +499,15 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
     });
 
     // rmv dist/pages folder -- no longer needed if bundling routes
-    fs.rmSync(path.join(process.cwd(), "dist/pages"), {
+    await fs.promises.rm(path.join(process.cwd(), "dist/pages"), {
       recursive: true,
     });
   }
 
   // rmv the rest
-  FILE_NAMES.forEach((x) => {
-    fs.rmSync(path.join(process.cwd(), `dist/${x}`));
-  });
+  await Promise.all(
+    FILE_NAMES.map((x) => {
+      return fs.promises.rm(path.join(process.cwd(), `dist/${x}`));
+    }),
+  );
 }

@@ -7,10 +7,6 @@ import { ListItem, UnorderedList } from "../components/unordered-list.js";
 import { Boldtalic } from "../components/bold-italic.js";
 
 export async function loader() {
-  await new Promise((resolve) => {
-    setTimeout(resolve, 1000);
-  });
-
   return { fromLoader: "YO DUDE THIS IS FROM THE LOADER" + Math.random() };
 }
 

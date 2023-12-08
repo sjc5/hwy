@@ -15,9 +15,5 @@ export const head: HeadFunction = () => {
 };
 
 export async function loader() {
-  await new Promise((resolve) => {
-    setTimeout(resolve, 1000);
-  });
-
   return { fromLoader: "YO DUDE THIS IS FROM THE LOADER" + Math.random() };
 }

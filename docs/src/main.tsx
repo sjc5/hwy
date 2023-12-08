@@ -9,6 +9,7 @@ import {
   type HeadBlock,
   renderRoot,
   getPublicUrl,
+  utils,
 } from "hwy";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
@@ -90,6 +91,7 @@ app.all("*", async (c, next) => {
           <HeadElements {...baseProps} />
           <CssImports />
           <ClientScripts {...baseProps} />
+          {/* <script type="module" src={utils.getClientEntryUrl()} /> */}
           <DevLiveRefreshScript />
           <script defer src={getPublicUrl("prism.js")} />
         </head>
@@ -103,10 +105,10 @@ app.all("*", async (c, next) => {
               <Nav />
 
               <div class="root-outlet-wrapper" id={"root-outlet-wrapper"}>
-                <RootOutlet
+                {/* <RootOutlet
                   {...baseProps}
                   fallbackErrorBoundary={FallbackErrorBoundary}
-                />
+                /> */}
               </div>
             </div>
 
