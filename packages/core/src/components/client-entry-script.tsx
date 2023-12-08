@@ -1,10 +1,18 @@
 import type { getMatchingPathData } from "../router/get-matching-path-data.js";
 import { getPublicUrl } from "../utils/hashed-public-url.js";
 import { utils } from "../utils/hwy-utils.js";
-import { get_hwy_global } from "../utils/get-hwy-global.js";
+import { client_signal_keys, get_hwy_global } from "../utils/get-hwy-global.js";
 import { uneval } from "devalue";
+import { HWY_PREFIX } from "../../../common/index.mjs";
 
 const hwy_global = get_hwy_global();
+
+function global_setter_string(
+  key: (typeof client_signal_keys)[number],
+  value: any,
+) {
+  return `globalThis.${HWY_PREFIX}.${key}=${uneval(value)};`;
+}
 
 function ClientScripts({
   entryStrategy = "defer",
@@ -59,23 +67,23 @@ function ClientScripts({
               __html: `${
                 hwy_global.get("is_dev") ? `import "preact/debug";` : ""
               }
-globalThis.__hwy__ = {};
-globalThis.__hwy__.is_dev = ${uneval(hwy_global.get("is_dev"))};
-globalThis.__hwy__.active_data = ${uneval(activePathData.activeData)};
-globalThis.__hwy__.active_paths = ${uneval(
-                activePathData.matchingPaths?.map((x) => {
-                  return getPublicUrl(
-                    "dist/" + x.importPath.slice(0, -3) + ".hydrate.js",
-                  );
-                }),
-              )};
-globalThis.__hwy__.outermost_error_boundary_index = ${uneval(
-                activePathData.outermostErrorBoundaryIndex,
-              )};
-globalThis.__hwy__.error_to_render = ${uneval(activePathData.errorToRender)};
-globalThis.__hwy__.splat_segments = ${uneval(activePathData.splatSegments)};
-globalThis.__hwy__.params = ${uneval(activePathData.params)};
-globalThis.__hwy__.action_data = ${uneval(activePathData.actionData)};
+globalThis.${HWY_PREFIX} = {};
+globalThis.${HWY_PREFIX}.is_dev = ${uneval(hwy_global.get("is_dev"))};
+${global_setter_string("activeData", activePathData.activeData)}
+${global_setter_string(
+  "activePaths",
+  activePathData.matchingPaths?.map((x) => {
+    return getPublicUrl("dist/" + x.importPath.slice(0, -3) + ".hydrate.js");
+  }),
+)}
+${global_setter_string(
+  "outermostErrorBoundaryIndex",
+  activePathData.outermostErrorBoundaryIndex,
+)}
+${global_setter_string("errorToRender", activePathData.errorToRender)}
+${global_setter_string("splatSegments", activePathData.splatSegments)}
+${global_setter_string("params", activePathData.params)}
+${global_setter_string("actionData", activePathData.actionData)}
       `.trim(),
             }}
           />

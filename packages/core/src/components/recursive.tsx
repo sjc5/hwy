@@ -2,25 +2,12 @@ import type { getMatchingPathData } from "../router/get-matching-path-data.js";
 import type { ErrorBoundaryProps } from "../types.js";
 import { type JSX } from "preact";
 import { useCallback } from "preact/hooks";
+import { get_hwy_client_global } from "../utils/get-hwy-global.js";
 
 type ErrorBoundaryComp = (props: ErrorBoundaryProps) => JSX.Element;
 
-const keys = [
-  "active_import_paths",
-  "active_data",
-  "active_paths",
-  "outermost_error_boundary_index",
-  "error_to_render",
-  "splat_segments",
-  "params",
-  "action_data",
-  "active_components",
-  "active_error_boundaries",
-] as const;
-
-const camelKeys = keys.map((x) => {
-  return x.replace(/_(\w)/g, (m) => m[1].toUpperCase());
-});
+type ActivePathData = Awaited<ReturnType<typeof getMatchingPathData>>;
+type ServerKey = keyof ActivePathData;
 
 function RootOutlet(props: {
   activePathData?: Awaited<ReturnType<typeof getMatchingPathData>>;
@@ -33,51 +20,40 @@ function RootOutlet(props: {
 }): JSX.Element {
   const IS_SERVER = typeof document === "undefined";
 
-  const server_context = {};
+  let context: { get: (str: ServerKey) => ActivePathData[ServerKey] } =
+    IS_SERVER
+      ? {
+          get: (str: ServerKey) => props.activePathData?.[str],
+        }
+      : (get_hwy_client_global() as any);
 
-  function get_context() {
-    return IS_SERVER ? server_context : (globalThis as any).__hwy__;
-  }
-
-  /////////////////////////
-  // if (props.activePathData) {
-  //   for (const key of keys) {
-  //     get_context()[key] = signal(get_context()[key]);
-
-  //     console.log(key, ":", get_context()[key].value);
-  //   }
-  // }
-  ////////////////////////
   let { index } = props;
   const index_to_use = index ?? 0;
 
   try {
-    if (!get_context().active_components.value?.[index_to_use]) {
+    if (!context.get("activeComponents")?.[index_to_use]) {
       return <></>;
     }
 
     const this_is_an_error_boundary =
-      get_context().outermost_error_boundary_index.value === index_to_use;
+      context.get("outermostErrorBoundaryIndex") === index_to_use;
 
     const ErrorBoundary: ErrorBoundaryComp | undefined =
-      get_context().active_error_boundaries.value?.[index_to_use] ??
+      context.get("activeErrorBoundaries")?.[index_to_use] ??
       props.fallbackErrorBoundary;
 
     if (
       this_is_an_error_boundary ||
-      get_context().outermost_error_boundary_index.value === -1
+      context.get("outermostErrorBoundaryIndex") === -1
     ) {
       if (!ErrorBoundary) {
         return <div>Error: No error boundary found.</div>;
       }
 
       return ErrorBoundary({
-        error: get_context().error_to_render.value,
+        error: context.get("errorToRender"),
       });
     }
-
-    const CurrentComponent =
-      get_context().active_components.value?.[index_to_use];
 
     const Outlet = useCallback(
       (local_props: Record<string, any> | undefined) => {
@@ -89,31 +65,14 @@ function RootOutlet(props: {
       [],
     );
 
-    return (
-      <CurrentComponent
-        {...props}
-        params={get_context().params.value}
-        splatSegments={get_context().splat_segments.value}
-        Outlet={Outlet}
-        loaderData={get_context().active_data.value?.[index_to_use]}
-        actionData={get_context().action_data.value?.[index_to_use]}
-        path={get_context().active_paths.value?.[index_to_use]}
-      />
-    );
-
-    return get_context().active_components.value?.[index_to_use]({
+    return context.get("activeComponents")?.[index_to_use]({
       ...props,
-      params: get_context().params.value,
-      splatSegments: get_context().splat_segments.value,
-      Outlet: (local_props: Record<string, any> | undefined) => {
-        return RootOutlet({
-          ...local_props,
-          index: index_to_use + 1,
-        });
-      },
-      loaderData: get_context().active_data.value?.[index_to_use],
-      actionData: get_context().action_data.value?.[index_to_use],
-      path: get_context().active_paths.value?.[index_to_use],
+      params: context.get("params") ?? {},
+      splatSegments: context.get("splatSegments") ?? [],
+      Outlet,
+      loaderData: context.get("activeData")?.[index_to_use],
+      actionData: context.get("actionData")?.[index_to_use],
+      path: context.get("activePaths")?.[index_to_use],
     });
   } catch (error) {
     console.error(error);

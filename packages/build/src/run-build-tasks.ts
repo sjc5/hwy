@@ -393,7 +393,7 @@ function get_is_using_client_entry() {
 async function get_path_import_snippet() {
   if (hwy_config.routeStrategy === "warm-cache-at-startup") {
     return `
-__hwy__paths.forEach(function (x) {
+${HWY_PREFIX}paths.forEach(function (x) {
   const path_from_dist = "./" + x.importPath;
   import(path_from_dist).then((x) => globalThis[path_from_dist] = x);
   ${

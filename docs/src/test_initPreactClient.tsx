@@ -1,49 +1,44 @@
-import { RootOutlet } from "hwy";
-import { hydrate, render } from "preact";
+import { RootOutlet, get_hwy_client_global, client_signal_keys } from "hwy";
+import { hydrate } from "preact";
 import { morph } from "./Idiomorph-fork.js";
 import { signal } from "@preact/signals";
 
 let abortController = new AbortController();
 
+const hwy_client_global = get_hwy_client_global();
+
 async function initPreactClient(props?: {
   onLoadStart?: () => void;
   onLoadDone?: () => void;
 }) {
-  const keys = [
-    "active_data",
-    "active_paths",
-    "outermost_error_boundary_index",
-    "error_to_render",
-    "splat_segments",
-    "params",
-    "action_data",
-    "active_components",
-    "active_error_boundaries",
-  ] as const;
-
-  console.log(JSON.stringify((globalThis as any).__hwy__, null, 2));
-
-  for (const key of keys) {
-    (globalThis as any).__hwy__[key] = signal((globalThis as any).__hwy__[key]);
-
-    console.log(key, ":", (globalThis as any).__hwy__[key].value);
+  for (const key of client_signal_keys) {
+    hwy_client_global.set_signal(
+      key,
+      signal(
+        hwy_client_global
+          // it's not really a signal here, just want raw value which is what "get_signal" does
+          .get_signal(key),
+      ),
+    );
   }
 
-  const components = (globalThis as any).__hwy__.active_paths.value.map(
-    (x: any) => {
-      return import(("." + x).replace("public/dist/", ""));
-    },
-  );
-  const awaited_components = await Promise.all(components);
-  console.log("awaited_components", awaited_components);
-  (globalThis as any).__hwy__.active_components.value = awaited_components.map(
-    (x) => x.default,
-  );
-  console.log("asdoih", (globalThis as any).__hwy__.active_components.value);
-  (globalThis as any).__hwy__.active_error_boundaries.value =
-    awaited_components.map((x) => x.ErrorBoundary);
+  const components = hwy_client_global.get("activePaths").map((x: any) => {
+    return import(("." + x).replace("public/dist/", ""));
+  });
 
-  render(
+  const awaited_components = await Promise.all(components);
+
+  hwy_client_global.set(
+    "activeComponents",
+    awaited_components.map((x) => x.default),
+  );
+
+  hwy_client_global.set(
+    "activeErrorBoundaries",
+    awaited_components.map((x) => x.ErrorBoundary),
+  );
+
+  hydrate(
     <RootOutlet />,
     document.getElementById("root-outlet-wrapper") as HTMLElement,
   );
@@ -136,7 +131,7 @@ async function postToAction(
 }
 
 async function reRenderApp(href: string, setHistory: boolean, json: any) {
-  const old_list = (globalThis as any).__hwy__.active_paths.value;
+  const old_list = hwy_client_global.get("activePaths");
   const new_list = json.activePaths;
 
   const updated_list: {
@@ -177,23 +172,30 @@ async function reRenderApp(href: string, setHistory: boolean, json: any) {
 
   for (let i = 0; i < awaited_defaults.length; i++) {
     if (awaited_defaults[i]) {
-      (globalThis as any).__hwy__.active_components.value[i] =
-        awaited_defaults[i];
+      hwy_client_global.get("activeComponents")[i] = awaited_defaults[i];
     }
   }
 
-  (globalThis as any).__hwy__.active_error_boundaries.value = (
-    globalThis as any
-  ).__hwy__.active_components.value.map((x: any) => x.ErrorBoundary);
-  (globalThis as any).__hwy__.active_data.value = json.activeData;
-  (globalThis as any).__hwy__.active_paths.value = json.activePaths;
-  (globalThis as any).__hwy__.outermost_error_boundary_index.value =
-    json.outermostErrorBoundaryIndex;
-  (globalThis as any).__hwy__.error_to_render.value = json.errorToRender;
-  (globalThis as any).__hwy__.splat_segments.value = json.splatSegments;
-  (globalThis as any).__hwy__.params.value = json.params;
-  (globalThis as any).__hwy__.action_data.value = json.actionData;
+  hwy_client_global.set(
+    "activeErrorBoundaries",
+    hwy_client_global.get("activeComponents").map((x: any) => x.ErrorBoundary),
+  );
 
+  const identical_keys_to_set = [
+    "activeData",
+    "activePaths",
+    "outermostErrorBoundaryIndex",
+    "errorToRender",
+    "splatSegments",
+    "params",
+    "actionData",
+  ] as const satisfies ReadonlyArray<(typeof client_signal_keys)[number]>;
+
+  for (const key of identical_keys_to_set) {
+    hwy_client_global.set(key, json[key]);
+  }
+
+  // This sets the title faster than idiomorph can, since we know it now
   document.title = json.newTitle;
 
   if (setHistory) {
@@ -209,7 +211,7 @@ async function reRenderApp(href: string, setHistory: boolean, json: any) {
 }
 
 async function reRenderAppAfterPost(json: any) {
-  (globalThis as any).__hwy__.action_data.value = json.actionData;
+  hwy_client_global.set("actionData", json.actionData);
 }
 
 export { initPreactClient, postToAction };

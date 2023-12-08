@@ -1,4 +1,4 @@
-export const HWY_PREFIX = "__hwy__";
+export const HWY_PREFIX = "__hwy_internal__";
 export const LIVE_REFRESH_SSE_PATH = `/${HWY_PREFIX}live_refresh_sse`;
 export const LIVE_REFRESH_RPC_PATH = `/${HWY_PREFIX}live_refresh_rpc`;
 

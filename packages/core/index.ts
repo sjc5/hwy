@@ -31,3 +31,9 @@ export { redirect } from "./src/utils/redirect.js";
 export { getDefaultBodyProps } from "./src/utils/default-body-props.js";
 export { renderRoot } from "./src/utils/render-root.js";
 export { utils } from "./src/utils/hwy-utils.js";
+
+// TODO -- TEMPORARY DO NOT SHIP THIS COME BACK
+export {
+  get_hwy_client_global,
+  client_signal_keys,
+} from "./src/utils/get-hwy-global.js";

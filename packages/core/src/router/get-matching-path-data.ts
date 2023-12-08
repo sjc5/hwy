@@ -320,19 +320,22 @@ async function getMatchingPathData({ c }: { c: Context }) {
     : action_data_error;
 
   return {
+    // not needed in recursive component
     matchingPaths: fully_decorated_matching_paths,
-    activeData: active_data,
+    activeHeads: active_heads,
+
+    // needed in recursive component
+    activeData: active_data, // loader data for active routes
+    activePaths: active_paths,
+    outermostErrorBoundaryIndex: closest_parent_error_boundary_index,
+    errorToRender: error_to_render,
+    splatSegments: splat_segments,
+    params,
     actionData: fully_decorated_matching_paths?.map((x) => {
       return x.importPath === last_path?.importPath ? action_data : undefined;
     }),
-    activePaths: active_paths,
-    activeComponents: active_components,
-    activeHeads: active_heads,
-    errorToRender: error_to_render,
+    activeComponents: active_components, // list of import paths for active routes
     activeErrorBoundaries: active_error_boundaries,
-    params,
-    splatSegments: splat_segments,
-    outermostErrorBoundaryIndex: closest_parent_error_boundary_index,
   };
 }
 

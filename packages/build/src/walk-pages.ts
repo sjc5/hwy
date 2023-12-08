@@ -253,7 +253,8 @@ async function walk_pages(IS_DEV?: boolean) {
 
       esbuild.build({
         stdin: {
-          contents: `export { RootOutlet } from "hwy"; export * from "@preact/signals";`,
+          // TODO -- COME BACK TO THIS
+          contents: `export { RootOutlet, get_hwy_client_global, client_signal_keys } from "hwy"; export * from "@preact/signals";`,
           resolveDir: path.resolve("./dist"),
         },
         bundle: true,
