@@ -50,24 +50,20 @@ app.all("*", async (c, next) => {
     next,
     htmlAttributes: { lang: "en" },
     defaultHeadBlocks,
-    head: ({ activePathData }) => {
+    head: (baseProps) => {
       return (
         <head>
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-          <HeadElements
-            c={c}
-            activePathData={activePathData}
-            defaultHeadBlocks={defaultHeadBlocks}
-          />
+          <HeadElements {...baseProps} />
           <CssImports />
-          <ClientScripts activePathData={activePathData} />
+          <ClientScripts {...baseProps} />
           <DevLiveRefreshScript />
         </head>
       );
     },
-    body: ({ activePathData }) => {
+    body: (baseProps) => {
       return (
         <body {...getDefaultBodyProps()}>
           <nav>
@@ -87,7 +83,7 @@ app.all("*", async (c, next) => {
 
           <main>
             <RootOutlet
-              activePathData={activePathData}
+              {...baseProps}
               fallbackErrorBoundary={() => {
                 return <div>Something went wrong.</div>;
               }}

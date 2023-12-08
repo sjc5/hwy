@@ -466,10 +466,10 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
 
       // copy public folder into dist
       fs.promises.cp("./public", "./dist/public", { recursive: true }),
-
-      // rmv dist/main.js file -- no longer needed if bundling routes
-      fs.promises.rm(path.join(process.cwd(), "dist/main.js")),
     ]);
+
+    // rmv dist/main.js file -- no longer needed if bundling routes
+    await fs.promises.rm(path.join(process.cwd(), "dist/main.js"));
   } else {
     // Write the final main.js to disk again, with the route loading strategy appended
     await fs.promises.writeFile(
@@ -488,7 +488,7 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
     await esbuild.build({
       entryPoints: [IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js"],
       bundle: true,
-      outfile: "dist/main.js",
+      outfile: IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js",
       treeShaking: true,
       platform: "node",
       format: "esm",

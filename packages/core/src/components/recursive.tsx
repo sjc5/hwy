@@ -55,15 +55,15 @@ function RootOutlet(props: {
       });
     }
 
-    const Outlet = useCallback(
-      (local_props: Record<string, any> | undefined) => {
-        return RootOutlet({
-          ...local_props,
-          index: index_to_use + 1,
-        });
-      },
-      [],
-    );
+    const outlet_fn = (local_props: Record<string, any> | undefined) => {
+      return RootOutlet({
+        ...local_props,
+        activePathData: IS_SERVER ? props.activePathData : undefined,
+        index: index_to_use + 1,
+      });
+    };
+
+    const Outlet = IS_SERVER ? outlet_fn : useCallback(outlet_fn, []);
 
     return context.get("activeComponents")?.[index_to_use]({
       ...props,

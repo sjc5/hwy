@@ -277,6 +277,9 @@ importers:
       '@hwy-js/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      '@preact/signals':
+        specifier: ^1.2.2
+        version: 1.2.2(preact@10.19.2)
       '@types/node':
         specifier: ^20.10.3
         version: 20.10.3

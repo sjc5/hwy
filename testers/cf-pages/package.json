@@ -23,6 +23,7 @@
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@hwy-js/utils": "workspace:*",
+    "@preact/signals": "^1.2.2",
     "@types/node": "^20.10.3",
     "htmx.org": "^1.9.9",
     "npm-run-all": "^4.1.5",
