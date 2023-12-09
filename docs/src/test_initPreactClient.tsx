@@ -161,15 +161,11 @@ async function navigate(href: string, setHistory: boolean) {
   }
 }
 
-// TODO -- set global loading indicator as a Hwy Global, and just refer to it in postToAction and navigate
 // Take in a custom stringifier for the body
 // Allow turning head idiomorph on / off (not sure yet which should be default)
 // Build in Ky? Build in devalue?
 // Make this take generics
 // Allow "boost=`false`" on any form or link
-//
-// Consider race conditions around abortController and whether we need manual revalidations
-// Do we need a map of abortControllers?
 
 async function submit({
   to,
