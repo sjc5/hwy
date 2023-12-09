@@ -5,12 +5,12 @@ function get_hwy_config(options: Options) {
   let obj: HwyConfig =
     options.client_lib === "preact"
       ? {
-          clientLib: "preact",
+          mode: "preact-mpa",
           deploymentTarget: options.deployment_target,
           useDotServerFiles: true,
         }
       : {
-          clientLib: "htmx",
+          mode: "htmx-mpa",
           deploymentTarget: options.deployment_target,
           useDotServerFiles: false,
         };

@@ -1,14 +1,9 @@
 import type { PageProps } from "hwy";
 import { TestClientApp } from "../test-client-app.js";
-import { postToAction } from "../../test_initPreactClient.js";
+import { submit } from "../../test_initPreactClient.js";
 import type { ActionType } from "./_index.server.js";
-import { useState } from "preact/hooks";
 
 export default function ({ Outlet, actionData }: PageProps<any, ActionType>) {
-  console.log("actionData -- index child", actionData);
-
-  const [test, useTest] = useState(1);
-
   return (
     <>
       THis is index page
@@ -19,7 +14,7 @@ export default function ({ Outlet, actionData }: PageProps<any, ActionType>) {
       </form>
       <button
         onClick={async () => {
-          await postToAction("/jeff");
+          await submit({ to: "/jeff", data: { test: "test" } });
         }}
       >
         POST

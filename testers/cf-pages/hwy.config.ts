@@ -1,7 +1,7 @@
 import type { HwyConfig } from "@hwy-js/build";
 
 export default {
-  clientLib: "htmx",
+  mode: "htmx-mpa",
   dev: {
     watchExclusions: ["src/styles/tw-output.bundle.css"],
     // hotReloadCssBundle: false,

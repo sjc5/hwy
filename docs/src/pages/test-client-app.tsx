@@ -5,11 +5,7 @@ const IS_SERVER = typeof document === "undefined";
 export function TestClientApp({ data }: { data: any }) {
   const [bob, set_bob] = useState(1);
 
-  console.log({ bob });
-
   const [background_color, set_background_color] = useState("red");
-
-  console.log("HOLY MOLY", { data });
 
   return (
     <div style={{ background: background_color }}>

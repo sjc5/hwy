@@ -42,7 +42,7 @@ async function get_hwy_config() {
   }
 
   if (
-    internal_hwy_config?.clientLib === "preact" &&
+    internal_hwy_config?.mode === "preact-mpa" &&
     internal_hwy_config?.useDotServerFiles !== true
   ) {
     hwyLog(
@@ -67,7 +67,7 @@ async function get_hwy_config() {
   }
 
   cached_hwy_config = {
-    clientLib: internal_hwy_config?.clientLib || "htmx",
+    mode: internal_hwy_config?.mode || "mpa",
     dev: {
       port: Number(internal_hwy_config?.dev?.port || DEFAULT_PORT),
       watchExclusions: internal_hwy_config?.dev?.watchExclusions || [],
@@ -77,7 +77,7 @@ async function get_hwy_config() {
     deploymentTarget: internal_hwy_config?.deploymentTarget || "node",
     routeStrategy: internal_hwy_config?.routeStrategy || "always-lazy",
     useDotServerFiles:
-      internal_hwy_config?.clientLib === "preact"
+      internal_hwy_config?.mode === "preact-mpa"
         ? true
         : internal_hwy_config?.useDotServerFiles || false,
     usePreactCompat: internal_hwy_config?.usePreactCompat || false,

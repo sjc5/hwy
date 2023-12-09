@@ -7,6 +7,16 @@ import { HWY_GLOBAL_KEYS, SPLAT_SEGMENT } from "../../common/index.mjs";
 import { smart_normalize } from "./smart-normalize.js";
 import { get_hwy_config } from "./get-hwy-config.js";
 
+export const EXTERNAL_LIST = [
+  "hwy",
+  "preact",
+  "preact/hooks",
+  "preact/jsx-runtime",
+  "@preact/signals",
+  "preact/compat",
+  "preact/*",
+];
+
 const permitted_extensions = [
   "js",
   "jsx",
@@ -27,7 +37,9 @@ type PathType =
 
 const hwy_config = await get_hwy_config();
 
-const IS_PREACT = hwy_config.clientLib === "preact";
+const IS_PREACT = hwy_config.mode === "preact-mpa";
+
+console.log(hwy_config);
 
 async function walk_pages(IS_DEV?: boolean) {
   const paths: {
@@ -169,15 +181,6 @@ async function walk_pages(IS_DEV?: boolean) {
     });
 
     try {
-      const EXTERNAL_LIST = [
-        "hwy",
-        "preact",
-        "preact/hooks",
-        "preact/jsx-runtime",
-        "@preact/signals",
-        "preact/compat",
-      ];
-
       await Promise.all([
         esbuild.build({
           entryPoints: [import_path_with_orig_ext],
@@ -231,7 +234,7 @@ async function walk_pages(IS_DEV?: boolean) {
           resolveDir: path.resolve("./dist"),
         },
         bundle: true,
-        outfile: path.resolve(`./public/dist/preact.js`),
+        outfile: path.resolve(`./public/dist/preact/preact.js`),
         format: "esm",
         platform: "browser",
         minify: true,
@@ -244,7 +247,7 @@ async function walk_pages(IS_DEV?: boolean) {
               resolveDir: path.resolve("./dist"),
             },
             bundle: true,
-            outfile: path.resolve(`./public/dist/preact-compat.js`),
+            outfile: path.resolve(`./public/dist/preact/preact-compat.js`),
             format: "esm",
             platform: "browser",
             minify: true,
@@ -262,36 +265,41 @@ async function walk_pages(IS_DEV?: boolean) {
         format: "esm",
         platform: "browser",
         minify: true,
+        external: EXTERNAL_LIST.filter(
+          (x) => x !== "@preact/signals" && x !== "hwy",
+        ),
       }),
     ]);
 
     if (IS_DEV) {
       // make needed folders
       await Promise.all([
-        fs.promises.mkdir(path.resolve("./public/dist/preact-dev"), {
+        fs.promises.mkdir(path.resolve("./public/dist/preact/preact-dev"), {
           recursive: true,
         }),
 
         // copy debug and devtools modules and source maps
         fs.promises.cp(
           path.resolve("./node_modules/preact/debug/dist/debug.module.js"),
-          path.resolve("./public/dist/preact-dev/debug.module.js"),
+          path.resolve("./public/dist/preact/preact-dev/debug.module.js"),
         ),
         fs.promises.cp(
           path.resolve(
             "./node_modules/preact/devtools/dist/devtools.module.js",
           ),
-          path.resolve("./public/dist/preact-dev/devtools.module.js"),
+          path.resolve("./public/dist/preact/preact-dev/devtools.module.js"),
         ),
         fs.promises.cp(
           path.resolve("./node_modules/preact/debug/dist/debug.module.js.map"),
-          path.resolve("./public/dist/preact-dev/debug.module.js.map"),
+          path.resolve("./public/dist/preact/preact-dev/debug.module.js.map"),
         ),
         fs.promises.cp(
           path.resolve(
             "./node_modules/preact/devtools/dist/devtools.module.js.map",
           ),
-          path.resolve("./public/dist/preact-dev/devtools.module.js.map"),
+          path.resolve(
+            "./public/dist/preact/preact-dev/devtools.module.js.map",
+          ),
         ),
       ]);
     }

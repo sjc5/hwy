@@ -7,8 +7,6 @@ import type { HeadBlock } from "../types.js";
 import { get_new_title } from "../components/head-elements.js";
 import { get_hwy_global } from "./get-hwy-global.js";
 
-export const IS_HWY_LOADER_FETCH_KEY = "__HWY__LOADER_FETCH__";
-
 type BaseProps = {
   c: Context;
   activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
@@ -42,12 +40,16 @@ async function renderRoot({
     return await next();
   }
 
-  const IS_PREACT = get_hwy_global().get("client_lib") === "preact";
+  const IS_PREACT = get_hwy_global().get("mode") === "preact-mpa";
   const base_props = { c, activePathData, defaultHeadBlocks };
 
   if (IS_PREACT) {
-    if (c.req.query()[IS_HWY_LOADER_FETCH_KEY] || c.req.method !== "GET") {
+    if (c.req.raw.headers.get("Accept") === "application/json") {
       const newTitle = get_new_title({ c, activePathData, defaultHeadBlocks });
+
+      if (c.req.raw.signal.aborted) {
+        return;
+      }
 
       return c.json({
         newTitle,

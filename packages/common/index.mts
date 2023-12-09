@@ -11,7 +11,7 @@ export const HWY_GLOBAL_KEYS = {
   paths: `${HWY_PREFIX}paths`,
   public_map: `${HWY_PREFIX}public_map`,
   public_reverse_map: `${HWY_PREFIX}public_reverse_map`,
-  client_lib: `${HWY_PREFIX}client_lib`,
+  mode: `${HWY_PREFIX}mode`,
   use_dot_server_files: `${HWY_PREFIX}use_dot_server_files`,
 } as const;
 
@@ -35,8 +35,10 @@ export type HwyConfig = {
   };
   usePreactCompat?: boolean;
 } & (
-  | { clientLib: "htmx"; useDotServerFiles: boolean }
-  | { clientLib: "preact"; useDotServerFiles: true }
+  | { mode: "mpa"; useDotServerFiles: boolean }
+  | { mode: "htmx-mpa"; useDotServerFiles: boolean }
+  | { mode: "preact-mpa"; useDotServerFiles: true }
+  | { mode: "preact-spa"; useDotServerFiles?: boolean }
 ) &
   (
     | {

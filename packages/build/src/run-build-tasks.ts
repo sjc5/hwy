@@ -4,6 +4,7 @@ import {
   generate_public_file_map,
   write_paths_to_disk,
   type Paths,
+  EXTERNAL_LIST,
 } from "./walk-pages.js";
 import esbuild from "esbuild";
 import { hwyLog, logPerf } from "./hwy-log.js";
@@ -32,6 +33,10 @@ const hwy_config = await get_hwy_config();
 const SHOULD_BUNDLE_PATHS =
   hwy_config.routeStrategy === "bundle" ||
   hwy_config.deploymentTarget === "cloudflare-pages";
+
+const IS_PREACT = hwy_config.mode === "preact-mpa";
+
+console.log({ IS_PREACT });
 
 async function runBuildTasks({
   IS_DEV,
@@ -71,8 +76,15 @@ async function runBuildTasks({
 
   hwyLog(`Running standard build tasks...`);
   const standard_tasks_p0 = performance.now();
+
   const dist_path = path.join(process.cwd(), "dist");
-  await fs.promises.mkdir(dist_path, { recursive: true });
+  const public_path = path.join(process.cwd(), "public");
+
+  await Promise.all([
+    fs.promises.mkdir(dist_path, { recursive: true }),
+    fs.promises.mkdir(public_path, { recursive: true }),
+  ]);
+
   const is_using_client_entry = get_is_using_client_entry();
 
   /********************* STEP 1 *********************
@@ -104,7 +116,7 @@ async function runBuildTasks({
           platform: "browser",
           format: "esm",
           minify: true,
-          external: ["preact"],
+          external: IS_PREACT ? EXTERNAL_LIST : undefined,
         })
       : undefined,
   ]);
@@ -202,10 +214,10 @@ async function runBuildTasks({
    * This is how we can know these settings at runtime
    */
   const dev_line = `globalThis.${HWY_GLOBAL_KEYS.is_dev} = ${IS_DEV};\n`;
-  const dep_target_line = `globalThis.${HWY_GLOBAL_KEYS.deployment_target} = "${hwy_config.deploymentTarget}";\n\n`;
-  const route_strategy_line = `globalThis.${HWY_GLOBAL_KEYS.route_strategy} = "${hwy_config.routeStrategy}";\n\n`;
-  const client_lib_line = `globalThis.${HWY_GLOBAL_KEYS.client_lib} = "${hwy_config.clientLib}";\n\n`;
-  const use_dot_server_files_line = `globalThis.${HWY_GLOBAL_KEYS.use_dot_server_files} = ${hwy_config.useDotServerFiles};\n\n`;
+  const dep_target_line = `globalThis.${HWY_GLOBAL_KEYS.deployment_target} = "${hwy_config.deploymentTarget}";\n`;
+  const route_strategy_line = `globalThis.${HWY_GLOBAL_KEYS.route_strategy} = "${hwy_config.routeStrategy}";\n`;
+  const mode_line = `globalThis.${HWY_GLOBAL_KEYS.mode} = "${hwy_config.mode}";\n`;
+  const use_dot_server_files_line = `globalThis.${HWY_GLOBAL_KEYS.use_dot_server_files} = ${hwy_config.useDotServerFiles};\n`;
 
   /*
    * Now put it all together and write main.js to disk
@@ -215,7 +227,7 @@ async function runBuildTasks({
     dev_line +
       dep_target_line +
       route_strategy_line +
-      client_lib_line +
+      mode_line +
       use_dot_server_files_line +
       to_be_appended +
       main_code,

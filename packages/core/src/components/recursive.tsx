@@ -63,22 +63,27 @@ function RootOutlet(props: {
       });
     };
 
-    const Outlet = IS_SERVER ? outlet_fn : useCallback(outlet_fn, []);
+    const Outlet = IS_SERVER
+      ? outlet_fn
+      : useCallback(outlet_fn, [
+          context.get("activePaths")?.[index_to_use + 1],
+        ]);
 
     return context.get("activeComponents")?.[index_to_use]({
       ...props,
+      Outlet,
       params: context.get("params") ?? {},
       splatSegments: context.get("splatSegments") ?? [],
-      Outlet,
       loaderData: context.get("activeData")?.[index_to_use],
-      actionData: context.get("actionData")?.[index_to_use],
       path: context.get("activePaths")?.[index_to_use],
+      actionData: context.get("actionData")?.[index_to_use],
     });
   } catch (error) {
     console.error(error);
 
     const ErrorBoundary: ErrorBoundaryComp | undefined =
-      (globalThis as any).ACTIVE_PATH_DATA.value?.activeErrorBoundaries
+      context
+        .get("activeErrorBoundaries")
         ?.splice(0, index_to_use + 1)
         ?.reverse()
         ?.find((x: any) => x) ?? props.fallbackErrorBoundary;

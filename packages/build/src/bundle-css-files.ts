@@ -38,8 +38,16 @@ async function bundle_css_files() {
   const using_styles_dir = fs.existsSync(path.resolve("./src/styles"));
   if (!using_styles_dir) {
     hwyLog("Not using styles directory, skipping css bundling...");
+
+    await Promise.all([
+      write_standard_bundled_css_exists(false),
+      write_critical_bundled_css_is_undefined(),
+      write_empty_standard_bundled_css_file(),
+    ]);
+
     return;
   }
+
   const directory_path = path.resolve("src/styles");
   const files = await fs.promises.readdir(directory_path);
 
@@ -60,27 +68,25 @@ async function bundle_css_files() {
 
     const standard_css_text = promises.join("\n").replace(URL_REGEX, replacer);
 
-    function write_standard_bundled_css_exists(does_exist: boolean) {
-      fs.writeFileSync(
-        path.join(process.cwd(), "dist/standard-bundled-css-exists.js"),
-        `export const ${HWY_GLOBAL_KEYS.standard_bundled_css_exists} = ${does_exist};`,
-      );
-    }
-
     if (standard_css_paths.length) {
-      await esbuild.build({
-        stdin: {
-          contents: standard_css_text,
-          resolveDir: path.resolve("src/styles"),
-          loader: "css",
-        },
-        outfile: path.resolve("public/dist/standard-bundled.css"),
-        minify: true,
-      });
+      await Promise.all([
+        esbuild.build({
+          stdin: {
+            contents: standard_css_text,
+            resolveDir: path.resolve("src/styles"),
+            loader: "css",
+          },
+          outfile: path.resolve("public/dist/standard-bundled.css"),
+          minify: true,
+        }),
 
-      write_standard_bundled_css_exists(true);
+        write_standard_bundled_css_exists(true),
+      ]);
     } else {
-      write_standard_bundled_css_exists(false);
+      await Promise.all([
+        write_standard_bundled_css_exists(false),
+        write_empty_standard_bundled_css_file(),
+      ]);
     }
   }
 
@@ -108,17 +114,14 @@ async function bundle_css_files() {
 
       const css = result.outputFiles[0].text.trim();
 
-      fs.writeFileSync(
+      await fs.promises.writeFile(
         path.join(process.cwd(), "dist/critical-bundled-css.js"),
         `export const ${HWY_GLOBAL_KEYS.critical_bundled_css} = \`${css}\`;`,
       );
 
       return css;
     } else {
-      fs.writeFileSync(
-        path.join(process.cwd(), "dist/critical-bundled-css.js"),
-        `export const ${HWY_GLOBAL_KEYS.critical_bundled_css} = undefined;`,
-      );
+      await write_critical_bundled_css_is_undefined();
     }
   }
 
@@ -131,3 +134,24 @@ async function bundle_css_files() {
 }
 
 export { bundle_css_files };
+
+async function write_critical_bundled_css_is_undefined() {
+  return fs.promises.writeFile(
+    path.join(process.cwd(), "dist/critical-bundled-css.js"),
+    `export const ${HWY_GLOBAL_KEYS.critical_bundled_css} = undefined;`,
+  );
+}
+
+async function write_standard_bundled_css_exists(does_exist: boolean) {
+  await fs.promises.writeFile(
+    path.join(process.cwd(), "dist/standard-bundled-css-exists.js"),
+    `export const ${HWY_GLOBAL_KEYS.standard_bundled_css_exists} = ${does_exist};`,
+  );
+}
+
+async function write_empty_standard_bundled_css_file() {
+  await fs.promises.writeFile(
+    path.join(process.cwd(), "public/dist/standard-bundled.css"),
+    "",
+  );
+}

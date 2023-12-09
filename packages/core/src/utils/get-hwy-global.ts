@@ -1,5 +1,6 @@
 import type { HwyConfig, Paths } from "@hwy-js/build";
 import { HWY_PREFIX, type DeploymentTarget } from "../../../common/index.mjs";
+import { signal } from "@preact/signals";
 
 type HwyGlobal = Partial<{
   deployment_target: DeploymentTarget;
@@ -11,7 +12,7 @@ type HwyGlobal = Partial<{
   public_map: Record<string, string>;
   public_reverse_map: Record<string, string>;
   test_dirname?: string;
-  client_lib: HwyConfig["clientLib"];
+  mode: HwyConfig["mode"];
   use_dot_server_files: boolean;
 }>;
 
@@ -48,7 +49,12 @@ const client_signal_keys = [
   "activeErrorBoundaries",
 ] as const;
 
-const client_global_keys = [...client_signal_keys] as const;
+const other_client_keys = ["globalOnLoadStart", "globalOnLoadEnd"] as const;
+
+const client_global_keys = [
+  ...client_signal_keys,
+  ...other_client_keys,
+] as const;
 
 type HwyClientGlobal = Partial<{
   [K in (typeof client_global_keys)[number]]: any;
@@ -74,11 +80,15 @@ function get_hwy_client_global() {
     global_this[HWY_PREFIX][key] = value;
   }
 
-  function set<K extends (typeof client_signal_keys)[number]>(
+  function set<K extends HwyClientGlobalKey, V extends HwyClientGlobal[K]>(
     key: K,
-    value: HwyClientGlobal[K],
+    value: V,
   ) {
-    global_this[HWY_PREFIX][key].value = value;
+    if (!global_this[HWY_PREFIX][key]) {
+      global_this[HWY_PREFIX][key] = signal(value);
+    } else {
+      global_this[HWY_PREFIX][key].value = value;
+    }
   }
 
   return { get_signal, get, set_signal, set };

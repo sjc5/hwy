@@ -1,10 +1,9 @@
 import type { HwyConfig } from "@hwy-js/build";
 
 export default {
-  mode: "preact-mpa",
+  mode: "preact-spa", // be preact-spa
+  deploymentTarget: "bun",
   dev: {
-    port: 2389,
+    port: 3002,
   },
-  deploymentTarget: "node",
-  useDotServerFiles: true,
 } satisfies HwyConfig;

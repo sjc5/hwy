@@ -23,7 +23,9 @@ function ClientScripts({
   pageStrategy?: "defer" | "async";
   activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
 }) {
-  const IS_PREACT = hwy_global.get("client_lib") === "preact";
+  const IS_PREACT = hwy_global.get("mode") === "preact-mpa";
+
+  console.log({ IS_PREACT });
 
   const USE_PREACT_COMPAT = false; // TODO
 
@@ -38,19 +40,23 @@ function ClientScripts({
                 imports: {
                   hwy: getPublicUrl("dist/hwy.js"),
                   "@preact/signals": getPublicUrl("dist/hwy.js"),
-                  preact: getPublicUrl("dist/preact.js"),
-                  "preact/hooks": getPublicUrl("dist/preact.js"),
-                  "preact/jsx-runtime": getPublicUrl("dist/preact.js"),
+                  preact: getPublicUrl("dist/preact/preact.js"),
+                  "preact/hooks": getPublicUrl("dist/preact/preact.js"),
+                  "preact/jsx-runtime": getPublicUrl("dist/preact/preact.js"),
                   ...(USE_PREACT_COMPAT
-                    ? { "preact/compat": getPublicUrl("dist/preact-compat.js") }
+                    ? {
+                        "preact/compat": getPublicUrl(
+                          "dist/preact/preact-compat.js",
+                        ),
+                      }
                     : {}),
                   ...(hwy_global.get("is_dev")
                     ? {
                         "preact/debug": getPublicUrl(
-                          "dist/preact-dev/debug.module.js",
+                          "dist/preact/preact-dev/debug.module.js",
                         ),
                         "preact/devtools": getPublicUrl(
-                          "dist/preact-dev/devtools.module.js",
+                          "dist/preact/preact-dev/devtools.module.js",
                         ),
                       }
                     : {}),
@@ -59,7 +65,10 @@ function ClientScripts({
             }}
           />
 
-          <link rel="modulepreload" href={getPublicUrl("dist/preact.js")} />
+          <link
+            rel="modulepreload"
+            href={getPublicUrl("dist/preact/preact.js")}
+          />
 
           <script
             type="module"

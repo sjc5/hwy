@@ -22,6 +22,14 @@ function Nav() {
         >
           ⭐ GitHub
         </a>
+
+        <a
+          href="https://github.com/hwy-js/hwy"
+          title="Star on GitHub"
+          class="nav-item"
+        >
+          ⭐ GitHub Not New Tab
+        </a>
       </div>
     </nav>
   );
