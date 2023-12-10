@@ -7,7 +7,7 @@ import { get_match_strength } from "./get-match-strength.js";
 import type { DataProps } from "../types.js";
 import { node_path, path_to_file_url_string } from "../utils/url-polyfills.js";
 import { get_hwy_global } from "../utils/get-hwy-global.js";
-import { SPLAT_SEGMENT } from "../../../common/index.mjs";
+import { SPLAT_SEGMENT, type ActivePathData } from "../../../common/index.mjs";
 
 const hwy_global = get_hwy_global();
 
@@ -307,7 +307,7 @@ async function getMatchingPathData({ c }: { c: Context }) {
 
   if (responses.length) {
     return {
-      fetchResponse: responses[responses.length - 1],
+      fetchResponse: responses[responses.length - 1] as Response,
     };
   }
 
@@ -332,11 +332,11 @@ async function getMatchingPathData({ c }: { c: Context }) {
     splatSegments: splat_segments,
     params,
     actionData: fully_decorated_matching_paths?.map((x) => {
-      return x.importPath === last_path?.importPath ? action_data : undefined;
+      return x.importPath === last_path?.importPath ? action_data : null;
     }),
     activeComponents: active_components, // list of import paths for active routes
     activeErrorBoundaries: active_error_boundaries,
-  };
+  } satisfies ActivePathData;
 }
 
 function handle_caught_maybe_response(e: any) {

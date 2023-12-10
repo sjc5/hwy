@@ -1,6 +1,9 @@
 import type { Context, Env } from "hono";
-import type { getMatchingPathData } from "../index.js";
 import type { FunctionComponent, JSX } from "preact";
+import type {
+  ActivePathData,
+  ErrorBoundaryProps,
+} from "../../common/index.mjs";
 
 type DataProps<EnvType extends Env = {}> = {
   c: Context<EnvType>;
@@ -28,10 +31,6 @@ type PageProps<
   path: string;
 };
 
-type ErrorBoundaryProps = {
-  error: unknown;
-};
-
 type PageComponent<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
@@ -54,8 +53,6 @@ type HeadFunction<
   ActionType extends Action<any> = Action<any>,
   EnvType extends Env = {},
 > = (props: HeadProps<LoaderType, ActionType, EnvType>) => Array<HeadBlock>;
-
-type ActivePathData = Awaited<ReturnType<typeof getMatchingPathData>>;
 
 export type {
   // CLIENT

@@ -2,7 +2,6 @@ import { IS_DEV } from "./utils/constants.js";
 import {
   hwyInit,
   CssImports,
-  RootOutlet,
   DevLiveRefreshScript,
   ClientScripts,
   HeadElements,
@@ -10,6 +9,7 @@ import {
   renderRoot,
   getPublicUrl,
 } from "hwy";
+import { RootOutlet } from "@hwy-js/client";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { handle } from "@hono/node-server/vercel";

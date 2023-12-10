@@ -1,13 +1,13 @@
 import {
   hwyInit,
   CssImports,
-  RootOutlet,
   DevLiveRefreshScript,
   ClientScripts,
   HeadElements,
   getDefaultBodyProps,
   renderRoot,
 } from "hwy";
+import { RootOutlet } from "@hwy-js/client";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";

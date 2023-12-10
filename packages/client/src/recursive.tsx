@@ -1,16 +1,17 @@
-import type { getMatchingPathData } from "../router/get-matching-path-data.js";
-import type { ErrorBoundaryProps } from "../types.js";
 import { type JSX } from "preact";
 import { useCallback } from "preact/hooks";
-import { get_hwy_client_global } from "../utils/get-hwy-global.js";
+import { get_hwy_client_global } from "./client-global.js";
+import type {
+  ActivePathData,
+  ErrorBoundaryProps,
+} from "../../common/index.mjs";
 
 type ErrorBoundaryComp = (props: ErrorBoundaryProps) => JSX.Element;
 
-type ActivePathData = Awaited<ReturnType<typeof getMatchingPathData>>;
 type ServerKey = keyof ActivePathData;
 
 function RootOutlet(props: {
-  activePathData?: Awaited<ReturnType<typeof getMatchingPathData>>;
+  activePathData?: ActivePathData | { fetchResponse: Response };
   index?: number;
   fallbackErrorBoundary?: (props: {
     error: Error;
@@ -20,12 +21,14 @@ function RootOutlet(props: {
 }): JSX.Element {
   const IS_SERVER = typeof document === "undefined";
 
-  let context: { get: (str: ServerKey) => ActivePathData[ServerKey] } =
-    IS_SERVER
-      ? {
-          get: (str: ServerKey) => props.activePathData?.[str],
-        }
-      : (get_hwy_client_global() as any);
+  let context: {
+    get: (str: ServerKey) => ActivePathData[ServerKey];
+  } = IS_SERVER
+    ? {
+        get: (str: ServerKey) =>
+          (props.activePathData as ActivePathData)?.[str],
+      }
+    : (get_hwy_client_global() as any);
 
   let { index } = props;
   const index_to_use = index ?? 0;

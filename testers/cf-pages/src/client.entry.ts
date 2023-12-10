@@ -1,7 +1,5 @@
-// const __window = window as any;
+import { initPreactClient } from "@hwy-js/client";
 
-// import htmx from "htmx.org";
-// __window.htmx = htmx;
-
-// // @ts-ignore
-// import("htmx.org/dist/ext/head-support.js");
+await initPreactClient({
+  rootElement: document.querySelector("main") as HTMLElement,
+});

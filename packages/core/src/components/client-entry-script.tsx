@@ -1,14 +1,14 @@
 import type { getMatchingPathData } from "../router/get-matching-path-data.js";
 import { getPublicUrl } from "../utils/hashed-public-url.js";
 import { utils } from "../utils/hwy-utils.js";
-import { client_signal_keys, get_hwy_global } from "../utils/get-hwy-global.js";
+import { get_hwy_global } from "../utils/get-hwy-global.js";
 import { uneval } from "devalue";
-import { HWY_PREFIX } from "../../../common/index.mjs";
+import { HWY_PREFIX, type CLIENT_SIGNAL_KEYS } from "../../../common/index.mjs";
 
 const hwy_global = get_hwy_global();
 
 function global_setter_string(
-  key: (typeof client_signal_keys)[number],
+  key: (typeof CLIENT_SIGNAL_KEYS)[number],
   value: any,
 ) {
   return `globalThis.${HWY_PREFIX}.${key}=${uneval(value)};`;
@@ -25,8 +25,6 @@ function ClientScripts({
 }) {
   const IS_PREACT = hwy_global.get("mode") === "preact-mpa";
 
-  console.log({ IS_PREACT });
-
   const USE_PREACT_COMPAT = false; // TODO
 
   return (
@@ -38,8 +36,8 @@ function ClientScripts({
             dangerouslySetInnerHTML={{
               __html: JSON.stringify({
                 imports: {
-                  hwy: getPublicUrl("dist/hwy.js"),
-                  "@preact/signals": getPublicUrl("dist/hwy.js"),
+                  "@hwy-js/client": getPublicUrl("dist/hwy-client.js"),
+                  "@preact/signals": getPublicUrl("dist/preact-signals.js"),
                   preact: getPublicUrl("dist/preact/preact.js"),
                   "preact/hooks": getPublicUrl("dist/preact/preact.js"),
                   "preact/jsx-runtime": getPublicUrl("dist/preact/preact.js"),
@@ -100,26 +98,28 @@ ${global_setter_string("actionData", activePathData.actionData)}
       )}
 
       <script
-        type={IS_PREACT ? "module" : undefined}
+        type="module"
         src={utils.getClientEntryUrl()}
         {...{ [entryStrategy]: true }}
       />
 
-      {activePathData.matchingPaths
-        ?.filter((x) => {
-          return x.hasSiblingClientFile;
-        })
-        .map((x) => {
-          return (
-            <script
-              type={IS_PREACT ? "module" : undefined}
-              src={getPublicUrl(
-                "dist/pages/" + x.importPath.replace("pages/", ""),
-              )}
-              {...{ [pageStrategy]: true }}
-            />
-          );
-        })}
+      {/* `.client.` does not work with Preact, just use a useEffect in your actual client component */}
+      {!IS_PREACT &&
+        activePathData.matchingPaths
+          ?.filter((x) => {
+            return x.hasSiblingClientFile;
+          })
+          .map((x) => {
+            return (
+              <script
+                type={"module"}
+                src={getPublicUrl(
+                  "dist/pages/" + x.importPath.replace("pages/", ""),
+                )}
+                {...{ [pageStrategy]: true }}
+              />
+            );
+          })}
     </>
   );
 }

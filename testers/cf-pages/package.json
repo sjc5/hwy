@@ -21,6 +21,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231121.0",
     "@hwy-js/build": "workspace:*",
+    "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@hwy-js/utils": "workspace:*",
     "@preact/signals": "^1.2.2",

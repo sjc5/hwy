@@ -1,7 +1,6 @@
 import {
   hwyInit,
   CssImports,
-  RootOutlet,
   DevLiveRefreshScript,
   ClientScripts,
   HeadElements,
@@ -9,6 +8,7 @@ import {
   renderRoot,
   getDefaultBodyProps,
 } from "hwy";
+import { RootOutlet } from "@hwy-js/client";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";

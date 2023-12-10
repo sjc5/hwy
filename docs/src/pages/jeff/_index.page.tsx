@@ -1,6 +1,6 @@
 import type { PageProps } from "hwy";
 import { TestClientApp } from "../test-client-app.js";
-import { submit } from "../../test_initPreactClient.js";
+import { submit } from "@hwy-js/client";
 import type { ActionType } from "./_index.server.js";
 
 export default function ({ Outlet, actionData }: PageProps<any, ActionType>) {

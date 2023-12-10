@@ -8,7 +8,6 @@ import { smart_normalize } from "./smart-normalize.js";
 import { get_hwy_config } from "./get-hwy-config.js";
 
 export const EXTERNAL_LIST = [
-  "hwy",
   "preact",
   "preact/hooks",
   "preact/jsx-runtime",
@@ -256,18 +255,33 @@ async function walk_pages(IS_DEV?: boolean) {
 
       esbuild.build({
         stdin: {
-          // TODO -- COME BACK TO THIS
-          contents: `export { RootOutlet, get_hwy_client_global, client_signal_keys } from "hwy"; export * from "@preact/signals";`,
+          contents: `export * from "@hwy-js/client";`,
           resolveDir: path.resolve("./dist"),
         },
         bundle: true,
-        outfile: path.resolve(`./public/dist/hwy.js`),
+        outfile: path.resolve(`./public/dist/hwy-client.js`),
         format: "esm",
         platform: "browser",
         minify: true,
-        external: EXTERNAL_LIST.filter(
-          (x) => x !== "@preact/signals" && x !== "hwy",
-        ),
+        external: [
+          ...EXTERNAL_LIST.filter((x) => x !== "@hwy-js/client"),
+          "htmx.org",
+          "nprogress",
+          "idiomorph",
+        ],
+      }),
+
+      esbuild.build({
+        stdin: {
+          contents: `export * from "@preact/signals";`,
+          resolveDir: path.resolve("./dist"),
+        },
+        bundle: true,
+        outfile: path.resolve(`./public/dist/preact-signals.js`),
+        format: "esm",
+        platform: "browser",
+        minify: true,
+        external: EXTERNAL_LIST.filter((x) => x !== "@preact/signals"),
       }),
     ]);
 

@@ -1,4 +1,4 @@
-import { type PageProps } from "hwy";
+import type { PageProps } from "hwy";
 import type { ActionType } from "./login.server.js";
 
 const thisRoute = "/login";
@@ -80,12 +80,6 @@ export default function ({ actionData }: PageProps<never, ActionType>) {
         >
           {actionData.message}
         </div>
-      )}
-
-      {actionData?.success && (
-        <a href={thisRoute} class="btn">
-          Reset form
-        </a>
       )}
     </div>
   );

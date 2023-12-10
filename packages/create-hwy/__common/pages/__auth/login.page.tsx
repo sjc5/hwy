@@ -111,12 +111,6 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
           {actionData.message}
         </div>
       )}
-
-      {actionData?.success && (
-        <a href={thisRoute} class="btn">
-          Reset form
-        </a>
-      )}
     </div>
   );
 }

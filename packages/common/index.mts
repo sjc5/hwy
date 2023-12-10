@@ -64,3 +64,60 @@ export type RefreshFilePayload = {
 };
 
 export const CRITICAL_CSS_ELEMENT_ID = "__hwy-critical-css";
+
+/***************************************
+ * Client global
+ **************************************/
+
+export const CLIENT_SIGNAL_KEYS = [
+  "activeData",
+  "activePaths",
+  "outermostErrorBoundaryIndex",
+  "errorToRender",
+  "splatSegments",
+  "params",
+  "actionData",
+  "activeComponents",
+  "activeErrorBoundaries",
+] as const;
+
+export const OTHER_CLIENT_KEYS = [
+  "globalOnLoadStart",
+  "globalOnLoadEnd",
+] as const;
+
+export const CLIENT_GLOBAL_KEYS = [
+  ...CLIENT_SIGNAL_KEYS,
+  ...OTHER_CLIENT_KEYS,
+] as const;
+
+export type HwyClientGlobal = Partial<{
+  [K in (typeof CLIENT_GLOBAL_KEYS)[number]]: any;
+}>;
+
+export type HwyClientGlobalKey = keyof HwyClientGlobal;
+
+/***************************************
+ * Hwy Types
+ * ************************************/
+
+export type ActivePathData = {
+  // not needed in recursive component
+  matchingPaths?: any[];
+  activeHeads: any[];
+
+  // needed in recursive component
+  activeData: any[];
+  activePaths: string[];
+  outermostErrorBoundaryIndex: number | undefined;
+  errorToRender: any;
+  splatSegments: string[];
+  params: Record<string, string>;
+  actionData: any[];
+  activeComponents: any[];
+  activeErrorBoundaries: any[];
+};
+
+export type ErrorBoundaryProps = {
+  error: unknown;
+};

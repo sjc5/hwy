@@ -1,4 +1,4 @@
-import { type DataProps } from "hwy";
+import type { DataProps } from "hwy";
 import { getFormStrings } from "@hwy-js/utils";
 
 export async function action({ c }: DataProps) {

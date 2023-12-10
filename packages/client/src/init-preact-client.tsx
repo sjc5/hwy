@@ -1,7 +1,8 @@
-import { RootOutlet, get_hwy_client_global, client_signal_keys } from "hwy";
 import { hydrate } from "preact";
-import { morph } from "./Idiomorph-fork.js";
 import { signal } from "@preact/signals";
+import { get_hwy_client_global } from "./client-global.js";
+import { CLIENT_SIGNAL_KEYS } from "../../common/index.mjs";
+import { RootOutlet } from "./recursive.js";
 
 const abort_controllers = new Map<string, AbortController>();
 
@@ -33,11 +34,12 @@ function is_internal_link(href: string) {
   }
 }
 
-async function initPreactClient(props?: {
+async function initPreactClient(props: {
+  rootElement: HTMLElement;
   onLoadStart?: () => void;
   onLoadEnd?: () => void;
 }) {
-  for (const key of client_signal_keys) {
+  for (const key of CLIENT_SIGNAL_KEYS) {
     hwy_client_global.set_signal(
       key,
       signal(
@@ -64,10 +66,7 @@ async function initPreactClient(props?: {
     awaited_components.map((x) => x.ErrorBoundary),
   );
 
-  hydrate(
-    <RootOutlet />,
-    document.getElementById("root-outlet-wrapper") as HTMLElement,
-  );
+  hydrate(<RootOutlet />, props.rootElement);
 
   document.body.addEventListener("click", async function (event) {
     // @ts-ignore
@@ -87,12 +86,12 @@ async function initPreactClient(props?: {
 
     if (should_treat_as_ajax) {
       event.preventDefault();
-      await navigate(anchor.href, true);
+      await navigate(anchor.href, true, false);
     }
   });
 
   window.addEventListener("popstate", async function () {
-    await navigate(location.href, false);
+    await navigate(location.href, false, false);
   });
 
   hwy_client_global.set("globalOnLoadStart", props?.onLoadStart);
@@ -117,17 +116,19 @@ async function initPreactClient(props?: {
 
     const formData = new FormData(form);
 
-    const data = Object.fromEntries(formData.entries());
-
     await submit({
       to: action,
-      data,
+      data: formData,
       method: method as any,
     });
   });
 }
 
-async function navigate(href: string, setHistory: boolean) {
+async function navigate(
+  href: string,
+  setHistory: boolean,
+  isRevalidation: boolean,
+) {
   hwy_client_global.get("globalOnLoadStart")?.();
 
   const abort_controller_key = href === "." ? "revalidate" : "navigate";
@@ -148,7 +149,7 @@ async function navigate(href: string, setHistory: boolean) {
 
     abort_controllers.delete(abort_controller_key);
 
-    await reRenderApp(href, setHistory, json);
+    await reRenderApp(href, setHistory, json, isRevalidation);
 
     hwy_client_global.get("globalOnLoadEnd")?.();
   } catch (error) {
@@ -182,6 +183,8 @@ async function submit({
   const { abort_controller, did_abort } =
     handle_abort_controller(abort_controller_key);
 
+  const is_form_data = data instanceof FormData;
+
   try {
     const res = await fetch(to, {
       signal: abort_controller.signal,
@@ -189,7 +192,7 @@ async function submit({
       headers: {
         Accept: "application/json",
       },
-      body: JSON.stringify(data),
+      body: is_form_data ? data : JSON.stringify(data),
     });
 
     const json = await res.json();
@@ -200,13 +203,13 @@ async function submit({
 
     if (did_abort) {
       // revalidate
-      await navigate(location.href, false); // this shuts off loading indicator too
+      await navigate(location.href, false, true); // this shuts off loading indicator too
     } else {
+      hwy_client_global.set("actionData", json.actionData);
+
       // stop loading indicator
       hwy_client_global.get("globalOnLoadEnd")?.();
     }
-
-    await reRenderAppAfterPost(json); // just sets actionData
 
     return json.actionData.find(Boolean);
   } catch (error) {
@@ -219,7 +222,12 @@ async function submit({
   }
 }
 
-async function reRenderApp(href: string, setHistory: boolean, json: any) {
+async function reRenderApp(
+  href: string,
+  setHistory: boolean,
+  json: any,
+  isRevalidation: boolean,
+) {
   const old_list = hwy_client_global.get("activePaths");
   const new_list = json.activePaths;
 
@@ -289,14 +297,16 @@ async function reRenderApp(href: string, setHistory: boolean, json: any) {
     "errorToRender",
     "splatSegments",
     "params",
-    // "actionData",
-  ] as const satisfies ReadonlyArray<(typeof client_signal_keys)[number]>;
+  ] as const satisfies ReadonlyArray<(typeof CLIENT_SIGNAL_KEYS)[number]>;
 
   for (const key of identical_keys_to_set) {
     hwy_client_global.set(key, json[key]);
   }
 
-  // This sets the title faster than idiomorph can, since we know it now
+  if (!isRevalidation) {
+    hwy_client_global.set("actionData", json.actionData);
+  }
+
   document.title = json.newTitle;
 
   if (setHistory) {
@@ -306,13 +316,6 @@ async function reRenderApp(href: string, setHistory: boolean, json: any) {
       history.replaceState({}, "", href);
     }
   }
-
-  const head_el = document.querySelector("head") as HTMLElement;
-  morph(head_el, json.head);
-}
-
-async function reRenderAppAfterPost(json: any) {
-  hwy_client_global.set("actionData", json.actionData);
 }
 
 export { initPreactClient, submit };

@@ -10,7 +10,6 @@ const ts_config = {
     strict: true,
     skipLibCheck: true,
     esModuleInterop: true,
-    verbatimModuleSyntax: true,
     jsx: "react-jsx",
     jsxImportSource: "preact",
   },

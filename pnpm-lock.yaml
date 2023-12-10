@@ -85,9 +85,6 @@ importers:
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
-      '@preact/signals':
-        specifier: ^1.2.2
-        version: 1.2.2(preact@10.19.3)
       bun-types:
         specifier: ^1.0.15
         version: 1.0.15
@@ -134,6 +131,9 @@ importers:
 
   packages/client:
     devDependencies:
+      '@preact/signals':
+        specifier: ^1.2.2
+        version: 1.2.2(preact@10.19.3)
       '@types/nprogress':
         specifier: ^0.2.3
         version: 0.2.3
@@ -146,6 +146,9 @@ importers:
       nprogress:
         specifier: ^0.2.0
         version: 0.2.0
+      preact:
+        specifier: ^10.19.3
+        version: 10.19.3
       tsup:
         specifier: ^8.0.1
         version: 8.0.1(postcss@8.4.32)(typescript@5.3.3)
@@ -164,9 +167,6 @@ importers:
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../dev
-      '@preact/signals':
-        specifier: ^1.2.2
-        version: 1.2.2(preact@10.19.3)
       '@types/node':
         specifier: ^20.10.4
         version: 20.10.4
@@ -305,6 +305,9 @@ importers:
       '@hwy-js/build':
         specifier: workspace:*
         version: link:../../packages/build
+      '@hwy-js/client':
+        specifier: workspace:*
+        version: link:../../packages/client
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
