@@ -6,6 +6,7 @@ import { getPublicUrl } from "./hashed-public-url.js";
 import type { HeadBlock } from "../types.js";
 import { get_new_title } from "../components/head-elements.js";
 import { get_hwy_global } from "./get-hwy-global.js";
+import { HWY_PREFIX } from "../../../common/index.mjs";
 
 type BaseProps = {
   c: Context;
@@ -37,7 +38,9 @@ async function renderRoot({
   const IS_PREACT = get_hwy_global().get("mode") === "preact-mpa";
 
   if (IS_PREACT) {
-    if (c.req.raw.headers.get("Accept") === "application/json") {
+    const IS_JSON = Boolean(c.req.query()[`${HWY_PREFIX}json`]);
+
+    if (IS_JSON) {
       const newTitle = get_new_title({ c, activePathData, defaultHeadBlocks });
 
       if (c.req.raw.signal.aborted) {

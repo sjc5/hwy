@@ -1,7 +1,7 @@
 import { hydrate } from "preact";
 import { signal } from "@preact/signals";
 import { get_hwy_client_global } from "./client-global.js";
-import { CLIENT_SIGNAL_KEYS } from "../../common/index.mjs";
+import { CLIENT_SIGNAL_KEYS, HWY_PREFIX } from "../../common/index.mjs";
 import { RootOutlet } from "./recursive.js";
 
 const abort_controllers = new Map<string, AbortController>();
@@ -135,14 +135,12 @@ async function navigate(
   const { abort_controller } = handle_abort_controller(abort_controller_key);
 
   try {
-    // Create a URL object from the href
     const url = new URL(href, window.location.origin);
 
-    const res = await fetch(url.toString(), {
+    url.searchParams.set(`${HWY_PREFIX}json`, "1");
+
+    const res = await fetch(url, {
       signal: abort_controller.signal,
-      headers: {
-        Accept: "application/json",
-      },
     });
 
     const json = await res.json();
@@ -185,13 +183,13 @@ async function submit({
 
   const is_form_data = data instanceof FormData;
 
+  const url = new URL(to, window.location.origin);
+  url.searchParams.set(`${HWY_PREFIX}json`, "1");
+
   try {
-    const res = await fetch(to, {
+    const res = await fetch(url, {
       signal: abort_controller.signal,
       method: method,
-      headers: {
-        Accept: "application/json",
-      },
       body: is_form_data ? data : JSON.stringify(data),
     });
 
