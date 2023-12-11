@@ -1,6 +1,6 @@
 import type { Options } from "../index.js";
 
-const vercel_text = `\n\n# vercel\napi/**/*\n!api/entry.server.js\n\n`;
+const vercel_text = `\n\n# vercel\napi/**/*\n!api/main.js\n\n`;
 const cloudflare_text = `\n\n# wrangler\n.dev.vars\n.wrangler/\n\n`;
 let tw_text = `\n\n# tailwind artifacts\nsrc/styles/tw-output.bundle.css\n\n`;
 

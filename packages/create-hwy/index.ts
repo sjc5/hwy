@@ -356,7 +356,7 @@ async function main() {
     if (options.deployment_target === "vercel-lambda") {
       fs.mkdirSync(path.join(new_dir_path, "api"), { recursive: true });
       fs.writeFileSync(
-        path.join(new_dir_path, "api/entry.server.js"),
+        path.join(new_dir_path, "api/main.js"),
         "/* Commit this file to make Vercel happy. */\n",
         "utf8",
       );
@@ -366,7 +366,7 @@ async function main() {
 {
   "rewrites": [{ "source": "/(.*)", "destination": "/api/main" }],
   "functions": {
-    "api/entry.server.js": { "includeFiles": "**/*" }
+    "api/main.js": { "includeFiles": "**/*" }
   }
 }
 `.trim() + "\n";

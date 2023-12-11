@@ -35,7 +35,7 @@ root
 │   │   ├── global.bundle.css
 │   │   ├── global.critical.css
 │   ├── entry.client.tsx
-│   ├── entry.server.tsx
+│   ├── main.tsx
 │   .gitignore
 │   ...
         `}
@@ -100,7 +100,7 @@ root
             <InlineCode>src/_index.page.tsx</InlineCode>), such as a global
             navigation header, should be inserted into your root component that
             is rendered from your main server entry point (i.e.,{" "}
-            <InlineCode>src/entry.server.tsx</InlineCode>).
+            <InlineCode>src/main.tsx</InlineCode>).
           </ListItem>
 
           <ListItem>
@@ -460,7 +460,7 @@ export function loader() {
         caught and passed to the nearest applicable parent error boundary
         component. You can also pass a default error boundary component that
         effectively wraps your outermost <InlineCode>RootOutlet</InlineCode> (in{" "}
-        <InlineCode>entry.server.tsx</InlineCode>) like so:
+        <InlineCode>main.tsx</InlineCode>) like so:
       </Paragraph>
       <CodeBlock
         language="tsx"
@@ -522,10 +522,10 @@ export async function loader({ c }: AppDataProps) {
 }
 `}
       />
-      <AnchorHeading content="entry.server.tsx" />
+      <AnchorHeading content="main.tsx" />
       <Paragraph>
-        In your <InlineCode>entry.server.tsx</InlineCode> file, you'll have a
-        handler that looks something like this.
+        In your <InlineCode>main.tsx</InlineCode> file, you'll have a handler
+        that looks something like this.
       </Paragraph>
       <CodeBlock
         language="tsx"
@@ -583,7 +583,7 @@ app.all('*', async (c, next) => {
       <Paragraph>
         Your document's <InlineCode>head</InlineCode> is rendered via the{" "}
         <InlineCode>{`HeadElements`}</InlineCode> component in your{" "}
-        <InlineCode>entry.server.tsx</InlineCode> file, like this:
+        <InlineCode>main.tsx</InlineCode> file, like this:
       </Paragraph>
       <CodeBlock
         language="tsx"

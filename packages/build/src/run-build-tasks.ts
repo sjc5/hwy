@@ -205,7 +205,7 @@ async function runBuildTasks({
    */
   const [main_build_result] = await Promise.all([
     esbuild.build({
-      entryPoints: ["src/entry.server.*"],
+      entryPoints: ["src/main.*"],
       bundle: true,
       outdir: "dist",
       treeShaking: true,
@@ -308,10 +308,10 @@ async function runBuildTasks({
   )};\n`;
 
   /*
-   * Now put it all together and write entry.server.js to disk
+   * Now put it all together and write main.js to disk
    */
   await fs.promises.writeFile(
-    path.join(process.cwd(), "dist/entry.server.js"),
+    path.join(process.cwd(), "dist/main.js"),
     dev_line +
       dep_target_line +
       route_strategy_line +
@@ -323,7 +323,7 @@ async function runBuildTasks({
   );
 
   /*
-   * Now we have our baseline entry.server.js code in the dist folder on disk.
+   * Now we have our baseline main.js code in the dist folder on disk.
    */
 
   /********************* STEP 6 *********************
@@ -388,7 +388,7 @@ async function handle_deno_deploy_hacks() {
     )[HWY_GLOBAL_KEYS.public_map],
   ).map((x) => "../" + x);
 
-  const main_path = path.join(process.cwd(), "dist", "entry.server.js");
+  const main_path = path.join(process.cwd(), "dist", "main.js");
 
   await fs.promises.writeFile(
     main_path,
@@ -522,7 +522,7 @@ ${HWY_PREFIX}paths.forEach(function (x) {
     /*
      * For bundling strategy, we want to literally import all the contents of each path file
      * and put them into a global variable. This is how we can access each route at runtime.
-     * This is the snippet that will be appended to entry.server.js for the "bundle" route loading strategy
+     * This is the snippet that will be appended to main.js for the "bundle" route loading strategy
      */
     return paths_import_list
       .map((x) => {
@@ -560,7 +560,7 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
         "dist/_worker.js",
         `import process from "node:process";\n` +
           `globalThis.process = process;\n` +
-          fs.readFileSync("./dist/entry.server.js", "utf8") +
+          fs.readFileSync("./dist/main.js", "utf8") +
           "\n" +
           (await get_path_import_snippet()),
       ),
@@ -569,13 +569,13 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
       fs.promises.cp("./public", "./dist/public", { recursive: true }),
     ]);
 
-    // rmv dist/entry.server.js file -- no longer needed if bundling routes
-    await fs.promises.rm(path.join(process.cwd(), "dist/entry.server.js"));
+    // rmv dist/main.js file -- no longer needed if bundling routes
+    await fs.promises.rm(path.join(process.cwd(), "dist/main.js"));
   } else {
-    // Write the final entry.server.js to disk again, with the route loading strategy appended
+    // Write the final main.js to disk again, with the route loading strategy appended
     await fs.promises.writeFile(
-      "dist/entry.server.js",
-      (await fs.promises.readFile("./dist/entry.server.js", "utf8")) +
+      "dist/main.js",
+      (await fs.promises.readFile("./dist/main.js", "utf8")) +
         "\n" +
         (await get_path_import_snippet()),
     );
@@ -587,9 +587,9 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
    */
   if (SHOULD_BUNDLE_PATHS) {
     await esbuild.build({
-      entryPoints: [IS_CLOUDFLARE ? "dist/_worker.js" : "dist/entry.server.js"],
+      entryPoints: [IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js"],
       bundle: true,
-      outfile: IS_CLOUDFLARE ? "dist/_worker.js" : "dist/entry.server.js",
+      outfile: IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js",
       treeShaking: true,
       platform: "node",
       format: "esm",

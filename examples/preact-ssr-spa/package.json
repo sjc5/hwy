@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && hwy-build",
-    "start": "bun dist/entry.server.js",
+    "start": "bun dist/main.js",
     "dev": "bun run --bun hwy-dev-serve"
   },
   "dependencies": {

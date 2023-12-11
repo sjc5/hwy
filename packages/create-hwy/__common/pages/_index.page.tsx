@@ -7,9 +7,8 @@ export default function () {
       </p>
 
       <p>
-        The nav bar above is being rendered from{" "}
-        <code>src/entry.server.tsx</code>, which is your site's main server
-        "entry point".
+        The nav bar above is being rendered from <code>src/main.tsx</code>,
+        which is your site's main server "entry point".
       </p>
 
       <p>

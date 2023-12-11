@@ -41,7 +41,7 @@ const SCRIPTS_WATERFALL_MAP = [
     {
       build: "tsc --noEmit && hwy-build",
       dev: "hwy-dev-serve",
-      start: "node dist/entry.server.js",
+      start: "node dist/main.js",
     },
   ],
 
@@ -56,7 +56,7 @@ const SCRIPTS_WATERFALL_MAP = [
   [
     "IS_DENO",
     {
-      start: "deno run -A dist/entry.server.js",
+      start: "deno run -A dist/main.js",
     },
   ],
 
@@ -64,7 +64,7 @@ const SCRIPTS_WATERFALL_MAP = [
     "IS_BUN",
     {
       dev: "bun run --bun hwy-dev-serve",
-      start: "bun dist/entry.server.js",
+      start: "bun dist/main.js",
     },
   ],
 

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "vercel-build": "tsc --noEmit && hwy-build",
-    "start": "node dist/entry.server.js",
+    "start": "node dist/main.js",
     "dev": "hwy-dev-serve",
     "to-latest": "node ./scripts/to-latest.js && pnpm i && npm i",
     "to-workspace": "node ./scripts/to-workspace.js && pnpm i",

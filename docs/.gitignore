@@ -14,4 +14,4 @@ public/dist
 
 # vercel
 api/**/*
-!api/entry.server.js
+!api/main.js
