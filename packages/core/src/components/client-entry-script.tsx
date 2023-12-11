@@ -14,6 +14,8 @@ function global_setter_string(
   return `globalThis.${HWY_PREFIX}.${key}=${uneval(value)};`;
 }
 
+let IMPORT_MAP: any;
+
 function ClientScripts({
   entryStrategy = "defer",
   pageStrategy = "defer",
@@ -25,7 +27,13 @@ function ClientScripts({
 }) {
   const IS_PREACT = hwy_global.get("mode") === "preact-mpa";
 
-  const USE_PREACT_COMPAT = false; // TODO
+  if (!IMPORT_MAP) {
+    IMPORT_MAP = Object.fromEntries(
+      (hwy_global.get("import_map_setup") || []).map((x: any) => {
+        return [x.name, getPublicUrl(`dist/${x.index}.js`)];
+      }),
+    );
+  }
 
   return (
     <>
@@ -36,18 +44,7 @@ function ClientScripts({
             dangerouslySetInnerHTML={{
               __html: JSON.stringify({
                 imports: {
-                  "@hwy-js/client": getPublicUrl("dist/hwy-client.js"),
-                  "@preact/signals": getPublicUrl("dist/preact-signals.js"),
-                  preact: getPublicUrl("dist/preact/preact.js"),
-                  "preact/hooks": getPublicUrl("dist/preact/preact.js"),
-                  "preact/jsx-runtime": getPublicUrl("dist/preact/preact.js"),
-                  ...(USE_PREACT_COMPAT
-                    ? {
-                        "preact/compat": getPublicUrl(
-                          "dist/preact/preact-compat.js",
-                        ),
-                      }
-                    : {}),
+                  ...IMPORT_MAP,
                   ...(hwy_global.get("is_dev")
                     ? {
                         "preact/debug": getPublicUrl(
@@ -63,10 +60,12 @@ function ClientScripts({
             }}
           />
 
-          <link
+          {/* TODO -- make a `getModuleUrl` helper */}
+
+          {/* <link
             rel="modulepreload"
             href={getPublicUrl("dist/preact/preact.js")}
-          />
+          /> */}
 
           <script
             type="module"

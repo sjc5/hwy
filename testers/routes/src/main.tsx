@@ -28,7 +28,7 @@ const default_head_blocks: HeadBlock[] = [
   { title: "Tester" },
   {
     tag: "meta",
-    props: {
+    attributes: {
       name: "htmx-config",
       content: JSON.stringify({
         defaultSwapStyle: "outerHTML",
@@ -44,33 +44,33 @@ app.all("*", async (c, next) => {
     c,
     next,
     defaultHeadBlocks: default_head_blocks,
-    htmlAttributes: { lang: "en" },
-    head: (baseProps) => {
+    root: (baseProps) => {
       return (
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
-
-          <HeadElements {...baseProps} />
-          <CssImports />
-          <ClientScripts {...baseProps} />
-          <DevLiveRefreshScript />
-        </head>
-      );
-    },
-    body: (baseProps) => {
-      return (
-        <body {...getDefaultBodyProps({ idiomorph: true })}>
-          <Sidebar />
-          <main>
-            <RootOutlet
-              {...baseProps}
-              fallbackErrorBoundary={function ErrorBoundary() {
-                return <div>Error Boundary in Root</div>;
-              }}
+        <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta
+              name="viewport"
+              content="width=device-width,initial-scale=1"
             />
-          </main>
-        </body>
+
+            <HeadElements {...baseProps} />
+            <CssImports />
+            <ClientScripts {...baseProps} />
+            <DevLiveRefreshScript />
+          </head>
+          <body>
+            <Sidebar />
+            <main>
+              <RootOutlet
+                {...baseProps}
+                fallbackErrorBoundary={function ErrorBoundary() {
+                  return <div>Error Boundary in Root</div>;
+                }}
+              />
+            </main>
+          </body>
+        </html>
       );
     },
   });

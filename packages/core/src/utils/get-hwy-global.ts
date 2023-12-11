@@ -13,6 +13,7 @@ type HwyGlobal = Partial<{
   test_dirname?: string;
   mode: HwyConfig["mode"];
   use_dot_server_files: boolean;
+  import_map_setup: any;
 }>;
 
 type HwyGlobalKey = keyof HwyGlobal;

@@ -1,8 +1,8 @@
-import { initNProgress, initPreactClient } from "@hwy-js/client";
+import { initPreactClient } from "@hwy-js/client";
+import { start, done } from "nprogress";
 
-await initNProgress();
 await initPreactClient({
   rootElement: document.getElementById("root-outlet-wrapper") as HTMLElement,
-  onLoadStart: (window as any).NProgress.start,
-  onLoadEnd: (window as any).NProgress.done,
+  onLoadStart: start,
+  onLoadEnd: done,
 });

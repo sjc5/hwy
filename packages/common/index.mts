@@ -13,6 +13,7 @@ export const HWY_GLOBAL_KEYS = {
   public_reverse_map: `${HWY_PREFIX}public_reverse_map`,
   mode: `${HWY_PREFIX}mode`,
   use_dot_server_files: `${HWY_PREFIX}use_dot_server_files`,
+  import_map_setup: `${HWY_PREFIX}import_map_setup`,
 } as const;
 
 export const DEFAULT_PORT = 3000;
@@ -121,3 +122,14 @@ export type ActivePathData = {
 export type ErrorBoundaryProps = {
   error: unknown;
 };
+
+type PermissiveStringArray = Array<string> | ReadonlyArray<string>;
+
+export type ClientModuleDef = {
+  names: PermissiveStringArray;
+  external?: PermissiveStringArray;
+} & ({ code: string } | { pathsFromRoot: PermissiveStringArray });
+
+export type ClientModuleDefs =
+  | Array<ClientModuleDef>
+  | ReadonlyArray<ClientModuleDef>;

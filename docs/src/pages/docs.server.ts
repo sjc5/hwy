@@ -5,7 +5,7 @@ export const head: HeadFunction = () => {
     { title: "Hwy Framework Docs" },
     {
       tag: "meta",
-      props: {
+      attributes: {
         name: "description",
         content:
           "Documentation for the Hwy framework, a simple, lightweight, and flexible web framework, built on Hono and HTMX.",

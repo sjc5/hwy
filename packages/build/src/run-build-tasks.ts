@@ -4,7 +4,6 @@ import {
   generate_public_file_map,
   write_paths_to_disk,
   type Paths,
-  EXTERNAL_LIST,
 } from "./walk-pages.js";
 import esbuild from "esbuild";
 import { hwyLog, logPerf } from "./hwy-log.js";
@@ -19,6 +18,8 @@ import {
 import { get_hwy_config } from "./get-hwy-config.js";
 import { smart_normalize } from "./smart-normalize.js";
 import { get_is_hot_reload_only } from "./dev-serve.js";
+
+export let ALL_MODULE_DEF_NAMES = [] as Array<string>;
 
 const FILE_NAMES = [
   "critical-bundled-css.js",
@@ -86,6 +87,43 @@ async function runBuildTasks({
   ]);
 
   const is_using_client_entry = get_is_using_client_entry();
+  const path_to_module_defs_file = path.join(
+    process.cwd(),
+    "src",
+    "modules.client.ts",
+  );
+
+  const is_using_module_defs_file = fs.existsSync(path_to_module_defs_file);
+
+  let module_defs: any;
+
+  if (is_using_module_defs_file) {
+    await esbuild.build({
+      entryPoints: [path_to_module_defs_file],
+      bundle: true,
+      outfile: "dist/client-modules-temp.js",
+      treeShaking: true,
+      platform: "node",
+      format: "esm",
+      minify: true,
+    });
+
+    module_defs = (
+      await import(
+        pathToFileURL(path.join(process.cwd(), "dist/client-modules-temp.js"))
+          .href
+      )
+    ).default;
+
+    // delete client-modules-temp.js file
+    if (is_using_module_defs_file) {
+      await fs.promises.rm(
+        path.join(process.cwd(), "dist/client-modules-temp.js"),
+      );
+    }
+  }
+
+  ALL_MODULE_DEF_NAMES = module_defs?.flatMap((x: any) => x.names) ?? [];
 
   /********************* STEP 1 *********************
    * GENERATE PUBLIC FILE MAP -- TAKE 1
@@ -116,9 +154,46 @@ async function runBuildTasks({
           platform: "browser",
           format: "esm",
           minify: true,
-          external: IS_PREACT ? EXTERNAL_LIST : undefined,
+          external: ALL_MODULE_DEF_NAMES,
         })
       : undefined,
+
+    ...(is_using_module_defs_file
+      ? module_defs.map((x: any, i: number) => {
+          let external = ALL_MODULE_DEF_NAMES.filter((module_name: any) => {
+            return !x.names.includes(module_name);
+          });
+          external = [...external, ...(x.external ?? [])];
+          external = [...new Set(external)];
+
+          const base = {
+            bundle: true,
+            outfile: `public/dist/${i}.js`,
+            treeShaking: true,
+            platform: "browser",
+            format: "esm",
+            minify: true,
+            external,
+          } as const;
+
+          if ("code" in x) {
+            return esbuild.build({
+              stdin: {
+                contents: x.code,
+                resolveDir: path.resolve("dist"),
+              },
+              ...base,
+            });
+          }
+
+          if ("pathFromRoot" in x) {
+            return esbuild.build({
+              entryPoints: x.pathsFromRoot,
+              ...base,
+            });
+          }
+        })
+      : []),
   ]);
 
   /********************* STEP 3 *********************
@@ -218,6 +293,19 @@ async function runBuildTasks({
   const route_strategy_line = `globalThis.${HWY_GLOBAL_KEYS.route_strategy} = "${hwy_config.routeStrategy}";\n`;
   const mode_line = `globalThis.${HWY_GLOBAL_KEYS.mode} = "${hwy_config.mode}";\n`;
   const use_dot_server_files_line = `globalThis.${HWY_GLOBAL_KEYS.use_dot_server_files} = ${hwy_config.useDotServerFiles};\n`;
+  const import_map_setup_line = `globalThis.${
+    HWY_GLOBAL_KEYS.import_map_setup
+  } = ${JSON.stringify(
+    ALL_MODULE_DEF_NAMES.map((x: string) => {
+      const index = module_defs.findIndex((y: any) => {
+        return y.names.includes(x);
+      });
+      return {
+        name: x,
+        index,
+      };
+    }),
+  )};\n`;
 
   /*
    * Now put it all together and write main.js to disk
@@ -229,6 +317,7 @@ async function runBuildTasks({
       route_strategy_line +
       mode_line +
       use_dot_server_files_line +
+      import_map_setup_line +
       to_be_appended +
       main_code,
   );

@@ -4,14 +4,12 @@ import {
   DevLiveRefreshScript,
   ClientScripts,
   HeadElements,
-  getDefaultBodyProps,
   renderRoot,
 } from "hwy";
 import { RootOutlet } from "@hwy-js/client";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import type { HtmxConfig } from "htmx.org";
 
 const app = new Hono();
 
@@ -24,22 +22,22 @@ const defaultHeadBlocks = [
   { title: "cf-pages-tester" },
   {
     tag: "meta",
-    props: {
-      name: "description",
-      content: "Take the Hwy!",
+    attributes: {
+      charset: "UTF-8",
     },
   },
   {
     tag: "meta",
-    props: {
-      name: "htmx-config",
-      content: JSON.stringify({
-        selfRequestsOnly: true,
-        refreshOnHistoryMiss: true,
-        scrollBehavior: "auto",
-      } satisfies HtmxConfig & {
-        selfRequestsOnly: boolean;
-      }),
+    attributes: {
+      name: "viewport",
+      content: "width=device-width,initial-scale=1",
+    },
+  },
+  {
+    tag: "meta",
+    attributes: {
+      name: "description",
+      content: "Take the Hwy!",
     },
   },
 ];
@@ -48,48 +46,43 @@ app.all("*", async (c, next) => {
   return await renderRoot({
     c,
     next,
-    htmlAttributes: { lang: "en" },
     defaultHeadBlocks,
-    head: (baseProps) => {
+    root: (baseProps) => {
       return (
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <html lang="en">
+          <head>
+            <HeadElements {...baseProps} />
+            <CssImports />
+            <ClientScripts {...baseProps} />
+            <DevLiveRefreshScript />
+          </head>
 
-          <HeadElements {...baseProps} />
-          <CssImports />
-          <ClientScripts {...baseProps} />
-          <DevLiveRefreshScript />
-        </head>
-      );
-    },
-    body: (baseProps) => {
-      return (
-        <body {...getDefaultBodyProps()}>
-          <nav>
-            <a href="/">
-              <h1>Hwy</h1>
-            </a>
+          <body>
+            <nav>
+              <a href="/">
+                <h1>Hwy</h1>
+              </a>
 
-            <ul>
-              <li>
-                <a href="/about">About</a>
-              </li>
-              <li>
-                <a href="/login">Login</a>
-              </li>
-            </ul>
-          </nav>
+              <ul>
+                <li>
+                  <a href="/about">About</a>
+                </li>
+                <li>
+                  <a href="/login">Login</a>
+                </li>
+              </ul>
+            </nav>
 
-          <main>
-            <RootOutlet
-              {...baseProps}
-              fallbackErrorBoundary={() => {
-                return <div>Something went wrong.</div>;
-              }}
-            />
-          </main>
-        </body>
+            <main>
+              <RootOutlet
+                {...baseProps}
+                fallbackErrorBoundary={() => {
+                  return <div>Something went wrong.</div>;
+                }}
+              />
+            </main>
+          </body>
+        </html>
       );
     },
   });

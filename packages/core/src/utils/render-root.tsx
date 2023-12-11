@@ -13,22 +13,16 @@ type BaseProps = {
   defaultHeadBlocks?: HeadBlock[];
 };
 
-const USE_PREACT_COMPAT = false; // TODO
-
 async function renderRoot({
   c,
   next,
-  htmlAttributes,
   defaultHeadBlocks,
-  head: Head,
-  body: Body,
+  root: Root,
 }: {
   c: Context;
   next: Next;
   defaultHeadBlocks?: HeadBlock[];
-  htmlAttributes?: Record<string, string>;
-  head: (baseProps: BaseProps) => JSX.Element;
-  body: (baseProps: BaseProps) => JSX.Element;
+  root: (baseProps: BaseProps) => JSX.Element;
 }) {
   const activePathData = await getMatchingPathData({ c });
 
@@ -41,7 +35,6 @@ async function renderRoot({
   }
 
   const IS_PREACT = get_hwy_global().get("mode") === "preact-mpa";
-  const base_props = { c, activePathData, defaultHeadBlocks };
 
   if (IS_PREACT) {
     if (c.req.raw.headers.get("Accept") === "application/json") {
@@ -53,7 +46,6 @@ async function renderRoot({
 
       return c.json({
         newTitle,
-        head: renderToString(<Head {...base_props} />),
         activeData: activePathData.activeData,
         activePaths: activePathData.matchingPaths?.map((x) => {
           return getPublicUrl(
@@ -69,13 +61,8 @@ async function renderRoot({
     }
   }
 
-  const markup = (
-    <html {...htmlAttributes}>
-      <Head {...base_props} />
-      <Body {...base_props} />
-    </html>
-  );
-
+  const base_props = { c, activePathData, defaultHeadBlocks };
+  const markup = <Root {...base_props} />;
   return c.html("<!doctype html>" + renderToString(markup));
 }
 

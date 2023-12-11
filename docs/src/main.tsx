@@ -37,11 +37,24 @@ await hwyInit({
   publicUrlPrefix: process.env.NODE_ENV === "production" ? "docs/" : undefined,
 });
 
-const default_head_blocks: HeadBlock[] = [
+const defaultHeadBlocks: HeadBlock[] = [
   { title: "Hwy Framework" },
   {
     tag: "meta",
-    props: {
+    attributes: {
+      charset: "UTF-8",
+    },
+  },
+  {
+    tag: "meta",
+    attributes: {
+      name: "viewport",
+      content: "width=device-width,initial-scale=1",
+    },
+  },
+  {
+    tag: "meta",
+    attributes: {
       name: "description",
       content:
         "Hwy is a simple, lightweight, and flexible web framework, built on Hono and HTMX.",
@@ -49,27 +62,16 @@ const default_head_blocks: HeadBlock[] = [
   },
   {
     tag: "link",
-    props: {
+    attributes: {
       rel: "icon",
       href: make_emoji_data_url("⭐"),
     },
   },
   {
     tag: "meta",
-    props: {
+    attributes: {
       name: "og:image",
       content: "/create-hwy-snippet.webp",
-    },
-  },
-  {
-    tag: "meta",
-    props: {
-      name: "htmx-config",
-      content: JSON.stringify({
-        selfRequestsOnly: true,
-        refreshOnHistoryMiss: true,
-        scrollBehavior: "auto",
-      }),
     },
   },
 ];
@@ -80,43 +82,39 @@ app.all("*", async (c, next) => {
   return await renderRoot({
     c,
     next,
-    defaultHeadBlocks: default_head_blocks,
-    htmlAttributes: { lang: "en" },
-    head: function (baseProps) {
+    defaultHeadBlocks,
+    root: function (baseProps) {
       return (
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
-          <HeadElements {...baseProps} />
-          <CssImports />
-          <ClientScripts {...baseProps} />
-          <DevLiveRefreshScript />
-          <script defer src={getPublicUrl("prism.js")} />
-        </head>
-      );
-    },
-    body: function (baseProps) {
-      return (
-        <body>
-          <div class="body-inner">
-            <div style={{ flexGrow: 1 }}>
-              <Nav />
+        <html lang="en">
+          <head>
+            <HeadElements {...baseProps} />
+            <CssImports />
+            <ClientScripts {...baseProps} />
+            <DevLiveRefreshScript />
+            <script defer src={getPublicUrl("prism.js")} />
+          </head>
 
-              <div class="root-outlet-wrapper" id={"root-outlet-wrapper"}>
-                <RootOutlet
-                  {...baseProps}
-                  fallbackErrorBoundary={FallbackErrorBoundary}
-                />
+          <body>
+            <div class="body-inner">
+              <div style={{ flexGrow: 1 }}>
+                <Nav />
+
+                <div class="root-outlet-wrapper" id={"root-outlet-wrapper"}>
+                  <RootOutlet
+                    {...baseProps}
+                    fallbackErrorBoundary={FallbackErrorBoundary}
+                  />
+                </div>
               </div>
-            </div>
 
-            <footer>
-              <span style={{ opacity: 0.6 }}>
-                MIT License. Copyright (c) 2023 Samuel J. Cook.
-              </span>
-            </footer>
-          </div>
-        </body>
+              <footer>
+                <span style={{ opacity: 0.6 }}>
+                  MIT License. Copyright (c) 2023 Samuel J. Cook.
+                </span>
+              </footer>
+            </div>
+          </body>
+        </html>
       );
     },
   });

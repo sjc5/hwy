@@ -286,9 +286,6 @@ importers:
 
   testers/cf-pages:
     dependencies:
-      '@hono/node-server':
-        specifier: ^1.3.1
-        version: 1.3.1
       hono:
         specifier: ^3.11.3
         version: 3.11.3
@@ -320,9 +317,6 @@ importers:
       '@types/node':
         specifier: ^20.10.4
         version: 20.10.4
-      htmx.org:
-        specifier: ^1.9.9
-        version: 1.9.9
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5

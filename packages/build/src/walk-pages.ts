@@ -6,15 +6,7 @@ import esbuild from "esbuild";
 import { HWY_GLOBAL_KEYS, SPLAT_SEGMENT } from "../../common/index.mjs";
 import { smart_normalize } from "./smart-normalize.js";
 import { get_hwy_config } from "./get-hwy-config.js";
-
-export const EXTERNAL_LIST = [
-  "preact",
-  "preact/hooks",
-  "preact/jsx-runtime",
-  "@preact/signals",
-  "preact/compat",
-  "preact/*",
-];
+import { ALL_MODULE_DEF_NAMES } from "./run-build-tasks.js";
 
 const permitted_extensions = [
   "js",
@@ -192,10 +184,9 @@ async function walk_pages(IS_DEV?: boolean) {
           ),
           treeShaking: true,
           platform: is_client_file ? "browser" : "node",
-          packages: is_client_file ? undefined : "external",
           format: "esm",
           minify: is_client_file,
-          external: IS_PREACT ? EXTERNAL_LIST : undefined,
+          external: ALL_MODULE_DEF_NAMES,
         }),
 
         IS_PREACT && is_page_file
@@ -207,10 +198,9 @@ async function walk_pages(IS_DEV?: boolean) {
               ),
               treeShaking: true,
               platform: "browser",
-              packages: "external",
               format: "esm",
               minify: true,
-              external: EXTERNAL_LIST,
+              external: ALL_MODULE_DEF_NAMES,
             })
           : "",
       ]);
@@ -219,104 +209,38 @@ async function walk_pages(IS_DEV?: boolean) {
     }
   }
 
-  const USE_PREACT_COMPAT = false; // TODO
-
-  if (IS_PREACT) {
+  if (IS_PREACT && IS_DEV) {
+    // TODO NO NEED FOR DOUBLE FOLDER ANYMORE
     await fs.promises.mkdir(path.resolve("./public/dist/preact"), {
       recursive: true,
     });
 
+    // make needed folders
     await Promise.all([
-      esbuild.build({
-        stdin: {
-          contents: `export * from "preact";export * from "preact/hooks";export * from "preact/jsx-runtime";`,
-          resolveDir: path.resolve("./dist"),
-        },
-        bundle: true,
-        outfile: path.resolve(`./public/dist/preact/preact.js`),
-        format: "esm",
-        platform: "browser",
-        minify: true,
+      fs.promises.mkdir(path.resolve("./public/dist/preact/preact-dev"), {
+        recursive: true,
       }),
 
-      USE_PREACT_COMPAT
-        ? esbuild.build({
-            stdin: {
-              contents: `export * from "preact/compat";`,
-              resolveDir: path.resolve("./dist"),
-            },
-            bundle: true,
-            outfile: path.resolve(`./public/dist/preact/preact-compat.js`),
-            format: "esm",
-            platform: "browser",
-            minify: true,
-          })
-        : undefined,
-
-      esbuild.build({
-        stdin: {
-          contents: `export * from "@hwy-js/client";`,
-          resolveDir: path.resolve("./dist"),
-        },
-        bundle: true,
-        outfile: path.resolve(`./public/dist/hwy-client.js`),
-        format: "esm",
-        platform: "browser",
-        minify: true,
-        external: [
-          ...EXTERNAL_LIST.filter((x) => x !== "@hwy-js/client"),
-          "htmx.org",
-          "nprogress",
-          "idiomorph",
-        ],
-      }),
-
-      esbuild.build({
-        stdin: {
-          contents: `export * from "@preact/signals";`,
-          resolveDir: path.resolve("./dist"),
-        },
-        bundle: true,
-        outfile: path.resolve(`./public/dist/preact-signals.js`),
-        format: "esm",
-        platform: "browser",
-        minify: true,
-        external: EXTERNAL_LIST.filter((x) => x !== "@preact/signals"),
-      }),
+      // copy debug and devtools modules and source maps
+      fs.promises.cp(
+        path.resolve("./node_modules/preact/debug/dist/debug.module.js"),
+        path.resolve("./public/dist/preact/preact-dev/debug.module.js"),
+      ),
+      fs.promises.cp(
+        path.resolve("./node_modules/preact/devtools/dist/devtools.module.js"),
+        path.resolve("./public/dist/preact/preact-dev/devtools.module.js"),
+      ),
+      fs.promises.cp(
+        path.resolve("./node_modules/preact/debug/dist/debug.module.js.map"),
+        path.resolve("./public/dist/preact/preact-dev/debug.module.js.map"),
+      ),
+      fs.promises.cp(
+        path.resolve(
+          "./node_modules/preact/devtools/dist/devtools.module.js.map",
+        ),
+        path.resolve("./public/dist/preact/preact-dev/devtools.module.js.map"),
+      ),
     ]);
-
-    if (IS_DEV) {
-      // make needed folders
-      await Promise.all([
-        fs.promises.mkdir(path.resolve("./public/dist/preact/preact-dev"), {
-          recursive: true,
-        }),
-
-        // copy debug and devtools modules and source maps
-        fs.promises.cp(
-          path.resolve("./node_modules/preact/debug/dist/debug.module.js"),
-          path.resolve("./public/dist/preact/preact-dev/debug.module.js"),
-        ),
-        fs.promises.cp(
-          path.resolve(
-            "./node_modules/preact/devtools/dist/devtools.module.js",
-          ),
-          path.resolve("./public/dist/preact/preact-dev/devtools.module.js"),
-        ),
-        fs.promises.cp(
-          path.resolve("./node_modules/preact/debug/dist/debug.module.js.map"),
-          path.resolve("./public/dist/preact/preact-dev/debug.module.js.map"),
-        ),
-        fs.promises.cp(
-          path.resolve(
-            "./node_modules/preact/devtools/dist/devtools.module.js.map",
-          ),
-          path.resolve(
-            "./public/dist/preact/preact-dev/devtools.module.js.map",
-          ),
-        ),
-      ]);
-    }
   }
 
   return paths;

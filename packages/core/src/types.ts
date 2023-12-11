@@ -38,7 +38,7 @@ type PageComponent<
 
 type HeadBlock =
   | { title: string }
-  | { tag: string; props: Record<string, string> };
+  | { tag: string; attributes: Partial<Record<string, string>> };
 
 type HeadProps<
   LoaderType extends Loader<any> = Loader<any>,

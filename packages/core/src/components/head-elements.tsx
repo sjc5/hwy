@@ -25,8 +25,8 @@ function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
     if ("title" in block) {
       results.set("title", block);
     } else if (block.tag === "meta") {
-      const name = block.props.name;
-      const property = block.props.property;
+      const name = block.attributes.name;
+      const property = block.attributes.property;
 
       const META_KEY_PREFIX = "__meta__";
 

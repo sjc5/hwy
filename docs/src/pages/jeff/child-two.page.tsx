@@ -1,7 +1,7 @@
-import type { PageProps, HeadFunction } from "hwy";
+import type { HeadFunction } from "hwy";
 import { TestClientApp } from "../test-client-app.js";
 
-export default function ({ Outlet }: PageProps) {
+export default function () {
   return (
     <>
       <a href="/jeff/child-one">Go to child one</a>
@@ -15,7 +15,7 @@ export const head: HeadFunction = () => {
     { title: "CHILD TWO" },
     {
       tag: "meta",
-      props: {
+      attributes: {
         name: "description",
         content: "CHILD TWO",
       },

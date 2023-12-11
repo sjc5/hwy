@@ -108,7 +108,7 @@ function get_package_json(options: Options) {
         scripts,
         dependencies,
         devDependencies,
-        ...(IS_NODE
+        ...(IS_NODE && !IS_CF_PAGES
           ? {
               engines: {
                 node: ">=18.14.1",
