@@ -1,6 +1,6 @@
-import type { Context } from "hono";
-import { getMatchingPathData } from "../router/get-matching-path-data.js";
+import { BaseProps } from "../../../common/index.mjs";
 import type { HeadFunction, HeadBlock } from "../types.js";
+import { getPublicUrl } from "../utils/hashed-public-url.js";
 
 function stable_hash(obj: Record<string, any>): string {
   return JSON.stringify(
@@ -26,14 +26,8 @@ function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
       results.set("title", block);
     } else if (block.tag === "meta") {
       const name = block.attributes.name;
-      const property = block.attributes.property;
-
-      const META_KEY_PREFIX = "__meta__";
-
-      if (name) {
-        results.set(META_KEY_PREFIX + name, block);
-      } else if (property) {
-        results.set(META_KEY_PREFIX + property, block);
+      if (name === "description") {
+        results.set("description", block);
       } else {
         results.set(stable_hash(block), block);
       }
@@ -45,13 +39,7 @@ function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
   return [...results.values()];
 }
 
-type HeadProps = {
-  activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
-  c: Context;
-  defaultHeadBlocks?: HeadBlock[];
-};
-
-function get_head_blocks_array(props: HeadProps): HeadBlock[] {
+function getHeadBlocks(props: BaseProps): HeadBlock[] {
   const { activePathData: active_path_data } = props;
 
   const non_deduped =
@@ -76,32 +64,26 @@ function get_head_blocks_array(props: HeadProps): HeadBlock[] {
 
   const defaults = props.defaultHeadBlocks ?? [];
 
-  const heads = [...defaults, ...non_deduped];
+  const sibling_client_files =
+    props.activePathData.matchingPaths
+      ?.filter((x) => {
+        return x.hasSiblingClientFile;
+      })
+      .map((x) => {
+        return {
+          tag: "script",
+          attributes: {
+            type: "module",
+            src: getPublicUrl(
+              "dist/pages/" + x.importPath.replace("pages/", ""),
+            ),
+          },
+        };
+      }) ?? [];
+
+  const heads = [...defaults, ...non_deduped, ...sibling_client_files];
 
   return dedupe_head_blocks(heads);
 }
 
-function get_new_title(props: HeadProps): string | undefined {
-  const head_blocks = get_head_blocks_array(props);
-  const title_block = head_blocks.find((x) => "title" in x);
-  return (title_block as any)?.title;
-}
-
-function HeadElements(props: HeadProps) {
-  const head_blocks = get_head_blocks_array(props);
-
-  return (
-    <>
-      {head_blocks.map((block, i) => {
-        if ("title" in block) {
-          return <title>{block.title}</title>;
-        } else {
-          // @ts-ignore
-          return <block.tag {...block.props} />;
-        }
-      })}
-    </>
-  );
-}
-
-export { HeadElements, get_new_title };
+export { getHeadBlocks };

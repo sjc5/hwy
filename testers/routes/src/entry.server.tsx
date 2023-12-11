@@ -1,13 +1,4 @@
-import {
-  hwyInit,
-  CssImports,
-  DevLiveRefreshScript,
-  ClientScripts,
-  HeadElements,
-  HeadBlock,
-  renderRoot,
-  getDefaultBodyProps,
-} from "hwy";
+import { hwyInit, HeadElements, HeadBlock, renderRoot } from "hwy";
 import { RootOutlet } from "@hwy-js/client";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
@@ -55,9 +46,6 @@ app.all("*", async (c, next) => {
             />
 
             <HeadElements {...baseProps} />
-            <CssImports />
-            <ClientScripts {...baseProps} />
-            <DevLiveRefreshScript />
           </head>
           <body>
             <Sidebar />

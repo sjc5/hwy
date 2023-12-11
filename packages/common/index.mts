@@ -1,3 +1,5 @@
+import type { Context, Env } from "hono";
+
 export const HWY_PREFIX = "__hwy_internal__";
 export const LIVE_REFRESH_SSE_PATH = `/${HWY_PREFIX}live_refresh_sse`;
 export const LIVE_REFRESH_RPC_PATH = `/${HWY_PREFIX}live_refresh_rpc`;
@@ -64,7 +66,7 @@ export type RefreshFilePayload = {
   at: string;
 };
 
-export const CRITICAL_CSS_ELEMENT_ID = "__hwy-critical-css";
+export const CRITICAL_CSS_ELEMENT_ID = "data-hwy-critical-css";
 
 /***************************************
  * Client global
@@ -133,3 +135,67 @@ export type ClientModuleDef = {
 export type ClientModuleDefs =
   | Array<ClientModuleDef>
   | ReadonlyArray<ClientModuleDef>;
+
+///////////////////////////////////////////////
+// Head Block stuff
+
+export type TitleHeadBlock = { title: string };
+export type TagHeadBlock = {
+  tag: "meta" | "base" | "link" | "style" | "script" | "noscript" | string;
+  attributes: Partial<Record<string, string>>;
+};
+export type HeadBlock = TitleHeadBlock | TagHeadBlock;
+
+const BLOCK_TYPES = [
+  "title",
+  "meta",
+  "base",
+  "link",
+  "style",
+  "script",
+  "noscript",
+] as const;
+
+export type BlockType = (typeof BLOCK_TYPES)[number];
+
+export function get_head_block_type(
+  head_block: HeadBlock,
+): BlockType | "unknown" {
+  if ("title" in head_block) {
+    return "title";
+  }
+  if (BLOCK_TYPES.includes(head_block.tag as BlockType)) {
+    return head_block.tag as BlockType;
+  }
+  return "unknown";
+}
+
+export function sort_head_blocks(head_blocks: HeadBlock[]) {
+  let title = "";
+  let metaHeadBlocks: Array<TagHeadBlock> = [];
+  let restHeadBlocks: Array<TagHeadBlock> = [];
+
+  head_blocks.forEach((block) => {
+    const type = get_head_block_type(block);
+
+    if (type === "title") {
+      title = (block as TitleHeadBlock).title;
+    } else if (type === "meta") {
+      metaHeadBlocks.push(block as TagHeadBlock);
+    } else {
+      restHeadBlocks.push(block as TagHeadBlock);
+    }
+  });
+
+  return {
+    title,
+    metaHeadBlocks,
+    restHeadBlocks,
+  };
+}
+
+export type BaseProps<EnvType extends Env = {}> = {
+  c: Context<EnvType>;
+  activePathData: ActivePathData;
+  defaultHeadBlocks?: HeadBlock[];
+};

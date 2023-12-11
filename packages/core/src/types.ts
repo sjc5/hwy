@@ -3,6 +3,7 @@ import type { FunctionComponent, JSX } from "preact";
 import type {
   ActivePathData,
   ErrorBoundaryProps,
+  HeadBlock,
 } from "../../common/index.mjs";
 
 type DataProps<EnvType extends Env = {}> = {
@@ -35,10 +36,6 @@ type PageComponent<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
 > = (props: PageProps<LoaderType, ActionType>) => JSX.Element;
-
-type HeadBlock =
-  | { title: string }
-  | { tag: string; attributes: Partial<Record<string, string>> };
 
 type HeadProps<
   LoaderType extends Loader<any> = Loader<any>,

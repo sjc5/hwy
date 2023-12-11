@@ -21,7 +21,7 @@ const vercel_add_on =
   "\n\n" +
   "### API Directory Hack" +
   "\n\n" +
-  "The Vercel build will fail if it doesn't find a placeholder file at `/api/main.js` in\nyour project root. Make sure to commit this file (included in this template), but know\nthat it will be overwritten during the build process." +
+  "The Vercel build will fail if it doesn't find a placeholder file at `/api/entry.server.js` in\nyour project root. Make sure to commit this file (included in this template), but know\nthat it will be overwritten during the build process." +
   "\n\n" +
   "### Monorepo Support" +
   "\n\n" +
@@ -68,7 +68,7 @@ To deploy on Deno Deploy, you should follow the setup instructions within Deno D
 to get a GitHub Actions build step set up. You can use the standard
 \`.github/workflows/deploy.yml\` file that is created for you during that setup. 
 All you will need to do is update the entrypoint (near the bottom of the yaml file)
-to point to \`dist/main.js\`.
+to point to \`dist/entry.server.js\`.
 `.trim();
 
 const bun_add_on = `

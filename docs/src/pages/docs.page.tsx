@@ -1,4 +1,4 @@
-import type { HeadFunction, PageProps } from "hwy";
+import type { PageProps } from "hwy";
 import { CodeBlock } from "../components/code-block.js";
 import { AnchorHeading } from "../components/anchor-heading.js";
 import { Paragraph } from "../components/paragraph.js";
@@ -6,15 +6,9 @@ import { InlineCode } from "../components/inline-code.js";
 import { ListItem, UnorderedList } from "../components/unordered-list.js";
 import { Boldtalic } from "../components/bold-italic.js";
 
-export async function loader() {
-  return { fromLoader: "YO DUDE THIS IS FROM THE LOADER" + Math.random() };
-}
-
-export default function ({ loaderData }: PageProps) {
+export default function () {
   return (
     <div class="flex-col-wrapper-bigger">
-      {loaderData.fromLoader}
-
       <h2 class="h2">Docs</h2>
       <AnchorHeading content="Creating a new project" />
       <Paragraph>
@@ -40,8 +34,8 @@ root
 │   ├── styles/
 │   │   ├── global.bundle.css
 │   │   ├── global.critical.css
-│   ├── client.entry.ts
-│   ├── main.tsx
+│   ├── entry.client.tsx
+│   ├── entry.server.tsx
 │   .gitignore
 │   ...
         `}
@@ -106,7 +100,7 @@ root
             <InlineCode>src/_index.page.tsx</InlineCode>), such as a global
             navigation header, should be inserted into your root component that
             is rendered from your main server entry point (i.e.,{" "}
-            <InlineCode>src/main.tsx</InlineCode>).
+            <InlineCode>src/entry.server.tsx</InlineCode>).
           </ListItem>
 
           <ListItem>
@@ -466,7 +460,7 @@ export function loader() {
         caught and passed to the nearest applicable parent error boundary
         component. You can also pass a default error boundary component that
         effectively wraps your outermost <InlineCode>RootOutlet</InlineCode> (in{" "}
-        <InlineCode>main.tsx</InlineCode>) like so:
+        <InlineCode>entry.server.tsx</InlineCode>) like so:
       </Paragraph>
       <CodeBlock
         language="tsx"
@@ -528,10 +522,10 @@ export async function loader({ c }: AppDataProps) {
 }
 `}
       />
-      <AnchorHeading content="Main.tsx" />
+      <AnchorHeading content="entry.server.tsx" />
       <Paragraph>
-        In your <InlineCode>main.tsx</InlineCode> file, you'll have a handler
-        that looks something like this.
+        In your <InlineCode>entry.server.tsx</InlineCode> file, you'll have a
+        handler that looks something like this.
       </Paragraph>
       <CodeBlock
         language="tsx"
@@ -589,7 +583,7 @@ app.all('*', async (c, next) => {
       <Paragraph>
         Your document's <InlineCode>head</InlineCode> is rendered via the{" "}
         <InlineCode>{`HeadElements`}</InlineCode> component in your{" "}
-        <InlineCode>main.tsx</InlineCode> file, like this:
+        <InlineCode>entry.server.tsx</InlineCode> file, like this:
       </Paragraph>
       <CodeBlock
         language="tsx"
@@ -727,7 +721,7 @@ export const head: HeadFunction = (props) => {
       <Paragraph>
         If you would like to use Hwy like a traditional MPA framework, and skip
         using HTMX, you can do so simply by excluding HTMX from your{" "}
-        <InlineCode>src/client.entry.ts</InlineCode> file.
+        <InlineCode>src/entry.client.ts</InlineCode> file.
       </Paragraph>
       <AnchorHeading content="Security" />
       <Paragraph>A few points on security:</Paragraph>
@@ -766,7 +760,7 @@ export const head: HeadFunction = (props) => {
       <AnchorHeading content="Self-vendoring" />
       <Paragraph>
         If you would like to self-vendor your dependencies instead of using a{" "}
-        <InlineCode>src/client.entry.ts</InlineCode> file (which is bundled with
+        <InlineCode>src/entry.client.ts</InlineCode> file (which is bundled with
         esbuild), you can do so simply by including your dependencies in the{" "}
         <InlineCode>/public</InlineCode> directory and referencing them in a
         script. For example:

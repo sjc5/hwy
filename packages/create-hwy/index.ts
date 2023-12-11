@@ -259,7 +259,7 @@ async function main() {
       code: await format(get_client_entry(options), {
         parser: "typescript",
       }),
-      destination_without_extension: "src/client.entry",
+      destination_without_extension: "src/entry.client",
       is_jsx: false,
     });
 
@@ -356,7 +356,7 @@ async function main() {
     if (options.deployment_target === "vercel-lambda") {
       fs.mkdirSync(path.join(new_dir_path, "api"), { recursive: true });
       fs.writeFileSync(
-        path.join(new_dir_path, "api/main.js"),
+        path.join(new_dir_path, "api/entry.server.js"),
         "/* Commit this file to make Vercel happy. */\n",
         "utf8",
       );
@@ -366,7 +366,7 @@ async function main() {
 {
   "rewrites": [{ "source": "/(.*)", "destination": "/api/main" }],
   "functions": {
-    "api/main.js": { "includeFiles": "**/*" }
+    "api/entry.server.js": { "includeFiles": "**/*" }
   }
 }
 `.trim() + "\n";

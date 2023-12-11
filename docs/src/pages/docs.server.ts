@@ -1,4 +1,4 @@
-import type { HeadFunction } from "hwy";
+import { getPublicUrl, type HeadFunction } from "hwy";
 
 export const head: HeadFunction = () => {
   return [
@@ -13,7 +13,3 @@ export const head: HeadFunction = () => {
     },
   ];
 };
-
-export async function loader() {
-  return { fromLoader: "YO DUDE THIS IS FROM THE LOADER" + Math.random() };
-}

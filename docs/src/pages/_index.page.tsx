@@ -1,19 +1,14 @@
+import { PageProps } from "hwy";
 import { Boldtalic } from "../components/bold-italic.js";
 import { CodeBlock } from "../components/code-block.js";
 import { H3Wrapper } from "../components/h3-wrapper.js";
 import { InlineCode } from "../components/inline-code.js";
 import { Paragraph } from "../components/paragraph.js";
 import { ListItem, UnorderedList } from "../components/unordered-list.js";
-import { TestClientApp } from "./test-client-app.js";
-
-export function loader() {
-  return "HI!";
-}
 
 export default function () {
   return (
     <>
-      <TestClientApp data="BOB" />
       <BigHeading />
       <BundleBadge />
       <Quickstart />

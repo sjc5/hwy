@@ -1,8 +1,7 @@
-import { hydrate } from "preact";
+import { type ComponentChild, hydrate } from "preact";
 import { signal } from "@preact/signals";
 import { get_hwy_client_global } from "./client-global.js";
 import { CLIENT_SIGNAL_KEYS, HWY_PREFIX } from "../../common/index.mjs";
-import { RootOutlet } from "./recursive.js";
 
 const abort_controllers = new Map<string, AbortController>();
 
@@ -35,7 +34,8 @@ function is_internal_link(href: string) {
 }
 
 async function initPreactClient(props: {
-  rootElement: HTMLElement;
+  elementToHydrate: HTMLElement;
+  hydrateWith: ComponentChild;
   onLoadStart?: () => void;
   onLoadEnd?: () => void;
 }) {
@@ -66,7 +66,7 @@ async function initPreactClient(props: {
     awaited_components.map((x) => x.ErrorBoundary),
   );
 
-  hydrate(<RootOutlet />, props.rootElement);
+  hydrate(props.hydrateWith, props.elementToHydrate);
 
   document.body.addEventListener("click", async function (event) {
     // @ts-ignore
@@ -305,7 +305,11 @@ async function reRenderApp(
     hwy_client_global.set("actionData", json.actionData);
   }
 
-  document.title = json.newTitle;
+  document.title = json.title;
+  removeAllBetween("meta");
+  addBlocksToHead("meta", json.metaHeadBlocks);
+  removeAllBetween("rest");
+  addBlocksToHead("rest", json.restHeadBlocks);
 
   if (setHistory) {
     if (href !== location.href) {
@@ -317,3 +321,52 @@ async function reRenderApp(
 }
 
 export { initPreactClient, submit };
+
+//////////////////////////////
+// head stuff
+
+function getStartAndEndElements(type: "meta" | "rest") {
+  const startElement = document.head.querySelector(
+    `[data-hwy="${type}-start"]`,
+  );
+  const endElement = document.head.querySelector(`[data-hwy="${type}-end"]`);
+  return { startElement, endElement };
+}
+
+function removeAllBetween(type: "meta" | "rest") {
+  const { startElement, endElement } = getStartAndEndElements(type);
+  if (!startElement || !endElement) return;
+
+  let currentElement = startElement.nextSibling as HTMLElement | null;
+
+  while (currentElement && currentElement !== endElement) {
+    const nextElement = currentElement.nextSibling;
+    currentElement.remove();
+    currentElement = nextElement as HTMLElement | null;
+  }
+}
+
+function addBlocksToHead(type: "meta" | "rest", blocks: Array<any>) {
+  const { startElement, endElement } = getStartAndEndElements(type);
+  if (!startElement || !endElement) return;
+
+  blocks.forEach((block) => {
+    let newElement: HTMLElement | null = null;
+
+    if (block.title) {
+      newElement = document.createElement("title");
+      newElement.textContent = block.title;
+    } else if (block.tag) {
+      newElement = document.createElement(block.tag);
+      if (block.attributes) {
+        Object.keys(block.attributes).forEach((key) => {
+          newElement?.setAttribute(key, block.attributes[key]);
+        });
+      }
+    }
+
+    if (newElement) {
+      document.head.insertBefore(newElement, endElement);
+    }
+  });
+}

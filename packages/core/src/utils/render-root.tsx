@@ -4,15 +4,13 @@ import { type JSX } from "preact";
 import { renderToString } from "preact-render-to-string";
 import { getPublicUrl } from "./hashed-public-url.js";
 import type { HeadBlock } from "../types.js";
-import { get_new_title } from "../components/head-elements.js";
+import { getHeadBlocks } from "../components/head-elements.js";
 import { get_hwy_global } from "./get-hwy-global.js";
-import { HWY_PREFIX } from "../../../common/index.mjs";
-
-type BaseProps = {
-  c: Context;
-  activePathData: Awaited<ReturnType<typeof getMatchingPathData>>;
-  defaultHeadBlocks?: HeadBlock[];
-};
+import {
+  type BaseProps,
+  HWY_PREFIX,
+  sort_head_blocks,
+} from "../../../common/index.mjs";
 
 async function renderRoot({
   c,
@@ -41,14 +39,20 @@ async function renderRoot({
     const IS_JSON = Boolean(c.req.query()[`${HWY_PREFIX}json`]);
 
     if (IS_JSON) {
-      const newTitle = get_new_title({ c, activePathData, defaultHeadBlocks });
+      const baseProps = { c, activePathData, defaultHeadBlocks };
 
       if (c.req.raw.signal.aborted) {
         return;
       }
 
+      const headBlocks = getHeadBlocks(baseProps);
+      const { title, metaHeadBlocks, restHeadBlocks } =
+        sort_head_blocks(headBlocks);
+
       return c.json({
-        newTitle,
+        title,
+        metaHeadBlocks,
+        restHeadBlocks,
         activeData: activePathData.activeData,
         activePaths: activePathData.matchingPaths?.map((x) => {
           return getPublicUrl(

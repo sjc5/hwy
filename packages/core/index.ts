@@ -16,10 +16,7 @@ export type {
 } from "./src/types.js";
 
 // components
-export { CssImports } from "./src/components/css-imports.jsx";
-export { ClientScripts } from "./src/components/client-entry-script.jsx";
-export { HeadElements } from "./src/components/head-elements.js";
-export { DevLiveRefreshScript } from "./src/components/dev-live-refresh-script.jsx";
+export { HeadElements } from "./src/components/client-entry-script.jsx";
 
 // router
 export { getMatchingPathData } from "./src/router/get-matching-path-data.js";

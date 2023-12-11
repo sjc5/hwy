@@ -1,9 +1,6 @@
 import { IS_DEV } from "./utils/constants.js";
 import {
   hwyInit,
-  CssImports,
-  DevLiveRefreshScript,
-  ClientScripts,
   HeadElements,
   type HeadBlock,
   renderRoot,
@@ -19,6 +16,7 @@ import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
 import { FallbackErrorBoundary } from "./components/fallback-error-boundary.js";
 import { make_emoji_data_url } from "./utils/utils.js";
+import { BodyInner } from "./components/body-inner.js";
 
 const app = new Hono();
 app.use("*", logger());
@@ -39,19 +37,6 @@ await hwyInit({
 
 const defaultHeadBlocks: HeadBlock[] = [
   { title: "Hwy Framework" },
-  {
-    tag: "meta",
-    attributes: {
-      charset: "UTF-8",
-    },
-  },
-  {
-    tag: "meta",
-    attributes: {
-      name: "viewport",
-      content: "width=device-width,initial-scale=1",
-    },
-  },
   {
     tag: "meta",
     attributes: {
@@ -89,32 +74,17 @@ app.all("*", async (c, next) => {
       return (
         <html lang="en">
           <head>
+            <meta charset="UTF-8" />
+            <meta
+              name="viewport"
+              content="width=device-width,initial-scale=1"
+            />
             <HeadElements {...baseProps} />
-            <CssImports />
-            <ClientScripts {...baseProps} />
-            <DevLiveRefreshScript />
             <script defer src={getPublicUrl("prism.js")} />
           </head>
 
           <body>
-            <div class="body-inner">
-              <div style={{ flexGrow: 1 }}>
-                <Nav />
-
-                <div class="root-outlet-wrapper" id={"root-outlet-wrapper"}>
-                  <RootOutlet
-                    {...baseProps}
-                    fallbackErrorBoundary={FallbackErrorBoundary}
-                  />
-                </div>
-              </div>
-
-              <footer>
-                <span style={{ opacity: 0.6 }}>
-                  MIT License. Copyright (c) 2023 Samuel J. Cook.
-                </span>
-              </footer>
-            </div>
+            <BodyInner {...baseProps} />
           </body>
         </html>
       );

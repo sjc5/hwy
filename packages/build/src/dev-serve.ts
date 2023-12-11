@@ -176,7 +176,7 @@ async function devServe() {
         dev_config.port = Number(env.PORT);
       }
 
-      const proc = spawn("node", ["dist/main.js"], {
+      const proc = spawn("node", ["dist/entry.server.js"], {
         env,
         stdio: "inherit",
       });
@@ -236,7 +236,7 @@ async function devServe() {
     }
 
     const cmd = new Deno.Command(Deno.execPath(), {
-      args: ["run", "-A", "dist/main.js"],
+      args: ["run", "-A", "dist/entry.server.js"],
       env,
       stdout: "inherit",
       stderr: "inherit",
