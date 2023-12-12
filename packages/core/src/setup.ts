@@ -7,7 +7,7 @@ import {
   get_serve_static_options,
 } from "./utils/hashed-public-url.js";
 import { file_url_to_path, node_path } from "./utils/url-polyfills.js";
-import { get_hwy_global } from "./utils/get-hwy-global.js";
+import { get_hwy_global } from "../../common/index.mjs";
 
 function dirname_from_import_meta(import_meta_url: string) {
   return node_path?.dirname(file_url_to_path(import_meta_url)) ?? "";
@@ -111,7 +111,7 @@ async function hwyInit({
       return await c.env.ASSETS.fetch(new_req);
     });
 
-    return;
+    return { app };
   }
 
   if (!serveStatic) {
@@ -121,6 +121,8 @@ async function hwyInit({
   }
 
   app.use(static_path, serveStatic(get_serve_static_options()));
+
+  return { app };
 }
 
 export {

@@ -1,20 +1,12 @@
 import { IS_DEV } from "./utils/constants.js";
-import {
-  hwyInit,
-  HeadElements,
-  type HeadBlock,
-  renderRoot,
-  getPublicUrl,
-} from "hwy";
-import { RootOutlet } from "@hwy-js/client";
+import { hwyInit, utils, type HeadBlock } from "hwy";
+import { HeadElements, renderRoot } from "@hwy-js/preact";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { handle } from "@hono/node-server/vercel";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { Nav } from "./components/nav.js";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { FallbackErrorBoundary } from "./components/fallback-error-boundary.js";
 import { make_emoji_data_url } from "./utils/utils.js";
 import { BodyInner } from "./components/body-inner.js";
 
@@ -79,8 +71,10 @@ app.all("*", async (c, next) => {
               name="viewport"
               content="width=device-width,initial-scale=1"
             />
+
             <HeadElements {...baseProps} />
-            <script defer src={getPublicUrl("prism.js")} />
+
+            <script defer src={utils.getPublicUrl("prism.js")} />
           </head>
 
           <body>

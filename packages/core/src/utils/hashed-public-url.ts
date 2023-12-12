@@ -1,5 +1,5 @@
 import { PUBLIC_URL_PREFIX } from "../setup.js";
-import { get_hwy_global } from "./get-hwy-global.js";
+import { get_hwy_global } from "../../../common/index.mjs";
 import { node_path } from "./url-polyfills.js";
 
 const hwy_global = get_hwy_global();

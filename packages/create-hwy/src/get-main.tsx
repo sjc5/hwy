@@ -1,5 +1,5 @@
 import { DEFAULT_PORT } from "../../common/index.mjs";
-import type { Options } from "../index.js";
+import { Options } from "../index.js";
 import { get_is_target_deno } from "./utils.js";
 
 let imports = `

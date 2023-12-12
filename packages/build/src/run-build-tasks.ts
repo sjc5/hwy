@@ -35,9 +35,9 @@ const SHOULD_BUNDLE_PATHS =
   hwy_config.routeStrategy === "bundle" ||
   hwy_config.deploymentTarget === "cloudflare-pages";
 
-const IS_PREACT = hwy_config.mode === "preact-mpa";
+const IS_PREACT_MPA = hwy_config.mode === "preact-mpa";
 
-console.log({ IS_PREACT });
+console.log({ IS_PREACT_MPA });
 
 async function runBuildTasks({
   IS_DEV,

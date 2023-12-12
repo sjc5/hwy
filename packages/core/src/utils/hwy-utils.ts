@@ -1,10 +1,12 @@
-import { get_hwy_global } from "./get-hwy-global.js";
 import { getPublicUrl } from "./hashed-public-url.js";
-import { getRefreshScript } from "../components/dev-live-refresh-script.js";
+import { getRefreshScript } from "./dev-live-refresh-script.js";
 import { getImportMap } from "./get-import-map.js";
 import { getSsrInnerHtml } from "./get-ssr-inner-html.js";
-import { getHeadBlocks } from "../components/head-elements.js";
-import { CRITICAL_CSS_ELEMENT_ID } from "../../../common/index.mjs";
+import { getHeadBlocks } from "./get-head-blocks.js";
+import {
+  CRITICAL_CSS_ELEMENT_ID,
+  get_hwy_global,
+} from "../../../common/index.mjs";
 
 const hwy_global = get_hwy_global();
 
@@ -21,6 +23,7 @@ const utils = {
   getImportMap,
   getSsrInnerHtml,
   getHeadBlocks,
+  getPublicUrl,
 } as const;
 
 export { utils };

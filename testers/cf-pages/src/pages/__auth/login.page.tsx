@@ -1,5 +1,5 @@
-import type { PageProps } from "hwy";
-import type { ActionType } from "./login.server.js";
+import { PageProps } from "@hwy-js/preact";
+import { ActionType } from "./login.server.js";
 
 const thisRoute = "/login";
 

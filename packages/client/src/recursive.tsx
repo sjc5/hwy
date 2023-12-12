@@ -13,12 +13,11 @@ type ServerKey = keyof ActivePathData;
 function RootOutlet(props: {
   activePathData?: ActivePathData | { fetchResponse: Response };
   index?: number;
-  fallbackErrorBoundary?: (props: {
-    error: Error;
-    splatSegments: string[];
-    params: Record<string, string>;
-  }) => JSX.Element;
+  fallbackErrorBoundary?: ErrorBoundaryComp;
 }): JSX.Element {
+  const { activePathData } = props;
+  if (activePathData && "fetchResponse" in activePathData) return <></>;
+
   const IS_SERVER = typeof document === "undefined";
 
   let context: {
@@ -32,9 +31,10 @@ function RootOutlet(props: {
 
   let { index } = props;
   const index_to_use = index ?? 0;
+  const CurrentComponent = context.get("activeComponents")?.[index_to_use];
 
   try {
-    if (!context.get("activeComponents")?.[index_to_use]) {
+    if (!CurrentComponent) {
       return <></>;
     }
 
@@ -55,6 +55,8 @@ function RootOutlet(props: {
 
       return ErrorBoundary({
         error: context.get("errorToRender"),
+        params: context.get("params") ?? {},
+        splatSegments: context.get("splatSegments") ?? [],
       });
     }
 
@@ -72,14 +74,13 @@ function RootOutlet(props: {
           context.get("activePaths")?.[index_to_use + 1],
         ]);
 
-    return context.get("activeComponents")?.[index_to_use]({
+    return CurrentComponent({
       ...props,
-      Outlet,
       params: context.get("params") ?? {},
       splatSegments: context.get("splatSegments") ?? [],
       loaderData: context.get("activeData")?.[index_to_use],
-      path: context.get("activePaths")?.[index_to_use],
       actionData: context.get("actionData")?.[index_to_use],
+      Outlet,
     });
   } catch (error) {
     console.error(error);
@@ -95,7 +96,11 @@ function RootOutlet(props: {
       return <div>Error: No error boundary found.</div>;
     }
 
-    return ErrorBoundary({ error });
+    return ErrorBoundary({
+      error,
+      params: context.get("params") ?? {},
+      splatSegments: context.get("splatSegments") ?? [],
+    });
   }
 }
 

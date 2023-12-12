@@ -14,7 +14,7 @@
   "scripts": {
     "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
     "lint": "tsc",
-    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
     "publish-beta": "npm publish --tag beta",
     "publish-non-beta": "npm publish",
     "update-latest": "pnpm update --latest",

@@ -1,9 +1,9 @@
 import {
-  type CLIENT_SIGNAL_KEYS,
+  CLIENT_SIGNAL_KEYS,
   HWY_PREFIX,
-  type ActivePathData,
+  ActivePathData,
+  get_hwy_global,
 } from "../../../common/index.mjs";
-import { get_hwy_global } from "./get-hwy-global.js";
 import { uneval } from "devalue";
 import { getPublicUrl } from "./hashed-public-url.js";
 

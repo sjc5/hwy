@@ -9,6 +9,8 @@ const dirs_in_slash_packages = [
   "create-hwy",
   "client",
   "utils",
+  "preact",
+  "hono",
 ];
 
 function get_current_pkg_jsons() {

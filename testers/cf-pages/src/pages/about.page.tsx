@@ -1,4 +1,4 @@
-import type { PageProps } from "hwy";
+import { PageProps } from "@hwy-js/preact";
 
 export default function ({ Outlet }: PageProps) {
   return (

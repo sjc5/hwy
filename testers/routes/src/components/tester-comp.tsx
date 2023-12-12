@@ -1,4 +1,4 @@
-import type { PageProps } from "hwy";
+import { PageProps } from "@hwy-js/preact";
 import { useState } from "preact/hooks";
 
 function TesterComp({ Outlet, params, splatSegments }: PageProps) {

@@ -128,6 +128,7 @@ async function navigate(
   href: string,
   setHistory: boolean,
   isRevalidation: boolean,
+  isFirstTimeRunning: boolean = true,
 ) {
   hwy_client_global.get("globalOnLoadStart")?.();
 
@@ -139,13 +140,64 @@ async function navigate(
 
     url.searchParams.set(`${HWY_PREFIX}json`, "1");
 
-    const res = await fetch(url, {
-      signal: abort_controller.signal,
-    });
+    let res;
 
-    const json = await res.json();
+    if (isFirstTimeRunning) {
+      // first time running, fetching WITH redir manual
+      res = await fetch(url, {
+        signal: abort_controller.signal,
+        redirect: "manual",
+      });
+    } else {
+      try {
+        // second time running, fetching withOUT redir manual
+        res = await fetch(url, {
+          signal: abort_controller.signal,
+        });
+      } catch (e) {
+        if (e instanceof Error && e.name === "TypeError") {
+          // probs a cors error, fetching again WITH redir manual
+          res = await fetch(url, {
+            signal: abort_controller.signal,
+            redirect: "manual",
+          });
+
+          // now hard redirect
+          window.location.href = res.url;
+          return;
+        }
+      }
+    }
+
+    if (res?.redirected) {
+      const new_url = new URL(res.url);
+
+      new_url.searchParams.set(`${HWY_PREFIX}json`, "1");
+
+      if (!is_internal_link(new_url.href)) {
+        // external link, hard redirecting
+        window.location.href = new_url.href;
+        return;
+      }
+
+      // internal link, soft redirecting
+      await navigate(new_url.href, true, false);
+      return;
+    }
+
+    if (res?.type === "opaqueredirect") {
+      // run again with "isFirstTimeRunning" set to false
+      await navigate(res.url, true, false, false /* important */);
+      return;
+    }
+
+    const json = await res?.json();
 
     abort_controllers.delete(abort_controller_key);
+
+    if (!json) {
+      throw new Error("No JSON response");
+    }
 
     await reRenderApp(href, setHistory, json, isRevalidation);
 
@@ -193,11 +245,18 @@ async function submit({
       body: is_form_data ? data : JSON.stringify(data),
     });
 
+    if (res.redirected) {
+      if (!is_internal_link(res.url)) {
+        window.location.href = res.url;
+        return;
+      }
+      await navigate(res.url, true, false);
+      return;
+    }
+
     const json = await res.json();
 
     abort_controllers.delete(abort_controller_key);
-
-    // TODO -- handle redirects here
 
     if (did_abort) {
       // revalidate

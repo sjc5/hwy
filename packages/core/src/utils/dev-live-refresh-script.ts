@@ -1,9 +1,9 @@
 import {
   CRITICAL_CSS_ELEMENT_ID,
   LIVE_REFRESH_SSE_PATH,
+  get_hwy_global,
 } from "../../../common/index.mjs";
-import { get_hwy_global } from "../utils/get-hwy-global.js";
-import { DEV_BUNDLED_CSS_LINK } from "../utils/hashed-public-url.js";
+import { DEV_BUNDLED_CSS_LINK } from "./hashed-public-url.js";
 
 const hwy_global = get_hwy_global();
 
@@ -51,19 +51,4 @@ const getRefreshScript = (timeoutInMs = 300) => {
   `.trim();
 };
 
-function DevLiveRefreshScript(props?: { timeoutInMs?: number }) {
-  if (getShouldUseRefresh()) {
-    return (
-      <script
-        type="module"
-        dangerouslySetInnerHTML={{
-          __html: getRefreshScript(props?.timeoutInMs),
-        }}
-      />
-    );
-  }
-
-  return <></>;
-}
-
-export { DevLiveRefreshScript, getRefreshScript };
+export { getRefreshScript };

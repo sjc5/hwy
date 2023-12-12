@@ -3,7 +3,12 @@ import fs from "node:fs";
 import crypto from "node:crypto";
 import readdirp from "readdirp";
 import esbuild from "esbuild";
-import { HWY_GLOBAL_KEYS, SPLAT_SEGMENT } from "../../common/index.mjs";
+import {
+  HWY_GLOBAL_KEYS,
+  Path,
+  PathType,
+  SPLAT_SEGMENT,
+} from "../../common/index.mjs";
 import { smart_normalize } from "./smart-normalize.js";
 import { get_hwy_config } from "./get-hwy-config.js";
 import { ALL_MODULE_DEF_NAMES } from "./run-build-tasks.js";
@@ -19,20 +24,13 @@ const permitted_extensions = [
   "cts",
 ];
 
-type PathType =
-  | "ultimate-catch"
-  | "index"
-  | "static-layout"
-  | "dynamic-layout"
-  | "non-ultimate-splat";
-
 const hwy_config = await get_hwy_config();
 
-const IS_PREACT = hwy_config.mode === "preact-mpa";
+const IS_PREACT_MPA = hwy_config.mode === "preact-mpa";
 
 console.log(hwy_config);
 
-async function walk_pages(IS_DEV?: boolean) {
+async function walk_pages(IS_DEV?: boolean): Promise<Array<Path>> {
   const paths: {
     // ultimately public
     importPath: string;
@@ -189,7 +187,7 @@ async function walk_pages(IS_DEV?: boolean) {
           external: ALL_MODULE_DEF_NAMES,
         }),
 
-        IS_PREACT && is_page_file
+        IS_PREACT_MPA && is_page_file
           ? esbuild.build({
               entryPoints: [import_path_with_orig_ext],
               bundle: true,
@@ -209,7 +207,7 @@ async function walk_pages(IS_DEV?: boolean) {
     }
   }
 
-  if (IS_PREACT && IS_DEV) {
+  if (IS_PREACT_MPA && IS_DEV) {
     // TODO NO NEED FOR DOUBLE FOLDER ANYMORE
     await fs.promises.mkdir(path.resolve("./public/dist/preact"), {
       recursive: true,

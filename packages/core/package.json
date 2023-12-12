@@ -8,27 +8,29 @@
   "description": "Simple, lightweight, and flexible web framework, built on Hono and HTMX.",
   "type": "module",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./hono": "./dist/hono.js",
+    "./preact": "./dist/preact.js"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
     "lint": "tsc",
-    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
+    "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
     "publish-beta": "npm publish --tag beta",
     "publish-non-beta": "npm publish",
     "update-latest": "pnpm update --latest",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@hono/node-server": "^1.3.1",
+    "@hono/node-server": "^1.3.2",
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@types/node": "^20.10.4",
     "devalue": "^4.3.2",
-    "hono": "^3.11.3",
+    "hono": "^3.11.4",
     "preact": "^10.19.3",
     "preact-render-to-string": "^6.3.1",
     "tsup": "^8.0.1"

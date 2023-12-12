@@ -1,40 +1,21 @@
-import { hwyInit, HeadElements, HeadBlock, renderRoot } from "hwy";
+import { hwyInit } from "hwy";
+import { HeadElements, renderRoot } from "@hwy-js/preact";
 import { RootOutlet } from "@hwy-js/client";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Sidebar } from "./components/sidebar.js";
 
-const app = new Hono();
-
-const IS_DEV = process.env.NODE_ENV === "development";
-
-await hwyInit({
-  app,
+const { app } = await hwyInit({
+  app: new Hono(),
   importMetaUrl: import.meta.url,
   serveStatic,
 });
-
-const default_head_blocks: HeadBlock[] = [
-  { title: "Tester" },
-  {
-    tag: "meta",
-    attributes: {
-      name: "htmx-config",
-      content: JSON.stringify({
-        defaultSwapStyle: "outerHTML",
-        selfRequestsOnly: true,
-        refreshOnHistoryMiss: true,
-      }),
-    },
-  },
-];
 
 app.all("*", async (c, next) => {
   return await renderRoot({
     c,
     next,
-    defaultHeadBlocks: default_head_blocks,
     root: (baseProps) => {
       return (
         <html lang="en">
@@ -70,8 +51,8 @@ const PORT = process.env.PORT ? Number(process.env.PORT) : 9999;
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(
-    `\nListening on http://${IS_DEV ? "localhost" : info.address}:${
-      info.port
-    }\n`,
+    `\nListening on http://${
+      process.env.NODE_ENV === "development" ? "localhost" : info.address
+    }:${info.port}\n`,
   );
 });

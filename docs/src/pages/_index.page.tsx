@@ -1,4 +1,3 @@
-import { PageProps } from "hwy";
 import { Boldtalic } from "../components/bold-italic.js";
 import { CodeBlock } from "../components/code-block.js";
 import { H3Wrapper } from "../components/h3-wrapper.js";

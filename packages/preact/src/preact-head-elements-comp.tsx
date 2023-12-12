@@ -1,18 +1,27 @@
-import { utils } from "../utils/hwy-utils.js";
-import { get_hwy_global } from "../utils/get-hwy-global.js";
-import { DevLiveRefreshScript } from "./dev-live-refresh-script.js";
-import { CssImports } from "./css-imports.js";
-import { BaseProps, sort_head_blocks } from "../../../common/index.mjs";
+import { utils } from "hwy";
+import {
+  BaseProps,
+  sort_head_blocks,
+  get_hwy_global,
+} from "../../common/index.mjs";
 
 const hwy_global = get_hwy_global();
 
-function HeadElements(props: BaseProps) {
-  const IS_PREACT = hwy_global.get("mode") === "preact-mpa";
+function PreactHeadElements(props: BaseProps) {
+  const IS_PREACT_MPA = hwy_global.get("mode") === "preact-mpa";
 
   const head_blocks = utils.getHeadBlocks(props);
 
   const { title, metaHeadBlocks, restHeadBlocks } =
     sort_head_blocks(head_blocks);
+
+  const timeout = undefined; // TODO -- move timeout to HwyConfig.dev and read here
+  const dev_refresh_script = utils.getRefreshScript(timeout);
+
+  const critical_css = utils.getCriticalCss();
+  const standard_bundled_css_exists = hwy_global.get(
+    "standard_bundled_css_exists",
+  );
 
   return (
     <>
@@ -32,9 +41,19 @@ function HeadElements(props: BaseProps) {
 
       <meta data-hwy="meta-end" />
 
-      <CssImports />
+      {critical_css && (
+        <style
+          id={utils.getCriticalCssElementId()}
+          dangerouslySetInnerHTML={{
+            __html: critical_css,
+          }}
+        />
+      )}
+      {standard_bundled_css_exists && (
+        <link rel="stylesheet" href={utils.getBundledCssUrl()} />
+      )}
 
-      {IS_PREACT && (
+      {IS_PREACT_MPA && (
         <script
           type="importmap"
           dangerouslySetInnerHTML={{
@@ -43,7 +62,7 @@ function HeadElements(props: BaseProps) {
         />
       )}
 
-      {IS_PREACT && (
+      {IS_PREACT_MPA && (
         <script
           type="module"
           dangerouslySetInnerHTML={{
@@ -68,9 +87,16 @@ function HeadElements(props: BaseProps) {
 
       <meta data-hwy="rest-end" />
 
-      <DevLiveRefreshScript />
+      {dev_refresh_script && (
+        <script
+          type="module"
+          dangerouslySetInnerHTML={{
+            __html: dev_refresh_script,
+          }}
+        />
+      )}
     </>
   );
 }
 
-export { HeadElements };
+export { PreactHeadElements };

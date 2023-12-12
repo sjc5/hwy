@@ -123,6 +123,8 @@ export type ActivePathData = {
 
 export type ErrorBoundaryProps = {
   error: unknown;
+  splatSegments: string[];
+  params: Record<string, string>;
 };
 
 type PermissiveStringArray = Array<string> | ReadonlyArray<string>;
@@ -199,3 +201,111 @@ export type BaseProps<EnvType extends Env = {}> = {
   activePathData: ActivePathData;
   defaultHeadBlocks?: HeadBlock[];
 };
+
+// PATHS
+
+export type PathType =
+  | "ultimate-catch"
+  | "index"
+  | "static-layout"
+  | "dynamic-layout"
+  | "non-ultimate-splat";
+
+export type Path = {
+  importPath: string;
+  path: string;
+  segments: Array<string | null>;
+  pathType: PathType;
+  hasSiblingClientFile: boolean;
+  hasSiblingServerFile: boolean;
+};
+
+export type Paths = Array<Path>;
+
+// HWY GLOBAL (SERVER)
+
+export type HwyGlobal = Partial<{
+  deployment_target: DeploymentTarget;
+  route_strategy: NonNullable<HwyConfig["routeStrategy"]>;
+  is_dev: boolean;
+  critical_bundled_css: string;
+  standard_bundled_css_exists: boolean;
+  paths: Paths;
+  public_map: Record<string, string>;
+  public_reverse_map: Record<string, string>;
+  test_dirname?: string;
+  mode: HwyConfig["mode"];
+  use_dot_server_files: boolean;
+  import_map_setup: any;
+}>;
+
+export type HwyGlobalKey = keyof HwyGlobal;
+
+export function get_hwy_global() {
+  const global_this = globalThis as any;
+
+  function get<K extends HwyGlobalKey>(key: K) {
+    return global_this[HWY_PREFIX + key] as HwyGlobal[K];
+  }
+
+  function set<K extends HwyGlobalKey, V extends HwyGlobal[K]>(
+    key: K,
+    value: V,
+  ) {
+    global_this[HWY_PREFIX + key] = value;
+  }
+
+  return { get, set };
+}
+
+// CORE TYPES
+
+export type DataProps<EnvType extends Env = {}> = {
+  c: Context<EnvType>;
+  params: Record<string, string>;
+  splatSegments: string[];
+};
+
+export type Loader<EnvType extends Env = {}> = (
+  args: DataProps<EnvType>,
+) => Promise<any> | any;
+
+export type Action<EnvType extends Env = {}> = (
+  args: DataProps<EnvType>,
+) => Promise<any> | any;
+
+export type GenericPageProps<
+  FunctionComponent,
+  LoaderType extends Loader<any> = Loader<any>,
+  ActionType extends Action<any> = Action<any>,
+> = {
+  loaderData: Awaited<ReturnType<LoaderType>>;
+  actionData: Awaited<ReturnType<ActionType>> | undefined;
+  Outlet: FunctionComponent;
+  params: Record<string, string>;
+  splatSegments: string[];
+  path: string;
+};
+
+export type GenericPageComponent<
+  FunctionComponent,
+  JSXElement,
+  LoaderType extends Loader<any> = Loader<any>,
+  ActionType extends Action<any> = Action<any>,
+> = (
+  props: GenericPageProps<FunctionComponent, LoaderType, ActionType>,
+) => JSXElement;
+
+export type HeadProps<
+  LoaderType extends Loader<any> = Loader<any>,
+  ActionType extends Action<any> = Action<any>,
+  EnvType extends Env = {},
+> = Omit<GenericPageProps<any, LoaderType, ActionType>, "Outlet"> & {
+  c: Context<EnvType>;
+};
+
+export type HeadFunction<
+  LoaderType extends Loader<any> = Loader<any>,
+  ActionType extends Action<any> = Action<any>,
+  EnvType extends Env = {},
+> = (props: HeadProps<LoaderType, ActionType, EnvType>) => Array<HeadBlock>;

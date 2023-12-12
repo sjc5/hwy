@@ -8,7 +8,7 @@ const CORE_CLIENT_MODULE_DEFS = [
     names: ["@preact/signals"],
   },
   {
-    code: `export { RootOutlet, initPreactClient, initNProgress, submit } from "@hwy-js/client";`,
+    code: `export { RootOutlet, initPreactClient, submit } from "@hwy-js/client";`,
     names: ["@hwy-js/client"],
     external: ["htmx.org", "idiomorph", "nprogress"],
   },

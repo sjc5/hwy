@@ -1,13 +1,18 @@
-import type { Context } from "hono";
-import { matcher } from "../router/matcher.js";
-import type { Paths } from "@hwy-js/build";
-import { ROOT_DIRNAME } from "../setup.js";
+import { Context } from "hono";
+
+import { matcher } from "./matcher.js";
 import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
 import { get_match_strength } from "./get-match-strength.js";
-import type { DataProps } from "../types.js";
+import {
+  SPLAT_SEGMENT,
+  ActivePathData,
+  Paths,
+  get_hwy_global,
+  DataProps,
+} from "../../../common/index.mjs";
+
+import { ROOT_DIRNAME } from "../setup.js";
 import { node_path, path_to_file_url_string } from "../utils/url-polyfills.js";
-import { get_hwy_global } from "../utils/get-hwy-global.js";
-import { SPLAT_SEGMENT, type ActivePathData } from "../../../common/index.mjs";
 
 const hwy_global = get_hwy_global();
 
@@ -52,6 +57,9 @@ function fully_decorate_paths({
         ? _path.importPath.slice(0, -3) + ".server.js"
         : _path.importPath;
 
+      const NO_SERVER_FUNCTIONS =
+        hwy_global.get("use_dot_server_files") && !_path.hasSiblingServerFile;
+
       // public
       return {
         hasSiblingClientFile: _path.hasSiblingClientFile,
@@ -74,7 +82,7 @@ function fully_decorate_paths({
 
         // REST ON SERVER
         errorBoundaryImporter: async () => {
-          if (!_path.hasSiblingServerFile) return;
+          if (NO_SERVER_FUNCTIONS) return;
 
           try {
             const imported = await get_path(server_import_path);
@@ -86,7 +94,7 @@ function fully_decorate_paths({
         },
 
         headImporter: async () => {
-          if (!_path.hasSiblingServerFile) return () => [];
+          if (NO_SERVER_FUNCTIONS) return () => [];
 
           try {
             const imported = await get_path(server_import_path);
@@ -98,7 +106,7 @@ function fully_decorate_paths({
         },
 
         loader: async (loaderArgs: DataProps) => {
-          if (!_path.hasSiblingServerFile) return;
+          if (NO_SERVER_FUNCTIONS) return;
 
           try {
             const imported = await get_path(server_import_path);
@@ -109,7 +117,7 @@ function fully_decorate_paths({
         },
 
         action: async (actionArgs: DataProps) => {
-          if (!_path.hasSiblingServerFile) return;
+          if (NO_SERVER_FUNCTIONS) return;
 
           try {
             const imported = await get_path(server_import_path);

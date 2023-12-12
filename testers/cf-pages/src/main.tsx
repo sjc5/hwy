@@ -1,11 +1,5 @@
-import {
-  hwyInit,
-  CssImports,
-  DevLiveRefreshScript,
-  ClientScripts,
-  HeadElements,
-  renderRoot,
-} from "hwy";
+import { hwyInit } from "hwy";
+import { HeadElements, renderRoot } from "@hwy-js/preact";
 import { RootOutlet } from "@hwy-js/client";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
@@ -52,9 +46,6 @@ app.all("*", async (c, next) => {
         <html lang="en">
           <head>
             <HeadElements {...baseProps} />
-            <CssImports />
-            <ClientScripts {...baseProps} />
-            <DevLiveRefreshScript />
           </head>
 
           <body>

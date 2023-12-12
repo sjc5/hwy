@@ -6,7 +6,7 @@ import { runBuildTasks } from "./run-build-tasks.js";
 import { hwyLog } from "./hwy-log.js";
 import {
   LIVE_REFRESH_RPC_PATH,
-  type RefreshFilePayload,
+  RefreshFilePayload,
 } from "../../common/index.mjs";
 import { get_hwy_config } from "./get-hwy-config.js";
 import fs from "node:fs";

@@ -1,0 +1,33 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && hwy-build",
+    "start": "node dist/main.js",
+    "dev": "hwy-dev-serve",
+    "update-latest": "pnpm update --latest"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.3.2",
+    "hono": "^3.11.4",
+    "hwy": "workspace:*",
+    "preact-render-to-string": "^6.3.1"
+  },
+  "devDependencies": {
+    "@hwy-js/build": "workspace:*",
+    "@hwy-js/client": "workspace:*",
+    "@hwy-js/dev": "workspace:*",
+    "@hwy-js/preact": "workspace:*",
+    "@hwy-js/utils": "workspace:*",
+    "@types/node": "^20.10.4",
+    "@types/nprogress": "^0.2.3",
+    "htmx.org": "^1.9.9",
+    "idiomorph": "^0.0.9",
+    "nprogress": "^0.2.0",
+    "preact": "^10.19.3",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.14.1"
+  }
+}

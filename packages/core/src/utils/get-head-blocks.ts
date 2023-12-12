@@ -1,6 +1,5 @@
-import { BaseProps } from "../../../common/index.mjs";
-import type { HeadFunction, HeadBlock } from "../types.js";
-import { getPublicUrl } from "../utils/hashed-public-url.js";
+import { BaseProps, HeadFunction, HeadBlock } from "../../../common/index.mjs";
+import { getPublicUrl } from "./hashed-public-url.js";
 
 function stable_hash(obj: Record<string, any>): string {
   return JSON.stringify(

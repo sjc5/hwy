@@ -12,7 +12,7 @@ import { get_gitignore } from "./src/get-gitignore.js";
 import { get_client_entry } from "./src/get-client-entry.js";
 import { get_is_target_deno } from "./src/utils.js";
 import { format } from "prettier";
-import type { DeploymentTarget } from "../common/index.mjs";
+import { DeploymentTarget } from "../common/index.mjs";
 import { get_hwy_config } from "./src/get-hwy-config.js";
 import { get_css_hooks_setup } from "./src/get-css-hooks-setup.js";
 import { LATEST_HWY_VERSION } from "./src/waterfall-maps.js";

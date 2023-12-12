@@ -1,4 +1,8 @@
-import { getPublicUrl, type HeadFunction } from "hwy";
+import { DataProps, type HeadFunction } from "hwy";
+
+export async function loader({ c }: DataProps) {
+  return c.redirect("/asdf");
+}
 
 export const head: HeadFunction = () => {
   return [

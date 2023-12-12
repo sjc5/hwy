@@ -1,5 +1,7 @@
-import { DEFAULT_PORT, type HwyConfig } from "../../common/index.mjs";
-import type { Options } from "../index.js";
+import { DEFAULT_PORT, HwyConfig } from "../../common/index.mjs";
+import { Options } from "../index.js";
+
+// Perhaps modes should be "MPA", "ENHANCED-MPA", and "SPA"?
 
 function get_hwy_config(options: Options) {
   let obj: HwyConfig =

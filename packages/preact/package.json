@@ -1,0 +1,39 @@
+{
+  "name": "@hwy-js/preact",
+  "version": "0.0.0-beta.3",
+  "author": {
+    "name": "Samuel J. Cook"
+  },
+  "license": "MIT",
+  "description": "Preact JSX tools for Hwy",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "tsc",
+    "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
+    "publish-beta": "npm publish --tag beta",
+    "publish-non-beta": "npm publish",
+    "update-latest": "pnpm update --latest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "hono": "^3.11.4",
+    "hwy": "workspace:*",
+    "preact": "^10.19.3",
+    "tsup": "^8.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hwy-js/hwy",
+    "directory": "packages/preact"
+  },
+  "homepage": "https://hwy.dev",
+  "bugs": "https://github.com/hwy-js/hwy/issues",
+  "sideEffects": false
+}

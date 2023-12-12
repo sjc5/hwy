@@ -1,5 +1,5 @@
-import { getPublicUrl } from "../utils/hashed-public-url.js";
-import { get_hwy_global } from "../utils/get-hwy-global.js";
+import { utils } from "./hwy-utils.js";
+import { get_hwy_global } from "../../../common/index.mjs";
 
 const hwy_global = get_hwy_global();
 
@@ -11,15 +11,15 @@ function getImportMap() {
       imports: {
         ...Object.fromEntries(
           (hwy_global.get("import_map_setup") || []).map((x: any) => {
-            return [x.name, getPublicUrl(`dist/${x.index}.js`)];
+            return [x.name, utils.getPublicUrl(`dist/${x.index}.js`)];
           }),
         ),
         ...(hwy_global.get("is_dev")
           ? {
-              "preact/debug": getPublicUrl(
+              "preact/debug": utils.getPublicUrl(
                 "dist/preact/preact-dev/debug.module.js",
               ),
-              "preact/devtools": getPublicUrl(
+              "preact/devtools": utils.getPublicUrl(
                 "dist/preact/preact-dev/devtools.module.js",
               ),
             }

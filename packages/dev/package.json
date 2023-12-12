@@ -14,7 +14,7 @@
   "scripts": {
     "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
     "lint": "tsc",
-    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
     "publish-beta": "npm publish --tag beta",
     "publish-non-beta": "npm publish",
     "update-latest": "pnpm update --latest",
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.4",
-    "hono": "^3.11.3",
+    "hono": "^3.11.4",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },

@@ -1,18 +1,21 @@
-import type { Context, Next } from "hono";
-import { getMatchingPathData } from "../router/get-matching-path-data.js";
-import { type JSX } from "preact";
-import { renderToString } from "preact-render-to-string";
-import { getPublicUrl } from "./hashed-public-url.js";
-import type { HeadBlock } from "../types.js";
-import { getHeadBlocks } from "../components/head-elements.js";
-import { get_hwy_global } from "./get-hwy-global.js";
+// common imports
 import {
-  type BaseProps,
+  BaseProps,
   HWY_PREFIX,
   sort_head_blocks,
-} from "../../../common/index.mjs";
+  get_hwy_global,
+  HeadBlock,
+} from "../../common/index.mjs";
 
-async function renderRoot({
+// core imports
+import { utils, getMatchingPathData } from "hwy";
+
+// external imports
+import { Context, Next } from "hono";
+import { renderToString } from "preact-render-to-string";
+import { JSX } from "preact";
+
+async function preactRenderRoot({
   c,
   next,
   defaultHeadBlocks,
@@ -33,9 +36,9 @@ async function renderRoot({
     return await next();
   }
 
-  const IS_PREACT = get_hwy_global().get("mode") === "preact-mpa";
+  const IS_PREACT_MPA = get_hwy_global().get("mode") === "preact-mpa";
 
-  if (IS_PREACT) {
+  if (IS_PREACT_MPA) {
     const IS_JSON = Boolean(c.req.query()[`${HWY_PREFIX}json`]);
 
     if (IS_JSON) {
@@ -73,4 +76,4 @@ async function renderRoot({
   return c.html("<!doctype html>" + renderToString(markup));
 }
 
-export { renderRoot };
+export { preactRenderRoot };

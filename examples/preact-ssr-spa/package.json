@@ -4,17 +4,18 @@
   "scripts": {
     "build": "tsc --noEmit && hwy-build",
     "start": "bun dist/main.js",
-    "dev": "bun run --bun hwy-dev-serve"
+    "dev": "bun run --bun hwy-dev-serve",
+    "update-latest": "pnpm update --latest"
   },
   "dependencies": {
-    "hono": "^3.11.3",
+    "hono": "^3.11.4",
     "hwy": "workspace:*",
     "preact-render-to-string": "^6.3.1"
   },
   "devDependencies": {
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "bun-types": "^1.0.15",
+    "bun-types": "^1.0.16",
     "preact": "^10.19.3",
     "typescript": "^5.3.3",
     "wouter-preact": "^2.12.2"

@@ -1,13 +1,12 @@
+import { HWY_PREFIX, get_hwy_global } from "../../../common/index.mjs";
 import { expect, test } from "vitest";
-import { get_hwy_global } from "../../packages/core/src/utils/get-hwy-global.js";
-import { getMatchingPathData } from "hwy";
-import { HWY_PREFIX } from "../../packages/common/index.mjs";
+import { getMatchingPathData } from "./get-matching-path-data.js";
 
 const hwy_global = get_hwy_global();
 
-const test_paths = await import("./dist/paths.js" as any).then(
-  (m) => m[HWY_PREFIX + "paths"],
-);
+const test_paths = await import(
+  "../../../../testers/routes/dist/paths.js" as any
+).then((m) => m[HWY_PREFIX + "paths"]);
 
 hwy_global.set("paths", test_paths);
 hwy_global.set("test_dirname", "testers/routes/dist");

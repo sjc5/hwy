@@ -1,4 +1,3 @@
-import type { PageProps } from "hwy";
 import { CodeBlock } from "../components/code-block.js";
 import { AnchorHeading } from "../components/anchor-heading.js";
 import { Paragraph } from "../components/paragraph.js";
