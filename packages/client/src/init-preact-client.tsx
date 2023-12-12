@@ -172,8 +172,6 @@ async function navigate(
     if (res?.redirected) {
       const new_url = new URL(res.url);
 
-      new_url.searchParams.set(`${HWY_PREFIX}json`, "1");
-
       if (!is_internal_link(new_url.href)) {
         // external link, hard redirecting
         window.location.href = new_url.href;

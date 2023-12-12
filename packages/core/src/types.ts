@@ -1,7 +1,7 @@
 import {
   // CLIENT
-  GenericPageProps,
-  GenericPageComponent,
+  PageProps,
+  PageComponent,
 
   // SERVER
   DataProps,
@@ -16,8 +16,8 @@ import {
 
 export type {
   // CLIENT
-  GenericPageProps,
-  GenericPageComponent,
+  PageProps,
+  PageComponent,
 
   // SERVER
   DataProps,

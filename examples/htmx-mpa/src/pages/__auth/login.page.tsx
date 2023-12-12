@@ -1,5 +1,4 @@
-import { DataProps } from "hwy";
-import { PageProps } from "@hwy-js/preact";
+import { DataProps, PageProps } from "hwy";
 import { getFormStrings } from "@hwy-js/utils";
 
 export async function action({ c }: DataProps) {

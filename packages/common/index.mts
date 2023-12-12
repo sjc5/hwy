@@ -1,4 +1,5 @@
 import type { Context, Env } from "hono";
+import { FunctionComponent, JSX } from "preact";
 
 export const HWY_PREFIX = "__hwy_internal__";
 export const LIVE_REFRESH_SSE_PATH = `/${HWY_PREFIX}live_refresh_sse`;
@@ -274,8 +275,7 @@ export type Action<EnvType extends Env = {}> = (
   args: DataProps<EnvType>,
 ) => Promise<any> | any;
 
-export type GenericPageProps<
-  FunctionComponent,
+export type PageProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
 > = {
@@ -287,20 +287,16 @@ export type GenericPageProps<
   path: string;
 };
 
-export type GenericPageComponent<
-  FunctionComponent,
-  JSXElement,
+export type PageComponent<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
-> = (
-  props: GenericPageProps<FunctionComponent, LoaderType, ActionType>,
-) => JSXElement;
+> = (props: PageProps<LoaderType, ActionType>) => JSX.Element;
 
 export type HeadProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
   EnvType extends Env = {},
-> = Omit<GenericPageProps<any, LoaderType, ActionType>, "Outlet"> & {
+> = Omit<PageProps<LoaderType, ActionType>, "Outlet"> & {
   c: Context<EnvType>;
 };
 

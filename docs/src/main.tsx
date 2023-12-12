@@ -1,6 +1,5 @@
 import { IS_DEV } from "./utils/constants.js";
-import { hwyInit, utils, type HeadBlock } from "hwy";
-import { HeadElements, renderRoot } from "@hwy-js/preact";
+import { hwyInit, utils, HeadBlock, HeadElements, renderRoot } from "hwy";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { handle } from "@hono/node-server/vercel";

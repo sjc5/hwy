@@ -1,5 +1,4 @@
-import { hwyInit } from "hwy";
-import { HeadElements, renderRoot } from "@hwy-js/preact";
+import { hwyInit, HeadElements, renderRoot } from "hwy";
 import { RootOutlet } from "@hwy-js/client";
 import { Hono } from "hono";
 import { logger } from "hono/logger";

@@ -54,9 +54,6 @@ importers:
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../packages/dev
-      '@hwy-js/preact':
-        specifier: workspace:*
-        version: link:../packages/preact
       '@preact/signals':
         specifier: ^1.2.2
         version: 1.2.2(preact@10.19.3)
@@ -100,9 +97,6 @@ importers:
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
-      '@hwy-js/preact':
-        specifier: workspace:*
-        version: link:../../packages/preact
       '@hwy-js/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -333,33 +327,6 @@ importers:
         specifier: ^5.3.3
         version: 5.3.3
 
-  packages/hono:
-    devDependencies:
-      hono:
-        specifier: ^3.11.4
-        version: 3.11.4
-      hwy:
-        specifier: workspace:*
-        version: link:../core
-      tsup:
-        specifier: ^8.0.1
-        version: 8.0.1(postcss@8.4.32)(typescript@5.3.3)
-
-  packages/preact:
-    devDependencies:
-      hono:
-        specifier: ^3.11.4
-        version: 3.11.4
-      hwy:
-        specifier: workspace:*
-        version: link:../core
-      preact:
-        specifier: ^10.19.3
-        version: 10.19.3
-      tsup:
-        specifier: ^8.0.1
-        version: 8.0.1(postcss@8.4.32)(typescript@5.3.3)
-
   packages/utils:
     devDependencies:
       hono:
@@ -396,9 +363,6 @@ importers:
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
-      '@hwy-js/preact':
-        specifier: workspace:*
-        version: link:../../packages/preact
       '@hwy-js/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -451,9 +415,6 @@ importers:
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
-      '@hwy-js/preact':
-        specifier: workspace:*
-        version: link:../../packages/preact
       '@preact/signals':
         specifier: ^1.2.2
         version: 1.2.2(preact@10.19.3)
