@@ -3,6 +3,7 @@ import { Context } from "hono";
 import {
   ActivePathData,
   DataProps,
+  HWY_PREFIX,
   Paths,
   SPLAT_SEGMENT,
   get_hwy_global,
@@ -19,7 +20,13 @@ const hwy_global = get_hwy_global();
 async function get_path(import_path: string) {
   const route_strategy = hwy_global.get("hwy_config").routeStrategy;
 
-  let _path = (globalThis as any)["./" + import_path];
+  const arbitrary_global = (globalThis as any)[Symbol.for(HWY_PREFIX)];
+
+  if (!arbitrary_global) {
+    (globalThis as any)[Symbol.for(HWY_PREFIX)] = {};
+  }
+
+  let _path = arbitrary_global["./" + import_path];
 
   // If "bundle" this should definitely be true
   // If "warm-cache-at-startup" or "lazy-once-then-cache", this might be true
@@ -39,7 +46,7 @@ async function get_path(import_path: string) {
 
   _path = await import(path_to_file_url_string(inner));
 
-  (globalThis as any)["./" + import_path] = _path;
+  arbitrary_global["./" + import_path] = _path;
 
   return _path;
 }

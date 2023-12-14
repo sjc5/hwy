@@ -2,6 +2,7 @@ import type { Context, Env } from "hono";
 import { FunctionComponent, JSX } from "preact";
 
 export const HWY_PREFIX = "__hwy_internal__";
+export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
 export const LIVE_REFRESH_SSE_PATH = `/${HWY_PREFIX}live_refresh_sse`;
 export const LIVE_REFRESH_RPC_PATH = `/${HWY_PREFIX}live_refresh_rpc`;
 
@@ -243,15 +244,19 @@ for (const key in HWY_GLOBAL_KEYS) {
 export function get_hwy_global() {
   const global_this = globalThis as any;
 
+  if (!global_this[HWY_SYMBOL]) {
+    global_this[HWY_SYMBOL] = {};
+  }
+
   function get<K extends HwyGlobalKey>(key: K) {
-    return global_this[HWY_PREFIX + key] as HwyGlobal[K];
+    return global_this[HWY_SYMBOL][HWY_PREFIX + key] as HwyGlobal[K];
   }
 
   function set<K extends HwyGlobalKey, V extends HwyGlobal[K]>(
     key: K,
     value: V,
   ) {
-    global_this[HWY_PREFIX + key] = value;
+    global_this[HWY_SYMBOL][HWY_PREFIX + key] = value;
   }
 
   return { get, set };

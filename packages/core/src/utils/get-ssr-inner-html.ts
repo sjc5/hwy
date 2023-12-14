@@ -1,10 +1,10 @@
+import { uneval } from "devalue";
 import {
+  ActivePathData,
   CLIENT_SIGNAL_KEYS,
   HWY_PREFIX,
-  ActivePathData,
   get_hwy_global,
 } from "../../../common/index.mjs";
-import { uneval } from "devalue";
 import { getPublicUrl } from "./hashed-public-url.js";
 
 const hwy_global = get_hwy_global();
@@ -18,8 +18,8 @@ function global_setter_string(
 
 function getSsrInnerHtml(activePathData: ActivePathData) {
   return `${hwy_global.get("is_dev") ? `import "preact/debug";` : ""}
-globalThis.${HWY_PREFIX} = {};
-const x = globalThis.${HWY_PREFIX};
+globalThis[Symbol.for("${HWY_PREFIX}")] = {};
+const x = globalThis[Symbol.for("${HWY_PREFIX}")];
 x.is_dev = ${uneval(hwy_global.get("is_dev"))};
 ${global_setter_string("activeData", activePathData.activeData)}
 ${global_setter_string(

@@ -288,7 +288,7 @@ async function runBuildTasks({
     `\n\n` +
     FILE_NAMES.map((x) => {
       const var_name = convert_to_var_name(x);
-      return `globalThis["${var_name}"] = ${var_name};`;
+      return `globalThis[Symbol.for("${HWY_PREFIX}")]["${var_name}"] = ${var_name};`;
     }).join("\n") +
     "\n\n";
 
@@ -296,11 +296,18 @@ async function runBuildTasks({
    * Set up some additional global variables
    * This is how we can know these settings at runtime
    */
-  const dev_line = `globalThis.${HWY_GLOBAL_KEYS.is_dev} = ${IS_DEV};\n`;
-  const hwy_config_line = `globalThis.${
+  const warmup_line = `
+if (!globalThis[Symbol.for("${HWY_PREFIX}")]) {
+  globalThis[Symbol.for("${HWY_PREFIX}")] = {};
+}
+const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
+`;
+
+  const dev_line = `${HWY_PREFIX}arbitrary_global.${HWY_GLOBAL_KEYS.is_dev} = ${IS_DEV};\n`;
+  const hwy_config_line = `${HWY_PREFIX}arbitrary_global.${
     HWY_GLOBAL_KEYS.hwy_config
   } = ${JSON.stringify(hwy_config)};\n`;
-  const import_map_setup_line = `globalThis.${
+  const import_map_setup_line = `${HWY_PREFIX}arbitrary_global.${
     HWY_GLOBAL_KEYS.import_map_setup
   } = ${JSON.stringify(
     ALL_MODULE_DEF_NAMES.map((x: string) => {
@@ -313,7 +320,7 @@ async function runBuildTasks({
       };
     }),
   )};\n`;
-  const injected_scripts_line = `globalThis.${
+  const injected_scripts_line = `${HWY_PREFIX}arbitrary_global.${
     HWY_GLOBAL_KEYS.injected_scripts
   } = ${JSON.stringify(injected_scripts)};\n`;
 
@@ -322,7 +329,8 @@ async function runBuildTasks({
    */
   await fs.promises.writeFile(
     path.join(process.cwd(), "dist/main.js"),
-    dev_line +
+    warmup_line +
+      dev_line +
       hwy_config_line +
       import_map_setup_line +
       injected_scripts_line +
@@ -504,13 +512,13 @@ async function get_path_import_snippet() {
     return `
 ${HWY_PREFIX}paths.forEach(function (x) {
   const path_from_dist = "./" + x.importPath;
-  import(path_from_dist).then((x) => globalThis[path_from_dist] = x);
+  import(path_from_dist).then((x) => ${HWY_PREFIX}arbitrary_global[path_from_dist] = x);
   ${
     hwy_config.useDotServerFiles
       ? `
   if (x.hasSiblingServerFile) {
     const server_path_from_dist = path_from_dist.slice(0, -3) + ".server.js";
-    import(server_path_from_dist).then((x) => globalThis[server_path_from_dist] = x);
+    import(server_path_from_dist).then((x) => ${HWY_PREFIX}arbitrary_global[server_path_from_dist] = x);
   }
     `.trim() + "\n"
       : ""
@@ -536,13 +544,15 @@ ${HWY_PREFIX}paths.forEach(function (x) {
       .map((x) => {
         return `
 import * as ${convert_to_var_name(x.importPath)} from "./${x.importPath}";
-globalThis["./${x.importPath}"] = ${convert_to_var_name(x.importPath)};
+${HWY_PREFIX}arbitrary_global["./${x.importPath}"] = ${convert_to_var_name(
+          x.importPath,
+        )};
 ${
   hwy_config.useDotServerFiles && x.hasSiblingServerFile
     ? `import * as ${convert_to_var_name(
         x.importPath.slice(0, -3) + ".server.js",
       )} from "./${x.importPath.slice(0, -3) + ".server.js"}";
-  globalThis["./${
+  ${HWY_PREFIX}arbitrary_global["./${
     x.importPath.slice(0, -3) + ".server.js"
   }"] = ${convert_to_var_name(x.importPath.slice(0, -3) + ".server.js")};`
     : ""

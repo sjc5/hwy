@@ -59,7 +59,6 @@ async function hwyInit({
   serveStatic?: ServeStaticFn;
   publicUrlPrefix?: string;
 }) {
-  const hwy_global = get_hwy_global();
   const deployment_target = hwy_global.get("hwy_config").deploymentTarget;
 
   console.log("\nInitializing Hwy app...");
