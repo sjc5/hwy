@@ -69,10 +69,7 @@ mean you can use it in both React compat and non-compat ways, and you have
 first-party signals support(in a lot of ways, Hwy is a lot like Fresh, and Fresh
 shares a core maintainer with Preact).
 
-## Preact TO DO
+## Preact TO-DO
 
-- [ ] Add additional modes
 - [ ] Update `create-hwy`
-- [ ] Add ability to turn "head" idiomorph on/off
-- [ ] Finish actions solution (needs to support JSON and FormData)
 - [ ] Could maybe build Remix-Easy-Mode / DS-1 type solution in?

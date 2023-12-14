@@ -1,1 +1,1 @@
-export { getDefaultBodyProps, redirect, init } from "./src/htmx/htmx-utils.js";
+export { getDefaultBodyProps, redirect } from "./src/htmx/htmx-utils.js";

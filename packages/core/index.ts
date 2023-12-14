@@ -1,18 +1,18 @@
+export { getMatchingPathData } from "./src/router/get-matching-path-data.js";
 export { hwyInit } from "./src/setup.js";
 export { utils } from "./src/utils/hwy-utils.js";
-export { getMatchingPathData } from "./src/router/get-matching-path-data.js";
 
 export type {
-  PageComponent,
-  PageProps,
-  Loader,
-  DataProps,
   Action,
+  ActivePathData,
+  DataProps,
+  ErrorBoundaryProps,
   HeadBlock,
   HeadFunction,
   HeadProps,
-  ErrorBoundaryProps,
-  ActivePathData,
+  Loader,
+  PageComponent,
+  PageProps,
 } from "./src/types.js";
 
 export { HeadElements } from "./src/preact/head-elements-comp.js";

@@ -22,8 +22,6 @@
     "@hwy-js/dev": "workspace:*",
     "@preact/signals": "^1.2.2",
     "@types/node": "^20.10.4",
-    "htmx.org": "^1.9.9",
-    "idiomorph": "^0.0.9",
     "preact": "^10.19.3",
     "typescript": "^5.3.3"
   },

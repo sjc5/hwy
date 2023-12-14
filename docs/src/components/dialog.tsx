@@ -12,7 +12,7 @@ function DialogModal({
   open_button_class?: string;
 }) {
   return (
-    <div hx-boost="false" class={wrapper_class}>
+    <div class={wrapper_class}>
       <button
         // @ts-ignore
         onclick={`this.nextElementSibling.showModal()`}

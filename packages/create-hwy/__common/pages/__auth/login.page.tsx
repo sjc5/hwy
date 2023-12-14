@@ -1,5 +1,5 @@
-import type { DataProps, PageProps } from "hwy";
 import { getFormStrings } from "@hwy-js/utils";
+import type { DataProps, PageProps } from "hwy";
 
 export async function action({ c }: DataProps) {
   const data = await getFormStrings<"email" | "password">({ c });
@@ -73,7 +73,6 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
             <input
               name="email"
               type="email"
-              hx-preserve="true"
               id="email"
               placeholder="you@example.com"
             />
@@ -82,7 +81,6 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
           <label style={labelStyles}>
             Password
             <input
-              hx-preserve="true"
               id="password"
               name="password"
               type="password"

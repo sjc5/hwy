@@ -1,18 +1,16 @@
 import { DEFAULT_PORT, HwyConfig } from "../../common/index.mjs";
 import { Options } from "../index.js";
 
-// Perhaps modes should be "MPA", "ENHANCED-MPA", and "SPA"?
-
 function get_hwy_config(options: Options) {
   let obj: HwyConfig =
     options.client_lib === "preact"
       ? {
-          mode: "preact-mpa",
+          hydrateRouteComponents: true,
           deploymentTarget: options.deployment_target,
           useDotServerFiles: true,
         }
       : {
-          mode: "htmx-mpa",
+          hydrateRouteComponents: false,
           deploymentTarget: options.deployment_target,
           useDotServerFiles: false,
         };

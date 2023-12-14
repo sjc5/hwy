@@ -1,5 +1,6 @@
-import type { Hono, Context, Next } from "hono";
 import type { serveStatic as serveStaticFn } from "@hono/node-server/serve-static";
+import type { Context, Hono, Next } from "hono";
+import { get_hwy_global } from "../../common/index.mjs";
 import {
   DEV_BUNDLED_CSS_QUERY_PARAM,
   getPublicUrl,
@@ -7,7 +8,6 @@ import {
   get_serve_static_options,
 } from "./utils/hashed-public-url.js";
 import { file_url_to_path, node_path } from "./utils/url-polyfills.js";
-import { get_hwy_global } from "../../common/index.mjs";
 
 function dirname_from_import_meta(import_meta_url: string) {
   return node_path?.dirname(file_url_to_path(import_meta_url)) ?? "";
@@ -24,7 +24,7 @@ const IMMUTABLE_CACHE_HEADER_VALUE = "public, max-age=31536000, immutable";
 const hwy_global = get_hwy_global();
 
 function immutable_cache() {
-  const deployment_target = hwy_global.get("deployment_target");
+  const deployment_target = hwy_global.get("hwy_config").deploymentTarget;
 
   const should_set_cdn_cache_control =
     deployment_target === "vercel-lambda" ||
@@ -60,7 +60,7 @@ async function hwyInit({
   publicUrlPrefix?: string;
 }) {
   const hwy_global = get_hwy_global();
-  const deployment_target = hwy_global.get("deployment_target");
+  const deployment_target = hwy_global.get("hwy_config").deploymentTarget;
 
   console.log("\nInitializing Hwy app...");
 
@@ -126,10 +126,9 @@ async function hwyInit({
 }
 
 export {
-  // public
-  hwyInit,
-
+  PUBLIC_URL_PREFIX,
   // private
   ROOT_DIRNAME,
-  PUBLIC_URL_PREFIX,
+  // public
+  hwyInit,
 };

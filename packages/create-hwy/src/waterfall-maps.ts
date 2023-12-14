@@ -1,5 +1,5 @@
-import { DEFAULT_PORT } from "../../common/index.mjs";
 import fs from "node:fs";
+import { DEFAULT_PORT } from "../../common/index.mjs";
 
 const pkg_json = JSON.parse(
   fs.readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
@@ -100,7 +100,7 @@ const SCRIPTS_WATERFALL_MAP = [
       "dev:serve": "hwy-dev-serve",
       "dev:wrangler": `wrangler pages dev ./dist --compatibility-flag="nodejs_compat" --port=${DEFAULT_PORT} --live-reload`,
       dev: "npm run build && npm-run-all --parallel dev:*",
-      start: undefined, // not sure about this one TODO
+      start: undefined, // not sure about this one TO-DO
     },
   ],
 ] as const;
@@ -111,7 +111,7 @@ const DEPS_WATERFALL_MAP = [
   ["BASE", { hono: VERSIONS["hono"], hwy: LATEST_HWY_VERSION }],
   ["IS_CSS_HOOKS", { "@css-hooks/core": VERSIONS["@css-hooks/core"] }],
   ["IS_NODE", { "@hono/node-server": VERSIONS["@hono/node-server"] }],
-  ["IS_CF_PAGES", { "@hono/node-server": undefined }], // TODO not sure here
+  ["IS_CF_PAGES", { "@hono/node-server": undefined }], // TO-DO not sure here
 ] as const;
 
 /******************************************************************************/
@@ -153,8 +153,8 @@ const DEV_DEPS_WATERFALL_MAP = [
 ] as const;
 
 export {
-  LATEST_HWY_VERSION,
-  SCRIPTS_WATERFALL_MAP,
   DEPS_WATERFALL_MAP,
   DEV_DEPS_WATERFALL_MAP,
+  LATEST_HWY_VERSION,
+  SCRIPTS_WATERFALL_MAP,
 };

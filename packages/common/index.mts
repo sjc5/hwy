@@ -5,20 +5,6 @@ export const HWY_PREFIX = "__hwy_internal__";
 export const LIVE_REFRESH_SSE_PATH = `/${HWY_PREFIX}live_refresh_sse`;
 export const LIVE_REFRESH_RPC_PATH = `/${HWY_PREFIX}live_refresh_rpc`;
 
-export const HWY_GLOBAL_KEYS = {
-  deployment_target: `${HWY_PREFIX}deployment_target`,
-  route_strategy: `${HWY_PREFIX}route_strategy`,
-  is_dev: `${HWY_PREFIX}is_dev`,
-  critical_bundled_css: `${HWY_PREFIX}critical_bundled_css`,
-  standard_bundled_css_exists: `${HWY_PREFIX}standard_bundled_css_exists`,
-  paths: `${HWY_PREFIX}paths`,
-  public_map: `${HWY_PREFIX}public_map`,
-  public_reverse_map: `${HWY_PREFIX}public_reverse_map`,
-  mode: `${HWY_PREFIX}mode`,
-  use_dot_server_files: `${HWY_PREFIX}use_dot_server_files`,
-  import_map_setup: `${HWY_PREFIX}import_map_setup`,
-} as const;
-
 export const DEFAULT_PORT = 3000;
 
 type CloudflarePages = "cloudflare-pages";
@@ -32,6 +18,7 @@ type NonCloudflarePages =
 export type DeploymentTarget = NonCloudflarePages | CloudflarePages;
 
 export type HwyConfig = {
+  scriptsToInject?: Array<string>;
   dev?: {
     port?: number;
     watchExclusions?: Array<string>;
@@ -39,10 +26,8 @@ export type HwyConfig = {
   };
   usePreactCompat?: boolean;
 } & (
-  | { mode: "mpa"; useDotServerFiles: boolean }
-  | { mode: "htmx-mpa"; useDotServerFiles: boolean }
-  | { mode: "preact-mpa"; useDotServerFiles: true }
-  | { mode: "preact-spa"; useDotServerFiles?: boolean }
+  | { hydrateRouteComponents?: false; useDotServerFiles: boolean }
+  | { hydrateRouteComponents: true; useDotServerFiles: true }
 ) &
   (
     | {
@@ -225,22 +210,34 @@ export type Paths = Array<Path>;
 
 // HWY GLOBAL (SERVER)
 
-export type HwyGlobal = Partial<{
-  deployment_target: DeploymentTarget;
-  route_strategy: NonNullable<HwyConfig["routeStrategy"]>;
+export type HwyGlobal = {
+  hwy_config: HwyConfig;
   is_dev: boolean;
   critical_bundled_css: string;
-  standard_bundled_css_exists: boolean;
   paths: Paths;
   public_map: Record<string, string>;
   public_reverse_map: Record<string, string>;
   test_dirname?: string;
-  mode: HwyConfig["mode"];
-  use_dot_server_files: boolean;
   import_map_setup: any;
-}>;
+  injected_scripts: Array<string>;
+};
 
 export type HwyGlobalKey = keyof HwyGlobal;
+
+export const HWY_GLOBAL_KEYS: { [K in keyof HwyGlobal]: any } = {
+  hwy_config: "",
+  is_dev: "",
+  critical_bundled_css: "",
+  paths: "",
+  public_map: "",
+  public_reverse_map: "",
+  import_map_setup: "",
+  injected_scripts: "",
+} as const;
+
+for (const key in HWY_GLOBAL_KEYS) {
+  HWY_GLOBAL_KEYS[key as HwyGlobalKey] = HWY_PREFIX + key;
+}
 
 export function get_hwy_global() {
   const global_this = globalThis as any;
@@ -281,7 +278,7 @@ export type PageProps<
 > = {
   loaderData: Awaited<ReturnType<LoaderType>>;
   actionData: Awaited<ReturnType<ActionType>> | undefined;
-  Outlet: FunctionComponent;
+  Outlet: FunctionComponent<Record<string, any>>;
   params: Record<string, string>;
   splatSegments: string[];
   path: string;

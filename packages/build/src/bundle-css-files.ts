@@ -1,10 +1,10 @@
-import path from "node:path";
-import fs from "node:fs";
 import esbuild from "esbuild";
-import { hwyLog } from "./hwy-log.js";
-import { get_hashed_public_url_low_level } from "./hashed-public-url.js";
+import fs from "node:fs";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
+import { get_hashed_public_url_low_level } from "./hashed-public-url.js";
+import { hwyLog } from "./hwy-log.js";
 
 /*
 NOTE: This file assumes it's run (and therefore imported / initiated)
@@ -39,11 +39,7 @@ async function bundle_css_files() {
   if (!using_styles_dir) {
     hwyLog("Not using styles directory, skipping css bundling...");
 
-    await Promise.all([
-      write_standard_bundled_css_exists(false),
-      write_critical_bundled_css_is_undefined(),
-      write_empty_standard_bundled_css_file(),
-    ]);
+    await Promise.all([write_critical_bundled_css_is_undefined()]);
 
     return;
   }
@@ -79,13 +75,6 @@ async function bundle_css_files() {
           outfile: path.resolve("public/dist/standard-bundled.css"),
           minify: true,
         }),
-
-        write_standard_bundled_css_exists(true),
-      ]);
-    } else {
-      await Promise.all([
-        write_standard_bundled_css_exists(false),
-        write_empty_standard_bundled_css_file(),
       ]);
     }
   }
@@ -139,19 +128,5 @@ async function write_critical_bundled_css_is_undefined() {
   return fs.promises.writeFile(
     path.join(process.cwd(), "dist/critical-bundled-css.js"),
     `export const ${HWY_GLOBAL_KEYS.critical_bundled_css} = undefined;`,
-  );
-}
-
-async function write_standard_bundled_css_exists(does_exist: boolean) {
-  await fs.promises.writeFile(
-    path.join(process.cwd(), "dist/standard-bundled-css-exists.js"),
-    `export const ${HWY_GLOBAL_KEYS.standard_bundled_css_exists} = ${does_exist};`,
-  );
-}
-
-async function write_empty_standard_bundled_css_file() {
-  await fs.promises.writeFile(
-    path.join(process.cwd(), "public/dist/standard-bundled.css"),
-    "",
   );
 }

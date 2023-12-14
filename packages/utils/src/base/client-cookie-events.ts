@@ -58,6 +58,8 @@ function makeCookieEventHelpers<T extends CookieEventDetails>() {
       });
     }
 
+    // TO-DO -- de-HTMX this
+    // Maybe just return the callback
     document.body.addEventListener("htmx:afterSettle", callback);
 
     /*

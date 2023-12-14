@@ -1,23 +1,24 @@
-import path from "node:path";
-import fs from "node:fs";
-import {
-  generate_public_file_map,
-  write_paths_to_disk,
-  type Paths,
-} from "./walk-pages.js";
-import esbuild from "esbuild";
-import { hwyLog, logPerf } from "./hwy-log.js";
 import { exec as exec_callback } from "child_process";
-import { promisify } from "node:util";
+import esbuild from "esbuild";
+import fs from "node:fs";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { promisify } from "node:util";
 import {
   HWY_GLOBAL_KEYS,
   HWY_PREFIX,
   type RefreshFilePayload,
 } from "../../common/index.mjs";
-import { get_hwy_config } from "./get-hwy-config.js";
-import { smart_normalize } from "./smart-normalize.js";
 import { get_is_hot_reload_only } from "./dev-serve.js";
+import { get_hwy_config } from "./get-hwy-config.js";
+import { hwyLog, logPerf } from "./hwy-log.js";
+import { smart_normalize } from "./smart-normalize.js";
+import {
+  generate_public_file_map,
+  sha1_short,
+  write_paths_to_disk,
+  type Paths,
+} from "./walk-pages.js";
 
 export let ALL_MODULE_DEF_NAMES = [] as Array<string>;
 
@@ -26,7 +27,6 @@ const FILE_NAMES = [
   "paths.js",
   "public-map.js",
   "public-reverse-map.js",
-  "standard-bundled-css-exists.js",
 ] as const;
 
 const exec = promisify(exec_callback);
@@ -34,10 +34,6 @@ const hwy_config = await get_hwy_config();
 const SHOULD_BUNDLE_PATHS =
   hwy_config.routeStrategy === "bundle" ||
   hwy_config.deploymentTarget === "cloudflare-pages";
-
-const IS_PREACT_MPA = hwy_config.mode === "preact-mpa";
-
-console.log({ IS_PREACT_MPA });
 
 async function runBuildTasks({
   IS_DEV,
@@ -78,12 +74,11 @@ async function runBuildTasks({
   hwyLog(`Running standard build tasks...`);
   const standard_tasks_p0 = performance.now();
 
-  const dist_path = path.join(process.cwd(), "dist");
-  const public_path = path.join(process.cwd(), "public");
-
   await Promise.all([
-    fs.promises.mkdir(dist_path, { recursive: true }),
-    fs.promises.mkdir(public_path, { recursive: true }),
+    fs.promises.mkdir(path.join(process.cwd(), "dist"), { recursive: true }),
+    fs.promises.mkdir(path.join(process.cwd(), "public/dist"), {
+      recursive: true,
+    }),
   ]);
 
   const is_using_client_entry = get_is_using_client_entry();
@@ -147,6 +142,7 @@ async function runBuildTasks({
     // BUNDLE YOUR MAIN CLIENT ENTRY, BUT EXCLUDE PREACT (PREACT IS BY ITSELF AND IN IMPORT MAP)
     is_using_client_entry
       ? esbuild.build({
+          // TO-DO -- customize entry point in Hwy Config
           entryPoints: ["src/entry.client.*"],
           bundle: true,
           outdir: "public/dist",
@@ -194,7 +190,18 @@ async function runBuildTasks({
           }
         })
       : []),
+
+    ...(hwy_config.scriptsToInject ?? []).map(async (item) => {
+      return fs.promises.copyFile(
+        path.join(process.cwd(), item),
+        path.join(process.cwd(), "public/dist", sha1_short(item) + ".js"),
+      );
+    }),
   ]);
+
+  const injected_scripts = (hwy_config.scriptsToInject ?? []).map(
+    (item) => "dist/" + sha1_short(item) + ".js",
+  );
 
   /********************* STEP 3 *********************
    * BUILD SERVER ENTRY AND WRITE PATHS TO DISK
@@ -203,8 +210,10 @@ async function runBuildTasks({
    * at this point, and not yet writing it to disk. We'll modify
    * it and write it to disk later.
    */
+
   const [main_build_result] = await Promise.all([
     esbuild.build({
+      // TO-DO -- customize entry point in Hwy Config
       entryPoints: ["src/main.*"],
       bundle: true,
       outdir: "dist",
@@ -285,14 +294,12 @@ async function runBuildTasks({
 
   /*
    * Set up some additional global variables
-   * Includes "is_dev", "deployment_target", and "route_strategy"
    * This is how we can know these settings at runtime
    */
   const dev_line = `globalThis.${HWY_GLOBAL_KEYS.is_dev} = ${IS_DEV};\n`;
-  const dep_target_line = `globalThis.${HWY_GLOBAL_KEYS.deployment_target} = "${hwy_config.deploymentTarget}";\n`;
-  const route_strategy_line = `globalThis.${HWY_GLOBAL_KEYS.route_strategy} = "${hwy_config.routeStrategy}";\n`;
-  const mode_line = `globalThis.${HWY_GLOBAL_KEYS.mode} = "${hwy_config.mode}";\n`;
-  const use_dot_server_files_line = `globalThis.${HWY_GLOBAL_KEYS.use_dot_server_files} = ${hwy_config.useDotServerFiles};\n`;
+  const hwy_config_line = `globalThis.${
+    HWY_GLOBAL_KEYS.hwy_config
+  } = ${JSON.stringify(hwy_config)};\n`;
   const import_map_setup_line = `globalThis.${
     HWY_GLOBAL_KEYS.import_map_setup
   } = ${JSON.stringify(
@@ -306,6 +313,9 @@ async function runBuildTasks({
       };
     }),
   )};\n`;
+  const injected_scripts_line = `globalThis.${
+    HWY_GLOBAL_KEYS.injected_scripts
+  } = ${JSON.stringify(injected_scripts)};\n`;
 
   /*
    * Now put it all together and write main.js to disk
@@ -313,11 +323,9 @@ async function runBuildTasks({
   await fs.promises.writeFile(
     path.join(process.cwd(), "dist/main.js"),
     dev_line +
-      dep_target_line +
-      route_strategy_line +
-      mode_line +
-      use_dot_server_files_line +
+      hwy_config_line +
       import_map_setup_line +
+      injected_scripts_line +
       to_be_appended +
       main_code,
   );

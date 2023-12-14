@@ -1,4 +1,4 @@
-import { BaseProps, HeadFunction, HeadBlock } from "../../../common/index.mjs";
+import { BaseProps, HeadBlock, HeadFunction } from "../../../common/index.mjs";
 import { getPublicUrl } from "./hashed-public-url.js";
 
 function stable_hash(obj: Record<string, any>): string {
@@ -73,9 +73,7 @@ function getHeadBlocks(props: BaseProps): HeadBlock[] {
           tag: "script",
           attributes: {
             type: "module",
-            src: getPublicUrl(
-              "dist/pages/" + x.importPath.replace("pages/", ""),
-            ),
+            src: getPublicUrl("dist/" + x.importPath),
           },
         };
       }) ?? [];

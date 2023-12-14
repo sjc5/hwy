@@ -1,5 +1,5 @@
-import { utils } from "./hwy-utils.js";
 import { get_hwy_global } from "../../../common/index.mjs";
+import { utils } from "./hwy-utils.js";
 
 const hwy_global = get_hwy_global();
 
@@ -7,6 +7,10 @@ let IMPORT_MAP: { imports: Record<string, string> };
 
 function getImportMap() {
   if (!IMPORT_MAP) {
+    const IS_PREACT_MPA = Boolean(
+      hwy_global.get("hwy_config").hydrateRouteComponents,
+    );
+
     IMPORT_MAP = {
       imports: {
         ...Object.fromEntries(
@@ -14,7 +18,7 @@ function getImportMap() {
             return [x.name, utils.getPublicUrl(`dist/${x.index}.js`)];
           }),
         ),
-        ...(hwy_global.get("is_dev")
+        ...(hwy_global.get("is_dev") && IS_PREACT_MPA
           ? {
               "preact/debug": utils.getPublicUrl(
                 "dist/preact/preact-dev/debug.module.js",

@@ -32,18 +32,12 @@ export default function ({ actionData }: PageProps<never, ActionType>) {
       </p>
 
       {!actionData?.success && (
-        <form
-          action={thisRoute}
-          method="POST"
-          style={colStyles}
-          hx-swap="scroll:none"
-        >
+        <form action={thisRoute} method="POST" style={colStyles}>
           <label style={labelStyles}>
             Email
             <input
               name="email"
               type="email"
-              hx-preserve="true"
               id="email"
               placeholder="you@example.com"
             />
@@ -52,7 +46,6 @@ export default function ({ actionData }: PageProps<never, ActionType>) {
           <label style={labelStyles}>
             Password
             <input
-              hx-preserve="true"
               id="password"
               name="password"
               type="password"

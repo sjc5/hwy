@@ -1,16 +1,3 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "noImplicitAny": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact",
-    "types": ["node"]
-  },
-  "exclude": ["node_modules", "dist"]
+  "extends": "../../tsconfig.json"
 }

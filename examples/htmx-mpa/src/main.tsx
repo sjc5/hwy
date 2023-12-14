@@ -1,12 +1,14 @@
-import { hwyInit } from "hwy";
-import { HeadElements, renderRoot } from "hwy";
+// hwy imports
 import { RootOutlet } from "@hwy-js/client";
+import * as htmxUtils from "@hwy-js/utils/htmx";
+import { HeadElements, hwyInit, renderRoot } from "hwy";
+
+// hono imports
+import { serve } from "@hono/node-server";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { serve } from "@hono/node-server";
-import { serveStatic } from "@hono/node-server/serve-static";
-import * as htmxUtils from "@hwy-js/utils/htmx";
 
 const { app } = await hwyInit({
   app: new Hono(),
@@ -40,6 +42,7 @@ app.all("*", async (c, next) => {
               name="viewport"
               content="width=device-width,initial-scale=1"
             />
+
             <HeadElements {...baseProps} />
           </head>
 

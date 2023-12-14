@@ -1,15 +1,6 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact",
     "types": ["@cloudflare/workers-types", "node"]
-  },
-  "exclude": ["node_modules", "dist"]
+  }
 }

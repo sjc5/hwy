@@ -10,7 +10,6 @@ const CORE_CLIENT_MODULE_DEFS = [
   {
     code: `export { RootOutlet, initPreactClient, submit } from "@hwy-js/client";`,
     names: ["@hwy-js/client"],
-    external: ["htmx.org", "idiomorph", "nprogress"],
   },
 ] as const;
 

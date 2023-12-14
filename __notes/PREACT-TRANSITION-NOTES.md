@@ -21,10 +21,8 @@ To support this new Preact option,
 
 ######
 
-# TODO
+# TO-DO
 
-- Add "classic-mpa" mode.
-- It's really time to update the docs.
 - Setup "USE_PREACT_COMPAT"
 
 # WHERE IS HTMX?
@@ -35,3 +33,11 @@ To support this new Preact option,
 - [x] default-body-props.ts // not needed anymore (put in htmx utils)
 - [ ] Create-hwy package in general
 - [ ] client-cookie-events.ts
+
+# ARGS
+
+- Preact is a more stable and mature JSX rendering primitive
+- Moving to Preact for JSX rendering allows us to use Preact (and React
+  ecosystem) on the client if desired, either in islands or for entire apps
+- Using Preact for JSX rendering reduces our reliance on Hono, making it very
+  possible to switch out Hono for other servers in the future if desired

@@ -1,13 +1,13 @@
+import { Context, Next } from "hono";
+import { JSX } from "preact";
+import { renderToString } from "preact-render-to-string";
 import {
   BaseProps,
   HWY_PREFIX,
-  sort_head_blocks,
-  get_hwy_global,
   HeadBlock,
+  get_hwy_global,
+  sort_head_blocks,
 } from "../../../common/index.mjs";
-import { Context, Next } from "hono";
-import { renderToString } from "preact-render-to-string";
-import { JSX } from "preact";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
 import { utils } from "../utils/hwy-utils.js";
 
@@ -32,7 +32,9 @@ async function renderRoot({
     return await next();
   }
 
-  const IS_PREACT_MPA = get_hwy_global().get("mode") === "preact-mpa";
+  const IS_PREACT_MPA = Boolean(
+    get_hwy_global().get("hwy_config").hydrateRouteComponents,
+  );
 
   if (IS_PREACT_MPA) {
     const IS_JSON = Boolean(c.req.query()[`${HWY_PREFIX}json`]);

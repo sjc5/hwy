@@ -63,6 +63,9 @@ importers:
       '@types/nprogress':
         specifier: ^0.2.3
         version: 0.2.3
+      history:
+        specifier: ^5.3.0
+        version: 5.3.0
       nprogress:
         specifier: ^0.2.0
         version: 0.2.0
@@ -192,6 +195,9 @@ importers:
       '@types/nprogress':
         specifier: ^0.2.3
         version: 0.2.3
+      history:
+        specifier: ^5.3.0
+        version: 5.3.0
       htmx.org:
         specifier: ^1.9.9
         version: 1.9.9
@@ -439,6 +445,13 @@ packages:
   /@alloc/quick-lru@5.2.0:
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
+    dev: true
+
+  /@babel/runtime@7.23.6:
+    resolution: {integrity: sha512-zHd0eUrf5GZoOWVCXp6koAKQTfZV07eit6bGPmJgnZdnSAvvZee6zniW2XMF7Cmc4ISOOnPy3QaSiIJGJkVEDQ==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      regenerator-runtime: 0.14.0
     dev: true
 
   /@cloudflare/kv-asset-handler@0.2.0:
@@ -1947,6 +1960,12 @@ packages:
     dependencies:
       function-bind: 1.1.2
 
+  /history@5.3.0:
+    resolution: {integrity: sha512-ZqaKwjjrAYUYfLG+htGaIIZ4nioX2L70ZUMIFysS3xvBsSG4x/n1V6TXV3N8ZYNuFGlDirFg32T7B6WOUPDYcQ==}
+    dependencies:
+      '@babel/runtime': 7.23.6
+    dev: true
+
   /hono@3.11.4:
     resolution: {integrity: sha512-lU8Et1Nkpa4RqgBvjGUGyu8/2QNdAOR9EqFzNCoP7wM+xtcq2v/DHi9CMJ/ixVxRU9Q2uAh0G3xIKTVYzzC4dg==}
     engines: {node: '>=16.0.0'}
@@ -2745,6 +2764,10 @@ packages:
     engines: {node: '>=8.10.0'}
     dependencies:
       picomatch: 2.3.1
+
+  /regenerator-runtime@0.14.0:
+    resolution: {integrity: sha512-srw17NI0TUWHuGa5CFGGmhfNIeja30WMBfbslPNhf6JrqQlLN5gcrvig1oqPxiVaXb0oW0XRKtH6Nngs5lKCIA==}
+    dev: true
 
   /regexp.prototype.flags@1.5.1:
     resolution: {integrity: sha512-sy6TXMN+hnP/wMy+ISxg3krXx7BAtWVO4UouuCN/ziM9UEne0euamVNafDfvC83bRNr95y0V5iijeDQFUNpvrg==}

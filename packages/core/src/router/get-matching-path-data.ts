@@ -1,15 +1,15 @@
 import { Context } from "hono";
 
-import { matcher } from "./matcher.js";
-import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
-import { get_match_strength } from "./get-match-strength.js";
 import {
-  SPLAT_SEGMENT,
   ActivePathData,
-  Paths,
-  get_hwy_global,
   DataProps,
+  Paths,
+  SPLAT_SEGMENT,
+  get_hwy_global,
 } from "../../../common/index.mjs";
+import { get_match_strength } from "./get-match-strength.js";
+import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
+import { matcher } from "./matcher.js";
 
 import { ROOT_DIRNAME } from "../setup.js";
 import { node_path, path_to_file_url_string } from "../utils/url-polyfills.js";
@@ -17,7 +17,7 @@ import { node_path, path_to_file_url_string } from "../utils/url-polyfills.js";
 const hwy_global = get_hwy_global();
 
 async function get_path(import_path: string) {
-  const route_strategy = hwy_global.get("route_strategy");
+  const route_strategy = hwy_global.get("hwy_config").routeStrategy;
 
   let _path = (globalThis as any)["./" + import_path];
 
@@ -53,12 +53,13 @@ function fully_decorate_paths({
 }) {
   return (
     matching_paths?.map((_path) => {
-      const server_import_path = hwy_global.get("use_dot_server_files")
+      const server_import_path = hwy_global.get("hwy_config").useDotServerFiles
         ? _path.importPath.slice(0, -3) + ".server.js"
         : _path.importPath;
 
       const NO_SERVER_FUNCTIONS =
-        hwy_global.get("use_dot_server_files") && !_path.hasSiblingServerFile;
+        hwy_global.get("hwy_config").useDotServerFiles &&
+        !_path.hasSiblingServerFile;
 
       // public
       return {

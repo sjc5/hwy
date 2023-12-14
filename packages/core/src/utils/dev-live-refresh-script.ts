@@ -11,7 +11,7 @@ function getShouldUseRefresh() {
   return Boolean(
     hwy_global.get("is_dev") &&
       // Wrangler does its own live reload
-      hwy_global.get("deployment_target") !== "cloudflare-pages",
+      hwy_global.get("hwy_config").deploymentTarget !== "cloudflare-pages",
   );
 }
 

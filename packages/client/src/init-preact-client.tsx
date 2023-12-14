@@ -1,7 +1,8 @@
-import { type ComponentChild, hydrate } from "preact";
 import { signal } from "@preact/signals";
-import { get_hwy_client_global } from "./client-global.js";
+import { createBrowserHistory } from "history";
+import { hydrate, type ComponentChild } from "preact";
 import { CLIENT_SIGNAL_KEYS, HWY_PREFIX } from "../../common/index.mjs";
+import { get_hwy_client_global } from "./client-global.js";
 
 const abort_controllers = new Map<string, AbortController>();
 
@@ -33,12 +34,71 @@ function is_internal_link(href: string) {
   }
 }
 
+let customHistory: ReturnType<typeof createBrowserHistory>;
+let lastKnownKey = "default";
+
+const scrollStateMapKey = "__hwy__scrollStateMap";
+type ScrollStateMap = Map<string, { x: number; y: number }>;
+
+function getScrollStateMapFromLocalStorage() {
+  const scrollStateMapString = localStorage.getItem(scrollStateMapKey);
+  let scrollStateMap: ScrollStateMap;
+  if (scrollStateMapString) {
+    scrollStateMap = new Map(JSON.parse(scrollStateMapString));
+  } else {
+    scrollStateMap = new Map();
+  }
+  return scrollStateMap;
+}
+
+function setScrollStateMapToLocalStorage(newScrollStateMap: ScrollStateMap) {
+  localStorage.setItem(
+    scrollStateMapKey,
+    JSON.stringify(Array.from(newScrollStateMap.entries())),
+  );
+}
+
+function setScrollStateMapSubKey(key: string, value: { x: number; y: number }) {
+  const scrollStateMap = getScrollStateMapFromLocalStorage();
+  scrollStateMap.set(key, value);
+
+  // if new item would brought it over 50 entries, delete the oldest one
+  if (scrollStateMap.size > 50) {
+    const oldestKey = Array.from(scrollStateMap.keys())[0];
+    scrollStateMap.delete(oldestKey);
+  }
+
+  setScrollStateMapToLocalStorage(scrollStateMap);
+}
+
+function readScrollStateMapSubKey(key: string) {
+  const scrollStateMap = getScrollStateMapFromLocalStorage();
+  return scrollStateMap.get(key);
+}
+
 async function initPreactClient(props: {
   elementToHydrate: HTMLElement;
   hydrateWith: ComponentChild;
   onLoadStart?: () => void;
   onLoadEnd?: () => void;
 }) {
+  customHistory = createBrowserHistory();
+
+  customHistory.listen(({ action, location }) => {
+    // save current scroll state to map
+    setScrollStateMapSubKey(lastKnownKey, {
+      x: window.scrollX,
+      y: window.scrollY,
+    });
+
+    // now set lastKnownKey to new location key
+    lastKnownKey = location.key;
+  });
+
+  if (history.scrollRestoration && history.scrollRestoration !== "manual") {
+    history.scrollRestoration = "manual";
+  }
+
   for (const key of CLIENT_SIGNAL_KEYS) {
     hwy_client_global.set_signal(
       key,
@@ -86,12 +146,21 @@ async function initPreactClient(props: {
 
     if (should_treat_as_ajax) {
       event.preventDefault();
-      await navigate(anchor.href, true, false);
+      await navigate({
+        href: anchor.href,
+        navigationType: "userNavigation",
+      });
     }
   });
 
-  window.addEventListener("popstate", async function () {
-    await navigate(location.href, false, false);
+  window.addEventListener("popstate", async function (event) {
+    await navigate({
+      href: location.href,
+      navigationType: "browserHistory",
+      scrollStateToRestore: readScrollStateMapSubKey(
+        customHistory.location.key,
+      ),
+    });
   });
 
   hwy_client_global.set("globalOnLoadStart", props?.onLoadStart);
@@ -124,23 +193,35 @@ async function initPreactClient(props: {
   });
 }
 
-async function navigate(
-  href: string,
-  setHistory: boolean,
-  isRevalidation: boolean,
-  isFirstTimeRunning: boolean = true,
-) {
+type NavigationType =
+  | "browserHistory"
+  | "userNavigation"
+  | "revalidation"
+  | "redirect";
+
+function getRandom() {
+  return Math.random().toString(36).substring(2, 15);
+}
+
+async function navigate(props: {
+  href: string;
+  navigationType: NavigationType;
+  isSecondTimeRunning?: boolean;
+  scrollStateToRestore?: { x: number; y: number };
+}) {
   hwy_client_global.get("globalOnLoadStart")?.();
 
-  const abort_controller_key = href === "." ? "revalidate" : "navigate";
+  const abort_controller_key = props.href === "." ? "revalidate" : "navigate";
   const { abort_controller } = handle_abort_controller(abort_controller_key);
 
   try {
-    const url = new URL(href, window.location.origin);
+    const url = new URL(props.href, window.location.origin);
 
     url.searchParams.set(`${HWY_PREFIX}json`, "1");
 
     let res;
+
+    const isFirstTimeRunning = !props.isSecondTimeRunning;
 
     if (isFirstTimeRunning) {
       // first time running, fetching WITH redir manual
@@ -169,6 +250,7 @@ async function navigate(
       }
     }
 
+    // TO-DO I think this redirect logic is wrong and needs to be re-created from navitagte function?
     if (res?.redirected) {
       const new_url = new URL(res.url);
 
@@ -179,13 +261,20 @@ async function navigate(
       }
 
       // internal link, soft redirecting
-      await navigate(new_url.href, true, false);
+      await navigate({
+        href: new_url.href,
+        navigationType: "redirect",
+      });
       return;
     }
 
     if (res?.type === "opaqueredirect") {
-      // run again with "isFirstTimeRunning" set to false
-      await navigate(res.url, true, false, false /* important */);
+      // run again with "isSecondTimeRunning" set to false
+      await navigate({
+        href: res.url,
+        navigationType: "redirect",
+        isSecondTimeRunning: true /* important */,
+      });
       return;
     }
 
@@ -197,7 +286,32 @@ async function navigate(
       throw new Error("No JSON response");
     }
 
-    await reRenderApp(href, setHistory, json, isRevalidation);
+    await reRenderApp({
+      json,
+      navigationType: props.navigationType,
+    });
+
+    // TO-DO scroll to top on link clicks, but provide an opt-out
+    // TO-DO scroll to top on form responses, but provide an opt-out
+
+    if (props.navigationType === "userNavigation") {
+      if (props.href !== location.href) {
+        customHistory.push(props.href);
+      } else {
+        customHistory.replace(props.href);
+      }
+      window.scrollTo(0, 0);
+    }
+
+    if (
+      props.navigationType === "browserHistory" &&
+      props.scrollStateToRestore
+    ) {
+      window.scrollTo(
+        props.scrollStateToRestore.x,
+        props.scrollStateToRestore.y,
+      );
+    }
 
     hwy_client_global.get("globalOnLoadEnd")?.();
   } catch (error) {
@@ -248,7 +362,10 @@ async function submit({
         window.location.href = res.url;
         return;
       }
-      await navigate(res.url, true, false);
+      await navigate({
+        href: res.url,
+        navigationType: "redirect",
+      });
       return;
     }
 
@@ -258,7 +375,10 @@ async function submit({
 
     if (did_abort) {
       // revalidate
-      await navigate(location.href, false, true); // this shuts off loading indicator too
+      await navigate({
+        href: location.href,
+        navigationType: "revalidation",
+      }); // this shuts off loading indicator too
     } else {
       hwy_client_global.set("actionData", json.actionData);
 
@@ -277,12 +397,13 @@ async function submit({
   }
 }
 
-async function reRenderApp(
-  href: string,
-  setHistory: boolean,
-  json: any,
-  isRevalidation: boolean,
-) {
+async function reRenderApp({
+  json,
+  navigationType,
+}: {
+  json: any;
+  navigationType: NavigationType;
+}) {
   const old_list = hwy_client_global.get("activePaths");
   const new_list = json.activePaths;
 
@@ -358,7 +479,7 @@ async function reRenderApp(
     hwy_client_global.set(key, json[key]);
   }
 
-  if (!isRevalidation) {
+  if (navigationType !== "revalidation") {
     hwy_client_global.set("actionData", json.actionData);
   }
 
@@ -367,14 +488,6 @@ async function reRenderApp(
   addBlocksToHead("meta", json.metaHeadBlocks);
   removeAllBetween("rest");
   addBlocksToHead("rest", json.restHeadBlocks);
-
-  if (setHistory) {
-    if (href !== location.href) {
-      history.pushState({}, "", href);
-    } else {
-      history.replaceState({}, "", href);
-    }
-  }
 }
 
 export { initPreactClient, submit };

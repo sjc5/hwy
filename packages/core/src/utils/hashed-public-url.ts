@@ -1,5 +1,5 @@
-import { PUBLIC_URL_PREFIX } from "../setup.js";
 import { get_hwy_global } from "../../../common/index.mjs";
+import { PUBLIC_URL_PREFIX } from "../setup.js";
 import { node_path } from "./url-polyfills.js";
 
 const hwy_global = get_hwy_global();
@@ -16,13 +16,6 @@ function getPublicUrl(url: string): string {
   if (url.startsWith("/")) url = url.slice(1);
   if (url.startsWith("./")) url = url.slice(2);
 
-  if (hwy_global.get("is_dev")) {
-    const normalized_url = url.replace(/\\/g, "/");
-    if (normalized_url === "dist/standard-bundled.css") {
-      return DEV_BUNDLED_CSS_LINK;
-    }
-  }
-
   const public_map = hwy_global.get("public_map");
 
   if (!node_path) {
@@ -32,7 +25,22 @@ function getPublicUrl(url: string): string {
   hashed_url = public_map?.[node_path.join("public", url)];
 
   if (!hashed_url) {
-    throw new Error(`No hashed URL found for ${url}`);
+    const no_need_to_log_list = [
+      "dist/standard-bundled.css",
+      "dist/entry.client.js",
+      "favicon.ico",
+    ];
+    if (!no_need_to_log_list.includes(url)) {
+      console.log("No hashed URL found for", url);
+    }
+    return "";
+  }
+
+  if (hwy_global.get("is_dev")) {
+    const normalized_url = url.replace(/\\/g, "/");
+    if (normalized_url === "dist/standard-bundled.css") {
+      return DEV_BUNDLED_CSS_LINK;
+    }
   }
 
   return "/" + hashed_url;
@@ -86,4 +94,4 @@ function get_serve_static_options() {
   };
 }
 
-export { getPublicUrl, get_serve_static_options, get_original_public_url };
+export { getPublicUrl, get_original_public_url, get_serve_static_options };

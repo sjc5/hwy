@@ -1,8 +1,8 @@
+import esbuild from "esbuild";
 import fs from "node:fs";
 import path from "node:path";
-import { DEFAULT_PORT, type HwyConfig } from "../../common/index.mjs";
-import esbuild from "esbuild";
 import { pathToFileURL } from "node:url";
+import { DEFAULT_PORT, type HwyConfig } from "../../common/index.mjs";
 import { hwyLog } from "./hwy-log.js";
 
 let cached_hwy_config: HwyConfig | undefined;
@@ -41,10 +41,11 @@ async function get_hwy_config() {
     throw new Error("hwy.config must export an object");
   }
 
-  if (
-    internal_hwy_config?.mode === "preact-mpa" &&
-    internal_hwy_config?.useDotServerFiles !== true
-  ) {
+  // TO-DO move hwyLog to common
+
+  const IS_PREACT_MPA = internal_hwy_config?.hydrateRouteComponents === true;
+
+  if (IS_PREACT_MPA && internal_hwy_config?.useDotServerFiles !== true) {
     hwyLog(
       "WARN",
       "When using Preact, 'hwyConfig.useDotServerFiles' is effectively always set to true.",
@@ -52,8 +53,6 @@ async function get_hwy_config() {
       "To quiet this warning, explicitly set 'useDotServerFiles' to true in your Hwy config.",
     );
   }
-
-  // TODO -- Preact compat with HTMX makes no sense warning
 
   if (
     internal_hwy_config?.routeStrategy !== "bundle" &&
@@ -67,7 +66,6 @@ async function get_hwy_config() {
   }
 
   cached_hwy_config = {
-    mode: internal_hwy_config?.mode || "mpa",
     dev: {
       port: Number(internal_hwy_config?.dev?.port || DEFAULT_PORT),
       watchExclusions: internal_hwy_config?.dev?.watchExclusions || [],
@@ -76,11 +74,12 @@ async function get_hwy_config() {
     },
     deploymentTarget: internal_hwy_config?.deploymentTarget || "node",
     routeStrategy: internal_hwy_config?.routeStrategy || "always-lazy",
-    useDotServerFiles:
-      internal_hwy_config?.mode === "preact-mpa"
-        ? true
-        : internal_hwy_config?.useDotServerFiles || false,
+    hydrateRouteComponents: IS_PREACT_MPA,
+    useDotServerFiles: IS_PREACT_MPA
+      ? true
+      : internal_hwy_config?.useDotServerFiles || false,
     usePreactCompat: internal_hwy_config?.usePreactCompat || false,
+    scriptsToInject: internal_hwy_config?.scriptsToInject || [],
   } as any;
 
   // delete the file now that we're done with it

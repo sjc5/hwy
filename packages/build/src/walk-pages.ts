@@ -1,17 +1,17 @@
-import path from "node:path";
-import fs from "node:fs";
-import crypto from "node:crypto";
-import readdirp from "readdirp";
 import esbuild from "esbuild";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import readdirp from "readdirp";
 import {
   HWY_GLOBAL_KEYS,
   Path,
   PathType,
   SPLAT_SEGMENT,
 } from "../../common/index.mjs";
-import { smart_normalize } from "./smart-normalize.js";
 import { get_hwy_config } from "./get-hwy-config.js";
 import { ALL_MODULE_DEF_NAMES } from "./run-build-tasks.js";
+import { smart_normalize } from "./smart-normalize.js";
 
 const permitted_extensions = [
   "js",
@@ -26,7 +26,7 @@ const permitted_extensions = [
 
 const hwy_config = await get_hwy_config();
 
-const IS_PREACT_MPA = hwy_config.mode === "preact-mpa";
+const IS_PREACT_MPA = Boolean(hwy_config.hydrateRouteComponents);
 
 console.log(hwy_config);
 
@@ -156,7 +156,7 @@ async function walk_pages(IS_DEV?: boolean): Promise<Array<Path>> {
       }
 
       paths.push({
-        importPath: smart_normalize(path.join("pages/", _path + ".js")),
+        importPath: smart_normalize(_path + ".js"),
         path: path_to_use,
         segments: segments.map((x) => x.segment || null),
         pathType: path_type,
@@ -165,7 +165,7 @@ async function walk_pages(IS_DEV?: boolean): Promise<Array<Path>> {
       });
     }
 
-    await fs.promises.mkdir(path.resolve(`./public/dist/pages/`), {
+    await fs.promises.mkdir(path.resolve(`./public/dist/`), {
       recursive: true,
     });
 
@@ -175,7 +175,7 @@ async function walk_pages(IS_DEV?: boolean): Promise<Array<Path>> {
           entryPoints: [import_path_with_orig_ext],
           bundle: true,
           outfile: path.resolve(
-            `./${is_client_file ? "public/" : ""}dist/pages/` +
+            `./${is_client_file ? "public/" : ""}dist/` +
               _path +
               (is_server_file ? ".server" : "") +
               ".js",
@@ -191,9 +191,7 @@ async function walk_pages(IS_DEV?: boolean): Promise<Array<Path>> {
           ? esbuild.build({
               entryPoints: [import_path_with_orig_ext],
               bundle: true,
-              outfile: path.resolve(
-                `./public/dist/pages/` + _path + ".hydrate.js",
-              ),
+              outfile: path.resolve(`./public/dist/` + _path + ".hydrate.js"),
               treeShaking: true,
               platform: "browser",
               format: "esm",
@@ -208,7 +206,7 @@ async function walk_pages(IS_DEV?: boolean): Promise<Array<Path>> {
   }
 
   if (IS_PREACT_MPA && IS_DEV) {
-    // TODO NO NEED FOR DOUBLE FOLDER ANYMORE
+    // TO-DO NO NEED FOR DOUBLE FOLDER ANYMORE
     await fs.promises.mkdir(path.resolve("./public/dist/preact"), {
       recursive: true,
     });
@@ -253,10 +251,13 @@ async function write_paths_to_disk(IS_DEV?: boolean) {
   );
 }
 
+function sha1_short(content: crypto.BinaryLike) {
+  return crypto.createHash("sha1").update(content).digest("hex").slice(0, 20);
+}
+
 async function generate_file_hash(file_path: string): Promise<string> {
   const content = await fs.promises.readFile(file_path);
-  const hash = crypto.createHash("sha256").update(content).digest("hex");
-  return hash.slice(0, 12); // Take the first 12 characters for brevity.
+  return sha1_short(content);
 }
 
 async function generate_public_file_map() {
@@ -281,12 +282,12 @@ async function generate_public_file_map() {
         const hash = await generate_file_hash(src_entry);
         const extname = path.extname(entry.name);
         const basename = path.basename(entry.name, extname);
-        const hashed_filename = `${basename}.${hash}${extname}`;
+        const hashed_filename = `${hash}${extname}`;
         const hashed_relative_path = path.join(
           "public",
           path.relative(
             src_path,
-            src_entry.replace(basename + extname, hashed_filename),
+            src_entry.replace(entry.name, hashed_filename),
           ),
         );
         file_map[relative_entry] = hashed_relative_path;
@@ -320,5 +321,5 @@ async function generate_public_file_map() {
   ]);
 }
 
-export { generate_file_hash, write_paths_to_disk, generate_public_file_map };
+export { generate_public_file_map, sha1_short, write_paths_to_disk };
 export type Paths = Awaited<ReturnType<typeof walk_pages>>;
