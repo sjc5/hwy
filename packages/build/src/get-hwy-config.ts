@@ -45,6 +45,7 @@ async function get_hwy_config() {
     dev: {
       port: Number(internal_hwy_config?.dev?.port || DEFAULT_PORT),
       watchExclusions: internal_hwy_config?.dev?.watchExclusions || [],
+      watchInclusions: internal_hwy_config?.dev?.watchInclusions || [],
     },
     deploymentTarget: internal_hwy_config?.deploymentTarget || "node",
   };

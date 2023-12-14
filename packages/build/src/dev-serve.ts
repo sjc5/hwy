@@ -57,9 +57,15 @@ async function devServe() {
 
   const exclusions =
     dev_config?.watchExclusions?.map((x) => path.join(process.cwd(), x)) || [];
+  const inclusions =
+    dev_config?.watchInclusions?.map((x) => path.join(process.cwd(), x)) || [];
 
   const watcher = chokidar.watch(
-    [path.join(process.cwd(), "src"), path.join(process.cwd(), "public")],
+    [
+      path.join(process.cwd(), "src"),
+      path.join(process.cwd(), "public"),
+      ...inclusions,
+    ],
     {
       ignoreInitial: true,
       ignored: [path.join(process.cwd(), "public/dist"), ...exclusions],
