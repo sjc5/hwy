@@ -1,13 +1,13 @@
-import { IS_DEV } from "./utils/constants.js";
-import { hwyInit, utils, HeadBlock, HeadElements, renderRoot } from "hwy";
-import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { handle } from "@hono/node-server/vercel";
 import { serveStatic } from "@hono/node-server/serve-static";
+import { handle } from "@hono/node-server/vercel";
+import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { make_emoji_data_url } from "./utils/utils.js";
+import { HeadBlock, HeadElements, hwyInit, renderRoot, utils } from "hwy";
 import { BodyInner } from "./components/body-inner.js";
+import { IS_DEV } from "./utils/constants.js";
+import { make_emoji_data_url } from "./utils/utils.js";
 
 const app = new Hono();
 app.use("*", logger());

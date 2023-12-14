@@ -1,15 +1,15 @@
-import { ChildProcess, spawn } from "node:child_process";
-import path from "node:path";
 import chokidar from "chokidar";
 import dotenv from "dotenv";
-import { runBuildTasks } from "./run-build-tasks.js";
-import { hwyLog } from "./hwy-log.js";
+import { ChildProcess, spawn } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 import {
   LIVE_REFRESH_RPC_PATH,
   RefreshFilePayload,
 } from "../../common/index.mjs";
 import { get_hwy_config } from "./get-hwy-config.js";
-import fs from "node:fs";
+import { hwyLog } from "./hwy-log.js";
+import { runBuildTasks } from "./run-build-tasks.js";
 
 declare const Deno: Record<any, any>;
 
@@ -90,9 +90,15 @@ async function devServe() {
 
   const exclusions =
     dev_config?.watchExclusions?.map((x) => path.join(process.cwd(), x)) || [];
+  const inclusions =
+    dev_config?.watchInclusions?.map((x) => path.join(process.cwd(), x)) || [];
 
   const watcher = chokidar.watch(
-    [path.join(process.cwd(), "src"), path.join(process.cwd(), "public")],
+    [
+      path.join(process.cwd(), "src"),
+      path.join(process.cwd(), "public"),
+      ...inclusions,
+    ],
     {
       ignoreInitial: true,
       ignored: [path.join(process.cwd(), "public/dist"), ...exclusions],

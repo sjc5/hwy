@@ -22,6 +22,7 @@ export type HwyConfig = {
   dev?: {
     port?: number;
     watchExclusions?: Array<string>;
+    watchInclusions?: Array<string>;
     hotReloadCssBundle?: boolean;
   };
   usePreactCompat?: boolean;
