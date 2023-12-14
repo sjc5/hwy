@@ -66,8 +66,8 @@ function get_original_public_url({
 
     // PREACT_SPECIFIC
     if (
-      sliced_url === "public/dist/preact/preact-dev/debug.module.js.map" ||
-      sliced_url === "public/dist/preact/preact-dev/devtools.module.js.map"
+      sliced_url === "public/dist/preact-dev/debug.module.js.map" ||
+      sliced_url === "public/dist/preact-dev/devtools.module.js.map"
     ) {
       return "./" + sliced_url;
     }

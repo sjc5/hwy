@@ -1,6 +1,6 @@
-import { type BaseProps, RootOutlet } from "@hwy-js/client";
-import { Nav } from "./nav.js";
+import { BaseProps, RootOutlet } from "@hwy-js/client";
 import { FallbackErrorBoundary } from "./fallback-error-boundary.js";
+import { Nav } from "./nav.js";
 
 function BodyInner(baseProps: BaseProps | {}) {
   return (
@@ -8,7 +8,7 @@ function BodyInner(baseProps: BaseProps | {}) {
       <div style={{ flexGrow: 1 }}>
         <Nav />
 
-        <div class="root-outlet-wrapper" id={"root-outlet-wrapper"}>
+        <div class="root-outlet-wrapper">
           <RootOutlet
             {...baseProps}
             fallbackErrorBoundary={FallbackErrorBoundary}

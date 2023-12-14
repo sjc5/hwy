@@ -1,4 +1,4 @@
-import type { JSX } from "preact";
+import { JSX } from "preact";
 
 type ChildrenPermissive = string | JSX.Element | Array<string | JSX.Element>;
 

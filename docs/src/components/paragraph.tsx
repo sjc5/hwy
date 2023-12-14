@@ -1,5 +1,5 @@
-import type { ChildrenPermissive } from "../types.js";
 import type { JSX } from "preact";
+import { ChildrenPermissive } from "../types.js";
 
 function Paragraph({
   children,

@@ -1,6 +1,6 @@
-import type { ChildrenPermissive } from "../types.js";
-import { cx } from "../utils/utils.js";
 import type { JSX } from "preact";
+import { ChildrenPermissive } from "../types.js";
+import { cx } from "../utils/utils.js";
 
 function UnorderedList({
   children,
@@ -26,4 +26,4 @@ function ListItem({
   );
 }
 
-export { UnorderedList, ListItem };
+export { ListItem, UnorderedList };

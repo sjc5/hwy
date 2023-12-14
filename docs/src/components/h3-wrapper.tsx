@@ -1,4 +1,4 @@
-import type { ChildrenPermissive } from "../types.js";
+import { ChildrenPermissive } from "../types.js";
 
 function H3Wrapper({
   heading,

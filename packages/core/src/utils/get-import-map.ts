@@ -21,10 +21,10 @@ function getImportMap() {
         ...(hwy_global.get("is_dev") && IS_PREACT_MPA
           ? {
               "preact/debug": utils.getPublicUrl(
-                "dist/preact/preact-dev/debug.module.js",
+                "dist/preact-dev/debug.module.js",
               ),
               "preact/devtools": utils.getPublicUrl(
-                "dist/preact/preact-dev/devtools.module.js",
+                "dist/preact-dev/devtools.module.js",
               ),
             }
           : {}),

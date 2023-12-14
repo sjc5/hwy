@@ -206,35 +206,30 @@ async function walk_pages(IS_DEV?: boolean): Promise<Array<Path>> {
   }
 
   if (IS_PREACT_MPA && IS_DEV) {
-    // TO-DO NO NEED FOR DOUBLE FOLDER ANYMORE
-    await fs.promises.mkdir(path.resolve("./public/dist/preact"), {
-      recursive: true,
-    });
-
     // make needed folders
     await Promise.all([
-      fs.promises.mkdir(path.resolve("./public/dist/preact/preact-dev"), {
+      fs.promises.mkdir(path.resolve("./public/dist/preact-dev"), {
         recursive: true,
       }),
 
       // copy debug and devtools modules and source maps
       fs.promises.cp(
         path.resolve("./node_modules/preact/debug/dist/debug.module.js"),
-        path.resolve("./public/dist/preact/preact-dev/debug.module.js"),
+        path.resolve("./public/dist/preact-dev/debug.module.js"),
       ),
       fs.promises.cp(
         path.resolve("./node_modules/preact/devtools/dist/devtools.module.js"),
-        path.resolve("./public/dist/preact/preact-dev/devtools.module.js"),
+        path.resolve("./public/dist/preact-dev/devtools.module.js"),
       ),
       fs.promises.cp(
         path.resolve("./node_modules/preact/debug/dist/debug.module.js.map"),
-        path.resolve("./public/dist/preact/preact-dev/debug.module.js.map"),
+        path.resolve("./public/dist/preact-dev/debug.module.js.map"),
       ),
       fs.promises.cp(
         path.resolve(
           "./node_modules/preact/devtools/dist/devtools.module.js.map",
         ),
-        path.resolve("./public/dist/preact/preact-dev/devtools.module.js.map"),
+        path.resolve("./public/dist/preact-dev/devtools.module.js.map"),
       ),
     ]);
   }
