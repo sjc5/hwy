@@ -27,6 +27,7 @@ export type HwyConfig = {
   dev?: {
     port?: number;
     watchExclusions?: Array<string>;
+    watchInclusions?: Array<string>;
   };
 };
 
