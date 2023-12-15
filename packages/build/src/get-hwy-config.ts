@@ -24,7 +24,7 @@ async function get_hwy_config() {
   await esbuild.build({
     entryPoints: [ts_config_exists ? ts_path : js_path],
     bundle: true,
-    outdir: "dist",
+    outdir: path.resolve("dist"),
     treeShaking: true,
     platform: "node",
     format: "esm",

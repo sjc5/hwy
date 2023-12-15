@@ -1,1 +1,1 @@
-export const asdf = "SECRET_MESSAGE8";
+export const asdf = "ASDF";

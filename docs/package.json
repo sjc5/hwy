@@ -9,7 +9,8 @@
     "dev": "hwy-dev-serve",
     "to-latest": "node ./scripts/to-latest.js && pnpm i && npm i",
     "to-workspace": "node ./scripts/to-workspace.js && pnpm i",
-    "update-latest": "pnpm update --latest"
+    "update-latest": "pnpm update --latest",
+    "nuke": "rm -rf dist && rm -rf public/dist"
   },
   "dependencies": {
     "@hono/node-server": "^1.3.3",

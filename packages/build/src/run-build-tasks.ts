@@ -125,9 +125,9 @@ async function runBuildTasks({
     await Promise.all([
       esbuild.build({
         // TO-DO -- customize entry point in Hwy Config
-        entryPoints: ["src/main.*"],
+        entryPoints: [path.resolve("src/main.*")],
         bundle: true,
-        outdir: "dist",
+        outdir: path.resolve("dist"),
         treeShaking: true,
         platform: "node",
         format: "esm",
@@ -141,21 +141,26 @@ async function runBuildTasks({
 
   ///////////////////////////////////////////////////////////////////////////
 
-  esbuild.build({
+  const is_using_client_entry = get_is_using_client_entry();
+
+  await esbuild.build({
     // TO-DO -- customize entry point in Hwy Config
     entryPoints: [
-      ...(get_is_using_client_entry() ? ["src/entry.client.*"] : []),
+      ...(is_using_client_entry
+        ? [path.join(process.cwd(), "src/entry.client.*")]
+        : []),
       ...page_files_list.map((x) => x.import_path_with_orig_ext),
       ...client_files_list.map((x) => x.import_path_with_orig_ext),
     ],
     bundle: true,
-    outdir: "public/dist",
+    outdir: path.join(process.cwd(), "public/dist"),
     treeShaking: true,
     platform: "browser",
     format: "esm",
     minify: true,
     splitting: true,
     chunkNames: "__hwy_chunks__/[name]-[hash]",
+    outbase: path.join(process.cwd(), "src"),
   });
 
   /////////////////////////////////////////////////////////////////////////////
@@ -523,9 +528,11 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
    */
   if (SHOULD_BUNDLE_PATHS) {
     await esbuild.build({
-      entryPoints: [IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js"],
+      entryPoints: [
+        path.resolve(IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js"),
+      ],
       bundle: true,
-      outfile: IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js",
+      outfile: path.resolve(IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js"),
       treeShaking: true,
       platform: "node",
       format: "esm",

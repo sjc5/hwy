@@ -1,8 +1,8 @@
-import { hwyInit } from "hwy";
 import { Hono } from "hono";
+import { serveStatic } from "hono/bun";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { serveStatic } from "hono/bun";
+import { hwyInit } from "hwy";
 import { renderHtmlRoot } from "./html-root.js";
 
 const app = new Hono();
