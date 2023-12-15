@@ -96,8 +96,6 @@ async function runBuildTasks({
    * BUNDLE CSS FILES AND CLIENT ENTRY
    */
 
-  await bundle_css_files();
-
   await Promise.all([
     bundle_css_files(),
 
@@ -139,6 +137,8 @@ async function runBuildTasks({
       write_paths_to_disk(IS_DEV),
     ]);
 
+  ///////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////// STEP 3.5 -- AND NOW THE CLIENT FILES
   ///////////////////////////////////////////////////////////////////////////
 
   const is_using_client_entry = get_is_using_client_entry();

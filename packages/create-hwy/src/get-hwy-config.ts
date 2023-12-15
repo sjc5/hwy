@@ -5,12 +5,12 @@ function get_hwy_config(options: Options) {
   let obj: HwyConfig =
     options.client_lib === "preact"
       ? {
-          hydrateRouteComponents: true,
+          useClientSidePreact: true,
           deploymentTarget: options.deployment_target,
           useDotServerFiles: true,
         }
       : {
-          hydrateRouteComponents: false,
+          useClientSidePreact: false,
           deploymentTarget: options.deployment_target,
           useDotServerFiles: false,
         };

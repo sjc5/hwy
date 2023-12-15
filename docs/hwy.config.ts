@@ -1,7 +1,7 @@
 import type { HwyConfig } from "@hwy-js/build";
 
 export default {
-  hydrateRouteComponents: true,
+  useClientSidePreact: true,
   useDotServerFiles: true,
   dev: {
     port: 1275,

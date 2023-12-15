@@ -2,7 +2,7 @@ import { BaseProps, RootOutlet } from "@hwy-js/client";
 import { FallbackErrorBoundary } from "./fallback-error-boundary.js";
 import { Nav } from "./nav.js";
 
-function BodyInner(baseProps: BaseProps | {}) {
+function BodyInner(baseProps: Pick<BaseProps, "activePathData"> | {}) {
   return (
     <div class="body-inner">
       <div style={{ flexGrow: 1 }}>

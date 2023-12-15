@@ -28,8 +28,8 @@ export type HwyConfig = {
   };
   usePreactCompat?: boolean;
 } & (
-  | { hydrateRouteComponents?: false; useDotServerFiles: boolean }
-  | { hydrateRouteComponents: true; useDotServerFiles: true }
+  | { useClientSidePreact?: false; useDotServerFiles: boolean }
+  | { useClientSidePreact: true; useDotServerFiles: true }
 ) &
   (
     | {
@@ -176,7 +176,10 @@ export function sort_head_blocks(head_blocks: HeadBlock[]) {
 export type BaseProps<EnvType extends Env = {}> = {
   c: Context<EnvType>;
   activePathData: ActivePathData;
-  defaultHeadBlocks?: HeadBlock[];
+  defaultHeadBlocks: HeadBlock[];
+  title: string;
+  metaHeadBlocks: TagHeadBlock[];
+  restHeadBlocks: TagHeadBlock[];
 };
 
 // PATHS

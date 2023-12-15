@@ -3,7 +3,10 @@ import {
   get_hwy_global,
 } from "../../../common/index.mjs";
 import { getRefreshScript } from "./dev-live-refresh-script.js";
-import { getHeadBlocks } from "./get-head-blocks.js";
+import {
+  getExportedHeadBlocks,
+  getSiblingClientHeadBlocks,
+} from "./get-head-blocks.js";
 import { getSsrInnerHtml } from "./get-ssr-inner-html.js";
 import { getPublicUrl } from "./hashed-public-url.js";
 
@@ -13,6 +16,8 @@ function getCriticalCss() {
   return hwy_global.get("critical_bundled_css") || "";
 }
 
+getSiblingClientHeadBlocks;
+
 const utils = {
   getClientEntryUrl: () => getPublicUrl("dist/entry.client.js"),
   getBundledCssUrl: () => getPublicUrl("dist/standard-bundled.css"),
@@ -20,8 +25,9 @@ const utils = {
   getCriticalCssElementId: () => CRITICAL_CSS_ELEMENT_ID,
   getRefreshScript,
   getSsrInnerHtml,
-  getHeadBlocks,
+  getExportedHeadBlocks,
   getPublicUrl,
+  getSiblingClientHeadBlocks,
 } as const;
 
 export { utils };

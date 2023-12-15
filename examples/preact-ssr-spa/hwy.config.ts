@@ -1,7 +1,7 @@
 import type { HwyConfig } from "@hwy-js/build";
 
 export default {
-  hydrateRouteComponents: false,
+  useClientSidePreact: false,
   useDotServerFiles: false,
   deploymentTarget: "bun",
   dev: {

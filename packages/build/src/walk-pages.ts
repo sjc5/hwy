@@ -25,7 +25,7 @@ const permitted_extensions = [
 
 const hwy_config = await get_hwy_config();
 
-const IS_PREACT_MPA = Boolean(hwy_config.hydrateRouteComponents);
+const IS_PREACT_MPA = Boolean(hwy_config.useClientSidePreact);
 
 console.log(hwy_config);
 

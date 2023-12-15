@@ -1,5 +1,5 @@
+// import type { JSX } from "preact";
 import { cx } from "../utils/utils.js";
-import type { JSX } from "preact";
 
 function InlineCode({
   children,

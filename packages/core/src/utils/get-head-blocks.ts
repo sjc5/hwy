@@ -1,4 +1,9 @@
-import { BaseProps, HeadBlock, HeadFunction } from "../../../common/index.mjs";
+import {
+  BaseProps,
+  HeadBlock,
+  HeadFunction,
+  TagHeadBlock,
+} from "../../../common/index.mjs";
 import { getPublicUrl } from "./hashed-public-url.js";
 
 function stable_hash(obj: Record<string, any>): string {
@@ -38,7 +43,9 @@ function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
   return [...results.values()];
 }
 
-function getHeadBlocks(props: BaseProps): HeadBlock[] {
+function getExportedHeadBlocks(
+  props: Pick<BaseProps, "activePathData" | "c" | "defaultHeadBlocks">,
+): HeadBlock[] {
   const { activePathData: active_path_data } = props;
 
   const non_deduped =
@@ -63,7 +70,15 @@ function getHeadBlocks(props: BaseProps): HeadBlock[] {
 
   const defaults = props.defaultHeadBlocks ?? [];
 
-  const sibling_client_files =
+  const heads = [...defaults, ...non_deduped];
+
+  return dedupe_head_blocks(heads);
+}
+
+function getSiblingClientHeadBlocks(
+  props: Pick<BaseProps, "activePathData">,
+): TagHeadBlock[] {
+  return (
     props.activePathData.matchingPaths
       ?.filter((x) => {
         return x.hasSiblingClientFile;
@@ -78,11 +93,8 @@ function getHeadBlocks(props: BaseProps): HeadBlock[] {
             ),
           },
         };
-      }) ?? [];
-
-  const heads = [...defaults, ...non_deduped, ...sibling_client_files];
-
-  return dedupe_head_blocks(heads);
+      }) ?? []
+  );
 }
 
-export { getHeadBlocks };
+export { getExportedHeadBlocks, getSiblingClientHeadBlocks };

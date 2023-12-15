@@ -118,9 +118,6 @@ importers:
       idiomorph:
         specifier: ^0.0.9
         version: 0.0.9
-      nprogress:
-        specifier: ^0.2.0
-        version: 0.2.0
       preact:
         specifier: ^10.19.3
         version: 10.19.3

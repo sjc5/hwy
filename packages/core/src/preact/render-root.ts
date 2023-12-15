@@ -1,5 +1,4 @@
 import { Context, Next } from "hono";
-import { JSX } from "preact";
 import { renderToString } from "preact-render-to-string";
 import {
   BaseProps,
@@ -10,17 +9,22 @@ import {
 } from "../../../common/index.mjs";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
 import { utils } from "../utils/hwy-utils.js";
+import { getHeadElementProps } from "./head-elements-comp.js";
 
-async function renderRoot({
+async function renderRoot<JSXElement>({
   c,
   next,
   defaultHeadBlocks,
   root: Root,
+  jsxImportSource,
 }: {
   c: Context;
   next: Next;
-  defaultHeadBlocks?: HeadBlock[];
-  root: (baseProps: BaseProps) => JSX.Element;
+  defaultHeadBlocks: HeadBlock[];
+  root: (
+    baseProps: BaseProps & ReturnType<typeof getHeadElementProps>,
+  ) => JSXElement;
+  jsxImportSource?: "hono/jsx" | "preact";
 }) {
   const activePathData = await getMatchingPathData({ c });
 
@@ -33,22 +37,34 @@ async function renderRoot({
   }
 
   const IS_PREACT_MPA = Boolean(
-    get_hwy_global().get("hwy_config").hydrateRouteComponents,
+    get_hwy_global().get("hwy_config").useClientSidePreact,
   );
+
+  const headBlocks = utils.getExportedHeadBlocks({
+    c,
+    activePathData,
+    defaultHeadBlocks,
+  });
+
+  const { title, metaHeadBlocks, restHeadBlocks } =
+    sort_head_blocks(headBlocks);
+
+  const baseProps = {
+    c,
+    activePathData,
+    title,
+    metaHeadBlocks,
+    restHeadBlocks,
+    defaultHeadBlocks,
+  };
 
   if (IS_PREACT_MPA) {
     const IS_JSON = Boolean(c.req.query()[`${HWY_PREFIX}json`]);
 
     if (IS_JSON) {
-      const baseProps = { c, activePathData, defaultHeadBlocks };
-
       if (c.req.raw.signal.aborted) {
         return;
       }
-
-      const headBlocks = utils.getHeadBlocks(baseProps);
-      const { title, metaHeadBlocks, restHeadBlocks } =
-        sort_head_blocks(headBlocks);
 
       return c.json({
         title,
@@ -69,9 +85,18 @@ async function renderRoot({
     }
   }
 
-  const base_props = { c, activePathData, defaultHeadBlocks };
-  const markup = <Root {...base_props} />;
-  return c.html("<!doctype html>" + renderToString(markup));
+  const headElementProps = getHeadElementProps(baseProps);
+
+  const markup = Root({
+    ...baseProps,
+    ...headElementProps,
+  });
+
+  if (jsxImportSource === "hono/jsx") {
+    return c.html("<!doctype html>" + markup);
+  }
+
+  return c.html("<!doctype html>" + renderToString(markup as any));
 }
 
 export { renderRoot };

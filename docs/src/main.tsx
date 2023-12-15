@@ -4,7 +4,7 @@ import { handle } from "@hono/node-server/vercel";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { HeadBlock, HeadElements, hwyInit, renderRoot, utils } from "hwy";
+import { HeadBlock, hwyInit, renderRoot, utils } from "hwy";
 import { BodyInner } from "./components/body-inner.js";
 import { IS_DEV } from "./utils/constants.js";
 import { make_emoji_data_url } from "./utils/utils.js";
@@ -61,7 +61,20 @@ app.all("*", async (c, next) => {
     c,
     next,
     defaultHeadBlocks,
-    root: function (baseProps) {
+    jsxImportSource: "hono/jsx",
+    root: function ({
+      title,
+      criticalInlinedCssProps,
+      metaElementsProps,
+      serverRenderingProps,
+      injectedScriptsProps,
+      clientEntryModuleProps,
+      restHeadElementsProps,
+      pageSiblingsProps,
+      bundledStylesheetProps,
+      devRefreshScriptProps,
+      ...baseProps
+    }) {
       return (
         <html lang="en">
           <head>
@@ -71,7 +84,33 @@ app.all("*", async (c, next) => {
               content="width=device-width,initial-scale=1"
             />
 
-            <HeadElements {...baseProps} />
+            <title>{title}</title>
+
+            <style {...criticalInlinedCssProps} />
+
+            {metaElementsProps.map((props) => (
+              <meta {...props} />
+            ))}
+
+            <script {...serverRenderingProps} />
+
+            {injectedScriptsProps.map((props) => (
+              <script {...props} />
+            ))}
+
+            <script {...clientEntryModuleProps} />
+
+            {restHeadElementsProps.map((props) => (
+              /* @ts-ignore */
+              <props.tag {...props.attributes} />
+            ))}
+
+            {pageSiblingsProps.map((props) => (
+              <script {...props} />
+            ))}
+
+            <link {...bundledStylesheetProps} />
+            <script {...devRefreshScriptProps} />
 
             <script defer src={utils.getPublicUrl("prism.js")} />
           </head>

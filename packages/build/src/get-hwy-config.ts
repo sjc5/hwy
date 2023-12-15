@@ -40,7 +40,7 @@ async function get_hwy_config() {
     throw new Error("hwy.config must export an object");
   }
 
-  const IS_PREACT_MPA = internal_hwy_config?.hydrateRouteComponents === true;
+  const IS_PREACT_MPA = internal_hwy_config?.useClientSidePreact === true;
 
   if (IS_PREACT_MPA && internal_hwy_config?.useDotServerFiles !== true) {
     hwyLog(
@@ -72,7 +72,7 @@ async function get_hwy_config() {
     },
     deploymentTarget: internal_hwy_config?.deploymentTarget || "node",
     routeStrategy: internal_hwy_config?.routeStrategy || "always-lazy",
-    hydrateRouteComponents: IS_PREACT_MPA,
+    useClientSidePreact: IS_PREACT_MPA,
     useDotServerFiles: IS_PREACT_MPA
       ? true
       : internal_hwy_config?.useDotServerFiles || false,

@@ -1,10 +1,10 @@
 import { type JSX } from "preact";
 import { useCallback } from "preact/hooks";
-import { get_hwy_client_global } from "./client-global.js";
 import type {
   ActivePathData,
   ErrorBoundaryProps,
 } from "../../common/index.mjs";
+import { get_hwy_client_global } from "./client-global.js";
 
 type ErrorBoundaryComp = (props: ErrorBoundaryProps) => JSX.Element;
 
