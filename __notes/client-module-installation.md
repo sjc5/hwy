@@ -1,6 +1,3 @@
-1. Run `npm i -D <module-name>`
-2. Create a new file in `src/client/modules/<module-name>.ts{x}` and export any
-
 Shifts:
 
 - TypeScript first. No more JS option in templater, no official support for

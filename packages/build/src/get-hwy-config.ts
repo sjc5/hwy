@@ -2,8 +2,7 @@ import esbuild from "esbuild";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { DEFAULT_PORT, type HwyConfig } from "../../common/index.mjs";
-import { hwyLog } from "./hwy-log.js";
+import { DEFAULT_PORT, hwyLog, type HwyConfig } from "../../common/index.mjs";
 
 let cached_hwy_config: HwyConfig | undefined;
 
@@ -40,8 +39,6 @@ async function get_hwy_config() {
   if (internal_hwy_config && typeof internal_hwy_config !== "object") {
     throw new Error("hwy.config must export an object");
   }
-
-  // TO-DO move hwyLog to common (put picocolors in root, but keep in dev/build also)
 
   const IS_PREACT_MPA = internal_hwy_config?.hydrateRouteComponents === true;
 

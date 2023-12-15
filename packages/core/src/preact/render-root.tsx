@@ -57,7 +57,7 @@ async function renderRoot({
         activeData: activePathData.activeData,
         activePaths: activePathData.matchingPaths?.map((x) => {
           return utils.getPublicUrl(
-            "dist/" + x.importPath.slice(0, -3) + ".hydrate.js",
+            "dist/pages/" + x.importPath.replace(".js", ".page.js"),
           );
         }),
         outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,

@@ -73,7 +73,9 @@ function getHeadBlocks(props: BaseProps): HeadBlock[] {
           tag: "script",
           attributes: {
             type: "module",
-            src: getPublicUrl("dist/" + x.importPath),
+            src: getPublicUrl(
+              "dist/pages/" + x.importPath.replace(".js", ".client.js"),
+            ),
           },
         };
       }) ?? [];

@@ -53,21 +53,6 @@ function MetaElements({
   );
 }
 
-function ImportMap() {
-  return (
-    <>
-      {Boolean(Object.keys(utils.getImportMap().imports).length) && (
-        <script
-          type="importmap"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(utils.getImportMap()),
-          }}
-        />
-      )}
-    </>
-  );
-}
-
 function RenderState(props: BaseProps) {
   const IS_PREACT_MPA = Boolean(
     hwy_global.get("hwy_config").hydrateRouteComponents,
@@ -170,9 +155,6 @@ function HeadElements(props: BaseProps) {
 
       {/* Meta tags exported from head functions */}
       <MetaElements metaHeadBlocks={metaHeadBlocks} />
-
-      {/* Your import map */}
-      <ImportMap />
 
       {/* This is where we inject your initial server-rendered state */}
       <RenderState {...props} />

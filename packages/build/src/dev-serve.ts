@@ -6,9 +6,9 @@ import path from "node:path";
 import {
   LIVE_REFRESH_RPC_PATH,
   RefreshFilePayload,
+  hwyLog,
 } from "../../common/index.mjs";
 import { get_hwy_config } from "./get-hwy-config.js";
-import { hwyLog } from "./hwy-log.js";
 import { runBuildTasks } from "./run-build-tasks.js";
 
 declare const Deno: Record<any, any>;

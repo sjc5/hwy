@@ -115,17 +115,6 @@ export type ErrorBoundaryProps = {
   params: Record<string, string>;
 };
 
-type PermissiveStringArray = Array<string> | ReadonlyArray<string>;
-
-export type ClientModuleDef = {
-  names: PermissiveStringArray;
-  external?: PermissiveStringArray;
-} & ({ code: string } | { pathsFromRoot: PermissiveStringArray });
-
-export type ClientModuleDefs =
-  | Array<ClientModuleDef>
-  | ReadonlyArray<ClientModuleDef>;
-
 ///////////////////////////////////////////////
 // Head Block stuff
 
@@ -220,7 +209,6 @@ export type HwyGlobal = {
   public_map: Record<string, string>;
   public_reverse_map: Record<string, string>;
   test_dirname?: string;
-  import_map_setup: any;
   injected_scripts: Array<string>;
 };
 
@@ -233,7 +221,6 @@ export const HWY_GLOBAL_KEYS: { [K in keyof HwyGlobal]: any } = {
   paths: "",
   public_map: "",
   public_reverse_map: "",
-  import_map_setup: "",
   injected_scripts: "",
 } as const;
 
@@ -308,3 +295,28 @@ export type HeadFunction<
   ActionType extends Action<any> = Action<any>,
   EnvType extends Env = {},
 > = (props: HeadProps<LoaderType, ActionType, EnvType>) => Array<HeadBlock>;
+
+/////////////////////////////////////
+// LOGGERS
+
+import pc from "picocolors";
+
+export function hwyLog(...args: any[]) {
+  if (args[0] === "WARN") {
+    const [_, ...rest] = args;
+    console.log(
+      "\n" + pc.bold(pc.bgYellow(pc.black(` Hwy --- START WARNING --- `))),
+    );
+    console.log("\n" + rest.join("\n\n") + "\n");
+    console.log(
+      pc.bold(pc.bgYellow(pc.black(` Hwy ---- END WARNING ---- `))),
+      "\n",
+    );
+    return;
+  }
+  console.log("\n" + pc.bold(pc.bgGreen(pc.black(` Hwy `))), ...args, "\n");
+}
+
+export function logPerf(task_name: string, p0: number, p1: number) {
+  hwyLog(`Completed ${task_name} in ${Math.round(p1 - p0).toFixed(0)}ms.`);
+}

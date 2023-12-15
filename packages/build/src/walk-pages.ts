@@ -10,7 +10,6 @@ import {
   SPLAT_SEGMENT,
 } from "../../common/index.mjs";
 import { get_hwy_config } from "./get-hwy-config.js";
-import { ALL_MODULE_DEF_NAMES } from "./run-build-tasks.js";
 import { smart_normalize } from "./smart-normalize.js";
 
 const permitted_extensions = [
@@ -30,7 +29,17 @@ const IS_PREACT_MPA = Boolean(hwy_config.hydrateRouteComponents);
 
 console.log(hwy_config);
 
-async function walk_pages(IS_DEV?: boolean): Promise<Array<Path>> {
+async function walk_pages(IS_DEV?: boolean): Promise<{
+  paths: Array<Path>;
+  page_files_list: Array<{ _path: string; import_path_with_orig_ext: string }>;
+  client_files_list: Array<{
+    _path: string;
+    import_path_with_orig_ext: string;
+  }>;
+}> {
+  let page_files_list = [];
+  let client_files_list = [];
+
   const paths: {
     // ultimately public
     importPath: string;
@@ -170,80 +179,49 @@ async function walk_pages(IS_DEV?: boolean): Promise<Array<Path>> {
     });
 
     try {
-      await Promise.all([
-        esbuild.build({
+      if (!is_client_file) {
+        await esbuild.build({
           entryPoints: [import_path_with_orig_ext],
           bundle: true,
           outfile: path.resolve(
-            `./${is_client_file ? "public/" : ""}dist/` +
-              _path +
-              (is_server_file ? ".server" : "") +
-              ".js",
+            `./dist/` + _path + (is_server_file ? ".server" : "") + ".js",
           ),
           treeShaking: true,
-          platform: is_client_file ? "browser" : "node",
+          platform: "node",
           format: "esm",
-          minify: is_client_file,
-          external: ALL_MODULE_DEF_NAMES,
-        }),
+          packages: "external",
+        });
+      }
 
-        IS_PREACT_MPA && is_page_file
-          ? esbuild.build({
-              entryPoints: [import_path_with_orig_ext],
-              bundle: true,
-              outfile: path.resolve(`./public/dist/` + _path + ".hydrate.js"),
-              treeShaking: true,
-              platform: "browser",
-              format: "esm",
-              minify: true,
-              external: ALL_MODULE_DEF_NAMES,
-            })
-          : "",
-      ]);
+      if (IS_PREACT_MPA && is_page_file) {
+        page_files_list.push({ _path, import_path_with_orig_ext });
+      }
+
+      if (is_client_file) {
+        client_files_list.push({ _path, import_path_with_orig_ext });
+      }
     } catch (e) {
       console.error(e);
     }
   }
 
-  if (IS_PREACT_MPA && IS_DEV) {
-    // make needed folders
-    await Promise.all([
-      fs.promises.mkdir(path.resolve("./public/dist/preact-dev"), {
-        recursive: true,
-      }),
-
-      // copy debug and devtools modules and source maps
-      fs.promises.cp(
-        path.resolve("./node_modules/preact/debug/dist/debug.module.js"),
-        path.resolve("./public/dist/preact-dev/debug.module.js"),
-      ),
-      fs.promises.cp(
-        path.resolve("./node_modules/preact/devtools/dist/devtools.module.js"),
-        path.resolve("./public/dist/preact-dev/devtools.module.js"),
-      ),
-      fs.promises.cp(
-        path.resolve("./node_modules/preact/debug/dist/debug.module.js.map"),
-        path.resolve("./public/dist/preact-dev/debug.module.js.map"),
-      ),
-      fs.promises.cp(
-        path.resolve(
-          "./node_modules/preact/devtools/dist/devtools.module.js.map",
-        ),
-        path.resolve("./public/dist/preact-dev/devtools.module.js.map"),
-      ),
-    ]);
-  }
-
-  return paths;
+  return {
+    paths,
+    page_files_list,
+    client_files_list,
+  };
 }
 
 async function write_paths_to_disk(IS_DEV?: boolean) {
-  const paths = await walk_pages(IS_DEV);
+  const { paths, page_files_list, client_files_list } =
+    await walk_pages(IS_DEV);
 
   await fs.promises.writeFile(
     path.join(process.cwd(), "dist", "paths.js"),
     `export const ${HWY_GLOBAL_KEYS.paths} = ${JSON.stringify(paths)}`,
   );
+
+  return { page_files_list, client_files_list };
 }
 
 function sha1_short(content: crypto.BinaryLike) {
@@ -317,4 +295,4 @@ async function generate_public_file_map() {
 }
 
 export { generate_public_file_map, sha1_short, write_paths_to_disk };
-export type Paths = Awaited<ReturnType<typeof walk_pages>>;
+export type Paths = Awaited<ReturnType<typeof walk_pages>>["paths"];

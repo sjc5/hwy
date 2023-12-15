@@ -63,14 +63,10 @@ function get_original_public_url({
     if (normalized_sliced_url.startsWith("public/dist/standard-bundled")) {
       return "./" + "public/dist/standard-bundled.css";
     }
+  }
 
-    // PREACT_SPECIFIC
-    if (
-      sliced_url === "public/dist/preact-dev/debug.module.js.map" ||
-      sliced_url === "public/dist/preact-dev/devtools.module.js.map"
-    ) {
-      return "./" + sliced_url;
-    }
+  if (sliced_url.includes("__hwy_chunks__")) {
+    return "./" + PUBLIC_URL_PREFIX + sliced_url;
   }
 
   const reverse_public_map = hwy_global.get("public_reverse_map");

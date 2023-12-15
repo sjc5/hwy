@@ -2,9 +2,8 @@ import esbuild from "esbuild";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
+import { HWY_GLOBAL_KEYS, hwyLog } from "../../common/index.mjs";
 import { get_hashed_public_url_low_level } from "./hashed-public-url.js";
-import { hwyLog } from "./hwy-log.js";
 
 /*
 NOTE: This file assumes it's run (and therefore imported / initiated)

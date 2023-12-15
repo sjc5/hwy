@@ -17,7 +17,7 @@ function global_setter_string(
 }
 
 function getSsrInnerHtml(activePathData: ActivePathData) {
-  return `${hwy_global.get("is_dev") ? `import "preact/debug";` : ""}
+  return `
 globalThis[Symbol.for("${HWY_PREFIX}")] = {};
 const x = globalThis[Symbol.for("${HWY_PREFIX}")];
 x.is_dev = ${uneval(hwy_global.get("is_dev"))};
@@ -25,7 +25,9 @@ ${global_setter_string("activeData", activePathData.activeData)}
 ${global_setter_string(
   "activePaths",
   activePathData.matchingPaths?.map((x) => {
-    return getPublicUrl("dist/" + x.importPath.slice(0, -3) + ".hydrate.js");
+    return getPublicUrl(
+      "dist/pages/" + x.importPath.replace(".js", ".page.js"),
+    );
   }),
 )}
 ${global_setter_string(

@@ -1,12 +1,12 @@
+import type { Hono } from "hono";
 import {
-  LIVE_REFRESH_SSE_PATH,
   LIVE_REFRESH_RPC_PATH,
+  LIVE_REFRESH_SSE_PATH,
+  hwyLog,
   type RefreshFilePayload,
 } from "../../common/index.mjs";
 import { sinks } from "./constants.js";
-import { hwyLog } from "./hwy-log.js";
 import { refreshMiddleware } from "./refresh-middleware.js";
-import type { Hono } from "hono";
 
 function send_signal_to_sinks(payload: Omit<RefreshFilePayload, "at">) {
   if (payload.changeType === "standard") {

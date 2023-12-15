@@ -7,11 +7,12 @@ import { promisify } from "node:util";
 import {
   HWY_GLOBAL_KEYS,
   HWY_PREFIX,
+  hwyLog,
+  logPerf,
   type RefreshFilePayload,
 } from "../../common/index.mjs";
 import { get_is_hot_reload_only } from "./dev-serve.js";
 import { get_hwy_config } from "./get-hwy-config.js";
-import { hwyLog, logPerf } from "./hwy-log.js";
 import { smart_normalize } from "./smart-normalize.js";
 import {
   generate_public_file_map,
@@ -19,8 +20,6 @@ import {
   write_paths_to_disk,
   type Paths,
 } from "./walk-pages.js";
-
-export let ALL_MODULE_DEF_NAMES = [] as Array<string>;
 
 const FILE_NAMES = [
   "critical-bundled-css.js",
@@ -81,45 +80,6 @@ async function runBuildTasks({
     }),
   ]);
 
-  const is_using_client_entry = get_is_using_client_entry();
-  const path_to_module_defs_file = path.join(
-    process.cwd(),
-    "src",
-    "modules.client.ts",
-  );
-
-  const is_using_module_defs_file = fs.existsSync(path_to_module_defs_file);
-
-  let module_defs: any;
-
-  if (is_using_module_defs_file) {
-    await esbuild.build({
-      entryPoints: [path_to_module_defs_file],
-      bundle: true,
-      outfile: "dist/client-modules-temp.js",
-      treeShaking: true,
-      platform: "node",
-      format: "esm",
-      minify: true,
-    });
-
-    module_defs = (
-      await import(
-        pathToFileURL(path.join(process.cwd(), "dist/client-modules-temp.js"))
-          .href
-      )
-    ).default;
-
-    // delete client-modules-temp.js file
-    if (is_using_module_defs_file) {
-      await fs.promises.rm(
-        path.join(process.cwd(), "dist/client-modules-temp.js"),
-      );
-    }
-  }
-
-  ALL_MODULE_DEF_NAMES = module_defs?.flatMap((x: any) => x.names) ?? [];
-
   /********************* STEP 1 *********************
    * GENERATE PUBLIC FILE MAP -- TAKE 1
    */
@@ -136,60 +96,10 @@ async function runBuildTasks({
    * BUNDLE CSS FILES AND CLIENT ENTRY
    */
 
+  await bundle_css_files();
+
   await Promise.all([
     bundle_css_files(),
-
-    // BUNDLE YOUR MAIN CLIENT ENTRY, BUT EXCLUDE PREACT (PREACT IS BY ITSELF AND IN IMPORT MAP)
-    is_using_client_entry
-      ? esbuild.build({
-          // TO-DO -- customize entry point in Hwy Config
-          entryPoints: ["src/entry.client.*"],
-          bundle: true,
-          outdir: "public/dist",
-          treeShaking: true,
-          platform: "browser",
-          format: "esm",
-          minify: true,
-          external: ALL_MODULE_DEF_NAMES,
-        })
-      : undefined,
-
-    ...(is_using_module_defs_file
-      ? module_defs.map((x: any, i: number) => {
-          let external = ALL_MODULE_DEF_NAMES.filter((module_name: any) => {
-            return !x.names.includes(module_name);
-          });
-          external = [...external, ...(x.external ?? [])];
-          external = [...new Set(external)];
-
-          const base = {
-            bundle: true,
-            outfile: `public/dist/${i}.js`,
-            treeShaking: true,
-            platform: "browser",
-            format: "esm",
-            minify: true,
-            external,
-          } as const;
-
-          if ("code" in x) {
-            return esbuild.build({
-              stdin: {
-                contents: x.code,
-                resolveDir: path.resolve("dist"),
-              },
-              ...base,
-            });
-          }
-
-          if ("pathFromRoot" in x) {
-            return esbuild.build({
-              entryPoints: x.pathsFromRoot,
-              ...base,
-            });
-          }
-        })
-      : []),
 
     ...(hwy_config.scriptsToInject ?? []).map(async (item) => {
       return fs.promises.copyFile(
@@ -211,22 +121,44 @@ async function runBuildTasks({
    * it and write it to disk later.
    */
 
-  const [main_build_result] = await Promise.all([
-    esbuild.build({
-      // TO-DO -- customize entry point in Hwy Config
-      entryPoints: ["src/main.*"],
-      bundle: true,
-      outdir: "dist",
-      treeShaking: true,
-      platform: "node",
-      format: "esm",
-      minify: false,
-      write: false,
-      packages: "external",
-    }),
+  const [main_build_result, { page_files_list, client_files_list }] =
+    await Promise.all([
+      esbuild.build({
+        // TO-DO -- customize entry point in Hwy Config
+        entryPoints: ["src/main.*"],
+        bundle: true,
+        outdir: "dist",
+        treeShaking: true,
+        platform: "node",
+        format: "esm",
+        minify: false,
+        write: false,
+        packages: "external",
+      }),
 
-    write_paths_to_disk(IS_DEV),
-  ]);
+      write_paths_to_disk(IS_DEV),
+    ]);
+
+  ///////////////////////////////////////////////////////////////////////////
+
+  esbuild.build({
+    // TO-DO -- customize entry point in Hwy Config
+    entryPoints: [
+      ...(get_is_using_client_entry() ? ["src/entry.client.*"] : []),
+      ...page_files_list.map((x) => x.import_path_with_orig_ext),
+      ...client_files_list.map((x) => x.import_path_with_orig_ext),
+    ],
+    bundle: true,
+    outdir: "public/dist",
+    treeShaking: true,
+    platform: "browser",
+    format: "esm",
+    minify: true,
+    splitting: true,
+    chunkNames: "__hwy_chunks__/[name]-[hash]",
+  });
+
+  /////////////////////////////////////////////////////////////////////////////
 
   /********************* STEP 4 *********************
    * GENERATE PUBLIC FILE MAP -- TAKE 2
@@ -307,19 +239,6 @@ const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
   const hwy_config_line = `${HWY_PREFIX}arbitrary_global.${
     HWY_GLOBAL_KEYS.hwy_config
   } = ${JSON.stringify(hwy_config)};\n`;
-  const import_map_setup_line = `${HWY_PREFIX}arbitrary_global.${
-    HWY_GLOBAL_KEYS.import_map_setup
-  } = ${JSON.stringify(
-    ALL_MODULE_DEF_NAMES.map((x: string) => {
-      const index = module_defs.findIndex((y: any) => {
-        return y.names.includes(x);
-      });
-      return {
-        name: x,
-        index,
-      };
-    }),
-  )};\n`;
   const injected_scripts_line = `${HWY_PREFIX}arbitrary_global.${
     HWY_GLOBAL_KEYS.injected_scripts
   } = ${JSON.stringify(injected_scripts)};\n`;
@@ -332,7 +251,6 @@ const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
     warmup_line +
       dev_line +
       hwy_config_line +
-      import_map_setup_line +
       injected_scripts_line +
       to_be_appended +
       main_code,

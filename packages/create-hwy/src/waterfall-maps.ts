@@ -100,7 +100,7 @@ const SCRIPTS_WATERFALL_MAP = [
       "dev:serve": "hwy-dev-serve",
       "dev:wrangler": `wrangler pages dev ./dist --compatibility-flag="nodejs_compat" --port=${DEFAULT_PORT} --live-reload`,
       dev: "npm run build && npm-run-all --parallel dev:*",
-      start: undefined, // not sure about this one TO-DO
+      start: undefined,
     },
   ],
 ] as const;
@@ -111,7 +111,7 @@ const DEPS_WATERFALL_MAP = [
   ["BASE", { hono: VERSIONS["hono"], hwy: LATEST_HWY_VERSION }],
   ["IS_CSS_HOOKS", { "@css-hooks/core": VERSIONS["@css-hooks/core"] }],
   ["IS_NODE", { "@hono/node-server": VERSIONS["@hono/node-server"] }],
-  ["IS_CF_PAGES", { "@hono/node-server": undefined }], // TO-DO not sure here
+  ["IS_CF_PAGES", { "@hono/node-server": undefined }],
 ] as const;
 
 /******************************************************************************/
