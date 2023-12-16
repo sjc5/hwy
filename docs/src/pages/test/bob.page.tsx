@@ -1,11 +1,12 @@
 import { PageProps } from "hwy";
-// import { useEffect } from "preact/hooks";
-import { asdf } from "./bob";
+import { useEffect } from "preact/hooks";
+import { asdf } from "./bob.js";
 
 export default function ({ loaderData }: PageProps) {
-  // useEffect(() => {
-  //   console.log("Hi from Bob useEffect", asdf, loaderData);
-  // }, []);
+  useEffect(() => {
+    console.log("Hi from Bob useEffect", asdf, loaderData);
+  }, []);
+
   return (
     <div>
       Bob
@@ -17,5 +18,13 @@ export default function ({ loaderData }: PageProps) {
 }
 
 function BobChild() {
-  return <div>BobChild</div>;
+  // console.log(await hi());
+  return <div>Jeff</div>;
 }
+
+// async function hi() {
+//   await new Promise((resolve) => {
+//     setTimeout(resolve, 1000);
+//   });
+//   return "larry";
+// }

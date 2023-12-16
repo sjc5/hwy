@@ -15,5 +15,14 @@ export type {
   PageProps,
 } from "./src/types.js";
 
-export { HeadElements } from "./src/preact/head-elements-comp.js";
-export { renderRoot } from "./src/preact/render-root.js";
+export { renderRoot } from "./src/components/render-root.js";
+
+export { getRouteData } from "./src/utils/get-root-data.js";
+
+export {
+  ClientScripts,
+  CssImports,
+  DevLiveRefreshScript,
+  HeadElements,
+  getHeadElementProps,
+} from "./src/components/head-elements-comp.js";

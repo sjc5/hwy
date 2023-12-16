@@ -4,6 +4,7 @@ import { ChildProcess, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import {
+  HWY_PREFIX,
   LIVE_REFRESH_RPC_PATH,
   RefreshFilePayload,
   hwyLog,
@@ -22,7 +23,7 @@ function get_is_hot_reload_only(
 ): changeType is "css-bundle" | "critical-css" {
   return Boolean(
     hwy_config.deploymentTarget !== "cloudflare-pages" &&
-      hwy_config.dev?.hotReloadCssBundle &&
+      hwy_config.dev?.hotReloadStyles &&
       changeType &&
       changeType !== "standard",
   );

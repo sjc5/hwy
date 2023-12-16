@@ -1,0 +1,30 @@
+{
+  "name": "breaking-changes-0.8.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && hwy-build",
+    "start": "node dist/main.js",
+    "dev": "hwy-dev-serve"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.2.3",
+    "hono": "^3.10.1",
+    "hwy": "workspace:*"
+  },
+  "devDependencies": {
+    "@hwy-js/build": "workspace:*",
+    "@hwy-js/client": "workspace:*",
+    "@hwy-js/dev": "workspace:*",
+    "@hwy-js/utils": "workspace:*",
+    "@types/node": "^20.9.0",
+    "@types/nprogress": "^0.2.3",
+    "htmx.org": "^1.9.8",
+    "idiomorph": "^0.0.9",
+    "nprogress": "^0.2.0",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.14.1"
+  }
+}

@@ -5,7 +5,7 @@
 import type { Context } from "hono";
 
 // REDIRECT -----------------------------------------------------------------------
-function redirect({
+function htmxRedirect({
   c,
   to,
   status,
@@ -56,7 +56,7 @@ const idiomorphBodyProps = {
   "hx-swap": "morph:innerHTML",
 } as const;
 
-function getDefaultBodyProps(options?: {
+function getDefaultHtmxBodyProps(options?: {
   nProgress?: boolean;
   idiomorph?: boolean;
 }) {
@@ -68,4 +68,4 @@ function getDefaultBodyProps(options?: {
 }
 
 // EXPORTS ------------------------------------------------------------------------
-export { getDefaultBodyProps, redirect };
+export { getDefaultHtmxBodyProps, htmxRedirect };

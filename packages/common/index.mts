@@ -1,5 +1,5 @@
+import { signal } from "@preact/signals";
 import type { Context, Env } from "hono";
-import { FunctionComponent, JSX } from "preact";
 
 export const HWY_PREFIX = "__hwy_internal__";
 export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
@@ -24,12 +24,12 @@ export type HwyConfig = {
     port?: number;
     watchExclusions?: Array<string>;
     watchInclusions?: Array<string>;
-    hotReloadCssBundle?: boolean;
+    hotReloadStyles?: boolean;
   };
   usePreactCompat?: boolean;
 } & (
-  | { useClientSidePreact?: false; useDotServerFiles: boolean }
-  | { useClientSidePreact: true; useDotServerFiles: true }
+  | { useClientSidePreact?: false; useDotServerFiles?: boolean }
+  | { useClientSidePreact?: true; useDotServerFiles: true }
 ) &
   (
     | {
@@ -173,7 +173,7 @@ export function sort_head_blocks(head_blocks: HeadBlock[]) {
   };
 }
 
-export type BaseProps<EnvType extends Env = {}> = {
+export type RouteData<EnvType extends Env = {}> = {
   c: Context<EnvType>;
   activePathData: ActivePathData;
   defaultHeadBlocks: HeadBlock[];
@@ -252,6 +252,42 @@ export function get_hwy_global() {
   return { get, set };
 }
 
+///////////////////////////////////
+// CLIENT GLOBAL
+///////////////////////////////////
+
+export function get_hwy_client_global() {
+  const global_this = globalThis as any;
+
+  function get_signal<K extends HwyClientGlobalKey>(key: K) {
+    return global_this[HWY_SYMBOL][key] as HwyClientGlobal[K];
+  }
+
+  function get<K extends HwyClientGlobalKey>(key: K) {
+    return global_this[HWY_SYMBOL][key].value as HwyClientGlobal[K];
+  }
+
+  function set_signal<
+    K extends HwyClientGlobalKey,
+    V extends HwyClientGlobal[K],
+  >(key: K, value: V) {
+    global_this[HWY_SYMBOL][key] = value;
+  }
+
+  function set<K extends HwyClientGlobalKey, V extends HwyClientGlobal[K]>(
+    key: K,
+    value: V,
+  ) {
+    if (!global_this[HWY_SYMBOL][key]) {
+      global_this[HWY_SYMBOL][key] = signal(value);
+    } else {
+      global_this[HWY_SYMBOL][key].value = value;
+    }
+  }
+
+  return { get_signal, get, set_signal, set };
+}
+
 // CORE TYPES
 
 export type DataProps<EnvType extends Env = {}> = {
@@ -271,10 +307,11 @@ export type Action<EnvType extends Env = {}> = (
 export type PageProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
+  FunctionComponent = any,
 > = {
   loaderData: Awaited<ReturnType<LoaderType>>;
   actionData: Awaited<ReturnType<ActionType>> | undefined;
-  Outlet: FunctionComponent<Record<string, any>>;
+  Outlet: FunctionComponent;
   params: Record<string, string>;
   splatSegments: string[];
   path: string;
@@ -283,7 +320,8 @@ export type PageProps<
 export type PageComponent<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
-> = (props: PageProps<LoaderType, ActionType>) => JSX.Element;
+  JSXElement = any,
+> = (props: PageProps<LoaderType, ActionType>) => JSXElement;
 
 export type HeadProps<
   LoaderType extends Loader<any> = Loader<any>,

@@ -1,7 +1,7 @@
 import {
-  BaseProps,
   HeadBlock,
   HeadFunction,
+  RouteData,
   TagHeadBlock,
 } from "../../../common/index.mjs";
 import { getPublicUrl } from "./hashed-public-url.js";
@@ -44,7 +44,7 @@ function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
 }
 
 function getExportedHeadBlocks(
-  props: Pick<BaseProps, "activePathData" | "c" | "defaultHeadBlocks">,
+  props: Pick<RouteData, "activePathData" | "c" | "defaultHeadBlocks">,
 ): HeadBlock[] {
   const { activePathData: active_path_data } = props;
 
@@ -76,7 +76,7 @@ function getExportedHeadBlocks(
 }
 
 function getSiblingClientHeadBlocks(
-  props: Pick<BaseProps, "activePathData">,
+  props: Pick<RouteData, "activePathData">,
 ): TagHeadBlock[] {
   return (
     props.activePathData.matchingPaths

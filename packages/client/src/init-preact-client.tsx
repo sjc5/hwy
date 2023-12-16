@@ -1,8 +1,11 @@
 import { signal } from "@preact/signals";
 import { createBrowserHistory } from "history";
 import { hydrate, type ComponentChild } from "preact";
-import { CLIENT_SIGNAL_KEYS, HWY_PREFIX } from "../../common/index.mjs";
-import { get_hwy_client_global } from "./client-global.js";
+import {
+  CLIENT_SIGNAL_KEYS,
+  HWY_PREFIX,
+  get_hwy_client_global,
+} from "../../common/index.mjs";
 
 const abort_controllers = new Map<string, AbortController>();
 

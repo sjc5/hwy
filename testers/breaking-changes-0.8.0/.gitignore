@@ -1,0 +1,13 @@
+# standard exclusions
+node_modules
+
+# system artifacts
+.DS_Store
+
+# build artifacts
+dist
+public/dist
+
+# environment files
+.env
+.env.local

@@ -157,7 +157,7 @@ async function runBuildTasks({
     treeShaking: true,
     platform: "browser",
     format: "esm",
-    minify: true,
+    minify: false, // true,
     splitting: true,
     chunkNames: "__hwy_chunks__/[name]-[hash]",
     outbase: path.join(process.cwd(), "src"),
@@ -198,11 +198,12 @@ async function runBuildTasks({
   );
 
   /*
-   * Remove "export " from each file representation
-   * so we can append them to the server entry code
+   * This effectively puts each piece of our build outputs into a globally
+   * accessible variable. This is how we can access things like the CSS
+   * bundle and the public file map at runtime when we need them.
    */
   files_text = files_text.map((x, i) => {
-    return x.replace("export ", "");
+    return x.replace("export const ", `${HWY_PREFIX}arbitrary_global.`);
   });
 
   /*
@@ -213,21 +214,7 @@ async function runBuildTasks({
    *
    * This is now one big string, separated by double newlines.
    */
-  let to_be_appended = smart_normalize(files_text.join("\n\n"));
-
-  /*
-   * This effectively puts each piece of our build outputs into a globally
-   * accessible variable. This is how we can access things like the CSS
-   * bundle and the public file map at runtime when we need them.
-   */
-  to_be_appended =
-    to_be_appended +
-    `\n\n` +
-    FILE_NAMES.map((x) => {
-      const var_name = convert_to_var_name(x);
-      return `globalThis[Symbol.for("${HWY_PREFIX}")]["${var_name}"] = ${var_name};`;
-    }).join("\n") +
-    "\n\n";
+  let to_be_appended = smart_normalize(files_text.join("\n\n")) + "\n\n";
 
   /*
    * Set up some additional global variables
@@ -237,16 +224,20 @@ async function runBuildTasks({
 if (!globalThis[Symbol.for("${HWY_PREFIX}")]) {
   globalThis[Symbol.for("${HWY_PREFIX}")] = {};
 }
+
 const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
+
 `;
 
-  const dev_line = `${HWY_PREFIX}arbitrary_global.${HWY_GLOBAL_KEYS.is_dev} = ${IS_DEV};\n`;
+  const dev_line = `${HWY_PREFIX}arbitrary_global.${HWY_GLOBAL_KEYS.is_dev} = ${IS_DEV};\n\n`;
+
   const hwy_config_line = `${HWY_PREFIX}arbitrary_global.${
     HWY_GLOBAL_KEYS.hwy_config
-  } = ${JSON.stringify(hwy_config)};\n`;
+  } = ${JSON.stringify(hwy_config)};\n\n`;
+
   const injected_scripts_line = `${HWY_PREFIX}arbitrary_global.${
     HWY_GLOBAL_KEYS.injected_scripts
-  } = ${JSON.stringify(injected_scripts)};\n`;
+  } = ${JSON.stringify(injected_scripts)};\n\n`;
 
   /*
    * Now put it all together and write main.js to disk

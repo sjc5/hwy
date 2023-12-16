@@ -1,8 +1,10 @@
-export default function () {
+import { PageProps } from "hwy";
+
+export default function ({ Outlet }: PageProps) {
   return (
     <div>
       Test
-      {/* <Outlet /> */}
+      <Outlet />
     </div>
   );
 }

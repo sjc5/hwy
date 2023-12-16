@@ -1,8 +1,15 @@
-import { hwyInit, HeadElements, renderRoot } from "hwy";
-import { RootOutlet } from "@hwy-js/client";
-import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
+import { Hono } from "hono";
+import {
+  ClientScripts,
+  CssImports,
+  DevLiveRefreshScript,
+  HeadElements,
+  RootOutlet,
+  hwyInit,
+  renderRoot,
+} from "hwy";
 import { Sidebar } from "./components/sidebar.js";
 
 const { app } = await hwyInit({
@@ -15,23 +22,28 @@ app.all("*", async (c, next) => {
   return await renderRoot({
     c,
     next,
-    root: (baseProps) => {
+    defaultHeadBlocks: [],
+    root: function (routeData) {
       return (
         <html lang="en">
           <head>
-            <meta charset="UTF-8" />
+            <meta charSet="UTF-8" />
             <meta
               name="viewport"
               content="width=device-width,initial-scale=1"
             />
 
-            <HeadElements {...baseProps} />
+            <HeadElements {...routeData} />
+            <CssImports />
+            <ClientScripts {...routeData} />
+            <DevLiveRefreshScript />
           </head>
+
           <body>
             <Sidebar />
             <main>
               <RootOutlet
-                {...baseProps}
+                {...routeData}
                 fallbackErrorBoundary={function ErrorBoundary() {
                   return <div>Error Boundary in Root</div>;
                 }}

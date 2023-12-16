@@ -1,22 +1,26 @@
-import { type JSX } from "preact";
 import { useCallback } from "preact/hooks";
-import type {
-  ActivePathData,
-  ErrorBoundaryProps,
+import {
+  get_hwy_client_global,
+  type ActivePathData,
+  type ErrorBoundaryProps,
 } from "../../common/index.mjs";
-import { get_hwy_client_global } from "./client-global.js";
 
-type ErrorBoundaryComp = (props: ErrorBoundaryProps) => JSX.Element;
+type ErrorBoundaryComp<JSXElement> = (props: ErrorBoundaryProps) => JSXElement;
 
 type ServerKey = keyof ActivePathData;
+
+type JSXElement = any;
 
 function RootOutlet(props: {
   activePathData?: ActivePathData | { fetchResponse: Response };
   index?: number;
-  fallbackErrorBoundary?: ErrorBoundaryComp;
-}): JSX.Element {
+  fallbackErrorBoundary?: ErrorBoundaryComp<JSXElement>;
+}): JSXElement {
   const { activePathData } = props;
-  if (activePathData && "fetchResponse" in activePathData) return <></>;
+  if (activePathData && "fetchResponse" in activePathData) {
+    // @ts-ignore
+    return <></>;
+  }
 
   const IS_SERVER = typeof document === "undefined";
 
@@ -35,13 +39,14 @@ function RootOutlet(props: {
 
   try {
     if (!CurrentComponent) {
+      // @ts-ignore
       return <></>;
     }
 
     const this_is_an_error_boundary =
       context.get("outermostErrorBoundaryIndex") === index_to_use;
 
-    const ErrorBoundary: ErrorBoundaryComp | undefined =
+    const ErrorBoundary: ErrorBoundaryComp<JSXElement> | undefined =
       context.get("activeErrorBoundaries")?.[index_to_use] ??
       props.fallbackErrorBoundary;
 
@@ -50,6 +55,7 @@ function RootOutlet(props: {
       context.get("outermostErrorBoundaryIndex") === -1
     ) {
       if (!ErrorBoundary) {
+        // @ts-ignore
         return <div>Error: No error boundary found.</div>;
       }
 
@@ -85,7 +91,7 @@ function RootOutlet(props: {
   } catch (error) {
     console.error(error);
 
-    const ErrorBoundary: ErrorBoundaryComp | undefined =
+    const ErrorBoundary: ErrorBoundaryComp<JSXElement> | undefined =
       context
         .get("activeErrorBoundaries")
         ?.splice(0, index_to_use + 1)
@@ -93,6 +99,7 @@ function RootOutlet(props: {
         ?.find((x: any) => x) ?? props.fallbackErrorBoundary;
 
     if (!ErrorBoundary) {
+      // @ts-ignore
       return <div>Error: No error boundary found.</div>;
     }
 

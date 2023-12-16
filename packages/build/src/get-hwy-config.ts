@@ -67,8 +67,8 @@ async function get_hwy_config() {
       port: Number(internal_hwy_config?.dev?.port || DEFAULT_PORT),
       watchExclusions: internal_hwy_config?.dev?.watchExclusions || [],
       watchInclusions: internal_hwy_config?.dev?.watchInclusions || [],
-      hotReloadCssBundle:
-        internal_hwy_config?.dev?.hotReloadCssBundle === false ? false : true,
+      hotReloadStyles:
+        internal_hwy_config?.dev?.hotReloadStyles === false ? false : true,
     },
     deploymentTarget: internal_hwy_config?.deploymentTarget || "node",
     routeStrategy: internal_hwy_config?.routeStrategy || "always-lazy",

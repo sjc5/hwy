@@ -1,13 +1,11 @@
-import { ChildrenPermissive } from "../types.js";
-
 function DialogModal({
   open_button_inner,
   dialog_inner,
   wrapper_class,
   open_button_class,
 }: {
-  open_button_inner: ChildrenPermissive;
-  dialog_inner: ChildrenPermissive;
+  open_button_inner: any;
+  dialog_inner: any;
   wrapper_class?: string;
   open_button_class?: string;
 }) {

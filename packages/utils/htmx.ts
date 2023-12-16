@@ -1,1 +1,4 @@
-export { getDefaultBodyProps, redirect } from "./src/htmx/htmx-utils.js";
+export {
+  getDefaultHtmxBodyProps,
+  htmxRedirect,
+} from "./src/htmx/htmx-utils.js";

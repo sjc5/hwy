@@ -2,6 +2,7 @@ import type { Hono } from "hono";
 import {
   LIVE_REFRESH_RPC_PATH,
   LIVE_REFRESH_SSE_PATH,
+  get_hwy_global,
   hwyLog,
   type RefreshFilePayload,
 } from "../../common/index.mjs";
@@ -30,6 +31,11 @@ function setupLiveRefreshEndpoints({ app }: { app: Hono<any> }) {
       for (const sink of sinks) {
         sink.close();
       }
+    }
+
+    if (payload.changeType === "critical-css" && payload.criticalCss) {
+      const hwy_global = get_hwy_global();
+      hwy_global.set("critical_bundled_css", payload.criticalCss);
     }
 
     return c.text("you called chokidar rpc");

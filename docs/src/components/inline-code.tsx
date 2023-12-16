@@ -1,4 +1,3 @@
-// import type { JSX } from "preact";
 import { cx } from "../utils/utils.js";
 
 function InlineCode({
@@ -8,7 +7,8 @@ function InlineCode({
 }: {
   children: string;
   high_contrast?: boolean;
-} & JSX.IntrinsicElements["code"]) {
+  style?: Record<string, any>;
+}) {
   return (
     <code
       {...rest}

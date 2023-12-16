@@ -1,4 +1,4 @@
-import { BaseProps, get_hwy_global } from "../../../common/index.mjs";
+import { RouteData, get_hwy_global } from "../../../common/index.mjs";
 import { utils } from "../utils/hwy-utils.js";
 
 const hwy_global = get_hwy_global();
@@ -12,7 +12,7 @@ function getCriticalInlinedCssProps() {
   };
 }
 
-function getMetaElementsProps(baseProps: BaseProps) {
+function getMetaElementsProps(baseProps: RouteData) {
   const arr = [
     { attributes: { "data-hwy": "meta-start" } },
     ...baseProps.metaHeadBlocks,
@@ -24,7 +24,11 @@ function getMetaElementsProps(baseProps: BaseProps) {
 }
 
 // Only needed if using client-side Preact
-function getServerRenderingProps(props: BaseProps) {
+function getServerRenderingProps(props: RouteData) {
+  if (!hwy_global.get("hwy_config").useClientSidePreact) {
+    return;
+  }
+
   return {
     type: "module",
     dangerouslySetInnerHTML: {
@@ -49,7 +53,7 @@ function getClientEntryModuleProps() {
   };
 }
 
-function getRestHeadElementsProps(baseProps: BaseProps) {
+function getRestHeadElementsProps(baseProps: RouteData) {
   return [
     { tag: "meta", attributes: { "data-hwy": "rest-start" } },
     ...baseProps.restHeadBlocks,
@@ -74,13 +78,13 @@ function getDevRefreshScriptProps(timeoutInMs?: number) {
   };
 }
 
-function getPageSiblingsProps(baseProps: BaseProps) {
+function getPageSiblingsProps(baseProps: RouteData) {
   return utils.getSiblingClientHeadBlocks(baseProps).map((block) => {
     return block.attributes;
   });
 }
 
-function getHeadElementProps(baseProps: BaseProps) {
+function getHeadElementProps(baseProps: RouteData) {
   return {
     criticalInlinedCssProps: getCriticalInlinedCssProps(),
     metaElementsProps: getMetaElementsProps(baseProps),
@@ -94,18 +98,50 @@ function getHeadElementProps(baseProps: BaseProps) {
   } as const;
 }
 
-function HeadElements(baseProps: BaseProps) {
+export {
+  ClientScripts,
+  CssImports,
+  DevLiveRefreshScript,
+  HeadElements,
+  getHeadElementProps,
+};
+
+/////////////////////////////////////////////////////////////////////
+///////////////////// EXISTING HEAD ELEMENTS ///////////////////////
+/////////////////////////////////////////////////////////////////////
+
+function HeadElements(routeData: RouteData) {
   return (
     <>
-      <title>{baseProps.title}</title>
+      <title>{routeData.title}</title>
 
-      <style {...getCriticalInlinedCssProps()} />
-
-      {getMetaElementsProps(baseProps).map((props) => (
+      {getMetaElementsProps(routeData).map((props) => (
         <meta {...props} />
       ))}
 
-      <script {...getServerRenderingProps(baseProps)} />
+      {getRestHeadElementsProps(routeData).map((props) => (
+        /* @ts-ignore */
+        <props.tag {...props.attributes} />
+      ))}
+    </>
+  );
+}
+
+function CssImports() {
+  return (
+    <>
+      <style {...getCriticalInlinedCssProps()} />
+      <link {...getBundledStylesheetProps()} />
+    </>
+  );
+}
+
+function ClientScripts(routeData: RouteData) {
+  return (
+    <>
+      {hwy_global.get("hwy_config").useClientSidePreact && (
+        <script {...getServerRenderingProps(routeData)} />
+      )}
 
       {getInjectedScriptsProps().map((props) => (
         <script {...props} />
@@ -113,19 +149,13 @@ function HeadElements(baseProps: BaseProps) {
 
       <script {...getClientEntryModuleProps()} />
 
-      {getRestHeadElementsProps(baseProps).map((props) => (
-        /* @ts-ignore */
-        <props.tag {...props.attributes} />
-      ))}
-
-      {getPageSiblingsProps(baseProps).map((props) => (
+      {getPageSiblingsProps(routeData).map((props) => (
         <script {...props} />
       ))}
-
-      <link {...getBundledStylesheetProps()} />
-      <script {...getDevRefreshScriptProps()} />
     </>
   );
 }
 
-export { HeadElements, getHeadElementProps };
+function DevLiveRefreshScript() {
+  return <script {...getDevRefreshScriptProps()} />;
+}

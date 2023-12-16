@@ -1,30 +1,20 @@
-import { Context, Next } from "hono";
-import { renderToString } from "preact-render-to-string";
+import { Context } from "hono";
 import {
-  BaseProps,
   HWY_PREFIX,
   HeadBlock,
   get_hwy_global,
   sort_head_blocks,
 } from "../../../common/index.mjs";
+import { getHeadElementProps } from "../components/head-elements-comp.js";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
-import { utils } from "../utils/hwy-utils.js";
-import { getHeadElementProps } from "./head-elements-comp.js";
+import { utils } from "./hwy-utils.js";
 
-async function renderRoot<JSXElement>({
+async function getRouteData({
   c,
-  next,
   defaultHeadBlocks,
-  root: Root,
-  jsxImportSource,
 }: {
   c: Context;
-  next: Next;
   defaultHeadBlocks: HeadBlock[];
-  root: (
-    baseProps: BaseProps & ReturnType<typeof getHeadElementProps>,
-  ) => JSXElement;
-  jsxImportSource?: "hono/jsx" | "preact";
 }) {
   const activePathData = await getMatchingPathData({ c });
 
@@ -33,7 +23,7 @@ async function renderRoot<JSXElement>({
   }
 
   if (!activePathData.matchingPaths?.length) {
-    return await next();
+    return null;
   }
 
   const IS_PREACT_MPA = Boolean(
@@ -87,16 +77,10 @@ async function renderRoot<JSXElement>({
 
   const headElementProps = getHeadElementProps(baseProps);
 
-  const markup = Root({
+  return {
     ...baseProps,
     ...headElementProps,
-  });
-
-  if (jsxImportSource === "hono/jsx") {
-    return c.html("<!doctype html>" + markup);
-  }
-
-  return c.html("<!doctype html>" + renderToString(markup as any));
+  };
 }
 
-export { renderRoot };
+export { getRouteData };

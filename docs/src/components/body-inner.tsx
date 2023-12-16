@@ -1,8 +1,8 @@
-import { BaseProps, RootOutlet } from "@hwy-js/client";
+import { RootOutlet, RouteData } from "@hwy-js/client";
 import { FallbackErrorBoundary } from "./fallback-error-boundary.js";
 import { Nav } from "./nav.js";
 
-function BodyInner(baseProps: Pick<BaseProps, "activePathData"> | {}) {
+function BodyInner(baseProps: Pick<RouteData, "activePathData"> | {}) {
   return (
     <div class="body-inner">
       <div style={{ flexGrow: 1 }}>
