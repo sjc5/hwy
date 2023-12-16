@@ -10,10 +10,6 @@ function Nav() {
           Docs
         </a>
 
-        <a href="/test/bob" class="nav-item" title="Hwy Documentation">
-          test/bob
-        </a>
-
         <a
           href="https://github.com/hwy-js/hwy"
           target="_blank"
