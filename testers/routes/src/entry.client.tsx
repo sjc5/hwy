@@ -1,5 +1,4 @@
-import { initPreactClient } from "@hwy-js/client";
-import { RootOutlet } from "hwy";
+import { initPreactClient, RootOutlet } from "@hwy-js/client";
 
 await initPreactClient({
   elementToHydrate: document.querySelector("main") as HTMLElement,

@@ -1,12 +1,12 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
+import { RootOutlet } from "@hwy-js/client";
 import { Hono } from "hono";
 import {
   ClientScripts,
   CssImports,
   DevLiveRefreshScript,
   HeadElements,
-  RootOutlet,
   hwyInit,
   renderRoot,
 } from "hwy";
