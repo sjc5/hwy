@@ -39,6 +39,7 @@ function gmpd_tester({
           raw: {
             headers: new Map(),
           },
+          query: () => ({}),
         },
       } as any,
     });
