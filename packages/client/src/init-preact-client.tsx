@@ -219,8 +219,78 @@ type NavigationType =
   | "revalidation"
   | "redirect";
 
-function getRandom() {
-  return Math.random().toString(36).substring(2, 15);
+async function handle_redirects(props: {
+  isSecondTimeRunning?: boolean;
+  abort_controller: AbortController;
+  url: URL;
+  method?: Method;
+  data?: any;
+}) {
+  const isFirstTimeRunning = !props.isSecondTimeRunning;
+
+  let res;
+
+  if (isFirstTimeRunning) {
+    // first time running, fetching WITH redir manual
+    res = await fetch(props.url, {
+      signal: props.abort_controller.signal,
+      redirect: "manual",
+      method: props.method,
+      body: !props.data
+        ? undefined
+        : props.data instanceof FormData
+          ? props.data
+          : JSON.stringify(props.data),
+    });
+  } else {
+    try {
+      // second time running, fetching withOUT redir manual
+      res = await fetch(props.url, {
+        signal: props.abort_controller.signal,
+      });
+    } catch (e) {
+      if (e instanceof Error && e.name === "TypeError") {
+        // probs a cors error, fetching again WITH redir manual
+        res = await fetch(props.url, {
+          signal: props.abort_controller.signal,
+          redirect: "manual",
+        });
+
+        // now hard redirect
+        window.location.href = res.url;
+        return;
+      }
+    }
+  }
+
+  if (res?.redirected) {
+    const new_url = new URL(res.url);
+
+    if (!is_internal_link(new_url.href)) {
+      // external link, hard redirecting
+      window.location.href = new_url.href;
+      return;
+    }
+
+    // internal link, soft redirecting
+    await navigate({
+      href: new_url.href,
+      navigationType: "redirect",
+    });
+    return;
+  }
+
+  if (res?.type === "opaqueredirect") {
+    // run again with "isSecondTimeRunning" set to false
+    await navigate({
+      href: res.url,
+      navigationType: "redirect",
+      isSecondTimeRunning: true /* important */,
+    });
+    return;
+  }
+
+  return res;
 }
 
 async function navigate(props: {
@@ -239,64 +309,11 @@ async function navigate(props: {
 
     url.searchParams.set(`${HWY_PREFIX}json`, "1");
 
-    let res;
-
-    const isFirstTimeRunning = !props.isSecondTimeRunning;
-
-    if (isFirstTimeRunning) {
-      // first time running, fetching WITH redir manual
-      res = await fetch(url, {
-        signal: abort_controller.signal,
-        redirect: "manual",
-      });
-    } else {
-      try {
-        // second time running, fetching withOUT redir manual
-        res = await fetch(url, {
-          signal: abort_controller.signal,
-        });
-      } catch (e) {
-        if (e instanceof Error && e.name === "TypeError") {
-          // probs a cors error, fetching again WITH redir manual
-          res = await fetch(url, {
-            signal: abort_controller.signal,
-            redirect: "manual",
-          });
-
-          // now hard redirect
-          window.location.href = res.url;
-          return;
-        }
-      }
-    }
-
-    // TO-DO I think this redirect logic is wrong and needs to be re-created from navitagte function?
-    if (res?.redirected) {
-      const new_url = new URL(res.url);
-
-      if (!is_internal_link(new_url.href)) {
-        // external link, hard redirecting
-        window.location.href = new_url.href;
-        return;
-      }
-
-      // internal link, soft redirecting
-      await navigate({
-        href: new_url.href,
-        navigationType: "redirect",
-      });
-      return;
-    }
-
-    if (res?.type === "opaqueredirect") {
-      // run again with "isSecondTimeRunning" set to false
-      await navigate({
-        href: res.url,
-        navigationType: "redirect",
-        isSecondTimeRunning: true /* important */,
-      });
-      return;
-    }
+    const res = await handle_redirects({
+      isSecondTimeRunning: props.isSecondTimeRunning,
+      abort_controller,
+      url,
+    });
 
     const json = await res?.json();
 
@@ -344,11 +361,12 @@ async function navigate(props: {
   }
 }
 
-// Take in a custom stringifier for the body
-// Allow turning head idiomorph on / off (not sure yet which should be default)
-// Build in Ky? Build in devalue?
+// Take in a custom stringifier for the body, or build in devalue?
+// Build in Ky?
 // Make this take generics
 // Allow "boost=`false`" on any form or link
+
+type Method = "POST" | "PUT" | "PATCH" | "DELETE";
 
 async function submit({
   to,
@@ -357,7 +375,7 @@ async function submit({
 }: {
   to: string;
   data: any;
-  method?: "POST" | "PUT" | "PATCH" | "DELETE";
+  method?: Method;
 }) {
   hwy_client_global.get("globalOnLoadStart")?.();
 
@@ -371,25 +389,14 @@ async function submit({
   url.searchParams.set(`${HWY_PREFIX}json`, "1");
 
   try {
-    const res = await fetch(url, {
-      signal: abort_controller.signal,
-      method: method,
-      body: is_form_data ? data : JSON.stringify(data),
+    const res = await handle_redirects({
+      abort_controller,
+      url,
+      method,
+      data,
     });
 
-    if (res.redirected) {
-      if (!is_internal_link(res.url)) {
-        window.location.href = res.url;
-        return;
-      }
-      await navigate({
-        href: res.url,
-        navigationType: "redirect",
-      });
-      return;
-    }
-
-    const json = await res.json();
+    const json = await res?.json();
 
     abort_controllers.delete(abort_controller_key);
 
@@ -400,10 +407,18 @@ async function submit({
         navigationType: "revalidation",
       }); // this shuts off loading indicator too
     } else {
+      if (!json) {
+        throw new Error("No JSON response");
+      }
+
       hwy_client_global.set("actionData", json.actionData);
 
       // stop loading indicator
       hwy_client_global.get("globalOnLoadEnd")?.();
+    }
+
+    if (!json) {
+      throw new Error("No JSON response");
     }
 
     return json.actionData.find(Boolean);
@@ -434,7 +449,7 @@ async function reRenderApp({
 
   // compare and populate updated_list
   for (let i = 0; i < Math.max(old_list.length, new_list.length); i++) {
-    if (i === hwy_client_global.get("fallbackIndex")) {
+    if (i < new_list.length && i === hwy_client_global.get("fallbackIndex")) {
       updated_list.push({
         importPath: new_list[i],
         type: "new",
