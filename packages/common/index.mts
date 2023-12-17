@@ -70,6 +70,7 @@ export const CLIENT_SIGNAL_KEYS = [
   "actionData",
   "activeComponents",
   "activeErrorBoundaries",
+  "fallbackIndex",
 ] as const;
 
 export const OTHER_CLIENT_KEYS = [
@@ -96,6 +97,7 @@ export type ActivePathData = {
   // not needed in recursive component
   matchingPaths?: any[];
   activeHeads: any[];
+  fallbackIndex: number;
 
   // needed in recursive component
   activeData: any[];

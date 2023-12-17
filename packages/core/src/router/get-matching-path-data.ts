@@ -13,6 +13,7 @@ import { get_matching_paths_internal } from "./get-matching-path-data-internal.j
 import { matcher } from "./matcher.js";
 
 import { ROOT_DIRNAME } from "../setup.js";
+import { get_is_json_request } from "../utils/get-root-data.js";
 import { node_path, path_to_file_url_string } from "../utils/url-polyfills.js";
 
 const hwy_global = get_hwy_global();
@@ -82,6 +83,16 @@ function fully_decorate_paths({
           try {
             const imported = await get_path(_path.importPath);
             return imported.default;
+          } catch (e) {
+            console.error(e);
+            throw e;
+          }
+        },
+
+        fallbackImporter: async () => {
+          try {
+            const imported = await get_path(_path.importPath);
+            return imported.Fallback ? imported.Fallback : undefined;
           } catch (e) {
             console.error(e);
             throw e;
@@ -211,7 +222,7 @@ async function getMatchingPathData({ c }: { c: Context }) {
 
   const active_paths = matching_paths?.map((path) => path.pattern);
 
-  const fully_decorated_matching_paths = fully_decorate_paths({
+  let fully_decorated_matching_paths = fully_decorate_paths({
     matching_paths,
     splat_segments,
   });
@@ -230,30 +241,7 @@ async function getMatchingPathData({ c }: { c: Context }) {
     action_data_error = e;
   }
 
-  let [
-    active_data_obj,
-    active_components,
-    active_heads,
-    active_error_boundaries,
-  ] = await Promise.all([
-    Promise.all(
-      (fully_decorated_matching_paths || [])?.map(async (path) => {
-        return path
-          ?.loader?.({
-            c,
-            params,
-            splatSegments: splat_segments,
-          })
-          .then((result) => ({ error: undefined, result }))
-          .catch((error) => {
-            if (error instanceof Response)
-              return { result: error, error: undefined };
-            console.error("Loader error:", error);
-            return { error, result: undefined };
-          });
-      }),
-    ),
-
+  let [active_components, active_fallbacks] = await Promise.all([
     Promise.all(
       (fully_decorated_matching_paths || [])?.map((path) => {
         return path?.componentImporter();
@@ -261,17 +249,69 @@ async function getMatchingPathData({ c }: { c: Context }) {
     ),
 
     Promise.all(
-      (fully_decorated_matching_paths || []).map((path) => {
-        return path?.headImporter();
-      }),
-    ),
-
-    Promise.all(
-      (fully_decorated_matching_paths || []).map((path) => {
-        return path?.errorBoundaryImporter();
+      (fully_decorated_matching_paths || [])?.map((path) => {
+        return path?.fallbackImporter();
       }),
     ),
   ]);
+
+  let first_fallback_index = active_fallbacks.findIndex((x) => x);
+
+  const is_json_request = get_is_json_request({ c });
+
+  if (is_json_request) {
+    first_fallback_index = -1;
+  }
+
+  if (first_fallback_index !== -1) {
+    active_components = [
+      ...active_components.slice(0, first_fallback_index),
+      active_fallbacks[first_fallback_index],
+    ];
+
+    fully_decorated_matching_paths.splice(first_fallback_index + 1);
+
+    active_paths.splice(first_fallback_index + 1);
+  }
+
+  let [active_data_obj, active_heads, active_error_boundaries] =
+    await Promise.all([
+      Promise.all(
+        (first_fallback_index === -1
+          ? fully_decorated_matching_paths || []
+          : fully_decorated_matching_paths?.slice(
+              0,
+              fully_decorated_matching_paths.length - 1,
+            )
+        ).map(async (path) => {
+          return path
+            ?.loader?.({
+              c,
+              params,
+              splatSegments: splat_segments,
+            })
+            .then((result) => ({ error: undefined, result }))
+            .catch((error) => {
+              if (error instanceof Response)
+                return { result: error, error: undefined };
+              console.error("Loader error:", error);
+              return { error, result: undefined };
+            });
+        }),
+      ),
+
+      Promise.all(
+        (fully_decorated_matching_paths || []).map((path) => {
+          return path?.headImporter();
+        }),
+      ),
+
+      Promise.all(
+        (fully_decorated_matching_paths || []).map((path) => {
+          return path?.errorBoundaryImporter();
+        }),
+      ),
+    ]);
 
   const errors = active_data_obj.map((item) => item.error);
   const active_data = active_data_obj.map((item) => item.result);
@@ -339,6 +379,7 @@ async function getMatchingPathData({ c }: { c: Context }) {
     // not needed in recursive component
     matchingPaths: fully_decorated_matching_paths,
     activeHeads: active_heads,
+    fallbackIndex: first_fallback_index,
 
     // needed in recursive component
     activeData: active_data, // loader data for active routes

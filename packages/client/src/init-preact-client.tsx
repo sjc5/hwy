@@ -119,9 +119,19 @@ async function initPreactClient(props: {
 
   const awaited_components = await Promise.all(components);
 
+  const fallbackIndex = hwy_client_global.get("fallbackIndex");
+
   hwy_client_global.set(
     "activeComponents",
-    awaited_components.map((x) => x.default),
+    awaited_components.map((x, i) => {
+      if (fallbackIndex === -1) {
+        return x.default;
+      }
+      if (i === fallbackIndex) {
+        return x.Fallback;
+      }
+      return x.default;
+    }),
   );
 
   hwy_client_global.set(
@@ -194,6 +204,13 @@ async function initPreactClient(props: {
       method: method as any,
     });
   });
+
+  if (fallbackIndex !== -1) {
+    navigate({
+      href: location.href,
+      navigationType: "revalidation",
+    });
+  }
 }
 
 type NavigationType =
@@ -417,7 +434,12 @@ async function reRenderApp({
 
   // compare and populate updated_list
   for (let i = 0; i < Math.max(old_list.length, new_list.length); i++) {
-    if (
+    if (i === hwy_client_global.get("fallbackIndex")) {
+      updated_list.push({
+        importPath: new_list[i],
+        type: "new",
+      });
+    } else if (
       i < old_list.length &&
       i < new_list.length &&
       old_list[i] === new_list[i]

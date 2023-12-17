@@ -1,13 +1,16 @@
-import { CodeBlock } from "../components/code-block.js";
+import { PageProps } from "hwy";
 import { AnchorHeading } from "../components/anchor-heading.js";
-import { Paragraph } from "../components/paragraph.js";
-import { InlineCode } from "../components/inline-code.js";
-import { ListItem, UnorderedList } from "../components/unordered-list.js";
 import { Boldtalic } from "../components/bold-italic.js";
+import { CodeBlock } from "../components/code-block.js";
+import { InlineCode } from "../components/inline-code.js";
+import { Paragraph } from "../components/paragraph.js";
+import { ListItem, UnorderedList } from "../components/unordered-list.js";
 
-export default function () {
+export default function ({ Outlet }: PageProps) {
   return (
     <div class="flex-col-wrapper-bigger">
+      <Outlet />
+
       <h2 class="h2">Docs</h2>
       <AnchorHeading content="Creating a new project" />
       <Paragraph>

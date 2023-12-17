@@ -38,6 +38,7 @@ ${global_setter_string("errorToRender", activePathData.errorToRender)}
 ${global_setter_string("splatSegments", activePathData.splatSegments)}
 ${global_setter_string("params", activePathData.params)}
 ${global_setter_string("actionData", activePathData.actionData)}
+${global_setter_string("fallbackIndex", activePathData.fallbackIndex)}
 `.trim();
 }
 

@@ -1,3 +1,4 @@
+import { PageProps } from "hwy";
 import { Boldtalic } from "../components/bold-italic.js";
 import { CodeBlock } from "../components/code-block.js";
 import { H3Wrapper } from "../components/h3-wrapper.js";
@@ -5,9 +6,10 @@ import { InlineCode } from "../components/inline-code.js";
 import { Paragraph } from "../components/paragraph.js";
 import { ListItem, UnorderedList } from "../components/unordered-list.js";
 
-export default function () {
+export default function ({ Outlet }: PageProps) {
   return (
     <>
+      <Outlet />
       <BigHeading />
       <BundleBadge />
       <Quickstart />

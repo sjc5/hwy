@@ -9,6 +9,10 @@ import { getHeadElementProps } from "../components/head-elements-comp.js";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
 import { utils } from "./hwy-utils.js";
 
+export function get_is_json_request({ c }: { c: Context }) {
+  return Boolean(c.req.query()[`${HWY_PREFIX}json`]);
+}
+
 async function getRouteData({
   c,
   defaultHeadBlocks,
@@ -49,7 +53,7 @@ async function getRouteData({
   };
 
   if (IS_PREACT_MPA) {
-    const IS_JSON = Boolean(c.req.query()[`${HWY_PREFIX}json`]);
+    const IS_JSON = get_is_json_request({ c });
 
     if (IS_JSON) {
       if (c.req.raw.signal.aborted) {
