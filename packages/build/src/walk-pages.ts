@@ -40,21 +40,14 @@ async function walk_pages(IS_DEV?: boolean): Promise<{
   let page_files_list = [];
   let client_files_list = [];
 
-  const paths: {
-    // ultimately public
-    importPath: string;
-    path: string;
-    segments: Array<string | null>;
-    pathType: PathType;
-    hasSiblingClientFile: boolean;
-    hasSiblingServerFile: boolean;
-  }[] = [];
+  const paths: Paths = [];
 
   for await (const entry of readdirp(path.resolve("./src/pages"))) {
     const is_page_file = entry.path.includes(".page.");
     const is_client_file = entry.path.includes(".client.");
-    const is_server_file =
-      hwy_config.useDotServerFiles && entry.path.includes(".server.");
+    const is_server_file = Boolean(
+      hwy_config.useDotServerFiles && entry.path.includes(".server."),
+    );
 
     if (!is_page_file && !is_client_file && !is_server_file) {
       continue;
@@ -131,7 +124,8 @@ async function walk_pages(IS_DEV?: boolean): Promise<{
       path_to_use = path_to_use.slice(0, -1);
     }
 
-    if (is_page_file) {
+    if (is_page_file || is_server_file) {
+      let has_sibling_page_file = false;
       let has_sibling_client_file = false;
       let has_sibling_server_file = false;
 
@@ -145,10 +139,21 @@ async function walk_pages(IS_DEV?: boolean): Promise<{
         }
 
         if (
+          is_page_file &&
           hwy_config.useDotServerFiles &&
           sibling.includes(filename + ".server.")
         ) {
           has_sibling_server_file = true;
+
+          break;
+        }
+
+        if (
+          is_server_file &&
+          hwy_config.useDotServerFiles &&
+          sibling.includes(filename + ".page.")
+        ) {
+          has_sibling_page_file = true;
 
           break;
         }
@@ -164,14 +169,29 @@ async function walk_pages(IS_DEV?: boolean): Promise<{
         path_type = "dynamic-layout";
       }
 
-      paths.push({
-        importPath: smart_normalize(_path + ".js"),
-        path: path_to_use,
-        segments: segments.map((x) => x.segment || null),
-        pathType: path_type,
-        hasSiblingClientFile: has_sibling_client_file,
-        hasSiblingServerFile: has_sibling_server_file,
-      });
+      if (is_server_file && !has_sibling_page_file) {
+        paths.push({
+          importPath: smart_normalize(_path + ".js"),
+          path: path_to_use,
+          segments: segments.map((x) => x.segment || null),
+          pathType: path_type,
+          hasSiblingClientFile: has_sibling_client_file,
+          hasSiblingServerFile: false,
+          isServerFile: true,
+        });
+      }
+
+      if (is_page_file) {
+        paths.push({
+          importPath: smart_normalize(_path + ".js"),
+          path: path_to_use,
+          segments: segments.map((x) => x.segment || null),
+          pathType: path_type,
+          hasSiblingClientFile: has_sibling_client_file,
+          hasSiblingServerFile: has_sibling_server_file,
+          isServerFile: false,
+        });
+      }
     }
 
     await fs.promises.mkdir(path.resolve(`./public/dist/`), {

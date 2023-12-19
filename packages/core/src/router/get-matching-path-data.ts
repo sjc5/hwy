@@ -67,12 +67,16 @@ function fully_decorate_paths({
 
       const NO_SERVER_FUNCTIONS =
         hwy_global.get("hwy_config").useDotServerFiles &&
-        !_path.hasSiblingServerFile;
+        !_path.hasSiblingServerFile &&
+        !_path.isServerFile;
+
+      const NO_CLIENT_FUNCTIONS = _path.isServerFile;
 
       // public
       return {
         hasSiblingClientFile: _path.hasSiblingClientFile,
         hasSiblingServerFile: _path.hasSiblingServerFile,
+        isServerFile: _path.isServerFile,
         importPath: _path.importPath,
         params: _path.params,
         pathType: _path.pathType,
@@ -80,6 +84,8 @@ function fully_decorate_paths({
 
         // ON CLIENT
         componentImporter: async () => {
+          if (NO_CLIENT_FUNCTIONS) return;
+
           try {
             const imported = await get_path(_path.importPath);
             return imported.default;
@@ -90,6 +96,8 @@ function fully_decorate_paths({
         },
 
         fallbackImporter: async () => {
+          if (NO_CLIENT_FUNCTIONS) return;
+
           try {
             const imported = await get_path(_path.importPath);
             return imported.Fallback ? imported.Fallback : undefined;
@@ -239,6 +247,10 @@ async function getMatchingPathData({ c }: { c: Context }) {
     action_data = await get_action_data({ c, last_path });
   } catch (e) {
     action_data_error = e;
+  }
+
+  if (action_data instanceof Response && last_path.isServerFile) {
+    return { fetchResponse: action_data };
   }
 
   let [active_components, active_fallbacks] = await Promise.all([

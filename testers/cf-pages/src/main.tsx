@@ -1,8 +1,8 @@
-import { hwyInit, HeadElements, renderRoot } from "hwy";
 import { RootOutlet } from "@hwy-js/client";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
+import { HeadElements, hwyInit, renderRoot } from "hwy";
 
 const app = new Hono();
 

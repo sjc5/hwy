@@ -65,7 +65,7 @@ function get_original_public_url({
     }
   }
 
-  if (sliced_url.includes("__hwy_chunks__")) {
+  if (sliced_url.includes("__hwy_chunk__")) {
     return "./" + PUBLIC_URL_PREFIX + sliced_url;
   }
 

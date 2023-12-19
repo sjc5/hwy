@@ -159,7 +159,7 @@ async function runBuildTasks({
     format: "esm",
     minify: false, // true,
     splitting: true,
-    chunkNames: "__hwy_chunks__/[name]-[hash]",
+    chunkNames: "__hwy_chunk__[hash]",
     outbase: path.join(process.cwd(), "src"),
   });
 

@@ -180,28 +180,24 @@ async function initPreactClient(props: {
   hwy_client_global.set("globalOnLoadEnd", props?.onLoadEnd);
 
   window.addEventListener("submit", async function (event) {
-    event.preventDefault();
-
     const form = event.target as HTMLFormElement;
 
-    // run original form onsubmit if it exists
-    if (form.onsubmit) {
-      const res = await form.onsubmit(event);
-
-      if (res === false) {
-        return;
-      }
+    if (!form.dataset.boost) {
+      return;
     }
+
+    event.preventDefault();
 
     const action = form.action;
     const method = form.method;
 
+    console.log({ action, method });
+
     const formData = new FormData(form);
 
-    await submit({
-      to: action,
-      data: formData,
-      method: method as any,
+    await submit(action || window.location.href, {
+      method,
+      body: method.toLowerCase() === "get" ? undefined : formData,
     });
   });
 
@@ -223,24 +219,35 @@ async function handle_redirects(props: {
   isSecondTimeRunning?: boolean;
   abort_controller: AbortController;
   url: URL;
-  method?: Method;
-  data?: any;
+  requestInit?: RequestInit;
 }) {
   const isFirstTimeRunning = !props.isSecondTimeRunning;
 
   let res;
 
   if (isFirstTimeRunning) {
+    const noBody =
+      !props.requestInit?.method ||
+      props.requestInit?.method.toLowerCase() === "get" ||
+      props.requestInit?.body === undefined;
+
+    const bodyParentObj = noBody
+      ? {}
+      : {
+          body:
+            props.requestInit?.body instanceof FormData
+              ? props.requestInit.body
+              : typeof props.requestInit?.body === "string"
+                ? props.requestInit.body
+                : JSON.stringify(props.requestInit?.body),
+        };
+
     // first time running, fetching WITH redir manual
     res = await fetch(props.url, {
       signal: props.abort_controller.signal,
       redirect: "manual",
-      method: props.method,
-      body: !props.data
-        ? undefined
-        : props.data instanceof FormData
-          ? props.data
-          : JSON.stringify(props.data),
+      ...props.requestInit,
+      ...bodyParentObj,
     });
   } else {
     try {
@@ -315,9 +322,14 @@ async function navigate(props: {
       url,
     });
 
-    const json = await res?.json();
-
     abort_controllers.delete(abort_controller_key);
+
+    if (!res || res.status !== 200) {
+      hwy_client_global.get("globalOnLoadEnd")?.();
+      return;
+    }
+
+    const json = await res?.json();
 
     if (!json) {
       throw new Error("No JSON response");
@@ -366,39 +378,41 @@ async function navigate(props: {
 // Make this take generics
 // Allow "boost=`false`" on any form or link
 
-type Method = "POST" | "PUT" | "PATCH" | "DELETE";
+function onSubmitWrapper(fn: (e: Event) => any) {
+  return async (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await fn(e);
+  };
+}
 
-async function submit({
-  to,
-  data,
-  method = "POST",
-}: {
-  to: string;
-  data: any;
-  method?: Method;
-}) {
+async function submit<T>(url: string | URL, options?: RequestInit) {
   hwy_client_global.get("globalOnLoadStart")?.();
 
-  const abort_controller_key = to + method;
+  const abort_controller_key = url + (options?.method || "");
   const { abort_controller, did_abort } =
     handle_abort_controller(abort_controller_key);
 
-  const is_form_data = data instanceof FormData;
+  const url_to_use = new URL(url, window.location.origin);
+  url_to_use.searchParams.set(`${HWY_PREFIX}json`, "1");
 
-  const url = new URL(to, window.location.origin);
-  url.searchParams.set(`${HWY_PREFIX}json`, "1");
+  let is_hwy_res = false;
 
   try {
     const res = await handle_redirects({
       abort_controller,
-      url,
-      method,
-      data,
+      url: url_to_use,
+      requestInit: options,
     });
 
-    const json = await res?.json();
-
     abort_controllers.delete(abort_controller_key);
+
+    if (!res || res.status !== 200) {
+      hwy_client_global.get("globalOnLoadEnd")?.();
+      return;
+    }
+
+    const json = await res?.json();
 
     if (did_abort) {
       // revalidate
@@ -411,7 +425,10 @@ async function submit({
         throw new Error("No JSON response");
       }
 
-      hwy_client_global.set("actionData", json.actionData);
+      if (typeof json === "object" && "actionData" in json) {
+        is_hwy_res = true;
+        hwy_client_global.set("actionData", json.actionData);
+      }
 
       // stop loading indicator
       hwy_client_global.get("globalOnLoadEnd")?.();
@@ -421,7 +438,7 @@ async function submit({
       throw new Error("No JSON response");
     }
 
-    return json.actionData.find(Boolean);
+    return is_hwy_res ? json.actionData.find(Boolean) : json;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       // eat
@@ -530,8 +547,6 @@ async function reRenderApp({
   addBlocksToHead("rest", json.restHeadBlocks);
 }
 
-export { initPreactClient, submit };
-
 //////////////////////////////
 // head stuff
 
@@ -580,3 +595,5 @@ function addBlocksToHead(type: "meta" | "rest", blocks: Array<any>) {
     }
   });
 }
+
+export { initPreactClient, onSubmitWrapper, submit };

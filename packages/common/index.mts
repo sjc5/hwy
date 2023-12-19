@@ -200,6 +200,7 @@ export type Path = {
   pathType: PathType;
   hasSiblingClientFile: boolean;
   hasSiblingServerFile: boolean;
+  isServerFile: boolean;
 };
 
 export type Paths = Array<Path>;
@@ -306,13 +307,15 @@ export type Action<EnvType extends Env = {}> = (
   args: DataProps<EnvType>,
 ) => Promise<any> | any;
 
+type NotResponse<T> = T extends Response ? never : T;
+
 export type PageProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
   FunctionComponent = any,
 > = {
-  loaderData: Awaited<ReturnType<LoaderType>>;
-  actionData: Awaited<ReturnType<ActionType>> | undefined;
+  loaderData: NotResponse<Awaited<ReturnType<LoaderType>>>;
+  actionData: NotResponse<Awaited<ReturnType<ActionType>>> | undefined;
   Outlet: FunctionComponent;
   params: Record<string, string>;
   splatSegments: string[];
