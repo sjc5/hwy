@@ -10,13 +10,15 @@ async function renderRoot({
   next,
   defaultHeadBlocks,
   root: Root,
+  adHocData,
 }: {
   c: Context;
   next: Next;
   defaultHeadBlocks: HeadBlock[];
   root: (props: RouteData) => JSXElement;
+  adHocData?: any;
 }) {
-  const routeData = await getRouteData({ c, defaultHeadBlocks });
+  const routeData = await getRouteData({ c, defaultHeadBlocks, adHocData });
 
   if (routeData instanceof Response) {
     return routeData;

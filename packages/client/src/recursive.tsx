@@ -1,5 +1,6 @@
 import { useCallback } from "preact/hooks";
 import {
+  RouteData,
   get_hwy_client_global,
   type ActivePathData,
   type ErrorBoundaryProps,
@@ -11,10 +12,17 @@ type ServerKey = keyof ActivePathData;
 
 type JSXElement = any;
 
+function getAdHocDataSignal(routeData?: RouteData): any {
+  const IS_SERVER = typeof document === "undefined";
+  if (IS_SERVER) return;
+  return get_hwy_client_global().get_signal("adHocData");
+}
+
 function RootOutlet(props: {
   activePathData?: ActivePathData | { fetchResponse: Response };
   index?: number;
   fallbackErrorBoundary?: ErrorBoundaryComp<JSXElement>;
+  adHocData?: any;
 }): JSXElement {
   const { activePathData } = props;
   if (activePathData && "fetchResponse" in activePathData) {
@@ -24,7 +32,7 @@ function RootOutlet(props: {
 
   const IS_SERVER = typeof document === "undefined";
 
-  let context: {
+  const context: {
     get: (str: ServerKey) => ActivePathData[ServerKey];
   } = IS_SERVER
     ? {
@@ -36,6 +44,10 @@ function RootOutlet(props: {
   let { index } = props;
   const index_to_use = index ?? 0;
   const CurrentComponent = context.get("activeComponents")?.[index_to_use];
+
+  const adHocData = IS_SERVER
+    ? props.adHocData
+    : get_hwy_client_global().get("adHocData");
 
   try {
     if (!CurrentComponent) {
@@ -66,7 +78,7 @@ function RootOutlet(props: {
       });
     }
 
-    const outlet_fn = (local_props: Record<string, any> | undefined) => {
+    const Outlet = (local_props: Record<string, any> | undefined) => {
       return RootOutlet({
         ...local_props,
         activePathData: IS_SERVER ? props.activePathData : undefined,
@@ -74,11 +86,9 @@ function RootOutlet(props: {
       });
     };
 
-    const Outlet = IS_SERVER
-      ? outlet_fn
-      : useCallback(outlet_fn, [
-          context.get("activePaths")?.[index_to_use + 1],
-        ]);
+    const OutletToUse = IS_SERVER
+      ? Outlet
+      : useCallback(Outlet, [context.get("activePaths")?.[index_to_use + 1]]);
 
     return CurrentComponent({
       ...props,
@@ -86,7 +96,8 @@ function RootOutlet(props: {
       splatSegments: context.get("splatSegments") ?? [],
       loaderData: context.get("activeData")?.[index_to_use],
       actionData: context.get("actionData")?.[index_to_use],
-      Outlet,
+      Outlet: OutletToUse,
+      adHocData,
     });
   } catch (error) {
     console.error(error);
@@ -111,4 +122,4 @@ function RootOutlet(props: {
   }
 }
 
-export { RootOutlet };
+export { RootOutlet, getAdHocDataSignal };

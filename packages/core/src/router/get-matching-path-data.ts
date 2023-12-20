@@ -61,9 +61,10 @@ function fully_decorate_paths({
 }) {
   return (
     matching_paths?.map((_path) => {
-      const server_import_path = hwy_global.get("hwy_config").useDotServerFiles
-        ? _path.importPath.slice(0, -3) + ".server.js"
-        : _path.importPath;
+      const server_import_path =
+        !_path.isServerFile && hwy_global.get("hwy_config").useDotServerFiles
+          ? _path.importPath.slice(0, -3) + ".server.js"
+          : _path.importPath;
 
       const NO_SERVER_FUNCTIONS =
         hwy_global.get("hwy_config").useDotServerFiles &&

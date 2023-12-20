@@ -32,7 +32,7 @@ function getServerRenderingProps(props: RouteData) {
   return {
     type: "module",
     dangerouslySetInnerHTML: {
-      __html: utils.getSsrInnerHtml(props.activePathData),
+      __html: utils.getSsrInnerHtml(props),
     },
   };
 }
@@ -139,6 +139,29 @@ function CssImports() {
 function ClientScripts(routeData: RouteData) {
   return (
     <>
+      <script
+        type="importmap"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            imports: {
+              "@preact/signals": utils.getPublicUrl("dist/client-signals.js"),
+              preact: utils.getPublicUrl("dist/client-signals.js"),
+              "preact/hooks": utils.getPublicUrl("dist/client-signals.js"),
+              "preact/jsx-runtime": utils.getPublicUrl(
+                "dist/client-signals.js",
+              ),
+              ...(hwy_global.get("is_dev")
+                ? {
+                    "preact/debug": utils.getPublicUrl(
+                      "dist/client-signals.js",
+                    ),
+                  }
+                : {}),
+            },
+          }),
+        }}
+      />
+
       {hwy_global.get("hwy_config").useClientSidePreact && (
         <script {...getServerRenderingProps(routeData)} />
       )}

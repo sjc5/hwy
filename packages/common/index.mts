@@ -71,6 +71,7 @@ export const CLIENT_SIGNAL_KEYS = [
   "activeComponents",
   "activeErrorBoundaries",
   "fallbackIndex",
+  "adHocData",
 ] as const;
 
 export const OTHER_CLIENT_KEYS = [
@@ -182,6 +183,7 @@ export type RouteData<EnvType extends Env = {}> = {
   title: string;
   metaHeadBlocks: TagHeadBlock[];
   restHeadBlocks: TagHeadBlock[];
+  adHocData: any;
 };
 
 // PATHS
@@ -312,6 +314,7 @@ type NotResponse<T> = T extends Response ? never : T;
 export type PageProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
+  AdHocData extends any = any,
   FunctionComponent = any,
 > = {
   loaderData: NotResponse<Awaited<ReturnType<LoaderType>>>;
@@ -320,19 +323,21 @@ export type PageProps<
   params: Record<string, string>;
   splatSegments: string[];
   path: string;
+  adHocData: AdHocData;
 };
 
 export type PageComponent<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
+  AdHocData extends any = any,
   JSXElement = any,
-> = (props: PageProps<LoaderType, ActionType>) => JSXElement;
+> = (props: PageProps<LoaderType, ActionType, AdHocData>) => JSXElement;
 
 export type HeadProps<
   LoaderType extends Loader<any> = Loader<any>,
   ActionType extends Action<any> = Action<any>,
   EnvType extends Env = {},
-> = Omit<PageProps<LoaderType, ActionType>, "Outlet"> & {
+> = Omit<PageProps<LoaderType, ActionType>, "Outlet" | "adHocData"> & {
   c: Context<EnvType>;
 };
 

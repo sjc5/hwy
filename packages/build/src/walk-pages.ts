@@ -1,4 +1,3 @@
-import esbuild from "esbuild";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -29,16 +28,20 @@ const IS_PREACT_MPA = Boolean(hwy_config.useClientSidePreact);
 
 console.log(hwy_config);
 
+type FilesList = Array<{
+  _path: string;
+  import_path_with_orig_ext: string;
+}>;
+
 async function walk_pages(IS_DEV?: boolean): Promise<{
   paths: Array<Path>;
-  page_files_list: Array<{ _path: string; import_path_with_orig_ext: string }>;
-  client_files_list: Array<{
-    _path: string;
-    import_path_with_orig_ext: string;
-  }>;
+  page_files_list: FilesList;
+  client_files_list: FilesList;
+  server_files_list: FilesList;
 }> {
-  let page_files_list = [];
-  let client_files_list = [];
+  let page_files_list: FilesList = [];
+  let client_files_list: FilesList = [];
+  let server_files_list: FilesList = [];
 
   const paths: Paths = [];
 
@@ -171,7 +174,7 @@ async function walk_pages(IS_DEV?: boolean): Promise<{
 
       if (is_server_file && !has_sibling_page_file) {
         paths.push({
-          importPath: smart_normalize(_path + ".js"),
+          importPath: smart_normalize("pages/" + _path + ".server.js"),
           path: path_to_use,
           segments: segments.map((x) => x.segment || null),
           pathType: path_type,
@@ -183,7 +186,7 @@ async function walk_pages(IS_DEV?: boolean): Promise<{
 
       if (is_page_file) {
         paths.push({
-          importPath: smart_normalize(_path + ".js"),
+          importPath: smart_normalize("pages/" + _path + ".page.js"),
           path: path_to_use,
           segments: segments.map((x) => x.segment || null),
           pathType: path_type,
@@ -199,21 +202,11 @@ async function walk_pages(IS_DEV?: boolean): Promise<{
     });
 
     try {
-      if (!is_client_file) {
-        await esbuild.build({
-          entryPoints: [import_path_with_orig_ext],
-          bundle: true,
-          outfile: path.resolve(
-            `./dist/` + _path + (is_server_file ? ".server" : "") + ".js",
-          ),
-          treeShaking: true,
-          platform: "node",
-          format: "esm",
-          packages: "external",
-        });
+      if (is_server_file) {
+        server_files_list.push({ _path, import_path_with_orig_ext });
       }
 
-      if (IS_PREACT_MPA && is_page_file) {
+      if (is_page_file) {
         page_files_list.push({ _path, import_path_with_orig_ext });
       }
 
@@ -229,11 +222,12 @@ async function walk_pages(IS_DEV?: boolean): Promise<{
     paths,
     page_files_list,
     client_files_list,
+    server_files_list,
   };
 }
 
 async function write_paths_to_disk(IS_DEV?: boolean) {
-  const { paths, page_files_list, client_files_list } =
+  const { paths, page_files_list, client_files_list, server_files_list } =
     await walk_pages(IS_DEV);
 
   await fs.promises.writeFile(
@@ -241,7 +235,7 @@ async function write_paths_to_disk(IS_DEV?: boolean) {
     `export const ${HWY_GLOBAL_KEYS.paths} = ${JSON.stringify(paths)}`,
   );
 
-  return { page_files_list, client_files_list };
+  return { page_files_list, client_files_list, server_files_list };
 }
 
 function sha1_short(content: crypto.BinaryLike) {

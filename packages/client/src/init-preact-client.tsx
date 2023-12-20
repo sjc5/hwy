@@ -102,17 +102,6 @@ async function initPreactClient(props: {
     history.scrollRestoration = "manual";
   }
 
-  for (const key of CLIENT_SIGNAL_KEYS) {
-    hwy_client_global.set_signal(
-      key,
-      signal(
-        hwy_client_global
-          // it's not really a signal here, just want raw value which is what "get_signal" does
-          .get_signal(key),
-      ),
-    );
-  }
-
   const components = hwy_client_global.get("activePaths").map((x: any) => {
     return import(("." + x).replace("public/dist/", ""));
   });
@@ -438,6 +427,11 @@ async function submit<T>(url: string | URL, options?: RequestInit) {
       throw new Error("No JSON response");
     }
 
+    await navigate({
+      href: location.href,
+      navigationType: "revalidation",
+    }); // this shuts off loading indicator too
+
     return is_hwy_res ? json.actionData.find(Boolean) : json;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -518,18 +512,15 @@ async function reRenderApp({
   // NOW ACTUALLY SET EVERYTHING
   hwy_client_global.set("activeComponents", new_active_components);
 
-  hwy_client_global.set(
-    "activeErrorBoundaries",
-    hwy_client_global.get("activeComponents").map((x: any) => x.ErrorBoundary),
-  );
-
   const identical_keys_to_set = [
+    "activeErrorBoundaries",
     "activeData",
     "activePaths",
     "outermostErrorBoundaryIndex",
     "errorToRender",
     "splatSegments",
     "params",
+    "adHocData",
   ] as const satisfies ReadonlyArray<(typeof CLIENT_SIGNAL_KEYS)[number]>;
 
   for (const key of identical_keys_to_set) {

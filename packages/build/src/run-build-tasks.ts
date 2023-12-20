@@ -119,23 +119,26 @@ async function runBuildTasks({
    * it and write it to disk later.
    */
 
-  const [main_build_result, { page_files_list, client_files_list }] =
-    await Promise.all([
-      esbuild.build({
-        // TO-DO -- customize entry point in Hwy Config
-        entryPoints: [path.resolve("src/main.*")],
-        bundle: true,
-        outdir: path.resolve("dist"),
-        treeShaking: true,
-        platform: "node",
-        format: "esm",
-        minify: false,
-        write: false,
-        packages: "external",
-      }),
+  const { page_files_list, client_files_list, server_files_list } =
+    await write_paths_to_disk(IS_DEV);
 
-      write_paths_to_disk(IS_DEV),
-    ]);
+  await esbuild.build({
+    // TO-DO -- customize entry point in Hwy Config
+    entryPoints: [
+      path.resolve("src/main.*"),
+      ...page_files_list.map((x) => x.import_path_with_orig_ext),
+      ...server_files_list.map((x) => x.import_path_with_orig_ext),
+    ],
+    bundle: true,
+    outdir: path.resolve("dist"),
+    treeShaking: true,
+    platform: "node",
+    format: "esm",
+    minify: false,
+    write: true,
+    packages: "external",
+    splitting: true,
+  });
 
   ///////////////////////////////////////////////////////////////////////////
   ///////////////////////////////// STEP 3.5 -- AND NOW THE CLIENT FILES
@@ -143,25 +146,56 @@ async function runBuildTasks({
 
   const is_using_client_entry = get_is_using_client_entry();
 
-  await esbuild.build({
-    // TO-DO -- customize entry point in Hwy Config
-    entryPoints: [
-      ...(is_using_client_entry
-        ? [path.join(process.cwd(), "src/entry.client.*")]
-        : []),
-      ...page_files_list.map((x) => x.import_path_with_orig_ext),
-      ...client_files_list.map((x) => x.import_path_with_orig_ext),
-    ],
-    bundle: true,
-    outdir: path.join(process.cwd(), "public/dist"),
-    treeShaking: true,
-    platform: "browser",
-    format: "esm",
-    minify: false, // true,
-    splitting: true,
-    chunkNames: "__hwy_chunk__[hash]",
-    outbase: path.join(process.cwd(), "src"),
-  });
+  await Promise.all([
+    esbuild.build({
+      // TO-DO -- customize entry point in Hwy Config
+      entryPoints: [
+        ...(is_using_client_entry
+          ? [path.join(process.cwd(), "src/entry.client.*")]
+          : []),
+        ...(hwy_config.useClientSidePreact ? page_files_list : []).map(
+          (x) => x.import_path_with_orig_ext,
+        ),
+        ...client_files_list.map((x) => x.import_path_with_orig_ext),
+      ],
+      bundle: true,
+      outdir: path.join(process.cwd(), "public/dist"),
+      treeShaking: true,
+      platform: "browser",
+      format: "esm",
+      minify: false, // true,
+      splitting: true,
+      chunkNames: "__hwy_chunk__[hash]",
+      outbase: path.join(process.cwd(), "src"),
+      external: [
+        "@preact/signals",
+        "preact",
+        "preact/hooks",
+        "preact/jsx-runtime",
+        "preact/debug",
+      ],
+    }),
+
+    // PREACT STUFF, WE WANT TO CLOSELY CONTROL PREACT BUNDLE AND HAVE ACCESS MODULES
+    //  IN HEAD FROM IMPORT MAP, AND HAVE PREACT/DEBUG "JUST WORK"
+    esbuild.build({
+      stdin: {
+        contents: ` export * from "@preact/signals";
+                    export * from "preact";
+                    export * from "preact/hooks";
+                    export * from "preact/jsx-runtime";
+                    ${IS_DEV ? `export * from "preact/debug";` : ""}`,
+        resolveDir: path.join(process.cwd(), "dist"),
+      },
+      bundle: true,
+      outfile: path.join(process.cwd(), "public/dist/client-signals.js"),
+      treeShaking: true,
+      platform: "browser",
+      format: "esm",
+      minify: false,
+      splitting: false,
+    }),
+  ]);
 
   /////////////////////////////////////////////////////////////////////////////
 
@@ -182,7 +216,10 @@ async function runBuildTasks({
    */
 
   // Grab the specific build output we need -- server entry code
-  let main_code = main_build_result.outputFiles?.[0].text;
+  let main_code = await fs.promises.readFile(
+    path.join(process.cwd(), "dist/main.js"),
+    "utf8",
+  );
 
   /*
    * Grab the rest of the build outputs (previously written to disk)
@@ -457,18 +494,24 @@ ${HWY_PREFIX}paths.forEach(function (x) {
     return paths_import_list
       .map((x) => {
         return `
-import * as ${convert_to_var_name(x.importPath)} from "./${x.importPath}";
-${HWY_PREFIX}arbitrary_global["./${x.importPath}"] = ${convert_to_var_name(
-          x.importPath,
-        )};
 ${
-  hwy_config.useDotServerFiles && x.hasSiblingServerFile
-    ? `import * as ${convert_to_var_name(
-        x.importPath.slice(0, -3) + ".server.js",
-      )} from "./${x.importPath.slice(0, -3) + ".server.js"}";
-  ${HWY_PREFIX}arbitrary_global["./${
-    x.importPath.slice(0, -3) + ".server.js"
-  }"] = ${convert_to_var_name(x.importPath.slice(0, -3) + ".server.js")};`
+  x.isServerFile
+    ? ""
+    : `import * as ${convert_to_var_name(x.importPath)} from "./${
+        x.importPath
+      }";
+${HWY_PREFIX}arbitrary_global["./${x.importPath}"] = ${convert_to_var_name(
+        x.importPath,
+      )};`
+}
+${
+  hwy_config.useDotServerFiles && (x.hasSiblingServerFile || x.isServerFile)
+    ? `import * as ${convert_to_var_name(x.importPath)} from "./${
+        x.importPath
+      }";
+  ${HWY_PREFIX}arbitrary_global["./${x.importPath}"] = ${convert_to_var_name(
+    x.importPath,
+  )};`
     : ""
 }
       `.trim();

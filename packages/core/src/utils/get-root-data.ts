@@ -16,9 +16,11 @@ export function get_is_json_request({ c }: { c: Context }) {
 async function getRouteData({
   c,
   defaultHeadBlocks,
+  adHocData,
 }: {
   c: Context;
   defaultHeadBlocks: HeadBlock[];
+  adHocData?: any;
 }) {
   const activePathData = await getMatchingPathData({ c });
 
@@ -50,6 +52,7 @@ async function getRouteData({
     metaHeadBlocks,
     restHeadBlocks,
     defaultHeadBlocks,
+    adHocData,
   };
 
   if (IS_PREACT_MPA) {
@@ -66,15 +69,14 @@ async function getRouteData({
         restHeadBlocks,
         activeData: activePathData.activeData,
         activePaths: activePathData.matchingPaths?.map((x) => {
-          return utils.getPublicUrl(
-            "dist/pages/" + x.importPath.replace(".js", ".page.js"),
-          );
+          return utils.getPublicUrl("dist/" + x.importPath);
         }),
         outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
         errorToRender: activePathData.errorToRender,
         splatSegments: activePathData.splatSegments,
         params: activePathData.params,
         actionData: activePathData.actionData,
+        adHocData,
       });
     }
   }
