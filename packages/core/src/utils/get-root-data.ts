@@ -68,9 +68,13 @@ async function getRouteData({
         metaHeadBlocks,
         restHeadBlocks,
         activeData: activePathData.activeData,
-        activePaths: activePathData.matchingPaths?.map((x) => {
-          return utils.getPublicUrl("dist/" + x.importPath);
-        }),
+        activePaths: activePathData.matchingPaths
+          ?.filter((x) => {
+            return !x.isServerFile;
+          })
+          .map((x) => {
+            return utils.getPublicUrl("dist/" + x.importPath);
+          }),
         outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
         errorToRender: activePathData.errorToRender,
         splatSegments: activePathData.splatSegments,

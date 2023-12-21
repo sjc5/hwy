@@ -51,7 +51,7 @@ function gmpd_tester({
         raw.matchingPaths?.map((path) => {
           return {
             pathType: path.pathType,
-            filePath: path.importPath.replace(".js", ".page.tsx"),
+            filePath: path.importPath.replace(".js", ".tsx"),
           };
         }) || [],
     } satisfies ExpectedOutput;
@@ -64,7 +64,7 @@ type IndividualMatch = ExpectedOutput["matchingPaths"][number];
 
 const ultimate_catch = {
   pathType: "ultimate-catch",
-  filePath: "$.page.tsx",
+  filePath: "pages/$.page.tsx",
 } as const satisfies IndividualMatch;
 
 /******************
@@ -103,7 +103,7 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "index",
-        filePath: "_index.page.tsx",
+        filePath: "pages/_index.page.tsx",
       },
     ],
     params: {},
@@ -125,11 +125,11 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "lion.page.tsx", // LAYOUT
+        filePath: "pages/lion.page.tsx", // LAYOUT
       },
       {
         pathType: "index",
-        filePath: "lion/_index.page.tsx", // INDEX
+        filePath: "pages/lion/_index.page.tsx", // INDEX
       },
     ],
     params: {},
@@ -147,11 +147,11 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "lion.page.tsx", // LAYOUT
+        filePath: "pages/lion.page.tsx", // LAYOUT
       },
       {
         pathType: "non-ultimate-splat",
-        filePath: "lion/$.page.tsx", // SPLAT
+        filePath: "pages/lion/$.page.tsx", // SPLAT
       },
     ],
     params: {},
@@ -168,11 +168,11 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "lion.page.tsx", // LAYOUT
+        filePath: "pages/lion.page.tsx", // LAYOUT
       },
       {
         pathType: "non-ultimate-splat",
-        filePath: "lion/$.page.tsx", // SPLAT
+        filePath: "pages/lion/$.page.tsx", // SPLAT
       },
     ],
     params: {},
@@ -189,11 +189,11 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "lion.page.tsx", // LAYOUT
+        filePath: "pages/lion.page.tsx", // LAYOUT
       },
       {
         pathType: "non-ultimate-splat",
-        filePath: "lion/$.page.tsx", // SPLAT
+        filePath: "pages/lion/$.page.tsx", // SPLAT
       },
     ],
     params: {},
@@ -215,11 +215,11 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "tiger.page.tsx", // LAYOUT
+        filePath: "pages/tiger.page.tsx", // LAYOUT
       },
       {
         pathType: "index",
-        filePath: "tiger/_index.page.tsx", // INDEX
+        filePath: "pages/tiger/_index.page.tsx", // INDEX
       },
     ],
     params: {},
@@ -238,15 +238,15 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "tiger.page.tsx", // LAYOUT
+        filePath: "pages/tiger.page.tsx", // LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        filePath: "tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
+        filePath: "pages/tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
       },
       {
         pathType: "index",
-        filePath: "tiger/$tiger_id/_index.page.tsx", // $tiger_id INDEX
+        filePath: "pages/tiger/$tiger_id/_index.page.tsx", // $tiger_id INDEX
       },
     ],
     params: { tiger_id: "123" },
@@ -265,15 +265,15 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "tiger.page.tsx", // LAYOUT
+        filePath: "pages/tiger.page.tsx", // LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        filePath: "tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
+        filePath: "pages/tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        filePath: "tiger/$tiger_id/$tiger_cub_id.page.tsx", // $tiger_id LAYOUT
+        filePath: "pages/tiger/$tiger_id/$tiger_cub_id.page.tsx", // $tiger_id LAYOUT
       },
     ],
     params: { tiger_id: "123", tiger_cub_id: "456" },
@@ -292,15 +292,15 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "tiger.page.tsx", // LAYOUT
+        filePath: "pages/tiger.page.tsx", // LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        filePath: "tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
+        filePath: "pages/tiger/$tiger_id.page.tsx", // $tiger_id LAYOUT
       },
       {
         pathType: "non-ultimate-splat",
-        filePath: "tiger/$tiger_id/$.page.tsx", // CATCH
+        filePath: "pages/tiger/$tiger_id/$.page.tsx", // CATCH
       },
     ],
     params: { tiger_id: "123" },
@@ -318,12 +318,12 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "bear.page.tsx", // LAYOUT
+        filePath: "pages/bear.page.tsx", // LAYOUT
       },
 
       {
         pathType: "index",
-        filePath: "bear/_index.page.tsx", // INDEX
+        filePath: "pages/bear/_index.page.tsx", // INDEX
       },
     ],
     params: {},
@@ -339,11 +339,11 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "bear.page.tsx", // LAYOUT ("bear")
+        filePath: "pages/bear.page.tsx", // LAYOUT ("bear")
       },
       {
         pathType: "dynamic-layout",
-        filePath: "bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
+        filePath: "pages/bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
       },
     ],
     params: { bear_id: "123" },
@@ -361,15 +361,15 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "bear.page.tsx", // LAYOUT ("bear")
+        filePath: "pages/bear.page.tsx", // LAYOUT ("bear")
       },
       {
         pathType: "dynamic-layout",
-        filePath: "bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
+        filePath: "pages/bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
       },
       {
         pathType: "non-ultimate-splat",
-        filePath: "bear/$bear_id/$.page.tsx", // CATCH ("456")
+        filePath: "pages/bear/$bear_id/$.page.tsx", // CATCH ("456")
       },
     ],
     params: { bear_id: "123" },
@@ -386,15 +386,15 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "bear.page.tsx", // LAYOUT ("bear")
+        filePath: "pages/bear.page.tsx", // LAYOUT ("bear")
       },
       {
         pathType: "dynamic-layout",
-        filePath: "bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
+        filePath: "pages/bear/$bear_id.page.tsx", // LAYOUT ("$bear_id")
       },
       {
         pathType: "non-ultimate-splat",
-        filePath: "bear/$bear_id/$.page.tsx", // CATCH ("456" & "789")
+        filePath: "pages/bear/$bear_id/$.page.tsx", // CATCH ("456" & "789")
       },
     ],
     params: { bear_id: "123" },
@@ -420,11 +420,11 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "dashboard.page.tsx", // LAYOUT
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
         pathType: "index",
-        filePath: "dashboard/_index.page.tsx", // INDEX
+        filePath: "pages/dashboard/_index.page.tsx", // INDEX
       },
     ],
     params: {},
@@ -442,11 +442,11 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "dashboard.page.tsx", // LAYOUT
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
         pathType: "non-ultimate-splat",
-        filePath: "dashboard/$.page.tsx", // CATCH
+        filePath: "pages/dashboard/$.page.tsx", // CATCH
       },
     ],
     params: {},
@@ -465,15 +465,15 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "dashboard.page.tsx", // LAYOUT
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
         pathType: "static-layout",
-        filePath: "dashboard/customers.page.tsx", // customers LAYOUT
+        filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
       },
       {
         pathType: "index",
-        filePath: "dashboard/customers/_index.page.tsx", // customers INDEX
+        filePath: "pages/dashboard/customers/_index.page.tsx", // customers INDEX
       },
     ],
     params: {},
@@ -493,19 +493,19 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "dashboard.page.tsx", // LAYOUT
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
         pathType: "static-layout",
-        filePath: "dashboard/customers.page.tsx", // customers LAYOUT
+        filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        filePath: "dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
+        filePath: "pages/dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
       },
       {
         pathType: "index",
-        filePath: "dashboard/customers/$customer_id/_index.page.tsx", // $customer_id INDEX
+        filePath: "pages/dashboard/customers/$customer_id/_index.page.tsx", // $customer_id INDEX
       },
     ],
     params: {
@@ -528,23 +528,24 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "dashboard.page.tsx", // LAYOUT
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
         pathType: "static-layout",
-        filePath: "dashboard/customers.page.tsx", // customers LAYOUT
+        filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        filePath: "dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
+        filePath: "pages/dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
       },
       {
         pathType: "static-layout",
-        filePath: "dashboard/customers/$customer_id/orders.page.tsx", // orders LAYOUT
+        filePath: "pages/dashboard/customers/$customer_id/orders.page.tsx", // orders LAYOUT
       },
       {
         pathType: "index",
-        filePath: "dashboard/customers/$customer_id/orders/_index.page.tsx", // orders INDEX
+        filePath:
+          "pages/dashboard/customers/$customer_id/orders/_index.page.tsx", // orders INDEX
       },
     ],
     params: {
@@ -567,23 +568,24 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "dashboard.page.tsx", // LAYOUT
+        filePath: "pages/dashboard.page.tsx", // LAYOUT
       },
       {
         pathType: "static-layout",
-        filePath: "dashboard/customers.page.tsx", // customers LAYOUT
+        filePath: "pages/dashboard/customers.page.tsx", // customers LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        filePath: "dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
+        filePath: "pages/dashboard/customers/$customer_id.page.tsx", // $customer_id LAYOUT
       },
       {
         pathType: "static-layout",
-        filePath: "dashboard/customers/$customer_id/orders.page.tsx", // orders LAYOUT
+        filePath: "pages/dashboard/customers/$customer_id/orders.page.tsx", // orders LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        filePath: "dashboard/customers/$customer_id/orders/$order_id.page.tsx", // $order_id LAYOUT
+        filePath:
+          "pages/dashboard/customers/$customer_id/orders/$order_id.page.tsx", // $order_id LAYOUT
       },
     ],
     params: {
@@ -603,7 +605,7 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "index",
-        filePath: "articles/_index.page.tsx", // INDEX
+        filePath: "pages/articles/_index.page.tsx", // INDEX
       },
     ],
     params: {},
@@ -643,7 +645,7 @@ gmpd_tester({
     matchingPaths: [
       {
         pathType: "index",
-        filePath: "articles/test/articles/_index.page.tsx", // INDEX
+        filePath: "pages/articles/test/articles/_index.page.tsx", // INDEX
       },
     ],
     params: {},

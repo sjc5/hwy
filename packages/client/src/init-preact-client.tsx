@@ -1,4 +1,3 @@
-import { signal } from "@preact/signals";
 import { createBrowserHistory } from "history";
 import { hydrate, type ComponentChild } from "preact";
 import {
@@ -134,6 +133,10 @@ async function initPreactClient(props: {
     // @ts-ignore
     const anchor = event.target?.closest("a");
 
+    if (anchor && !anchor.dataset.boost) {
+      return;
+    }
+
     const should_treat_as_ajax =
       anchor && // ignore clicks with no anchor
       anchor.target !== "_blank" && // ignore new tabs
@@ -180,8 +183,6 @@ async function initPreactClient(props: {
     const action = form.action;
     const method = form.method;
 
-    console.log({ action, method });
-
     const formData = new FormData(form);
 
     await submit(action || window.location.href, {
@@ -205,85 +206,60 @@ type NavigationType =
   | "redirect";
 
 async function handle_redirects(props: {
-  isSecondTimeRunning?: boolean;
   abort_controller: AbortController;
   url: URL;
   requestInit?: RequestInit;
+  skipLifecycleCallbacks?: boolean;
 }) {
-  const isFirstTimeRunning = !props.isSecondTimeRunning;
-
   let res;
 
-  if (isFirstTimeRunning) {
-    const noBody =
-      !props.requestInit?.method ||
-      props.requestInit?.method.toLowerCase() === "get" ||
-      props.requestInit?.body === undefined;
+  const noBody =
+    !props.requestInit?.method ||
+    props.requestInit?.method.toLowerCase() === "get" ||
+    props.requestInit?.body === undefined;
 
-    const bodyParentObj = noBody
-      ? {}
-      : {
-          body:
-            props.requestInit?.body instanceof FormData
+  const bodyParentObj = noBody
+    ? {}
+    : {
+        body:
+          props.requestInit?.body instanceof FormData
+            ? props.requestInit.body
+            : typeof props.requestInit?.body === "string"
               ? props.requestInit.body
-              : typeof props.requestInit?.body === "string"
-                ? props.requestInit.body
-                : JSON.stringify(props.requestInit?.body),
-        };
+              : JSON.stringify(props.requestInit?.body),
+      };
 
-    // first time running, fetching WITH redir manual
+  try {
     res = await fetch(props.url, {
       signal: props.abort_controller.signal,
-      redirect: "manual",
       ...props.requestInit,
       ...bodyParentObj,
     });
-  } else {
-    try {
-      // second time running, fetching withOUT redir manual
-      res = await fetch(props.url, {
-        signal: props.abort_controller.signal,
-      });
-    } catch (e) {
-      if (e instanceof Error && e.name === "TypeError") {
-        // probs a cors error, fetching again WITH redir manual
-        res = await fetch(props.url, {
-          signal: props.abort_controller.signal,
-          redirect: "manual",
-        });
 
-        // now hard redirect
-        window.location.href = res.url;
+    if (res?.redirected) {
+      const new_url = new URL(res.url);
+
+      if (!is_internal_link(new_url.href)) {
+        // external link, hard redirecting
+        window.location.href = new_url.href;
         return;
       }
-    }
-  }
 
-  if (res?.redirected) {
-    const new_url = new URL(res.url);
+      // internal link, soft redirecting
+      await navigate({
+        href: new_url.href,
+        navigationType: "redirect",
+        skipLifecycleCallbacks: props.skipLifecycleCallbacks,
+      });
 
-    if (!is_internal_link(new_url.href)) {
-      // external link, hard redirecting
-      window.location.href = new_url.href;
       return;
     }
-
-    // internal link, soft redirecting
-    await navigate({
-      href: new_url.href,
-      navigationType: "redirect",
-    });
-    return;
-  }
-
-  if (res?.type === "opaqueredirect") {
-    // run again with "isSecondTimeRunning" set to false
-    await navigate({
-      href: res.url,
-      navigationType: "redirect",
-      isSecondTimeRunning: true /* important */,
-    });
-    return;
+  } catch (e) {
+    // If this was an attempted redirect,
+    // potentially a CORS error here
+    // Recommend returning a JSON instruction to redirect on client
+    // with window.location.href = new_url.href;
+    console.error(e);
   }
 
   return res;
@@ -292,12 +268,17 @@ async function handle_redirects(props: {
 async function navigate(props: {
   href: string;
   navigationType: NavigationType;
-  isSecondTimeRunning?: boolean;
   scrollStateToRestore?: { x: number; y: number };
+  skipLifecycleCallbacks?: boolean;
 }) {
-  hwy_client_global.get("globalOnLoadStart")?.();
+  if (!props.skipLifecycleCallbacks) {
+    hwy_client_global.get("globalOnLoadStart")?.();
+  }
 
-  const abort_controller_key = props.href === "." ? "revalidate" : "navigate";
+  const abort_controller_key =
+    props.href === "." || props.href === window.location.href
+      ? "revalidate"
+      : "navigate";
   const { abort_controller } = handle_abort_controller(abort_controller_key);
 
   try {
@@ -306,15 +287,17 @@ async function navigate(props: {
     url.searchParams.set(`${HWY_PREFIX}json`, "1");
 
     const res = await handle_redirects({
-      isSecondTimeRunning: props.isSecondTimeRunning,
       abort_controller,
       url,
+      skipLifecycleCallbacks: props.skipLifecycleCallbacks,
     });
 
     abort_controllers.delete(abort_controller_key);
 
     if (!res || res.status !== 200) {
-      hwy_client_global.get("globalOnLoadEnd")?.();
+      if (!props.skipLifecycleCallbacks) {
+        hwy_client_global.get("globalOnLoadEnd")?.();
+      }
       return;
     }
 
@@ -332,8 +315,11 @@ async function navigate(props: {
     // TO-DO scroll to top on link clicks, but provide an opt-out
     // TO-DO scroll to top on form responses, but provide an opt-out
 
-    if (props.navigationType === "userNavigation") {
-      if (props.href !== location.href) {
+    if (
+      props.navigationType === "userNavigation" ||
+      props.navigationType === "redirect"
+    ) {
+      if (props.href !== location.href && props.navigationType !== "redirect") {
         customHistory.push(props.href);
       } else {
         customHistory.replace(props.href);
@@ -351,13 +337,17 @@ async function navigate(props: {
       );
     }
 
-    hwy_client_global.get("globalOnLoadEnd")?.();
+    if (!props.skipLifecycleCallbacks) {
+      hwy_client_global.get("globalOnLoadEnd")?.();
+    }
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       // eat
     } else {
       console.error(error);
-      hwy_client_global.get("globalOnLoadEnd")?.();
+      if (!props.skipLifecycleCallbacks) {
+        hwy_client_global.get("globalOnLoadEnd")?.();
+      }
     }
   }
 }
@@ -367,18 +357,18 @@ async function navigate(props: {
 // Make this take generics
 // Allow "boost=`false`" on any form or link
 
-function onSubmitWrapper(fn: (e: Event) => any) {
-  return async (e: Event) => {
-    e.preventDefault();
-    e.stopPropagation();
-    await fn(e);
-  };
-}
+async function submit<T>(
+  url: string | URL,
+  requestInit?: RequestInit,
+  options?: {
+    skipLifecycleCallbacks?: boolean;
+  },
+) {
+  if (!options?.skipLifecycleCallbacks) {
+    hwy_client_global.get("globalOnLoadStart")?.();
+  }
 
-async function submit<T>(url: string | URL, options?: RequestInit) {
-  hwy_client_global.get("globalOnLoadStart")?.();
-
-  const abort_controller_key = url + (options?.method || "");
+  const abort_controller_key = url + (requestInit?.method || "");
   const { abort_controller, did_abort } =
     handle_abort_controller(abort_controller_key);
 
@@ -391,13 +381,16 @@ async function submit<T>(url: string | URL, options?: RequestInit) {
     const res = await handle_redirects({
       abort_controller,
       url: url_to_use,
-      requestInit: options,
+      requestInit,
+      skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
     });
 
     abort_controllers.delete(abort_controller_key);
 
     if (!res || res.status !== 200) {
-      hwy_client_global.get("globalOnLoadEnd")?.();
+      if (!options?.skipLifecycleCallbacks) {
+        hwy_client_global.get("globalOnLoadEnd")?.();
+      }
       return;
     }
 
@@ -408,6 +401,7 @@ async function submit<T>(url: string | URL, options?: RequestInit) {
       await navigate({
         href: location.href,
         navigationType: "revalidation",
+        skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
       }); // this shuts off loading indicator too
     } else {
       if (!json) {
@@ -419,18 +413,12 @@ async function submit<T>(url: string | URL, options?: RequestInit) {
         hwy_client_global.set("actionData", json.actionData);
       }
 
-      // stop loading indicator
-      hwy_client_global.get("globalOnLoadEnd")?.();
+      await navigate({
+        href: location.href,
+        navigationType: "revalidation",
+        skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
+      }); // this shuts off loading indicator too
     }
-
-    if (!json) {
-      throw new Error("No JSON response");
-    }
-
-    await navigate({
-      href: location.href,
-      navigationType: "revalidation",
-    }); // this shuts off loading indicator too
 
     return is_hwy_res ? json.actionData.find(Boolean) : json;
   } catch (error) {
@@ -438,7 +426,9 @@ async function submit<T>(url: string | URL, options?: RequestInit) {
       // eat
     } else {
       console.error(error);
-      hwy_client_global.get("globalOnLoadEnd")?.();
+      if (!options?.skipLifecycleCallbacks) {
+        hwy_client_global.get("globalOnLoadEnd")?.();
+      }
     }
   }
 }
@@ -587,4 +577,4 @@ function addBlocksToHead(type: "meta" | "rest", blocks: Array<any>) {
   });
 }
 
-export { initPreactClient, onSubmitWrapper, submit };
+export { initPreactClient, submit };
