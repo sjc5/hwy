@@ -24,7 +24,6 @@ function RootOutlet(props: {
 }): JSXElement {
   const { activePathData } = props;
   if (activePathData && "fetchResponse" in activePathData) {
-    // @ts-ignore
     return <></>;
   }
 
@@ -41,7 +40,6 @@ function RootOutlet(props: {
 
   let { index } = props;
   const index_to_use = index ?? 0;
-  const activeComps = context.get("activeComponents") as any[] | undefined;
   const CurrentComponent = (context.get("activeComponents") as any)?.[
     index_to_use
   ];
@@ -52,38 +50,51 @@ function RootOutlet(props: {
 
   try {
     if (!CurrentComponent) {
-      // @ts-ignore
       return <></>;
     }
 
     const this_is_an_error_boundary =
       context.get("outermostErrorBoundaryIndex") === index_to_use;
 
-    const ErrorBoundary: ErrorBoundaryComp<JSXElement> | undefined =
-      (context.get("activeErrorBoundaries") as any)?.[index_to_use] ??
-      props.fallbackErrorBoundary;
+    const next_outlet_is_an_error_boundary =
+      context.get("outermostErrorBoundaryIndex") === index_to_use + 1;
 
     if (
       this_is_an_error_boundary ||
       context.get("outermostErrorBoundaryIndex") === -1
     ) {
+      const ErrorBoundary: ErrorBoundaryComp<JSXElement> | undefined =
+        (context.get("activeErrorBoundaries") as any)?.[index_to_use] ??
+        props.fallbackErrorBoundary;
+
       if (!ErrorBoundary) {
-        // @ts-ignore
         return <div>Error: No error boundary found.</div>;
       }
 
       return <ErrorBoundary />;
     }
 
-    const Outlet = (local_props: Record<string, any> | undefined) => {
-      return (
-        <RootOutlet
-          {...local_props}
-          activePathData={IS_SERVER ? props.activePathData : undefined}
-          index={index_to_use + 1}
-        />
-      );
-    };
+    let Outlet;
+
+    if (!next_outlet_is_an_error_boundary) {
+      Outlet = (local_props: Record<string, any> | undefined) => {
+        return (
+          <RootOutlet
+            {...local_props}
+            activePathData={IS_SERVER ? props.activePathData : undefined}
+            index={index_to_use + 1}
+          />
+        );
+      };
+    } else {
+      Outlet =
+        (context.get("activeErrorBoundaries") as any)?.[index_to_use + 1] ??
+        props.fallbackErrorBoundary;
+
+      if (!Outlet) {
+        Outlet = () => <div>Error: No error boundary found.</div>;
+      }
+    }
 
     const OutletToUse = IS_SERVER
       ? Outlet
@@ -112,7 +123,6 @@ function RootOutlet(props: {
         ?.find((x: any) => x) ?? props.fallbackErrorBoundary;
 
     if (!ErrorBoundary) {
-      // @ts-ignore
       return <div>Error: No error boundary found.</div>;
     }
 

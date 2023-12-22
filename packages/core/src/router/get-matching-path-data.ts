@@ -108,12 +108,11 @@ function fully_decorate_paths({
           }
         },
 
-        // REST ON SERVER
         errorBoundaryImporter: async () => {
-          if (NO_SERVER_FUNCTIONS) return;
+          if (NO_CLIENT_FUNCTIONS) return;
 
           try {
-            const imported = await get_path(server_import_path);
+            const imported = await get_path(_path.importPath);
             return imported.ErrorBoundary ? imported.ErrorBoundary : undefined;
           } catch (e) {
             console.error(e);
@@ -121,6 +120,7 @@ function fully_decorate_paths({
           }
         },
 
+        // REST ON SERVER
         headImporter: async () => {
           if (NO_SERVER_FUNCTIONS) return () => [];
 
@@ -305,8 +305,9 @@ async function getMatchingPathData({ c }: { c: Context }) {
             })
             .then((result) => ({ error: undefined, result }))
             .catch((error) => {
-              if (error instanceof Response)
+              if (error instanceof Response) {
                 return { result: error, error: undefined };
+              }
               console.error("Loader error:", error);
               return { error, result: undefined };
             });
@@ -333,27 +334,31 @@ async function getMatchingPathData({ c }: { c: Context }) {
     action_data_error || errors.some((error) => error),
   );
 
-  let highest_error_index = errors?.findIndex((error) => error);
+  let outermost_error_index = errors?.findIndex((error) => error);
 
   if (action_data_error) {
-    highest_error_index = active_data_obj.length - 1;
+    const action_data_error_index = active_data_obj.length - 1;
+
+    if (there_are_errors && action_data_error_index < outermost_error_index) {
+      outermost_error_index = action_data_error_index;
+    }
   }
 
   let closest_parent_error_boundary_index;
 
   if (
     there_are_errors &&
-    highest_error_index !== undefined &&
-    highest_error_index !== -1
+    outermost_error_index !== undefined &&
+    outermost_error_index !== -1
   ) {
     closest_parent_error_boundary_index = active_error_boundaries
-      .slice(0, highest_error_index + 1)
+      .slice(0, outermost_error_index + 1)
       .reverse()
       .findIndex((boundary) => boundary != null);
 
     if (closest_parent_error_boundary_index !== -1) {
       closest_parent_error_boundary_index =
-        highest_error_index - closest_parent_error_boundary_index;
+        outermost_error_index - closest_parent_error_boundary_index;
     }
 
     if (
@@ -380,13 +385,39 @@ async function getMatchingPathData({ c }: { c: Context }) {
     };
   }
 
-  const should_render_loader_error =
-    highest_error_index < active_data_obj.length - 1 ||
-    (highest_error_index === active_data_obj.length - 1 && !action_data_error);
+  if (there_are_errors) {
+    const error_payload = {
+      // not needed in recursive component
+      matchingPaths: fully_decorated_matching_paths.slice(
+        0,
+        outermost_error_index + 1, // adding one because it's still an active path, we just only want boundary
+      ),
+      activeHeads: active_heads.slice(0, outermost_error_index),
+      fallbackIndex: first_fallback_index,
 
-  const error_to_render = should_render_loader_error
-    ? errors[highest_error_index]
-    : action_data_error;
+      // needed in recursive component
+      activeData: active_data.slice(0, outermost_error_index), // loader data for active routes
+      activePaths: active_paths.slice(
+        0,
+        outermost_error_index + 1, // adding one because it's still an active path, we just only want boundary
+      ),
+      outermostErrorBoundaryIndex: closest_parent_error_boundary_index,
+      splatSegments: splat_segments,
+      params,
+      actionData: fully_decorated_matching_paths
+        .slice(0, outermost_error_index)
+        .map((x) => {
+          return null;
+        }),
+      activeComponents: active_components.slice(0, outermost_error_index), // list of import paths for active routes
+      activeErrorBoundaries: active_error_boundaries.slice(
+        0,
+        outermost_error_index + 1,
+      ),
+    } satisfies ActivePathData;
+
+    return error_payload;
+  }
 
   return {
     // not needed in recursive component

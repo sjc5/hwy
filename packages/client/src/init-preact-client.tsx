@@ -151,7 +151,7 @@ async function initPreactClient(props: {
 
     if (should_treat_as_ajax) {
       event.preventDefault();
-      await navigate({
+      await __navigate({
         href: anchor.href,
         navigationType: "userNavigation",
       });
@@ -159,7 +159,7 @@ async function initPreactClient(props: {
   });
 
   window.addEventListener("popstate", async function (event) {
-    await navigate({
+    await __navigate({
       href: location.href,
       navigationType: "browserHistory",
       scrollStateToRestore: readScrollStateMapSubKey(
@@ -185,20 +185,21 @@ async function initPreactClient(props: {
 
     const formData = new FormData(form);
 
-    await submit(
-      action || window.location.href,
-      {
-        method,
-        body: method.toLowerCase() === "get" ? undefined : formData,
-      },
-      {
-        unwrapJson: true,
-      },
-    );
+    const submit_res = await submit(action || window.location.href, {
+      method,
+      body: method.toLowerCase() === "get" ? undefined : formData,
+    });
+
+    if (submit_res.success) {
+      const json = await submit_res.response.json();
+      hwy_client_global.set("actionData", json.actionData);
+    } else {
+      console.error(submit_res.error);
+    }
   });
 
   if (fallbackIndex !== -1) {
-    navigate({
+    __navigate({
       href: location.href,
       navigationType: "revalidation",
     });
@@ -252,7 +253,7 @@ async function handle_redirects(props: {
       }
 
       // internal link, soft redirecting
-      await navigate({
+      await __navigate({
         href: new_url.href,
         navigationType: "redirect",
         skipLifecycleCallbacks: props.skipLifecycleCallbacks,
@@ -271,11 +272,12 @@ async function handle_redirects(props: {
   return res;
 }
 
-async function navigate(props: {
+async function __navigate(props: {
   href: string;
   navigationType: NavigationType;
   scrollStateToRestore?: { x: number; y: number };
   skipLifecycleCallbacks?: boolean;
+  replace?: boolean;
 }) {
   if (!props.skipLifecycleCallbacks) {
     hwy_client_global.get("globalOnLoadStart")?.();
@@ -325,7 +327,11 @@ async function navigate(props: {
       props.navigationType === "userNavigation" ||
       props.navigationType === "redirect"
     ) {
-      if (props.href !== location.href && props.navigationType !== "redirect") {
+      if (
+        props.href !== location.href &&
+        props.navigationType !== "redirect" &&
+        !props.replace
+      ) {
         customHistory.push(props.href);
       } else {
         customHistory.replace(props.href);
@@ -363,14 +369,19 @@ async function navigate(props: {
 // Make this take generics
 // Allow "boost=`false`" on any form or link
 
-async function submit<T>(
+async function submit(
   url: string | URL,
   requestInit?: RequestInit,
   options?: {
     skipLifecycleCallbacks?: boolean;
-    unwrapJson?: boolean;
   },
-) {
+): Promise<
+  | {
+      success: true;
+      response: Response;
+    }
+  | { success: false; error: string }
+> {
   if (!options?.skipLifecycleCallbacks) {
     hwy_client_global.get("globalOnLoadStart")?.();
   }
@@ -383,7 +394,7 @@ async function submit<T>(
   url_to_use.searchParams.set(`${HWY_PREFIX}json`, "1");
 
   try {
-    const res = await handle_redirects({
+    const response = await handle_redirects({
       abort_controller,
       url: url_to_use,
       requestInit,
@@ -393,9 +404,9 @@ async function submit<T>(
     abort_controllers.delete(abort_controller_key);
 
     if (
-      res &&
-      (String(res?.status).startsWith("4") ||
-        String(res?.status).startsWith("5"))
+      response &&
+      (String(response?.status).startsWith("4") ||
+        String(response?.status).startsWith("5"))
     ) {
       if (!options?.skipLifecycleCallbacks) {
         hwy_client_global.get("globalOnLoadEnd")?.();
@@ -403,21 +414,13 @@ async function submit<T>(
 
       return {
         success: false,
-        error: res.statusText || String(res.status),
+        error: String(response.status),
       } as const;
-    }
-
-    let json;
-
-    const should_expect_json = options?.unwrapJson && res?.ok;
-
-    if (should_expect_json) {
-      json = await res?.json();
     }
 
     if (did_abort) {
       // revalidate
-      await navigate({
+      await __navigate({
         href: location.href,
         navigationType: "revalidation",
         skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
@@ -428,22 +431,14 @@ async function submit<T>(
         error: "Aborted",
       } as const;
     } else {
-      if (should_expect_json && !json) {
+      if (!response?.ok) {
         return {
           success: false,
-          error: "No JSON response",
+          error: response?.status ? String(response.status) : "Unknown",
         } as const;
       }
 
-      if (
-        should_expect_json &&
-        typeof json === "object" &&
-        "actionData" in json
-      ) {
-        hwy_client_global.set("actionData", json.actionData);
-      }
-
-      await navigate({
+      await __navigate({
         href: location.href,
         navigationType: "revalidation",
         skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
@@ -452,8 +447,7 @@ async function submit<T>(
 
     return {
       success: true,
-      json: options?.unwrapJson ? (json as T) : undefined,
-      res: options?.unwrapJson ? undefined : res,
+      response,
     } as const;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -467,6 +461,7 @@ async function submit<T>(
       if (!options?.skipLifecycleCallbacks) {
         hwy_client_global.get("globalOnLoadEnd")?.();
       }
+
       return {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
@@ -618,4 +613,12 @@ function addBlocksToHead(type: "meta" | "rest", blocks: Array<any>) {
   });
 }
 
-export { initPreactClient, submit };
+async function navigate(href: string, options?: { replace?: boolean }) {
+  await __navigate({
+    href,
+    navigationType: "userNavigation",
+    replace: options?.replace,
+  });
+}
+
+export { initPreactClient, navigate, submit };
