@@ -1,18 +1,16 @@
 import { useCallback } from "preact/hooks";
 import {
-  RouteData,
   get_hwy_client_global,
   type ActivePathData,
-  type ErrorBoundaryProps,
 } from "../../common/index.mjs";
 
-type ErrorBoundaryComp<JSXElement> = (props: ErrorBoundaryProps) => JSXElement;
+type ErrorBoundaryComp<JSXElement> = () => JSXElement;
 
 type ServerKey = keyof ActivePathData;
 
 type JSXElement = any;
 
-function getAdHocDataSignal(routeData?: RouteData): any {
+function getAdHocDataSignal(): any {
   const IS_SERVER = typeof document === "undefined";
   if (IS_SERVER) return;
   return get_hwy_client_global().get_signal("adHocData");
@@ -43,7 +41,10 @@ function RootOutlet(props: {
 
   let { index } = props;
   const index_to_use = index ?? 0;
-  const CurrentComponent = context.get("activeComponents")?.[index_to_use];
+  const activeComps = context.get("activeComponents") as any[] | undefined;
+  const CurrentComponent = (context.get("activeComponents") as any)?.[
+    index_to_use
+  ];
 
   const adHocData = IS_SERVER
     ? props.adHocData
@@ -59,7 +60,7 @@ function RootOutlet(props: {
       context.get("outermostErrorBoundaryIndex") === index_to_use;
 
     const ErrorBoundary: ErrorBoundaryComp<JSXElement> | undefined =
-      context.get("activeErrorBoundaries")?.[index_to_use] ??
+      (context.get("activeErrorBoundaries") as any)?.[index_to_use] ??
       props.fallbackErrorBoundary;
 
     if (
@@ -71,40 +72,41 @@ function RootOutlet(props: {
         return <div>Error: No error boundary found.</div>;
       }
 
-      return ErrorBoundary({
-        error: context.get("errorToRender"),
-        params: context.get("params") ?? {},
-        splatSegments: context.get("splatSegments") ?? [],
-      });
+      return <ErrorBoundary />;
     }
 
     const Outlet = (local_props: Record<string, any> | undefined) => {
-      return RootOutlet({
-        ...local_props,
-        activePathData: IS_SERVER ? props.activePathData : undefined,
-        index: index_to_use + 1,
-      });
+      return (
+        <RootOutlet
+          {...local_props}
+          activePathData={IS_SERVER ? props.activePathData : undefined}
+          index={index_to_use + 1}
+        />
+      );
     };
 
     const OutletToUse = IS_SERVER
       ? Outlet
-      : useCallback(Outlet, [context.get("activePaths")?.[index_to_use + 1]]);
+      : useCallback(Outlet, [
+          (context.get("activePaths") as any)?.[index_to_use + 1],
+        ]);
 
-    return CurrentComponent({
-      ...props,
-      params: context.get("params") ?? {},
-      splatSegments: context.get("splatSegments") ?? [],
-      loaderData: context.get("activeData")?.[index_to_use],
-      actionData: context.get("actionData")?.[index_to_use],
-      Outlet: OutletToUse,
-      adHocData,
-    });
+    return (
+      <CurrentComponent
+        {...props}
+        params={context.get("params") ?? {}}
+        splatSegments={context.get("splatSegments") ?? []}
+        loaderData={(context.get("activeData") as any)?.[index_to_use]}
+        actionData={(context.get("actionData") as any)?.[index_to_use]}
+        Outlet={OutletToUse}
+        adHocData={adHocData}
+      />
+    );
   } catch (error) {
     console.error(error);
 
     const ErrorBoundary: ErrorBoundaryComp<JSXElement> | undefined =
-      context
-        .get("activeErrorBoundaries")
+      (context.get("activeErrorBoundaries") as any)
         ?.splice(0, index_to_use + 1)
         ?.reverse()
         ?.find((x: any) => x) ?? props.fallbackErrorBoundary;
@@ -114,11 +116,7 @@ function RootOutlet(props: {
       return <div>Error: No error boundary found.</div>;
     }
 
-    return ErrorBoundary({
-      error,
-      params: context.get("params") ?? {},
-      splatSegments: context.get("splatSegments") ?? [],
-    });
+    return <ErrorBoundary />;
   }
 }
 

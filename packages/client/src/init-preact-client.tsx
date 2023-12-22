@@ -507,7 +507,6 @@ async function reRenderApp({
     "activeData",
     "activePaths",
     "outermostErrorBoundaryIndex",
-    "errorToRender",
     "splatSegments",
     "params",
     "adHocData",

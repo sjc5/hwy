@@ -63,7 +63,7 @@ function fully_decorate_paths({
     matching_paths?.map((_path) => {
       const server_import_path =
         !_path.isServerFile && hwy_global.get("hwy_config").useDotServerFiles
-          ? _path.importPath.slice(0, -3) + ".server.js"
+          ? _path.importPath.replace(".page.js", ".server.js")
           : _path.importPath;
 
       const NO_SERVER_FUNCTIONS =
@@ -398,7 +398,6 @@ async function getMatchingPathData({ c }: { c: Context }) {
     activeData: active_data, // loader data for active routes
     activePaths: active_paths,
     outermostErrorBoundaryIndex: closest_parent_error_boundary_index,
-    errorToRender: error_to_render,
     splatSegments: splat_segments,
     params,
     actionData: fully_decorated_matching_paths?.map((x) => {

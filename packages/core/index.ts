@@ -6,7 +6,6 @@ export type {
   Action,
   ActivePathData,
   DataProps,
-  ErrorBoundaryProps,
   HeadBlock,
   HeadFunction,
   HeadProps,

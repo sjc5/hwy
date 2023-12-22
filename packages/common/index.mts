@@ -64,7 +64,6 @@ export const CLIENT_SIGNAL_KEYS = [
   "activeData",
   "activePaths",
   "outermostErrorBoundaryIndex",
-  "errorToRender",
   "splatSegments",
   "params",
   "actionData",
@@ -104,18 +103,11 @@ export type ActivePathData = {
   activeData: any[];
   activePaths: string[];
   outermostErrorBoundaryIndex: number | undefined;
-  errorToRender: any;
   splatSegments: string[];
   params: Record<string, string>;
   actionData: any[];
   activeComponents: any[];
   activeErrorBoundaries: any[];
-};
-
-export type ErrorBoundaryProps = {
-  error: unknown;
-  splatSegments: string[];
-  params: Record<string, string>;
 };
 
 ///////////////////////////////////////////////

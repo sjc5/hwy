@@ -34,7 +34,6 @@ ${global_setter_string(
   "outermostErrorBoundaryIndex",
   routeData.activePathData.outermostErrorBoundaryIndex,
 )}
-${global_setter_string("errorToRender", routeData.activePathData.errorToRender)}
 ${global_setter_string("splatSegments", routeData.activePathData.splatSegments)}
 ${global_setter_string("params", routeData.activePathData.params)}
 ${global_setter_string("actionData", routeData.activePathData.actionData)}

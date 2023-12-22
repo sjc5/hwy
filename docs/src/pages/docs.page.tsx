@@ -454,28 +454,20 @@ export function loader() {
       <AnchorHeading content="Error boundaries" />
       <Paragraph>
         Any Hwy page can export an <InlineCode>ErrorBoundary</InlineCode>{" "}
-        component, which takes the same parameters as{" "}
-        <InlineCode>loaders</InlineCode> and <InlineCode>actions</InlineCode>,
-        as well as the error itself. The type for the ErrorBoundary component
-        props is exported as <InlineCode>ErrorBoundaryProps</InlineCode>. If an
-        error is thrown in the page or any of its children, the error will be
-        caught and passed to the nearest applicable parent error boundary
-        component. You can also pass a default error boundary component that
-        effectively wraps your outermost <InlineCode>RootOutlet</InlineCode> (in{" "}
+        component. If an error is thrown in the route's loader, the applicable
+        error boundary will be rendered. You can also pass a default error
+        boundary component that effectively wraps your outermost{" "}
+        <InlineCode>RootOutlet</InlineCode> (in{" "}
         <InlineCode>main.tsx</InlineCode>) like so:
       </Paragraph>
       <CodeBlock
         language="tsx"
         code={`
-import type { ErrorBoundaryProps } from 'hwy'
-
-...
-
 <RootOutlet
   c={c}
   activePathData={activePathData}
-  fallbackErrorBoundary={(props: ErrorBoundaryProps) => {
-    return <div>{props.error.message}</div>
+  fallbackErrorBoundary={() => {
+    return <div>Whoops, something went wrong!</div>
   }}
 />
       `}

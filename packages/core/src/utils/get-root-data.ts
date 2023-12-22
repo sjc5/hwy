@@ -76,7 +76,6 @@ async function getRouteData({
             return utils.getPublicUrl("dist/" + x.importPath);
           }),
         outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
-        errorToRender: activePathData.errorToRender,
         splatSegments: activePathData.splatSegments,
         params: activePathData.params,
         actionData: activePathData.actionData,

@@ -1,31 +1,27 @@
 import {
-  // CLIENT
-  PageProps,
-  PageComponent,
-
+  Action,
+  ActivePathData,
   // SERVER
   DataProps,
-  Loader,
-  Action,
   HeadBlock,
-  HeadProps,
   HeadFunction,
-  ErrorBoundaryProps,
-  ActivePathData,
+  HeadProps,
+  Loader,
+  PageComponent,
+  // CLIENT
+  PageProps,
 } from "../../common/index.mjs";
 
 export type {
-  // CLIENT
-  PageProps,
-  PageComponent,
-
+  Action,
+  ActivePathData,
   // SERVER
   DataProps,
-  Loader,
-  Action,
   HeadBlock,
-  HeadProps,
   HeadFunction,
-  ErrorBoundaryProps,
-  ActivePathData,
+  HeadProps,
+  Loader,
+  PageComponent,
+  // CLIENT
+  PageProps,
 };

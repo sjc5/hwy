@@ -146,6 +146,14 @@ async function runBuildTasks({
 
   const is_using_client_entry = get_is_using_client_entry();
 
+  // mkdir
+  await fs.promises.mkdir(
+    path.join(process.cwd(), "public/dist/preact-compat"),
+    {
+      recursive: true,
+    },
+  );
+
   await Promise.all([
     esbuild.build({
       // TO-DO -- customize entry point in Hwy Config
@@ -173,6 +181,8 @@ async function runBuildTasks({
         "preact/hooks",
         "preact/jsx-runtime",
         "preact/debug",
+        "preact/compat",
+        "@preact/compat",
       ],
     }),
 
@@ -195,6 +205,26 @@ async function runBuildTasks({
       minify: false,
       splitting: false,
     }),
+
+    // compat layer
+    fs.promises.copyFile(
+      path.join(
+        process.cwd(),
+        "node_modules/preact/compat/dist/compat.module.js",
+      ),
+      path.join(process.cwd(), "public/dist/preact-compat/compat.module.js"),
+    ),
+
+    fs.promises.copyFile(
+      path.join(
+        process.cwd(),
+        "node_modules/preact/compat/dist/compat.module.js.map",
+      ),
+      path.join(
+        process.cwd(),
+        "public/dist/preact-compat/compat.module.js.map",
+      ),
+    ),
   ]);
 
   /////////////////////////////////////////////////////////////////////////////
@@ -493,28 +523,22 @@ ${HWY_PREFIX}paths.forEach(function (x) {
      */
     return paths_import_list
       .map((x) => {
-        return `
-${
-  x.isServerFile
-    ? ""
-    : `import * as ${convert_to_var_name(x.importPath)} from "./${
-        x.importPath
-      }";
-${HWY_PREFIX}arbitrary_global["./${x.importPath}"] = ${convert_to_var_name(
-        x.importPath,
-      )};`
-}
-${
-  hwy_config.useDotServerFiles && (x.hasSiblingServerFile || x.isServerFile)
-    ? `import * as ${convert_to_var_name(x.importPath)} from "./${
-        x.importPath
-      }";
-  ${HWY_PREFIX}arbitrary_global["./${x.importPath}"] = ${convert_to_var_name(
-    x.importPath,
-  )};`
-    : ""
-}
-      `.trim();
+        const as_var = convert_to_var_name(x.importPath);
+        const line_1 = `import * as ${as_var} from "./${x.importPath}";\n`;
+        const line_2 = `${HWY_PREFIX}arbitrary_global["./${x.importPath}"] = ${as_var};`;
+
+        if (x.hasSiblingServerFile) {
+          const import_path_server = x.importPath.replace(
+            ".page.js",
+            ".server.js",
+          );
+          const as_var_server = convert_to_var_name(import_path_server);
+          const line_3 = `import * as ${as_var_server} from "./${import_path_server}";\n`;
+          const line_4 = `${HWY_PREFIX}arbitrary_global["./${import_path_server}"] = ${as_var_server};`;
+          return line_1 + line_2 + "\n" + line_3 + line_4;
+        }
+
+        return line_1 + line_2;
       })
       .join("\n");
   }

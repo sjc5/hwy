@@ -150,6 +150,19 @@ function ClientScripts(routeData: RouteData) {
               "preact/jsx-runtime": utils.getPublicUrl(
                 "dist/client-signals.js",
               ),
+
+              // TO-DO make this conditional on preact/compat flag?
+              "preact/compat": utils.getPublicUrl(
+                "dist/preact-compat/compat.module.js",
+              ),
+              "@preact/compat": utils.getPublicUrl(
+                "dist/preact-compat/compat.module.js",
+              ),
+              react: utils.getPublicUrl("dist/preact-compat/compat.module.js"),
+              "react-dom": utils.getPublicUrl(
+                "dist/preact-compat/compat.module.js",
+              ),
+
               ...(hwy_global.get("is_dev")
                 ? {
                     "preact/debug": utils.getPublicUrl(
