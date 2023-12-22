@@ -185,10 +185,16 @@ async function initPreactClient(props: {
 
     const formData = new FormData(form);
 
-    await submit(action || window.location.href, {
-      method,
-      body: method.toLowerCase() === "get" ? undefined : formData,
-    });
+    await submit(
+      action || window.location.href,
+      {
+        method,
+        body: method.toLowerCase() === "get" ? undefined : formData,
+      },
+      {
+        unwrapJson: true,
+      },
+    );
   });
 
   if (fallbackIndex !== -1) {
@@ -362,6 +368,7 @@ async function submit<T>(
   requestInit?: RequestInit,
   options?: {
     skipLifecycleCallbacks?: boolean;
+    unwrapJson?: boolean;
   },
 ) {
   if (!options?.skipLifecycleCallbacks) {
@@ -375,8 +382,6 @@ async function submit<T>(
   const url_to_use = new URL(url, window.location.origin);
   url_to_use.searchParams.set(`${HWY_PREFIX}json`, "1");
 
-  let is_hwy_res = false;
-
   try {
     const res = await handle_redirects({
       abort_controller,
@@ -387,14 +392,28 @@ async function submit<T>(
 
     abort_controllers.delete(abort_controller_key);
 
-    if (!res || res.status !== 200) {
+    if (
+      res &&
+      (String(res?.status).startsWith("4") ||
+        String(res?.status).startsWith("5"))
+    ) {
       if (!options?.skipLifecycleCallbacks) {
         hwy_client_global.get("globalOnLoadEnd")?.();
       }
-      return;
+
+      return {
+        success: false,
+        error: res.statusText || String(res.status),
+      } as const;
     }
 
-    const json = await res?.json();
+    let json;
+
+    const should_expect_json = options?.unwrapJson && res?.ok;
+
+    if (should_expect_json) {
+      json = await res?.json();
+    }
 
     if (did_abort) {
       // revalidate
@@ -403,13 +422,24 @@ async function submit<T>(
         navigationType: "revalidation",
         skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
       }); // this shuts off loading indicator too
+
+      return {
+        success: false,
+        error: "Aborted",
+      } as const;
     } else {
-      if (!json) {
-        throw new Error("No JSON response");
+      if (should_expect_json && !json) {
+        return {
+          success: false,
+          error: "No JSON response",
+        } as const;
       }
 
-      if (typeof json === "object" && "actionData" in json) {
-        is_hwy_res = true;
+      if (
+        should_expect_json &&
+        typeof json === "object" &&
+        "actionData" in json
+      ) {
         hwy_client_global.set("actionData", json.actionData);
       }
 
@@ -420,15 +450,27 @@ async function submit<T>(
       }); // this shuts off loading indicator too
     }
 
-    return is_hwy_res ? json.actionData.find(Boolean) : json;
+    return {
+      success: true,
+      json: options?.unwrapJson ? (json as T) : undefined,
+      res: options?.unwrapJson ? undefined : res,
+    } as const;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       // eat
+      return {
+        success: false,
+        error: "Aborted",
+      } as const;
     } else {
       console.error(error);
       if (!options?.skipLifecycleCallbacks) {
         hwy_client_global.get("globalOnLoadEnd")?.();
       }
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      } as const;
     }
   }
 }
