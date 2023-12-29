@@ -124,6 +124,9 @@ importers:
       esbuild:
         specifier: ^0.19.9
         version: 0.19.9
+      jsonc-parser:
+        specifier: ^3.2.0
+        version: 3.2.0
       picocolors:
         specifier: ^1.0.0
         version: 1.0.0
@@ -2188,7 +2191,6 @@ packages:
 
   /jsonc-parser@3.2.0:
     resolution: {integrity: sha512-gfFQZrcTc8CnKXp6Y4/CBT3fTc0OVuDofpre4aEeEpSBPV5X5v4+Vmx+8snU7RLPrNHPKSgLxGo9YuQzz20o+w==}
-    dev: true
 
   /lilconfig@2.1.0:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}

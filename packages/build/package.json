@@ -27,6 +27,7 @@
     "chokidar": "^3.5.3",
     "dotenv": "^16.3.1",
     "esbuild": "^0.19.9",
+    "jsonc-parser": "^3.2.0",
     "picocolors": "^1.0.0",
     "readdirp": "^3.6.0"
   },

@@ -374,6 +374,7 @@ async function submit(
   requestInit?: RequestInit,
   options?: {
     skipLifecycleCallbacks?: boolean;
+    skipOnSuccessRevalidation?: boolean;
   },
 ): Promise<
   | {
@@ -418,13 +419,17 @@ async function submit(
       } as const;
     }
 
+    const IS_GET = requestInit?.method?.toLowerCase() === "get";
+
     if (did_abort) {
-      // revalidate
-      await __navigate({
-        href: location.href,
-        navigationType: "revalidation",
-        skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
-      }); // this shuts off loading indicator too
+      if (!IS_GET) {
+        // revalidate
+        await __navigate({
+          href: location.href,
+          navigationType: "revalidation",
+          skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
+        }); // this shuts off loading indicator too
+      }
 
       return {
         success: false,
@@ -438,11 +443,17 @@ async function submit(
         } as const;
       }
 
-      await __navigate({
-        href: location.href,
-        navigationType: "revalidation",
-        skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
-      }); // this shuts off loading indicator too
+      if (!IS_GET && !options?.skipOnSuccessRevalidation) {
+        await __navigate({
+          href: location.href,
+          navigationType: "revalidation",
+          skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
+        }); // this shuts off loading indicator too
+      } else {
+        if (!options?.skipLifecycleCallbacks) {
+          hwy_client_global.get("globalOnLoadEnd")?.();
+        }
+      }
     }
 
     return {

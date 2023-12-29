@@ -1,5 +1,6 @@
 import { exec as exec_callback } from "child_process";
 import esbuild from "esbuild";
+import { parse as json_c_parse } from "jsonc-parser";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -20,6 +21,17 @@ import {
   write_paths_to_disk,
   type Paths,
 } from "./walk-pages.js";
+
+const tsconfig_path = path.resolve("tsconfig.json");
+let tsconfig = json_c_parse(fs.readFileSync(tsconfig_path, "utf8")) as Record<
+  string,
+  unknown
+>;
+
+// If verbatimModuleSyntax is true, then esbuild fails to strip server code :-/
+if (tsconfig.compilerOptions) {
+  (tsconfig.compilerOptions as any).verbatimModuleSyntax = false;
+}
 
 const FILE_NAMES = [
   "critical-bundled-css.js",
@@ -138,6 +150,7 @@ async function runBuildTasks({
     write: true,
     packages: "external",
     splitting: true,
+    tsconfigRaw: tsconfig,
   });
 
   ///////////////////////////////////////////////////////////////////////////
@@ -184,6 +197,7 @@ async function runBuildTasks({
         "preact/compat",
         "@preact/compat",
       ],
+      tsconfigRaw: tsconfig,
     }),
 
     // PREACT STUFF, WE WANT TO CLOSELY CONTROL PREACT BUNDLE AND HAVE ACCESS MODULES
@@ -204,6 +218,7 @@ async function runBuildTasks({
       format: "esm",
       minify: false,
       splitting: false,
+      tsconfigRaw: tsconfig,
     }),
 
     // compat layer
@@ -598,6 +613,7 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
       write: true,
       packages: "external",
       allowOverwrite: true,
+      tsconfigRaw: tsconfig,
     });
 
     // rmv dist/pages folder -- no longer needed if bundling routes
