@@ -85,6 +85,15 @@ async function runBuildTasks({
   hwyLog(`Running standard build tasks...`);
   const standard_tasks_p0 = performance.now();
 
+  // delete dist and public/dist folders
+  await Promise.all([
+    fs.promises.rm(path.join(process.cwd(), "dist"), { recursive: true }),
+    fs.promises.rm(path.join(process.cwd(), "public/dist"), {
+      recursive: true,
+    }),
+  ]);
+
+  // recreate them
   await Promise.all([
     fs.promises.mkdir(path.join(process.cwd(), "dist"), { recursive: true }),
     fs.promises.mkdir(path.join(process.cwd(), "public/dist"), {

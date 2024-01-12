@@ -22,7 +22,7 @@ function handle_abort_controller(key: string) {
 
 const hwy_client_global = get_hwy_client_global();
 
-function is_internal_link(href: string) {
+function getIsInternalLink(href: string) {
   try {
     if (!href.startsWith("http://") && !href.startsWith("https://")) {
       return true;
@@ -78,6 +78,24 @@ function readScrollStateMapSubKey(key: string) {
   return scrollStateMap.get(key);
 }
 
+function getShouldPreventLinkDefault(event: MouseEvent) {
+  const anchor = (event.target as HTMLElement).closest("a");
+
+  const should_prevent_default =
+    anchor && // ignore clicks with no anchor
+    anchor.target !== "_blank" && // ignore new tabs
+    event.button !== 1 && // middle mouse button click
+    !anchor.href.startsWith("#") && // ignore hash links
+    !anchor.hasAttribute("download") && // ignore downloads
+    !event.ctrlKey && // ignore ctrl+click
+    !event.shiftKey && // ignore shift+click
+    !event.metaKey && // ignore cmd+click
+    !event.altKey && // ignore alt+click
+    getIsInternalLink(anchor.href); // ignore external links
+
+  return should_prevent_default;
+}
+
 async function initPreactClient(props: {
   elementToHydrate: HTMLElement;
   hydrateWith: ComponentChild;
@@ -130,26 +148,13 @@ async function initPreactClient(props: {
   hydrate(props.hydrateWith, props.elementToHydrate);
 
   document.body.addEventListener("click", async function (event) {
-    // @ts-ignore
-    const anchor = event.target?.closest("a");
+    const anchor = (event.target as HTMLElement).closest("a");
 
-    if (anchor && !anchor.dataset.boost) {
+    if (!anchor || !anchor.dataset.boost) {
       return;
     }
 
-    const should_treat_as_ajax =
-      anchor && // ignore clicks with no anchor
-      anchor.target !== "_blank" && // ignore new tabs
-      event.button !== 1 && // middle mouse button click
-      !anchor.href.startsWith("#") && // ignore hash links
-      !anchor.hasAttribute("download") && // ignore downloads
-      !event.ctrlKey && // ignore ctrl+click
-      !event.shiftKey && // ignore shift+click
-      !event.metaKey && // ignore cmd+click
-      !event.altKey && // ignore alt+click
-      is_internal_link(anchor.href); // ignore external links
-
-    if (should_treat_as_ajax) {
+    if (getShouldPreventLinkDefault(event)) {
       event.preventDefault();
       await __navigate({
         href: anchor.href,
@@ -246,7 +251,7 @@ async function handle_redirects(props: {
     if (res?.redirected) {
       const new_url = new URL(res.url);
 
-      if (!is_internal_link(new_url.href)) {
+      if (!getIsInternalLink(new_url.href)) {
         // external link, hard redirecting
         window.location.href = new_url.href;
         return;
@@ -632,4 +637,14 @@ async function navigate(href: string, options?: { replace?: boolean }) {
   });
 }
 
-export { initPreactClient, navigate, submit };
+export {
+  customHistory, // DELETE
+  getIsInternalLink,
+  getShouldPreventLinkDefault,
+  initPreactClient,
+  navigate,
+  submit,
+};
+
+// TO-DO -- instead of callbacks, just return an isNavigating boolean signal
+// TO-DO -- return a revalidation function (consider not auto-revalidating)

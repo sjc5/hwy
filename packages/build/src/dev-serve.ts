@@ -48,6 +48,10 @@ async function devServe() {
     refresh_watcher.on("all", async () => {
       const refresh_txt_path = path.join(process.cwd(), "dist", "refresh.txt");
 
+      if (!fs.existsSync(refresh_txt_path)) {
+        return;
+      }
+
       const refresh_obj = JSON.parse(
         fs.readFileSync(refresh_txt_path, "utf8"),
       ) as RefreshFilePayload;
