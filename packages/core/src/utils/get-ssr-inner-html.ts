@@ -17,8 +17,7 @@ function global_setter_string(
 }
 
 function getSsrInnerHtml(routeData: RouteData) {
-  return `
-import "preact/debug";
+  let html = `
 import { signal } from "@preact/signals";
 globalThis[Symbol.for("${HWY_PREFIX}")] = {};
 const x = globalThis[Symbol.for("${HWY_PREFIX}")];
@@ -40,6 +39,12 @@ ${global_setter_string("actionData", routeData.activePathData.actionData)}
 ${global_setter_string("fallbackIndex", routeData.activePathData.fallbackIndex)}
 ${global_setter_string("adHocData", routeData.adHocData)}
 `.trim();
+
+  if (hwy_global.get("is_dev")) {
+    html = `import "preact/debug";\n` + html;
+  }
+
+  return html;
 }
 
 export { getSsrInnerHtml };

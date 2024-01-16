@@ -2,7 +2,8 @@ import esbuild from "esbuild";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { DEFAULT_PORT, hwyLog, type HwyConfig } from "../../common/index.mjs";
+import { hwyLog } from "../../common/dev.mjs";
+import { DEFAULT_PORT, type HwyConfig } from "../../common/index.mjs";
 
 let cached_hwy_config: HwyConfig | undefined;
 

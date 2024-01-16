@@ -9,7 +9,6 @@ import { BodyInner } from "./components/body-inner.js";
 import { IS_DEV } from "./utils/constants.js";
 import { make_emoji_data_url } from "./utils/utils.js";
 
-import { html } from "hono/html";
 import { renderToString } from "preact-render-to-string";
 
 const app = new Hono();

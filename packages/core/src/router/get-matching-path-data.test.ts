@@ -652,3 +652,20 @@ gmpd_tester({
     splatSegments: [],
   },
 });
+
+// "/index"
+// should render "/dynamic-index/__site_index/index.page.tsx"
+
+gmpd_tester({
+  path: "/dynamic-index/index",
+  expected_output: {
+    matchingPaths: [
+      {
+        pathType: "static-layout",
+        filePath: "pages/dynamic-index/__site_index/index.page.tsx", // INDEX
+      },
+    ],
+    params: {},
+    splatSegments: [],
+  },
+});

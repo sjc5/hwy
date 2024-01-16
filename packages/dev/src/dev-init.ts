@@ -1,9 +1,9 @@
 import type { Hono } from "hono";
+import { hwyLog } from "../../common/dev.mjs";
 import {
   LIVE_REFRESH_RPC_PATH,
   LIVE_REFRESH_SSE_PATH,
   get_hwy_global,
-  hwyLog,
   type RefreshFilePayload,
 } from "../../common/index.mjs";
 import { sinks } from "./constants.js";

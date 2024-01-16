@@ -3,11 +3,10 @@ import dotenv from "dotenv";
 import { ChildProcess, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { hwyLog } from "../../common/dev.mjs";
 import {
-  HWY_PREFIX,
   LIVE_REFRESH_RPC_PATH,
   RefreshFilePayload,
-  hwyLog,
 } from "../../common/index.mjs";
 import { get_hwy_config } from "./get-hwy-config.js";
 import { runBuildTasks } from "./run-build-tasks.js";

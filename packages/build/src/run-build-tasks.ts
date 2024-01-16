@@ -5,11 +5,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
+import { hwyLog, logPerf } from "../../common/dev.mjs";
 import {
   HWY_GLOBAL_KEYS,
   HWY_PREFIX,
-  hwyLog,
-  logPerf,
   type RefreshFilePayload,
 } from "../../common/index.mjs";
 import { get_is_hot_reload_only } from "./dev-serve.js";
@@ -85,18 +84,24 @@ async function runBuildTasks({
   hwyLog(`Running standard build tasks...`);
   const standard_tasks_p0 = performance.now();
 
+  const DIST_DIR = path.join(process.cwd(), "dist");
+  const DIST_EXISTS = fs.existsSync(DIST_DIR);
+  const PUBLIC_DIST_DIR = path.join(process.cwd(), "public/dist");
+  const PUBLIC_DIST_EXISTS = fs.existsSync(PUBLIC_DIST_DIR);
+
   // delete dist and public/dist folders
   await Promise.all([
-    fs.promises.rm(path.join(process.cwd(), "dist"), { recursive: true }),
-    fs.promises.rm(path.join(process.cwd(), "public/dist"), {
-      recursive: true,
-    }),
+    DIST_EXISTS && fs.promises.rm(DIST_DIR, { recursive: true }),
+    PUBLIC_DIST_EXISTS &&
+      fs.promises.rm(PUBLIC_DIST_DIR, {
+        recursive: true,
+      }),
   ]);
 
   // recreate them
   await Promise.all([
-    fs.promises.mkdir(path.join(process.cwd(), "dist"), { recursive: true }),
-    fs.promises.mkdir(path.join(process.cwd(), "public/dist"), {
+    fs.promises.mkdir(DIST_DIR, { recursive: true }),
+    fs.promises.mkdir(PUBLIC_DIST_DIR, {
       recursive: true,
     }),
   ]);
@@ -189,7 +194,7 @@ async function runBuildTasks({
         ...client_files_list.map((x) => x.import_path_with_orig_ext),
       ],
       bundle: true,
-      outdir: path.join(process.cwd(), "public/dist"),
+      outdir: PUBLIC_DIST_DIR,
       treeShaking: true,
       platform: "browser",
       format: "esm",
@@ -218,7 +223,7 @@ async function runBuildTasks({
                     export * from "preact/hooks";
                     export * from "preact/jsx-runtime";
                     ${IS_DEV ? `export * from "preact/debug";` : ""}`,
-        resolveDir: path.join(process.cwd(), "dist"),
+        resolveDir: DIST_DIR,
       },
       bundle: true,
       outfile: path.join(process.cwd(), "public/dist/client-signals.js"),

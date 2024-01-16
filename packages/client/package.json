@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/client",
-  "version": "0.0.0-beta.5",
+  "version": "0.0.0-beta.18",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -24,8 +24,8 @@
   },
   "devDependencies": {
     "@preact/signals": "^1.2.2",
-    "@types/react": "^18.2.45",
-    "@types/react-dom": "^18.2.17",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
     "preact": "^10.19.3",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"

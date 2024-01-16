@@ -12,22 +12,22 @@
     "update-latest": "pnpm update --latest"
   },
   "dependencies": {
-    "hono": "^3.11.7",
+    "hono": "^3.12.4",
     "hwy": "workspace:*",
     "preact-render-to-string": "^6.3.1"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231121.0",
+    "@cloudflare/workers-types": "^4.20231218.0",
     "@hwy-js/build": "workspace:*",
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@hwy-js/utils": "workspace:*",
     "@preact/signals": "^1.2.2",
-    "@types/node": "^20.10.4",
+    "@types/node": "^20.11.2",
     "npm-run-all": "^4.1.5",
     "preact": "^10.19.3",
-    "tailwindcss": "^3.3.6",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
-    "wrangler": "^3.20.0"
+    "wrangler": "^3.22.4"
   }
 }

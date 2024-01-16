@@ -43,4 +43,4 @@ try {
   }
 } catch {}
 
-export { file_url_to_path, path_to_file_url_string, node_path };
+export { file_url_to_path, node_path, path_to_file_url_string };

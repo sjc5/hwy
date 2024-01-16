@@ -104,6 +104,22 @@ async function initPreactClient(props: {
 }) {
   customHistory = createBrowserHistory();
 
+  customHistory.listen(async function ({ action, location }) {
+    if (action === "POP") {
+      if (location.key !== lastKnownKey) {
+        console.log(location.key, lastKnownKey);
+
+        await __navigate({
+          href: window.location.href,
+          navigationType: "browserHistory",
+          scrollStateToRestore: readScrollStateMapSubKey(
+            customHistory.location.key,
+          ),
+        });
+      }
+    }
+  });
+
   customHistory.listen(({ action, location }) => {
     // save current scroll state to map
     setScrollStateMapSubKey(lastKnownKey, {
@@ -150,7 +166,7 @@ async function initPreactClient(props: {
   document.body.addEventListener("click", async function (event) {
     const anchor = (event.target as HTMLElement).closest("a");
 
-    if (!anchor || !anchor.dataset.boost) {
+    if (!anchor || !anchor.dataset.boost || event.defaultPrevented) {
       return;
     }
 
@@ -161,16 +177,6 @@ async function initPreactClient(props: {
         navigationType: "userNavigation",
       });
     }
-  });
-
-  window.addEventListener("popstate", async function (event) {
-    await __navigate({
-      href: location.href,
-      navigationType: "browserHistory",
-      scrollStateToRestore: readScrollStateMapSubKey(
-        customHistory.location.key,
-      ),
-    });
   });
 
   hwy_client_global.set("globalOnLoadStart", props?.onLoadStart);

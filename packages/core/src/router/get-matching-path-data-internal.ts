@@ -70,7 +70,6 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
 
   // the "maybe matches" need to compete with each other
   // they also need some more complicated logic
-  const maybe_matches: SemiDecoratedPath[] = [];
   const grouped_by_segment_length: Record<number, SemiDecoratedPath[]> = {};
 
   for (const x of paths) {
@@ -88,7 +87,6 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
           grouped_by_segment_length[segment_length] = [];
         }
         grouped_by_segment_length[segment_length].push(x);
-        maybe_matches.push(x);
       }
     }
   }
@@ -113,7 +111,13 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
         path.pathType === "index" &&
         path.realSegmentsLength < path.segments.length
       ) {
-        index_candidate = path;
+        if (index_candidate) {
+          if (path.score > index_candidate.score) {
+            index_candidate = path;
+          }
+        } else {
+          index_candidate = path;
+        }
       }
       if (path.score > highest_score) {
         highest_score = path.score;
@@ -135,7 +139,30 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
       splat_segments = get_splat_segments_from_winning_path(winner);
     }
 
-    xformed_maybes.push(winner);
+    // ok, problem
+    // in the situation where we have a dynamic folder name with an index file within,
+    // we need to make sure that other static-layout paths win over it
+    // that's what this code is for
+
+    const winner_is_dynamic_index = Boolean(
+      winner.pathType === "index" && winner.segments.at(-2)?.startsWith(":"),
+    );
+
+    const definite_matches_should_override =
+      winner_is_dynamic_index &&
+      Boolean(
+        definite_matches.find((x) => {
+          const a = x.pathType === "static-layout";
+          const b = x.realSegmentsLength === winner.realSegmentsLength;
+          const c = x.segments.at(-1) !== winner.segments.at(-2);
+          const d = x.score > winner.score;
+          return a && b && c && d;
+        }),
+      );
+
+    if (!definite_matches_should_override) {
+      xformed_maybes.push(winner);
+    }
   }
 
   const maybe_final_paths = [...definite_matches, ...xformed_maybes].sort(
