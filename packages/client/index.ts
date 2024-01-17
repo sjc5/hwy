@@ -4,6 +4,7 @@ export {
   getIsInternalLink,
   getShouldPreventLinkDefault,
   initPreactClient,
+  isNavigatingSignal,
   navigate,
   submit,
 } from "./src/init-preact-client.js";

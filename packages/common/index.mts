@@ -73,15 +73,7 @@ export const CLIENT_SIGNAL_KEYS = [
   "adHocData",
 ] as const;
 
-export const OTHER_CLIENT_KEYS = [
-  "globalOnLoadStart",
-  "globalOnLoadEnd",
-] as const;
-
-export const CLIENT_GLOBAL_KEYS = [
-  ...CLIENT_SIGNAL_KEYS,
-  ...OTHER_CLIENT_KEYS,
-] as const;
+export const CLIENT_GLOBAL_KEYS = CLIENT_SIGNAL_KEYS;
 
 export type HwyClientGlobal = Partial<{
   [K in (typeof CLIENT_GLOBAL_KEYS)[number]]: any;

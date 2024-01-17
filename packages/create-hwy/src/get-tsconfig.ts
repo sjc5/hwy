@@ -19,7 +19,7 @@ const ts_config = {
 const deno_config = {
   compilerOptions: {
     jsx: "react-jsx",
-    jsxImportSource: "npm:hono/jsx",
+    jsxImportSource: "npm:preact",
   },
 };
 

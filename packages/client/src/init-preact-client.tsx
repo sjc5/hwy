@@ -1,10 +1,13 @@
+import { signal, Signal } from "@preact/signals";
 import { createBrowserHistory } from "history";
 import { hydrate, type ComponentChild } from "preact";
 import {
   CLIENT_SIGNAL_KEYS,
-  HWY_PREFIX,
   get_hwy_client_global,
+  HWY_PREFIX,
 } from "../../common/index.mjs";
+
+const isNavigatingSignal = signal(false) as Signal<boolean>;
 
 const abort_controllers = new Map<string, AbortController>();
 
@@ -99,8 +102,6 @@ function getShouldPreventLinkDefault(event: MouseEvent) {
 async function initPreactClient(props: {
   elementToHydrate: HTMLElement;
   hydrateWith: ComponentChild;
-  onLoadStart?: () => void;
-  onLoadEnd?: () => void;
 }) {
   customHistory = createBrowserHistory();
 
@@ -179,9 +180,6 @@ async function initPreactClient(props: {
     }
   });
 
-  hwy_client_global.set("globalOnLoadStart", props?.onLoadStart);
-  hwy_client_global.set("globalOnLoadEnd", props?.onLoadEnd);
-
   window.addEventListener("submit", async function (event) {
     const form = event.target as HTMLFormElement;
 
@@ -227,7 +225,6 @@ async function handle_redirects(props: {
   abort_controller: AbortController;
   url: URL;
   requestInit?: RequestInit;
-  skipLifecycleCallbacks?: boolean;
 }) {
   let res;
 
@@ -267,7 +264,6 @@ async function handle_redirects(props: {
       await __navigate({
         href: new_url.href,
         navigationType: "redirect",
-        skipLifecycleCallbacks: props.skipLifecycleCallbacks,
       });
 
       return;
@@ -287,12 +283,9 @@ async function __navigate(props: {
   href: string;
   navigationType: NavigationType;
   scrollStateToRestore?: { x: number; y: number };
-  skipLifecycleCallbacks?: boolean;
   replace?: boolean;
 }) {
-  if (!props.skipLifecycleCallbacks) {
-    hwy_client_global.get("globalOnLoadStart")?.();
-  }
+  isNavigatingSignal.value = true;
 
   const abort_controller_key =
     props.href === "." || props.href === window.location.href
@@ -308,15 +301,12 @@ async function __navigate(props: {
     const res = await handle_redirects({
       abort_controller,
       url,
-      skipLifecycleCallbacks: props.skipLifecycleCallbacks,
     });
 
     abort_controllers.delete(abort_controller_key);
 
     if (!res || res.status !== 200) {
-      if (!props.skipLifecycleCallbacks) {
-        hwy_client_global.get("globalOnLoadEnd")?.();
-      }
+      isNavigatingSignal.value = false;
       return;
     }
 
@@ -360,17 +350,13 @@ async function __navigate(props: {
       );
     }
 
-    if (!props.skipLifecycleCallbacks) {
-      hwy_client_global.get("globalOnLoadEnd")?.();
-    }
+    isNavigatingSignal.value = false;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       // eat
     } else {
       console.error(error);
-      if (!props.skipLifecycleCallbacks) {
-        hwy_client_global.get("globalOnLoadEnd")?.();
-      }
+      isNavigatingSignal.value = false;
     }
   }
 }
@@ -384,7 +370,6 @@ async function submit(
   url: string | URL,
   requestInit?: RequestInit,
   options?: {
-    skipLifecycleCallbacks?: boolean;
     skipOnSuccessRevalidation?: boolean;
   },
 ): Promise<
@@ -394,9 +379,7 @@ async function submit(
     }
   | { success: false; error: string }
 > {
-  if (!options?.skipLifecycleCallbacks) {
-    hwy_client_global.get("globalOnLoadStart")?.();
-  }
+  isNavigatingSignal.value = true;
 
   const abort_controller_key = url + (requestInit?.method || "");
   const { abort_controller, did_abort } =
@@ -410,7 +393,6 @@ async function submit(
       abort_controller,
       url: url_to_use,
       requestInit,
-      skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
     });
 
     abort_controllers.delete(abort_controller_key);
@@ -420,9 +402,7 @@ async function submit(
       (String(response?.status).startsWith("4") ||
         String(response?.status).startsWith("5"))
     ) {
-      if (!options?.skipLifecycleCallbacks) {
-        hwy_client_global.get("globalOnLoadEnd")?.();
-      }
+      isNavigatingSignal.value = false;
 
       return {
         success: false,
@@ -438,7 +418,6 @@ async function submit(
         await __navigate({
           href: location.href,
           navigationType: "revalidation",
-          skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
         }); // this shuts off loading indicator too
       }
 
@@ -458,12 +437,9 @@ async function submit(
         await __navigate({
           href: location.href,
           navigationType: "revalidation",
-          skipLifecycleCallbacks: options?.skipLifecycleCallbacks,
         }); // this shuts off loading indicator too
       } else {
-        if (!options?.skipLifecycleCallbacks) {
-          hwy_client_global.get("globalOnLoadEnd")?.();
-        }
+        isNavigatingSignal.value = false;
       }
     }
 
@@ -480,9 +456,7 @@ async function submit(
       } as const;
     } else {
       console.error(error);
-      if (!options?.skipLifecycleCallbacks) {
-        hwy_client_global.get("globalOnLoadEnd")?.();
-      }
+      isNavigatingSignal.value = false;
 
       return {
         success: false,
@@ -644,13 +618,13 @@ async function navigate(href: string, options?: { replace?: boolean }) {
 }
 
 export {
-  customHistory, // DELETE
+  customHistory,
   getIsInternalLink,
   getShouldPreventLinkDefault,
   initPreactClient,
+  isNavigatingSignal,
   navigate,
   submit,
 };
 
-// TO-DO -- instead of callbacks, just return an isNavigating boolean signal
 // TO-DO -- return a revalidation function (consider not auto-revalidating)
