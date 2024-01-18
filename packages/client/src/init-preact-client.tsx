@@ -8,6 +8,8 @@ import {
 } from "../../common/index.mjs";
 
 const isNavigatingSignal = signal(false) as Signal<boolean>;
+const isSubmittingSignal = signal(false) as Signal<boolean>;
+const isRevalidatingSignal = signal(false) as Signal<boolean>;
 
 const abort_controllers = new Map<string, AbortController>();
 
@@ -40,7 +42,7 @@ function getIsInternalLink(href: string) {
 }
 
 let customHistory: ReturnType<typeof createBrowserHistory>;
-let lastKnownKey = "default";
+let lastKnownCustomLocation: (typeof customHistory)["location"];
 
 const scrollStateMapKey = "__hwy__scrollStateMap";
 type ScrollStateMap = Map<string, { x: number; y: number }>;
@@ -105,11 +107,15 @@ async function initPreactClient(props: {
 }) {
   customHistory = createBrowserHistory();
 
+  lastKnownCustomLocation = customHistory.location;
+
   customHistory.listen(async function ({ action, location }) {
     if (action === "POP") {
-      if (location.key !== lastKnownKey) {
-        console.log(location.key, lastKnownKey);
-
+      if (
+        location.key !== lastKnownCustomLocation.key &&
+        (location.pathname !== lastKnownCustomLocation.pathname ||
+          location.search !== lastKnownCustomLocation.search)
+      ) {
         await __navigate({
           href: window.location.href,
           navigationType: "browserHistory",
@@ -123,13 +129,13 @@ async function initPreactClient(props: {
 
   customHistory.listen(({ action, location }) => {
     // save current scroll state to map
-    setScrollStateMapSubKey(lastKnownKey, {
+    setScrollStateMapSubKey(lastKnownCustomLocation.key, {
       x: window.scrollX,
       y: window.scrollY,
     });
 
-    // now set lastKnownKey to new location key
-    lastKnownKey = location.key;
+    // now set lastKnownCustomLocation to new location
+    lastKnownCustomLocation = location;
   });
 
   if (history.scrollRestoration && history.scrollRestoration !== "manual") {
@@ -183,7 +189,7 @@ async function initPreactClient(props: {
   window.addEventListener("submit", async function (event) {
     const form = event.target as HTMLFormElement;
 
-    if (!form.dataset.boost) {
+    if (!form.dataset.boost || event.defaultPrevented) {
       return;
     }
 
@@ -219,7 +225,8 @@ type NavigationType =
   | "browserHistory"
   | "userNavigation"
   | "revalidation"
-  | "redirect";
+  | "redirect"
+  | "buildIdCheck";
 
 async function handle_redirects(props: {
   abort_controller: AbortController;
@@ -279,13 +286,29 @@ async function handle_redirects(props: {
   return res;
 }
 
+function set_status_signal({
+  type,
+  value,
+}: {
+  type: NavigationType | "submission";
+  value: boolean;
+}) {
+  if (type === "revalidation") {
+    isRevalidatingSignal.value = value;
+  } else if (type === "submission") {
+    isSubmittingSignal.value = value;
+  } else if (type !== "buildIdCheck") {
+    isNavigatingSignal.value = value;
+  }
+}
+
 async function __navigate(props: {
   href: string;
   navigationType: NavigationType;
   scrollStateToRestore?: { x: number; y: number };
   replace?: boolean;
 }) {
-  isNavigatingSignal.value = true;
+  set_status_signal({ type: props.navigationType, value: true });
 
   const abort_controller_key =
     props.href === "." || props.href === window.location.href
@@ -306,7 +329,7 @@ async function __navigate(props: {
     abort_controllers.delete(abort_controller_key);
 
     if (!res || res.status !== 200) {
-      isNavigatingSignal.value = false;
+      set_status_signal({ type: props.navigationType, value: false });
       return;
     }
 
@@ -314,6 +337,16 @@ async function __navigate(props: {
 
     if (!json) {
       throw new Error("No JSON response");
+    }
+
+    if (json.buildId !== hwy_client_global.get("buildId")) {
+      window.location.href = props.href;
+      return;
+    }
+
+    if (props.navigationType === "buildIdCheck") {
+      set_status_signal({ type: props.navigationType, value: false });
+      return;
     }
 
     await reRenderApp({
@@ -350,13 +383,13 @@ async function __navigate(props: {
       );
     }
 
-    isNavigatingSignal.value = false;
+    set_status_signal({ type: props.navigationType, value: false });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       // eat
     } else {
       console.error(error);
-      isNavigatingSignal.value = false;
+      set_status_signal({ type: props.navigationType, value: false });
     }
   }
 }
@@ -379,7 +412,7 @@ async function submit(
     }
   | { success: false; error: string }
 > {
-  isNavigatingSignal.value = true;
+  set_status_signal({ type: "submission", value: true });
 
   const abort_controller_key = url + (requestInit?.method || "");
   const { abort_controller, did_abort } =
@@ -402,7 +435,7 @@ async function submit(
       (String(response?.status).startsWith("4") ||
         String(response?.status).startsWith("5"))
     ) {
-      isNavigatingSignal.value = false;
+      set_status_signal({ type: "submission", value: false });
 
       return {
         success: false,
@@ -437,10 +470,15 @@ async function submit(
         await __navigate({
           href: location.href,
           navigationType: "revalidation",
-        }); // this shuts off loading indicator too
-      } else {
-        isNavigatingSignal.value = false;
+        });
+      } else if (options?.skipOnSuccessRevalidation) {
+        await __navigate({
+          href: location.href,
+          navigationType: "buildIdCheck",
+        });
       }
+
+      set_status_signal({ type: "submission", value: false });
     }
 
     return {
@@ -456,7 +494,7 @@ async function submit(
       } as const;
     } else {
       console.error(error);
-      isNavigatingSignal.value = false;
+      set_status_signal({ type: "submission", value: false });
 
       return {
         success: false,
@@ -543,6 +581,7 @@ async function reRenderApp({
     "splatSegments",
     "params",
     "adHocData",
+    "buildId",
   ] as const satisfies ReadonlyArray<(typeof CLIENT_SIGNAL_KEYS)[number]>;
 
   for (const key of identical_keys_to_set) {
@@ -573,7 +612,9 @@ function getStartAndEndElements(type: "meta" | "rest") {
 
 function removeAllBetween(type: "meta" | "rest") {
   const { startElement, endElement } = getStartAndEndElements(type);
-  if (!startElement || !endElement) return;
+  if (!startElement || !endElement) {
+    return;
+  }
 
   let currentElement = startElement.nextSibling as HTMLElement | null;
 
@@ -586,7 +627,9 @@ function removeAllBetween(type: "meta" | "rest") {
 
 function addBlocksToHead(type: "meta" | "rest", blocks: Array<any>) {
   const { startElement, endElement } = getStartAndEndElements(type);
-  if (!startElement || !endElement) return;
+  if (!startElement || !endElement) {
+    return;
+  }
 
   blocks.forEach((block) => {
     let newElement: HTMLElement | null = null;
@@ -623,6 +666,8 @@ export {
   getShouldPreventLinkDefault,
   initPreactClient,
   isNavigatingSignal,
+  isRevalidatingSignal,
+  isSubmittingSignal,
   navigate,
   submit,
 };

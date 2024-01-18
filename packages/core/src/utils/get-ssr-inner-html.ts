@@ -22,6 +22,7 @@ import { signal } from "@preact/signals";
 globalThis[Symbol.for("${HWY_PREFIX}")] = {};
 const x = globalThis[Symbol.for("${HWY_PREFIX}")];
 x.is_dev = ${uneval(hwy_global.get("is_dev"))};
+${global_setter_string("buildId", routeData.buildId)}
 ${global_setter_string("activeData", routeData.activePathData.activeData)}
 ${global_setter_string(
   "activePaths",

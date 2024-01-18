@@ -32,8 +32,10 @@ async function getRouteData({
     return null;
   }
 
+  const hwy_global = get_hwy_global();
+
   const IS_PREACT_MPA = Boolean(
-    get_hwy_global().get("hwy_config").useClientSidePreact,
+    hwy_global.get("hwy_config").useClientSidePreact,
   );
 
   const headBlocks = utils.getExportedHeadBlocks({
@@ -45,6 +47,8 @@ async function getRouteData({
   const { title, metaHeadBlocks, restHeadBlocks } =
     sort_head_blocks(headBlocks);
 
+  const buildId = hwy_global.get("build_id");
+
   const baseProps = {
     c,
     activePathData,
@@ -53,6 +57,7 @@ async function getRouteData({
     restHeadBlocks,
     defaultHeadBlocks,
     adHocData,
+    buildId,
   };
 
   if (IS_PREACT_MPA) {
@@ -80,6 +85,7 @@ async function getRouteData({
         params: activePathData.params,
         actionData: activePathData.actionData,
         adHocData,
+        buildId,
       });
     }
   }

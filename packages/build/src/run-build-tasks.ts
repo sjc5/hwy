@@ -335,6 +335,10 @@ const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
     HWY_GLOBAL_KEYS.injected_scripts
   } = ${JSON.stringify(injected_scripts)};\n\n`;
 
+  const BUILD_ID = Date.now().toString();
+
+  const build_id_line = `${HWY_PREFIX}arbitrary_global.${HWY_GLOBAL_KEYS.build_id} = ${BUILD_ID};\n\n`;
+
   /*
    * Now put it all together and write main.js to disk
    */
@@ -344,6 +348,7 @@ const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
       dev_line +
       hwy_config_line +
       injected_scripts_line +
+      build_id_line +
       to_be_appended +
       main_code,
   );

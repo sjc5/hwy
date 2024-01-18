@@ -71,6 +71,7 @@ export const CLIENT_SIGNAL_KEYS = [
   "activeErrorBoundaries",
   "fallbackIndex",
   "adHocData",
+  "buildId",
 ] as const;
 
 export const CLIENT_GLOBAL_KEYS = CLIENT_SIGNAL_KEYS;
@@ -168,6 +169,7 @@ export type RouteData<EnvType extends Env = {}> = {
   metaHeadBlocks: TagHeadBlock[];
   restHeadBlocks: TagHeadBlock[];
   adHocData: any;
+  buildId: string;
 };
 
 // PATHS
@@ -202,6 +204,7 @@ export type HwyGlobal = {
   public_reverse_map: Record<string, string>;
   test_dirname?: string;
   injected_scripts: Array<string>;
+  build_id: string;
 };
 
 export type HwyGlobalKey = keyof HwyGlobal;
@@ -214,6 +217,7 @@ export const HWY_GLOBAL_KEYS: { [K in keyof HwyGlobal]: any } = {
   public_map: "",
   public_reverse_map: "",
   injected_scripts: "",
+  build_id: "",
 } as const;
 
 for (const key in HWY_GLOBAL_KEYS) {
