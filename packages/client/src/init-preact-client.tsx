@@ -466,16 +466,19 @@ async function submit(
         } as const;
       }
 
-      if (!IS_GET && !options?.skipOnSuccessRevalidation) {
-        await __navigate({
-          href: location.href,
-          navigationType: "revalidation",
-        });
-      } else if (options?.skipOnSuccessRevalidation) {
-        await __navigate({
-          href: location.href,
-          navigationType: "buildIdCheck",
-        });
+      if (!IS_GET) {
+        if (options?.skipOnSuccessRevalidation) {
+          // HWY TO-DO This should probably be a specific endpoint, otherwise this might fail if the page doesn't exist anymore
+          await __navigate({
+            href: location.href,
+            navigationType: "buildIdCheck",
+          });
+        } else {
+          await __navigate({
+            href: location.href,
+            navigationType: "revalidation",
+          });
+        }
       }
 
       set_status_signal({ type: "submission", value: false });

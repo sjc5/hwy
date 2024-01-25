@@ -103,6 +103,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
 
   for (const paths of sorted_grouped_by_segment_length) {
     let winner = paths[0];
+
     let highest_score = winner.score;
     let index_candidate: SemiDecoratedPath | null = null;
 
@@ -119,6 +120,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
           index_candidate = path;
         }
       }
+
       if (path.score > highest_score) {
         highest_score = path.score;
         winner = path;
@@ -165,7 +167,7 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
     }
   }
 
-  const maybe_final_paths = [...definite_matches, ...xformed_maybes].sort(
+  let maybe_final_paths = [...definite_matches, ...xformed_maybes].sort(
     (a, b) => a.segments.length - b.segments.length,
   );
 
@@ -203,6 +205,22 @@ function get_matching_paths_internal(__paths: Array<SemiDecoratedPath>) {
           (x) => x.matches && x.pathType === "ultimate-catch",
         ),
       };
+    }
+  }
+
+  // if a dynamic layout is adjacent and before an index, we need to remove it
+  // IF the index does not share the same dynamic segment
+  for (let i = 0; i < maybe_final_paths.length; i++) {
+    const current = maybe_final_paths[i];
+    const next = maybe_final_paths[i + 1];
+
+    if (current.pathType === "dynamic-layout" && next?.pathType === "index") {
+      const current_dynamic_segment = current.segments.at(-1);
+      const next_dynamic_segment = next.segments.at(-2);
+
+      if (current_dynamic_segment !== next_dynamic_segment) {
+        maybe_final_paths.splice(i, 1);
+      }
     }
   }
 

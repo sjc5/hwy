@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.0.0-beta.24",
+  "version": "0.0.0-beta.27",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -31,25 +31,25 @@
     "picocolors": "^1.0.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20231218.0",
+    "@cloudflare/workers-types": "^4.20240117.0",
     "@css-hooks/core": "^1.8.0",
-    "@hono/node-server": "^1.4.0",
+    "@hono/node-server": "^1.5.0",
     "@hwy-js/utils": "workspace:*",
     "@types/inquirer": "^9.0.7",
-    "@types/node": "^20.11.2",
+    "@types/node": "^20.11.6",
     "@types/nprogress": "^0.2.3",
-    "bun-types": "^1.0.22",
-    "hono": "^3.12.4",
+    "bun-types": "^1.0.25",
+    "hono": "^3.12.6",
     "htmx.org": "^1.9.10",
     "hwy": "workspace:*",
     "idiomorph": "^0.3.0",
     "npm-run-all": "^4.1.5",
     "nprogress": "^0.2.0",
-    "prettier": "^3.2.2",
+    "prettier": "^3.2.4",
     "tailwindcss": "^3.4.1",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
-    "wrangler": "^3.22.4"
+    "wrangler": "^3.24.0"
   },
   "repository": {
     "type": "git",
