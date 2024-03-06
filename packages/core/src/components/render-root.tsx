@@ -1,39 +1,38 @@
-import { Context, Next } from "hono";
+import { H3Event } from "h3";
 import { renderToString } from "preact-render-to-string";
 import { HeadBlock, RouteData } from "../../../common/index.mjs";
-import { getRouteData } from "../utils/get-root-data.js";
+import { getRouteData, get_is_json_request } from "../utils/get-root-data.js";
 
 type JSXElement = any;
 
 async function renderRoot({
-  c,
-  next,
+  event,
   defaultHeadBlocks,
   root: Root,
   adHocData,
 }: {
-  c: Context;
-  next: Next;
+  event: H3Event;
   defaultHeadBlocks: HeadBlock[];
   root: (props: RouteData) => JSXElement;
   adHocData?: any;
 }) {
-  const routeData = await getRouteData({ c, defaultHeadBlocks, adHocData });
+  const routeData = await getRouteData({ event, defaultHeadBlocks, adHocData });
 
-  if (routeData instanceof Response) {
+  // __TODO -- see if resource routes still work!
+  if (routeData instanceof Response || get_is_json_request({ event })) {
     return routeData;
   }
 
   if (!routeData) {
-    return await next();
+    return;
   }
 
-  return c.html(
+  return (
     "<!doctype html>" +
-      renderToString(
-        // @ts-ignore
-        <Root {...routeData} />,
-      ),
+    renderToString(
+      // @ts-ignore
+      <Root {...routeData} />,
+    )
   );
 }
 

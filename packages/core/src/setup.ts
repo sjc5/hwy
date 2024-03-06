@@ -1,11 +1,23 @@
-import type { serveStatic as serveStaticFn } from "@hono/node-server/serve-static";
-import type { Context, Hono, Next } from "hono";
+import {
+  App,
+  H3Event,
+  createRouter,
+  defineEventHandler,
+  eventHandler,
+  getRequestURL,
+  sendRedirect,
+  serveStatic,
+  setResponseHeader,
+  setResponseStatus,
+} from "h3";
+import { readFile, stat } from "node:fs/promises";
+import path from "node:path";
 import { get_hwy_global } from "../../common/index.mjs";
+import { getMimeType } from "./get-mimes.js";
 import {
   DEV_BUNDLED_CSS_QUERY_PARAM,
   getPublicUrl,
   get_original_public_url,
-  get_serve_static_options,
 } from "./utils/hashed-public-url.js";
 import { file_url_to_path, node_path } from "./utils/url-polyfills.js";
 
@@ -17,8 +29,6 @@ function dirname_from_import_meta(import_meta_url: string) {
 let ROOT_DIRNAME = "";
 let PUBLIC_URL_PREFIX = "";
 
-type ServeStaticFn = typeof serveStaticFn;
-
 const IMMUTABLE_CACHE_HEADER_VALUE = "public, max-age=31536000, immutable";
 
 const hwy_global = get_hwy_global();
@@ -26,38 +36,33 @@ const hwy_global = get_hwy_global();
 function immutable_cache() {
   const deployment_target = hwy_global.get("hwy_config").deploymentTarget;
 
-  const should_set_cdn_cache_control =
-    deployment_target === "vercel-lambda" ||
-    deployment_target === "cloudflare-pages";
+  const should_set_cdn_cache_control = deployment_target === "cloudflare-pages";
 
-  return function (c: Context, next: Next) {
+  return function (event: H3Event) {
     if (hwy_global.get("is_dev")) {
-      if (c.req.path.includes("public/dist/standard-bundled.css")) {
-        c.header("Cache-Control", "no-cache");
-        return next();
+      if (event.path.includes("public/dist/standard-bundled.css")) {
+        setResponseHeader(event, "Cache-Control", "no-cache");
       }
     }
 
-    c.header("Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
+    setResponseHeader(event, "Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
 
     if (should_set_cdn_cache_control) {
-      c.header("CDN-Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
+      setResponseHeader(
+        event,
+        "CDN-Cache-Control",
+        IMMUTABLE_CACHE_HEADER_VALUE,
+      );
     }
-
-    return next();
   };
 }
 
 async function hwyInit({
   app,
   importMetaUrl,
-  serveStatic,
-  publicUrlPrefix,
 }: {
-  app: Hono<any>;
+  app: App;
   importMetaUrl?: string;
-  serveStatic?: ServeStaticFn;
-  publicUrlPrefix?: string;
 }) {
   const deployment_target = hwy_global.get("hwy_config").deploymentTarget;
 
@@ -70,56 +75,95 @@ async function hwyInit({
   }
 
   ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl ?? "");
-  PUBLIC_URL_PREFIX = publicUrlPrefix ?? "";
 
-  app.use("/favicon.ico", async (c) => {
-    try {
-      return c.redirect(getPublicUrl("favicon.ico"));
-    } catch {
-      return c.notFound();
-    }
-  });
+  app.use(
+    "/favicon.ico",
+    eventHandler(async (event) => {
+      try {
+        return sendRedirect(event, getPublicUrl("favicon.ico"));
+      } catch {
+        setResponseStatus(event, 404);
+      }
+    }),
+  );
 
-  const static_path = "/public/*";
-  app.use(static_path, immutable_cache());
+  const static_path = "/public/**";
+  //   app.use(static_path, eventHandler(immutable_cache()));
 
-  if (deployment_target === "cloudflare-pages") {
-    app.get(static_path, async (c) => {
-      let original_public_url = get_original_public_url({
-        hashed_url: c.req.path,
+  // COME BACK
+  //   if (deployment_target === "cloudflare-pages") {
+  //     const router = createRouter();
+  //     app.use(router);
+  //     router.get(static_path, async (event) => {
+  //       let original_public_url = get_original_public_url({
+  //         hashed_url: event.path,
+  //       });
+
+  //       let hostname = getRequestURL(event).hostname;
+
+  //       const is_dev_css_bundle =
+  //         hwy_global.get("is_dev") &&
+  //         hostname.includes(DEV_BUNDLED_CSS_QUERY_PARAM);
+
+  //       if (is_dev_css_bundle) {
+  //         hostname = hostname.replace(DEV_BUNDLED_CSS_QUERY_PARAM, "");
+  //       }
+
+  //       let new_url = hostname + "/" + original_public_url.slice(2);
+
+  //       if (is_dev_css_bundle) {
+  //         new_url = new_url + DEV_BUNDLED_CSS_QUERY_PARAM;
+  //       }
+
+  //       const new_req = new Request(new_url, event.request);
+
+  //       return await c.env.ASSETS.fetch(new_req);
+  //     });
+
+  //     return { app };
+  //   }
+
+  const router = createRouter();
+  app.use(router);
+  router.use(
+    static_path,
+    defineEventHandler((event) => {
+      return serveStatic(event, {
+        indexNames: [],
+        getContents: (id) => {
+          const mime = getMimeType(id);
+          if (mime) {
+            setResponseHeader(event, "Content-Type", mime);
+          }
+          return readFile(
+            get_original_public_url({
+              hashed_url: id,
+            }),
+          );
+        },
+        getMeta: async (id) => {
+          const mime = getMimeType(id);
+          if (mime) {
+            setResponseHeader(event, "Content-Type", mime);
+          }
+          const stats = await stat(
+            get_original_public_url({
+              hashed_url: id,
+            }),
+          ).catch(() => {});
+
+          if (!stats || !stats.isFile()) {
+            return;
+          }
+
+          return {
+            size: stats.size,
+            mtime: stats.mtimeMs,
+          };
+        },
       });
-
-      let hostname = c.req.url.replace(c.req.path, "");
-
-      const is_dev_css_bundle =
-        hwy_global.get("is_dev") &&
-        hostname.includes(DEV_BUNDLED_CSS_QUERY_PARAM);
-
-      if (is_dev_css_bundle) {
-        hostname = hostname.replace(DEV_BUNDLED_CSS_QUERY_PARAM, "");
-      }
-
-      let new_url = hostname + "/" + original_public_url.slice(2);
-
-      if (is_dev_css_bundle) {
-        new_url = new_url + DEV_BUNDLED_CSS_QUERY_PARAM;
-      }
-
-      const new_req = new Request(new_url, c.req);
-
-      return await c.env.ASSETS.fetch(new_req);
-    });
-
-    return { app };
-  }
-
-  if (!serveStatic) {
-    throw new Error(
-      "serveStatic is required unless running on Cloudflare Pages",
-    );
-  }
-
-  app.use(static_path, serveStatic(get_serve_static_options()));
+    }),
+  );
 
   return { app };
 }

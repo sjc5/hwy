@@ -371,13 +371,6 @@ const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
 
   // If PROD, handle deploy target revisions
   if (IS_PROD) {
-    // VERCEL
-    if (hwy_config.deploymentTarget === "vercel-lambda") {
-      hwyLog("Customizing build output for Vercel Serverless (Lambda)...");
-
-      await fs.promises.cp("./dist", "./api", { recursive: true });
-    }
-
     // DENO DEPLOY
     if (hwy_config.deploymentTarget === "deno-deploy") {
       // Needs to come after any bundling!

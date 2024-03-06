@@ -12,7 +12,6 @@
     "update-latest": "pnpm update --latest"
   },
   "dependencies": {
-    "hono": "^3.12.6",
     "hwy": "workspace:*",
     "preact-render-to-string": "^6.3.1"
   },

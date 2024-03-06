@@ -1,35 +1,23 @@
-import { Hono } from "hono";
-import { serveStatic } from "hono/bun";
-import { logger } from "hono/logger";
-import { secureHeaders } from "hono/secure-headers";
+import { createApp, toWebHandler } from "h3";
 import { hwyInit } from "hwy";
 import { renderHtmlRoot } from "./html-root.js";
 
-const app = new Hono();
-
-await hwyInit({
-  app,
+const { app } = await hwyInit({
+  app: createApp(),
   importMetaUrl: import.meta.url,
-  serveStatic,
 });
 
-app.use("*", logger());
-app.get("*", secureHeaders());
-
-app.get("/*", async (c) => c.html(renderHtmlRoot(c)));
-
-app.notFound((c) => c.text("404 Not Found", 404));
-
-app.onError((error, c) => {
-  console.error(error);
-  return c.text("500 Internal Server Error", 500);
-});
+app.use("/*", async (event) => renderHtmlRoot(event.path));
 
 const PORT = Number(process.env.PORT ?? 3000);
 
+const webHandler = toWebHandler(app);
+
 const server = Bun.serve({
   port: PORT,
-  fetch: app.fetch,
+  fetch(request: Request) {
+    return webHandler(request);
+  },
 });
 
-console.log(`\nListening on http://${server.hostname}:${PORT}\n`);
+console.log(`Listening on http://${server.hostname}:${server.port}`);

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "vercel-build": "tsc && hwy-build",
+    "build": "tsc && hwy-build",
     "start": "node dist/main.js",
     "dev": "hwy-dev-serve",
     "to-latest": "node ./scripts/to-latest.js && pnpm i && npm i",
@@ -13,16 +13,14 @@
     "nuke": "rm -rf dist && rm -rf public/dist"
   },
   "dependencies": {
-    "@hono/node-server": "^1.5.0",
     "devalue": "^4.3.2",
-    "hono": "^3.12.6",
-    "hwy": "0.0.0-beta.25",
+    "hwy": "workspace:*",
     "preact-render-to-string": "^6.3.1"
   },
   "devDependencies": {
-    "@hwy-js/build": "0.0.0-beta.25",
-    "@hwy-js/client": "0.0.0-beta.25",
-    "@hwy-js/dev": "0.0.0-beta.25",
+    "@hwy-js/build": "workspace:*",
+    "@hwy-js/client": "workspace:*",
+    "@hwy-js/dev": "workspace:*",
     "@preact/signals": "^1.2.2",
     "@types/node": "^20.11.6",
     "@types/nprogress": "^0.2.3",

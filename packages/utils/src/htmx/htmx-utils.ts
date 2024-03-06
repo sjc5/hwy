@@ -2,39 +2,44 @@
  * HTMX-RELATED UTILS
  * ------------------------------------------------------------------------------*/
 
-import type { Context } from "hono";
-
+import {
+  H3Event,
+  getRequestHeader,
+  sendRedirect,
+  setResponseHeader,
+  setResponseStatus,
+} from "h3";
 // REDIRECT -----------------------------------------------------------------------
 function htmxRedirect({
-  c,
+  event,
   to,
   status,
   useHxLocation,
 }: {
-  c: Context;
+  event: H3Event;
   to: string;
   status?: number;
   useHxLocation?: boolean;
 }) {
-  c.status(status ?? 302);
+  setResponseStatus(event, status ?? 302);
 
-  const isHxRequest = Boolean(c.req.raw.headers.get("HX-Request"));
+  const isHxRequest = Boolean(getRequestHeader(event, "HX-Request"));
 
   if (!isHxRequest) {
-    return c.redirect(to);
+    return sendRedirect(event, to, status);
   }
 
   if (to.startsWith("http")) {
-    c.header("HX-Redirect", to);
-    return c.body(null);
+    setResponseHeader(event, "HX-Redirect", to);
+    return null;
   }
 
   if (useHxLocation) {
-    c.header("HX-Location", to);
-    return c.body(null);
+    setResponseHeader(event, "HX-Location", to);
+    return null;
   }
 
-  return c.redirect(to);
+  return sendRedirect(event, to, status);
 }
 
 // DEFAULT BODY PROPS -------------------------------------------------------------

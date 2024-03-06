@@ -6,7 +6,12 @@ function Nav() {
       </a>
 
       <div style={{ display: "flex" }}>
-        <a href="/docs" class="nav-item" title="Hwy Documentation">
+        <a
+          href="/docs"
+          class="nav-item"
+          title="Hwy Documentation"
+          data-boost="true"
+        >
           Docs
         </a>
 

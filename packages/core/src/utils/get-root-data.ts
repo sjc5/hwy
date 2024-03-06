@@ -1,28 +1,29 @@
-import { Context } from "hono";
+import { defineEventHandler, getQuery, H3Event, type H3EventContext } from "h3";
 import {
-  HWY_PREFIX,
-  HeadBlock,
   get_hwy_global,
+  HeadBlock,
+  HWY_PREFIX,
   sort_head_blocks,
 } from "../../../common/index.mjs";
 import { getHeadElementProps } from "../components/head-elements-comp.js";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
 import { utils } from "./hwy-utils.js";
 
-export function get_is_json_request({ c }: { c: Context }) {
-  return Boolean(c.req.query()[`${HWY_PREFIX}json`]);
+export function get_is_json_request({ event }: { event: H3Event }) {
+  return Boolean(getQuery(event)[`${HWY_PREFIX}json`]);
 }
 
 async function getRouteData({
-  c,
+  event,
   defaultHeadBlocks,
   adHocData,
 }: {
-  c: Context;
+  event: H3Event;
   defaultHeadBlocks: HeadBlock[];
   adHocData?: any;
 }) {
-  const activePathData = await getMatchingPathData({ c });
+  const activePathData = await getMatchingPathData({ event });
+  console.log({ activePathData });
 
   if (activePathData.fetchResponse) {
     return activePathData.fetchResponse;
@@ -39,7 +40,7 @@ async function getRouteData({
   );
 
   const headBlocks = utils.getExportedHeadBlocks({
-    c,
+    event,
     activePathData,
     defaultHeadBlocks,
   });
@@ -50,7 +51,7 @@ async function getRouteData({
   const buildId = hwy_global.get("build_id");
 
   const baseProps = {
-    c,
+    event,
     activePathData,
     title,
     metaHeadBlocks,
@@ -61,14 +62,17 @@ async function getRouteData({
   };
 
   if (IS_PREACT_MPA) {
-    const IS_JSON = get_is_json_request({ c });
+    const IS_JSON = get_is_json_request({ event });
 
     if (IS_JSON) {
-      if (c.req.raw.signal.aborted) {
-        return;
-      }
+      // COME BACK
+      // if (c.req.raw.signal.aborted) {
+      //   return;
+      // }
 
-      return c.json({
+      console.log("IS_JSON");
+
+      return {
         title,
         metaHeadBlocks,
         restHeadBlocks,
@@ -86,7 +90,7 @@ async function getRouteData({
         actionData: activePathData.actionData,
         adHocData,
         buildId,
-      });
+      };
     }
   }
 

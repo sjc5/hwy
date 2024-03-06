@@ -1,22 +1,23 @@
-import type { Context } from "hono";
+import { getRequestHeader, readBody, readFormData, type H3Event } from "h3";
 
 async function getFormStrings<T extends string>({
-  c,
+  event,
   doNotTrim,
 }: {
-  c: Context;
+  event: H3Event;
   doNotTrim?: boolean;
 }): Promise<Record<T, string> | undefined> {
-  if (c.req.method !== "POST") {
+  if (event.method !== "POST") {
     return;
   }
 
-  const isFormUrlEncoded = c.req.raw.headers
-    .get("content-type")
-    ?.startsWith("application/x-www-form-urlencoded");
+  const contentType = getRequestHeader(event, "content-type");
+  const isFormUrlEncoded = contentType?.startsWith(
+    "application/x-www-form-urlencoded",
+  );
 
   if (isFormUrlEncoded) {
-    const body = await c.req.raw.text();
+    const body = await readBody(event);
     const fd = new URLSearchParams(body);
     const dataObj: Partial<Record<T, string>> = {};
 
@@ -27,12 +28,10 @@ async function getFormStrings<T extends string>({
     return dataObj as Record<T, string>;
   }
 
-  const isMultipartFormData = c.req.raw.headers
-    .get("content-type")
-    ?.startsWith("multipart/form-data");
+  const isMultipartFormData = contentType?.startsWith("multipart/form-data");
 
   if (isMultipartFormData) {
-    const fd = await c.req.raw.formData();
+    const fd = await readFormData(event);
     const dataObj: Partial<Record<T, string>> = {};
 
     for (const [key, value] of fd.entries()) {

@@ -40,7 +40,9 @@ export { Sidebar };
 function LinkListItem({ href }: { href: string }) {
   return (
     <li>
-      <a href={href}>{href}</a>
+      <a href={href} data-boost="true">
+        {href}
+      </a>
     </li>
   );
 }

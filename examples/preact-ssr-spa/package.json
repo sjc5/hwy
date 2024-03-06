@@ -9,7 +9,6 @@
     "nuke": "rm -rf dist && rm -rf public/dist"
   },
   "dependencies": {
-    "hono": "^3.12.6",
     "hwy": "workspace:*",
     "preact-render-to-string": "^6.3.1"
   },

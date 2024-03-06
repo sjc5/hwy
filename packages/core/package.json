@@ -5,7 +5,7 @@
     "name": "Samuel J. Cook"
   },
   "license": "MIT",
-  "description": "Simple, lightweight, and flexible web framework, built on Hono and HTMX.",
+  "description": "Simple, lightweight, and flexible web framework, built on h3, esbuild, and Preact.",
   "type": "module",
   "exports": {
     ".": "./dist/index.js"
@@ -26,16 +26,14 @@
     "preact-render-to-string": "^6.3.1"
   },
   "devDependencies": {
-    "@hono/node-server": "^1.5.0",
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@types/node": "^20.11.6",
-    "hono": "^3.12.6",
+    "h3": "^1.11.1",
     "preact": "^10.19.3",
     "tsup": "^8.0.1"
   },
   "peerDependencies": {
-    "hono": "^3.11.1",
     "preact": "^10.19.3"
   },
   "repository": {
@@ -53,7 +51,7 @@
     "metaframework",
     "web",
     "typescript",
-    "hono",
+    "h3",
     "router",
     "nested",
     "routing",

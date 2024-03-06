@@ -666,24 +666,6 @@ export const head: HeadFunction = (props) => {
         And of course, if you don't like these patterns, you can just choose not
         to use them, and do whatever you want for styling instead!
       </Paragraph>
-      <AnchorHeading content="Deployment" />
-      <Paragraph>
-        Hwy can be deployed to any Node-compatible runtime with filesystem read
-        access. This includes more traditional Node app hosting like Render.com
-        or Railway.app, or Vercel (Lambda), or Deno Deploy. This should also
-        include Bun once that ecosystem becomes more stable and has more hosting
-        options. Just choose your preferred deployment target when you run{" "}
-        <InlineCode>npx create-hwy@latest</InlineCode>.
-      </Paragraph>
-      <Paragraph>
-        Cloudflare is a bit trickier, however, because Hwy reads from the
-        filesystem at runtime. We may add support for this in the future through
-        a specialized build step, but for now, it's not supported. This also
-        means that Vercel edge functions are not supported, as they rely on
-        Cloudflare Workers, which do not have runtime read access to the
-        filesystem. Normal Vercel serverless, which runs on AWS Lambda under the
-        hood, will work just fine.
-      </Paragraph>
       <AnchorHeading content="Progressive enhancement" />
       <Paragraph>
         When you included the <InlineCode>hx-boost</InlineCode> attribute on the{" "}

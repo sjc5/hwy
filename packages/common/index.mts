@@ -1,5 +1,5 @@
 import { signal } from "@preact/signals";
-import type { Context, Env } from "hono";
+import type { H3Event } from "h3";
 
 export const HWY_PREFIX = "__hwy_internal__";
 export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
@@ -9,12 +9,7 @@ export const LIVE_REFRESH_RPC_PATH = `/${HWY_PREFIX}live_refresh_rpc`;
 export const DEFAULT_PORT = 3000;
 
 type CloudflarePages = "cloudflare-pages";
-type NonCloudflarePages =
-  | "bun"
-  | "vercel-lambda"
-  | "node"
-  | "deno-deploy"
-  | "deno";
+type NonCloudflarePages = "bun" | "node" | "deno-deploy" | "deno";
 
 export type DeploymentTarget = NonCloudflarePages | CloudflarePages;
 
@@ -161,8 +156,8 @@ export function sort_head_blocks(head_blocks: HeadBlock[]) {
   };
 }
 
-export type RouteData<EnvType extends Env = {}> = {
-  c: Context<EnvType>;
+export type RouteData = {
+  event: H3Event;
   activePathData: ActivePathData;
   defaultHeadBlocks: HeadBlock[];
   title: string;
@@ -283,25 +278,21 @@ export function get_hwy_client_global() {
 
 // CORE TYPES
 
-export type DataProps<EnvType extends Env = {}> = {
-  c: Context<EnvType>;
+export type DataProps = {
+  event: H3Event;
   params: Record<string, string>;
   splatSegments: string[];
 };
 
-export type Loader<EnvType extends Env = {}> = (
-  args: DataProps<EnvType>,
-) => Promise<any> | any;
+export type Loader = (args: DataProps) => Promise<any> | any;
 
-export type Action<EnvType extends Env = {}> = (
-  args: DataProps<EnvType>,
-) => Promise<any> | any;
+export type Action = (args: DataProps) => Promise<any> | any;
 
 type NotResponse<T> = T extends Response ? never : T;
 
 export type PageProps<
-  LoaderType extends Loader<any> = Loader<any>,
-  ActionType extends Action<any> = Action<any>,
+  LoaderType extends Loader = Loader,
+  ActionType extends Action = Action,
   AdHocData extends any = any,
   FunctionComponent = any,
 > = {
@@ -315,22 +306,20 @@ export type PageProps<
 };
 
 export type PageComponent<
-  LoaderType extends Loader<any> = Loader<any>,
-  ActionType extends Action<any> = Action<any>,
+  LoaderType extends Loader = Loader,
+  ActionType extends Action = Action,
   AdHocData extends any = any,
   JSXElement = any,
 > = (props: PageProps<LoaderType, ActionType, AdHocData>) => JSXElement;
 
 export type HeadProps<
-  LoaderType extends Loader<any> = Loader<any>,
-  ActionType extends Action<any> = Action<any>,
-  EnvType extends Env = {},
+  LoaderType extends Loader = Loader,
+  ActionType extends Action = Action,
 > = Omit<PageProps<LoaderType, ActionType>, "Outlet" | "adHocData"> & {
-  c: Context<EnvType>;
+  event: H3Event;
 };
 
 export type HeadFunction<
-  LoaderType extends Loader<any> = Loader<any>,
-  ActionType extends Action<any> = Action<any>,
-  EnvType extends Env = {},
-> = (props: HeadProps<LoaderType, ActionType, EnvType>) => Array<HeadBlock>;
+  LoaderType extends Loader = Loader,
+  ActionType extends Action = Action,
+> = (props: HeadProps<LoaderType, ActionType>) => Array<HeadBlock>;

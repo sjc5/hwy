@@ -1,11 +1,11 @@
+import { H3Event } from "h3";
 import { utils } from "hwy";
-import { PreactApp } from "./preact-app.js";
-import type { Context } from "hono";
 import { renderToString } from "preact-render-to-string";
+import { PreactApp } from "./preact-app.js";
 
 /* This file runs on the server only */
 
-function renderHtmlRoot(c: Context) {
+function renderHtmlRoot(path: string) {
   const criticalCss = utils.getCriticalCss();
   const refreshScript = utils.getRefreshScript();
 
@@ -37,7 +37,7 @@ function renderHtmlRoot(c: Context) {
       </head>
 
       <body>
-        <PreactApp path={c.req.path} />
+        <PreactApp path={path} />
       </body>
     </html>
   );

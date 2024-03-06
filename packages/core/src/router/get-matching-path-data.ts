@@ -1,5 +1,3 @@
-import { Context } from "hono";
-
 import {
   ActivePathData,
   DataProps,
@@ -12,6 +10,7 @@ import { get_match_strength } from "./get-match-strength.js";
 import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
 import { matcher } from "./matcher.js";
 
+import { H3Event } from "h3";
 import { ROOT_DIRNAME } from "../setup.js";
 import { get_is_json_request } from "../utils/get-root-data.js";
 import { node_path, path_to_file_url_string } from "../utils/url-polyfills.js";
@@ -166,14 +165,14 @@ type SemiDecoratedPath = Paths[number] & {
 } & ReturnType<typeof get_match_strength>;
 
 function semi_decorate_paths({
-  c,
+  event,
   paths,
 }: {
-  c: Context;
+  event: H3Event;
   paths: Paths;
 }): SemiDecoratedPath[] {
   return paths?.map((path) => {
-    let path_to_use = c.req.path;
+    let path_to_use = event.path;
 
     if (path_to_use !== "/" && path_to_use.endsWith("/")) {
       path_to_use = path_to_use.slice(0, -1);
@@ -195,16 +194,16 @@ function semi_decorate_paths({
 type FullyDecoratedPath = ReturnType<typeof fully_decorate_paths>[number];
 
 async function get_action_data({
-  c,
+  event,
   last_path,
 }: {
-  c: Context;
+  event: H3Event;
   last_path: FullyDecoratedPath;
 }) {
   try {
-    if (c.req.method !== "GET") {
+    if (event.method !== "GET") {
       return await last_path?.action?.({
-        c,
+        event,
         params: last_path?.params,
         splatSegments: last_path?.splatSegments,
       });
@@ -214,7 +213,7 @@ async function get_action_data({
   }
 }
 
-async function getMatchingPathData({ c }: { c: Context }) {
+async function getMatchingPathData({ event }: { event: H3Event }) {
   const paths = hwy_global.get("paths");
 
   if (!paths) {
@@ -222,7 +221,7 @@ async function getMatchingPathData({ c }: { c: Context }) {
   }
 
   const semi_decorated_paths = semi_decorate_paths({
-    c,
+    event,
     paths,
   });
 
@@ -245,7 +244,7 @@ async function getMatchingPathData({ c }: { c: Context }) {
   let action_data_error: any;
 
   try {
-    action_data = await get_action_data({ c, last_path });
+    action_data = await get_action_data({ event, last_path });
   } catch (e) {
     action_data_error = e;
   }
@@ -270,7 +269,7 @@ async function getMatchingPathData({ c }: { c: Context }) {
 
   let first_fallback_index = active_fallbacks.findIndex((x) => x);
 
-  const is_json_request = get_is_json_request({ c });
+  const is_json_request = get_is_json_request({ event });
 
   if (is_json_request) {
     first_fallback_index = -1;
@@ -299,7 +298,7 @@ async function getMatchingPathData({ c }: { c: Context }) {
         ).map(async (path) => {
           return path
             ?.loader?.({
-              c,
+              event,
               params,
               splatSegments: splat_segments,
             })

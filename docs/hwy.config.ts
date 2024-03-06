@@ -6,6 +6,6 @@ export default {
   dev: {
     port: 1275,
   },
-  deploymentTarget: "vercel-lambda",
+  deploymentTarget: "node",
   routeStrategy: "always-lazy",
 } satisfies HwyConfig;

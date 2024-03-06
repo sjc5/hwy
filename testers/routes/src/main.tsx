@@ -1,7 +1,5 @@
-import { serve } from "@hono/node-server";
-import { serveStatic } from "@hono/node-server/serve-static";
 import { RootOutlet } from "@hwy-js/client";
-import { Hono } from "hono";
+import { createApp, defineEventHandler, toNodeListener } from "h3";
 import {
   ClientScripts,
   CssImports,
@@ -10,60 +8,67 @@ import {
   hwyInit,
   renderRoot,
 } from "hwy";
+import { createServer } from "node:http";
 import { Sidebar } from "./components/sidebar.js";
 
 const { app } = await hwyInit({
-  app: new Hono(),
+  app: createApp(),
   importMetaUrl: import.meta.url,
-  serveStatic,
 });
 
-app.all("*", async (c, next) => {
-  return await renderRoot({
-    c,
-    next,
-    defaultHeadBlocks: [],
-    root: function (routeData) {
-      return (
-        <html lang="en">
-          <head>
-            <meta charSet="UTF-8" />
-            <meta
-              name="viewport"
-              content="width=device-width,initial-scale=1"
-            />
-
-            <HeadElements {...routeData} />
-            <CssImports />
-            <ClientScripts {...routeData} />
-            <DevLiveRefreshScript />
-          </head>
-
-          <body>
-            <Sidebar />
-            <main>
-              <RootOutlet
-                {...routeData}
-                fallbackErrorBoundary={function ErrorBoundary() {
-                  return <div>Error Boundary in Root</div>;
-                }}
+app.use(
+  "*",
+  defineEventHandler(async (event) => {
+    return await renderRoot({
+      event,
+      defaultHeadBlocks: [],
+      root: function (routeData) {
+        return (
+          <html lang="en">
+            <head>
+              <meta charSet="UTF-8" />
+              <meta
+                name="viewport"
+                content="width=device-width,initial-scale=1"
               />
-            </main>
-          </body>
-        </html>
-      );
-    },
-  });
-});
+              <HeadElements {...routeData} />
+              <CssImports />
+              <ClientScripts {...routeData} />
+              <DevLiveRefreshScript />
+            </head>
 
-app.notFound((c) => c.text("404 Not Found", 404));
+            <body>
+              <Sidebar />
+              <main>
+                <RootOutlet
+                  {...routeData}
+                  fallbackErrorBoundary={function ErrorBoundary() {
+                    return <div>Error Boundary in Root</div>;
+                  }}
+                />
+              </main>
+            </body>
+          </html>
+        );
+      },
+    });
+  }),
+);
+
+// app.notFound((c) => c.text("404 Not Found", 404));
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 9999;
 
-serve({ fetch: app.fetch, port: PORT }, (info) => {
-  console.log(
-    `\nListening on http://${
-      process.env.NODE_ENV === "development" ? "localhost" : info.address
-    }:${info.port}\n`,
-  );
-});
+const server = createServer(toNodeListener(app)).listen(
+  process.env.PORT || 3000,
+);
+
+console.log(server.address());
+
+// serve({ fetch: app.fetch, port: PORT }, (info) => {
+//   console.log(
+//     `\nListening on http://${
+//       process.env.NODE_ENV === "development" ? "localhost" : info.address
+//     }:${info.port}\n`,
+//   );
+// });

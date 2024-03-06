@@ -83,14 +83,4 @@ function get_original_public_url({
   return "./" + PUBLIC_URL_PREFIX + original_url;
 }
 
-function get_serve_static_options() {
-  return {
-    rewriteRequestPath: (path: string) => {
-      return get_original_public_url({
-        hashed_url: path,
-      });
-    },
-  };
-}
-
-export { getPublicUrl, get_original_public_url, get_serve_static_options };
+export { getPublicUrl, get_original_public_url };

@@ -44,7 +44,7 @@ function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
 }
 
 function getExportedHeadBlocks(
-  props: Pick<RouteData, "activePathData" | "c" | "defaultHeadBlocks">,
+  props: Pick<RouteData, "activePathData" | "event" | "defaultHeadBlocks">,
 ): HeadBlock[] {
   const { activePathData: active_path_data } = props;
 
@@ -61,7 +61,7 @@ function getExportedHeadBlocks(
       return head({
         loaderData: current_data,
         actionData: active_path_data.actionData,
-        c: props.c,
+        event: props.event,
         params: active_path_data?.matchingPaths?.[i].params,
         splatSegments: active_path_data?.matchingPaths?.[i].splatSegments,
         path: current_active_path,

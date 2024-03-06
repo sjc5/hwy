@@ -1,4 +1,4 @@
-import type { Hono } from "hono";
+import { App } from "h3";
 import { hwyLog } from "../../common/dev.mjs";
 import {
   LIVE_REFRESH_RPC_PATH,
@@ -19,27 +19,23 @@ function send_signal_to_sinks(payload: Omit<RefreshFilePayload, "at">) {
   }
 }
 
-function setupLiveRefreshEndpoints({ app }: { app: Hono<any> }) {
-  app.use(LIVE_REFRESH_SSE_PATH, refreshMiddleware());
-
-  app.all(LIVE_REFRESH_RPC_PATH, async (c) => {
-    const payload = (await c.req.json()) as Omit<RefreshFilePayload, "at">;
-
-    send_signal_to_sinks(payload);
-
-    if (payload.changeType === "standard") {
-      for (const sink of sinks) {
-        sink.close();
-      }
-    }
-
-    if (payload.changeType === "critical-css" && payload.criticalCss) {
-      const hwy_global = get_hwy_global();
-      hwy_global.set("critical_bundled_css", payload.criticalCss);
-    }
-
-    return c.text("you called chokidar rpc");
-  });
+function setupLiveRefreshEndpoints({ app }: { app: App }) {
+  // COME BACK
+  //   app.use(LIVE_REFRESH_SSE_PATH, refreshMiddleware());
+  //   app.all(LIVE_REFRESH_RPC_PATH, async (c) => {
+  //     const payload = (await c.req.json()) as Omit<RefreshFilePayload, "at">;
+  //     send_signal_to_sinks(payload);
+  //     if (payload.changeType === "standard") {
+  //       for (const sink of sinks) {
+  //         sink.close();
+  //       }
+  //     }
+  //     if (payload.changeType === "critical-css" && payload.criticalCss) {
+  //       const hwy_global = get_hwy_global();
+  //       hwy_global.set("critical_bundled_css", payload.criticalCss);
+  //     }
+  //     return c.text("you called chokidar rpc");
+  //   });
 }
 
 export { setupLiveRefreshEndpoints };
