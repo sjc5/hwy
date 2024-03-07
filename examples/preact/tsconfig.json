@@ -10,7 +10,7 @@
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
-    "types": ["bun-types"]
+    "types": ["node"]
   },
   "exclude": ["node_modules", "dist"]
 }

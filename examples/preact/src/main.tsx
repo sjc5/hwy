@@ -1,5 +1,6 @@
 import { RootOutlet } from "@hwy-js/client";
-import { createApp, eventHandler, toWebHandler } from "h3";
+import { createApp, eventHandler, toNodeListener } from "h3";
+import { createServer } from "http";
 import {
   ClientScripts,
   CssImports,
@@ -8,6 +9,7 @@ import {
   hwyInit,
   renderRoot,
 } from "hwy";
+import { AddressInfo } from "net";
 
 const { app } = await hwyInit({
   app: createApp(),
@@ -90,12 +92,10 @@ app.use(
   }),
 );
 
-const PORT = Number(process.env.PORT ?? 3000);
-const webHandler = toWebHandler(app);
-const server = Bun.serve({
-  port: PORT,
-  fetch(request: Request) {
-    return webHandler(request);
-  },
-});
-console.log(`Listening on http://${server.hostname}:${server.port}`);
+const server = createServer(toNodeListener(app)).listen(
+  process.env.PORT || 3000,
+);
+
+const addrInfo = server.address() as AddressInfo;
+
+console.log(`Listening on http://localhost:${addrInfo.port}`);

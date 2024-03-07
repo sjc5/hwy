@@ -6,8 +6,8 @@
   "scripts": {
     "hwy-prebuild": "tailwindcss -i src/styles/tw-input.css -o src/styles/tw-output.bundle.css",
     "build": "tsc && hwy-build",
-    "start": "bun dist/main.js",
-    "dev": "bun run --bun hwy-dev-serve",
+    "start": "node dist/main.js",
+    "dev": "hwy-dev-serve",
     "update-latest": "pnpm update --latest"
   },
   "dependencies": {
@@ -21,7 +21,6 @@
     "@hwy-js/utils": "workspace:*",
     "@preact/signals": "^1.2.2",
     "@types/node": "^20.11.25",
-    "bun-types": "^1.0.30",
     "preact": "^10.19.6",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.4.2"
