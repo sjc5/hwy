@@ -14,7 +14,3 @@ public/dist
 
 # tailwind artifacts
 src/styles/tw-output.bundle.css
-
-# wrangler project
-.dev.vars
-.wrangler/

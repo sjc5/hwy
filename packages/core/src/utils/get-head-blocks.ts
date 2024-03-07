@@ -89,7 +89,7 @@ function getSiblingClientHeadBlocks(
           attributes: {
             type: "module",
             src: getPublicUrl(
-              "dist/pages/" + x.importPath.replace(".js", ".client.js"),
+              "dist/" + x.importPath.replace(".page.js", ".client.js"),
             ),
           },
         };

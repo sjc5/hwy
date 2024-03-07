@@ -28,10 +28,6 @@
     "tsup": "^8.0.2",
     "typescript": "^5.4.2"
   },
-  "peerDependencies": {
-    "@preact/signals": "^1.2.2",
-    "preact": "^10.19.3"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/hwy-js/hwy",

@@ -139,44 +139,49 @@ function CssImports() {
 function ClientScripts(routeData: RouteData) {
   return (
     <>
-      <script
-        type="importmap"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            imports: {
-              "@preact/signals": utils.getPublicUrl("dist/client-signals.js"),
-              preact: utils.getPublicUrl("dist/client-signals.js"),
-              "preact/hooks": utils.getPublicUrl("dist/client-signals.js"),
-              "preact/jsx-runtime": utils.getPublicUrl(
-                "dist/client-signals.js",
-              ),
-
-              // TO-DO make this conditional on preact/compat flag?
-              "preact/compat": utils.getPublicUrl(
-                "dist/preact-compat/compat.module.js",
-              ),
-              "@preact/compat": utils.getPublicUrl(
-                "dist/preact-compat/compat.module.js",
-              ),
-              react: utils.getPublicUrl("dist/preact-compat/compat.module.js"),
-              "react-dom": utils.getPublicUrl(
-                "dist/preact-compat/compat.module.js",
-              ),
-
-              ...(hwy_global.get("is_dev")
-                ? {
-                    "preact/debug": utils.getPublicUrl(
-                      "dist/client-signals.js",
-                    ),
-                  }
-                : {}),
-            },
-          }),
-        }}
-      />
-
       {hwy_global.get("hwy_config").useClientSidePreact && (
-        <script {...getServerRenderingProps(routeData)} />
+        <>
+          <script
+            type="importmap"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                imports: {
+                  "@preact/signals": utils.getPublicUrl(
+                    "dist/client-signals.js",
+                  ),
+                  preact: utils.getPublicUrl("dist/client-signals.js"),
+                  "preact/hooks": utils.getPublicUrl("dist/client-signals.js"),
+                  "preact/jsx-runtime": utils.getPublicUrl(
+                    "dist/client-signals.js",
+                  ),
+
+                  // TO-DO make this conditional on preact/compat flag?
+                  "preact/compat": utils.getPublicUrl(
+                    "dist/preact-compat/compat.module.js",
+                  ),
+                  "@preact/compat": utils.getPublicUrl(
+                    "dist/preact-compat/compat.module.js",
+                  ),
+                  react: utils.getPublicUrl(
+                    "dist/preact-compat/compat.module.js",
+                  ),
+                  "react-dom": utils.getPublicUrl(
+                    "dist/preact-compat/compat.module.js",
+                  ),
+
+                  ...(hwy_global.get("is_dev")
+                    ? {
+                        "preact/debug": utils.getPublicUrl(
+                          "dist/client-signals.js",
+                        ),
+                      }
+                    : {}),
+                },
+              }),
+            }}
+          />
+          <script {...getServerRenderingProps(routeData)} />
+        </>
       )}
 
       {getInjectedScriptsProps().map((props) => (

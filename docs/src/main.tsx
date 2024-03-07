@@ -80,5 +80,7 @@ app.use(
 const server = createServer(toNodeListener(app)).listen(
   process.env.PORT || 3000,
 );
+
 const addrInfo = server.address() as AddressInfo;
+
 console.log(`Listening on http://localhost:${addrInfo.port}`);
