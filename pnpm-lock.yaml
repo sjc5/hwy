@@ -76,34 +76,6 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
 
-  examples/preact-ssr-spa:
-    dependencies:
-      hwy:
-        specifier: workspace:*
-        version: link:../../packages/core
-      preact-render-to-string:
-        specifier: ^6.4.0
-        version: 6.4.0(preact@10.19.6)
-    devDependencies:
-      '@hwy-js/build':
-        specifier: workspace:*
-        version: link:../../packages/build
-      '@hwy-js/dev':
-        specifier: workspace:*
-        version: link:../../packages/dev
-      bun-types:
-        specifier: ^1.0.30
-        version: 1.0.30
-      preact:
-        specifier: ^10.19.6
-        version: 10.19.6
-      typescript:
-        specifier: ^5.4.2
-        version: 5.4.2
-      wouter-preact:
-        specifier: ^3.0.2
-        version: 3.0.2(preact@10.19.6)
-
   packages/build:
     dependencies:
       chokidar:
@@ -216,7 +188,7 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
 
-  testers/cf-pages:
+  testers/bun:
     dependencies:
       hwy:
         specifier: workspace:*
@@ -2456,10 +2428,6 @@ packages:
     engines: {node: '>=16 || 14 >=14.17'}
     dev: true
 
-  /mitt@3.0.1:
-    resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
-    dev: true
-
   /mlly@1.6.1:
     resolution: {integrity: sha512-vLgaHvaeunuOXHSmEbZ9izxPx3USsk8KCQ8iC+aTlp5sKRSoZvwhHh5L9VbKSaVC6sJDqbyohIS76E2VmHIPAA==}
     dependencies:
@@ -2854,11 +2822,6 @@ packages:
       call-bind: 1.0.5
       define-properties: 1.2.1
       set-function-name: 2.0.1
-    dev: true
-
-  /regexparam@3.0.0:
-    resolution: {integrity: sha512-RSYAtP31mvYLkAHrOlh25pCNQ5hWnT106VukGaaFfuJrZFkGRX5GhUAdPqpSDXxOhA2c4akmRuplv1mRqnBn6Q==}
-    engines: {node: '>=8'}
     dev: true
 
   /resolve-from@5.0.0:
@@ -3618,16 +3581,6 @@ packages:
       '@cloudflare/workerd-linux-64': 1.20240223.1
       '@cloudflare/workerd-linux-arm64': 1.20240223.1
       '@cloudflare/workerd-windows-64': 1.20240223.1
-    dev: true
-
-  /wouter-preact@3.0.2(preact@10.19.6):
-    resolution: {integrity: sha512-FmMz5Hm7DEJmch8Ejxl8HyG5OtHtXnoVb+q/kCPXnfI/sV28jWzF4FNFUiC8aDDfh8eWVdBO0cKAUAO+vqVNew==}
-    peerDependencies:
-      preact: ^10.0.0
-    dependencies:
-      mitt: 3.0.1
-      preact: 10.19.6
-      regexparam: 3.0.0
     dev: true
 
   /wrangler@3.31.0:
