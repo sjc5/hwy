@@ -11,86 +11,67 @@ import {
 import { get_hwy_config } from "./get-hwy-config.js";
 import { runBuildTasks } from "./run-build-tasks.js";
 
-declare const Deno: Record<any, any>;
-
 const hwy_config = await get_hwy_config();
-const deployment_target = hwy_config.deploymentTarget;
 let dev_config = hwy_config.dev;
 
 function get_is_hot_reload_only(
   changeType: RefreshFilePayload["changeType"] | undefined,
 ): changeType is "css-bundle" | "critical-css" {
   return Boolean(
-    hwy_config.deploymentTarget !== "cloudflare-pages" &&
-      hwy_config.dev?.hotReloadStyles &&
-      changeType &&
-      changeType !== "standard",
+    hwy_config.dev?.hotReloadStyles && changeType && changeType !== "standard",
   );
 }
 
 async function devServe() {
-  const is_targeting_deno =
-    deployment_target === "deno" || deployment_target === "deno-deploy";
-
   let has_run_one_time = false;
 
   hwyLog("Running in DEV mode.");
 
   dotenv.config();
 
-  if (deployment_target !== "cloudflare-pages") {
-    const refresh_watcher = chokidar.watch(
-      path.join(process.cwd(), "dist", "refresh.txt"),
-      { ignoreInitial: true },
-    );
+  const refresh_watcher = chokidar.watch(
+    path.join(process.cwd(), "dist", "refresh.txt"),
+    { ignoreInitial: true },
+  );
 
-    refresh_watcher.on("all", async () => {
-      const refresh_txt_path = path.join(process.cwd(), "dist", "refresh.txt");
+  refresh_watcher.on("all", async () => {
+    const refresh_txt_path = path.join(process.cwd(), "dist", "refresh.txt");
 
-      if (!fs.existsSync(refresh_txt_path)) {
-        return;
-      }
+    if (!fs.existsSync(refresh_txt_path)) {
+      return;
+    }
 
-      const refresh_obj = JSON.parse(
-        fs.readFileSync(refresh_txt_path, "utf8"),
-      ) as RefreshFilePayload;
+    const refresh_obj = JSON.parse(
+      fs.readFileSync(refresh_txt_path, "utf8"),
+    ) as RefreshFilePayload;
 
-      if (has_run_one_time) {
-        try {
-          await fetch(
-            `http://127.0.0.1:${dev_config?.port}${LIVE_REFRESH_RPC_PATH}`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(refresh_obj),
+    if (has_run_one_time) {
+      try {
+        await fetch(
+          `http://127.0.0.1:${dev_config?.port}${LIVE_REFRESH_RPC_PATH}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          );
-        } catch (e) {
-          console.error("Live refresh RPC failed:", e);
-        }
+            body: JSON.stringify(refresh_obj),
+          },
+        );
+      } catch (e) {
+        console.error("Live refresh RPC failed:", e);
       }
+    }
 
-      has_run_one_time = true;
+    has_run_one_time = true;
 
-      const HOT_RELOAD_ONLY = get_is_hot_reload_only(refresh_obj.changeType);
+    const HOT_RELOAD_ONLY = get_is_hot_reload_only(refresh_obj.changeType);
 
-      if (!HOT_RELOAD_ONLY) {
-        if (is_targeting_deno) {
-          run_command_with_spawn_deno().catch((error) => {
-            console.error(error);
-          });
-
-          return;
-        }
-
-        run_command_with_spawn().catch((error) => {
-          console.error(error);
-        });
-      }
-    });
-  }
+    if (!HOT_RELOAD_ONLY) {
+      run_command_with_spawn().catch((error) => {
+        console.error(error);
+      });
+    }
+  });
 
   const exclusions =
     dev_config?.watchExclusions?.map((x) => path.join(process.cwd(), x)) || [];
@@ -217,42 +198,6 @@ async function devServe() {
         reject(error);
       });
     });
-  }
-
-  // --- Deno command runner ---
-
-  let current_proc_deno: any;
-
-  async function run_command_with_spawn_deno() {
-    if (current_proc_deno) {
-      try {
-        current_proc_deno.kill();
-      } catch {}
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 50));
-
-    const env = {
-      ...base_env,
-      ...Deno.env.toObject(),
-    };
-
-    // Make sure your .env overrides your Hwy config
-    if (env.PORT) {
-      if (!dev_config) {
-        dev_config = {};
-      }
-      dev_config.port = Number(env.PORT);
-    }
-
-    const cmd = new Deno.Command(Deno.execPath(), {
-      args: ["run", "-A", "dist/main.js"],
-      env,
-      stdout: "inherit",
-      stderr: "inherit",
-    });
-
-    current_proc_deno = cmd.spawn();
   }
 
   try {

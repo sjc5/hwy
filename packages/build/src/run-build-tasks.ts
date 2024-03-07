@@ -13,7 +13,6 @@ import {
 } from "../../common/index.mjs";
 import { get_is_hot_reload_only } from "./dev-serve.js";
 import { get_hwy_config } from "./get-hwy-config.js";
-import { smart_normalize } from "./smart-normalize.js";
 import {
   generate_public_file_map,
   sha1_short,
@@ -41,10 +40,7 @@ const FILE_NAMES = [
 
 const exec = promisify(exec_callback);
 const hwy_config = await get_hwy_config();
-const SHOULD_BUNDLE_PATHS =
-  hwy_config.routeStrategy === "bundle" ||
-  hwy_config.deploymentTarget === "cloudflare-pages";
-
+const SHOULD_BUNDLE_PATHS = hwy_config.routeStrategy === "bundle";
 async function runBuildTasks({
   IS_DEV,
   log,
@@ -303,14 +299,10 @@ async function runBuildTasks({
   });
 
   /*
-   * Prepare to append those file contents into main server entry code
-   *
-   * The "smart normalize" function only matters for people dev'ing on
-   * Windows and deploying to Cloudflare Pages.
-   *
+   * Prepare to append those file contents into main server entry code.
    * This is now one big string, separated by double newlines.
    */
-  let to_be_appended = smart_normalize(files_text.join("\n\n")) + "\n\n";
+  let to_be_appended = files_text.join("\n\n") + "\n\n";
 
   /*
    * Set up some additional global variables
@@ -369,15 +361,6 @@ const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
     await handle_custom_route_loading_code(IS_DEV);
   }
 
-  // If PROD, handle deploy target revisions
-  if (IS_PROD) {
-    // DENO DEPLOY
-    if (hwy_config.deploymentTarget === "deno-deploy") {
-      // Needs to come after any bundling!
-      await handle_deno_deploy_hacks();
-    }
-  }
-
   if (IS_DEV) {
     await write_refresh_txt({ changeType: "standard" });
   }
@@ -388,39 +371,6 @@ const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
 }
 
 export { runBuildTasks };
-
-/* -------------------------------------------------------------------------- */
-
-async function handle_deno_deploy_hacks() {
-  hwyLog("Customizing build output for Deno Deploy...");
-
-  function get_line(path_from_dist: string) {
-    return `await import("${path_from_dist}"); `;
-  }
-
-  function get_code(paths: Array<string>) {
-    const pre = "if (0 > 1) { try { ";
-    const post = "} catch {} }";
-    return pre + paths.map(get_line).join("") + post;
-  }
-
-  const public_paths = Object.keys(
-    (
-      await import(
-        pathToFileURL(path.join(process.cwd(), "dist", "public-map.js")).href
-      )
-    )[HWY_GLOBAL_KEYS.public_map],
-  ).map((x) => "../" + x);
-
-  const main_path = path.join(process.cwd(), "dist", "main.js");
-
-  await fs.promises.writeFile(
-    main_path,
-    (await fs.promises.readFile(main_path, "utf8")) +
-      "\n" +
-      get_code([...public_paths, ...FILE_NAMES.map((x) => "./" + x)]),
-  );
-}
 
 /* -------------------------------------------------------------------------- */
 
@@ -576,36 +526,13 @@ ${HWY_PREFIX}paths.forEach(function (x) {
 /* -------------------------------------------------------------------------- */
 
 async function handle_custom_route_loading_code(IS_DEV?: boolean) {
-  const IS_CLOUDFLARE = hwy_config.deploymentTarget === "cloudflare-pages";
-  if (IS_CLOUDFLARE) {
-    // This writes the main server entry to disk as _worker.js
-    hwyLog("Customizing build output for Cloudflare Pages...");
-
-    await Promise.all([
-      fs.promises.writeFile(
-        "dist/_worker.js",
-        `import process from "node:process";\n` +
-          `globalThis.process = process;\n` +
-          fs.readFileSync("./dist/main.js", "utf8") +
-          "\n" +
-          (await get_path_import_snippet()),
-      ),
-
-      // copy public folder into dist
-      fs.promises.cp("./public", "./dist/public", { recursive: true }),
-    ]);
-
-    // rmv dist/main.js file -- no longer needed if bundling routes
-    await fs.promises.rm(path.join(process.cwd(), "dist/main.js"));
-  } else {
-    // Write the final main.js to disk again, with the route loading strategy appended
-    await fs.promises.writeFile(
-      "dist/main.js",
-      (await fs.promises.readFile("./dist/main.js", "utf8")) +
-        "\n" +
-        (await get_path_import_snippet()),
-    );
-  }
+  // Write the final main.js to disk again, with the route loading strategy appended
+  await fs.promises.writeFile(
+    "dist/main.js",
+    (await fs.promises.readFile("./dist/main.js", "utf8")) +
+      "\n" +
+      (await get_path_import_snippet()),
+  );
 
   /*
    * Bundle paths with server entry, if applicable.
@@ -613,11 +540,9 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
    */
   if (SHOULD_BUNDLE_PATHS) {
     await esbuild.build({
-      entryPoints: [
-        path.resolve(IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js"),
-      ],
+      entryPoints: [path.resolve("dist/main.js")],
       bundle: true,
-      outfile: path.resolve(IS_CLOUDFLARE ? "dist/_worker.js" : "dist/main.js"),
+      outfile: path.resolve("dist/main.js"),
       treeShaking: true,
       platform: "node",
       format: "esm",

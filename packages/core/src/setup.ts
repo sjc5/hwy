@@ -11,11 +11,9 @@ import {
   setResponseStatus,
 } from "h3";
 import { readFile, stat } from "node:fs/promises";
-import path from "node:path";
 import { get_hwy_global } from "../../common/index.mjs";
 import { getMimeType } from "./get-mimes.js";
 import {
-  DEV_BUNDLED_CSS_QUERY_PARAM,
   getPublicUrl,
   get_original_public_url,
 } from "./utils/hashed-public-url.js";
@@ -33,11 +31,8 @@ const IMMUTABLE_CACHE_HEADER_VALUE = "public, max-age=31536000, immutable";
 
 const hwy_global = get_hwy_global();
 
+// __TODO finish this for h3
 function immutable_cache() {
-  const deployment_target = hwy_global.get("hwy_config").deploymentTarget;
-
-  const should_set_cdn_cache_control = deployment_target === "cloudflare-pages";
-
   return function (event: H3Event) {
     if (hwy_global.get("is_dev")) {
       if (event.path.includes("public/dist/standard-bundled.css")) {
@@ -46,14 +41,6 @@ function immutable_cache() {
     }
 
     setResponseHeader(event, "Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
-
-    if (should_set_cdn_cache_control) {
-      setResponseHeader(
-        event,
-        "CDN-Cache-Control",
-        IMMUTABLE_CACHE_HEADER_VALUE,
-      );
-    }
   };
 }
 
@@ -64,12 +51,9 @@ async function hwyInit({
   app: App;
   importMetaUrl?: string;
 }) {
-  const deployment_target = hwy_global.get("hwy_config").deploymentTarget;
-
   console.log("\nInitializing Hwy app...");
 
-  // Wrangler does its own live reload
-  if (hwy_global.get("is_dev") && deployment_target !== "cloudflare-pages") {
+  if (hwy_global.get("is_dev")) {
     const { setupLiveRefreshEndpoints } = await import("@hwy-js/dev");
     setupLiveRefreshEndpoints({ app });
   }
@@ -88,40 +72,8 @@ async function hwyInit({
   );
 
   const static_path = "/public/**";
+  // COME BACK __TODO
   //   app.use(static_path, eventHandler(immutable_cache()));
-
-  // COME BACK
-  //   if (deployment_target === "cloudflare-pages") {
-  //     const router = createRouter();
-  //     app.use(router);
-  //     router.get(static_path, async (event) => {
-  //       let original_public_url = get_original_public_url({
-  //         hashed_url: event.path,
-  //       });
-
-  //       let hostname = getRequestURL(event).hostname;
-
-  //       const is_dev_css_bundle =
-  //         hwy_global.get("is_dev") &&
-  //         hostname.includes(DEV_BUNDLED_CSS_QUERY_PARAM);
-
-  //       if (is_dev_css_bundle) {
-  //         hostname = hostname.replace(DEV_BUNDLED_CSS_QUERY_PARAM, "");
-  //       }
-
-  //       let new_url = hostname + "/" + original_public_url.slice(2);
-
-  //       if (is_dev_css_bundle) {
-  //         new_url = new_url + DEV_BUNDLED_CSS_QUERY_PARAM;
-  //       }
-
-  //       const new_req = new Request(new_url, event.request);
-
-  //       return await c.env.ASSETS.fetch(new_req);
-  //     });
-
-  //     return { app };
-  //   }
 
   const router = createRouter();
   app.use(router);
@@ -131,7 +83,8 @@ async function hwyInit({
       return serveStatic(event, {
         indexNames: [],
         getContents: (id) => {
-          const mime = getMimeType(id);
+          const pathname = getRequestURL(event).pathname;
+          const mime = getMimeType(pathname);
           if (mime) {
             setResponseHeader(event, "Content-Type", mime);
           }
@@ -165,7 +118,7 @@ async function hwyInit({
     }),
   );
 
-  return { app };
+  return { app, router };
 }
 
 export {

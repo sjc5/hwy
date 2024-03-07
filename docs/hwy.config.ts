@@ -6,6 +6,5 @@ export default {
   dev: {
     port: 1275,
   },
-  deploymentTarget: "node",
   routeStrategy: "always-lazy",
 } satisfies HwyConfig;

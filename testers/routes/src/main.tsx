@@ -9,6 +9,7 @@ import {
   renderRoot,
 } from "hwy";
 import { createServer } from "node:http";
+import { AddressInfo } from "node:net";
 import { Sidebar } from "./components/sidebar.js";
 
 const { app } = await hwyInit({
@@ -55,20 +56,7 @@ app.use(
   }),
 );
 
-// app.notFound((c) => c.text("404 Not Found", 404));
-
 const PORT = process.env.PORT ? Number(process.env.PORT) : 9999;
-
-const server = createServer(toNodeListener(app)).listen(
-  process.env.PORT || 3000,
-);
-
-console.log(server.address());
-
-// serve({ fetch: app.fetch, port: PORT }, (info) => {
-//   console.log(
-//     `\nListening on http://${
-//       process.env.NODE_ENV === "development" ? "localhost" : info.address
-//     }:${info.port}\n`,
-//   );
-// });
+const server = createServer(toNodeListener(app)).listen(PORT);
+const addrInfo = server.address() as AddressInfo;
+console.log(`Listening on http://${addrInfo.address}:${addrInfo.port}`);

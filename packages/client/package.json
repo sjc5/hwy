@@ -24,11 +24,11 @@
   },
   "devDependencies": {
     "@preact/signals": "^1.2.2",
-    "@types/react": "^18.2.48",
-    "@types/react-dom": "^18.2.18",
-    "preact": "^10.19.3",
-    "tsup": "^8.0.1",
-    "typescript": "^5.3.3"
+    "@types/react": "^18.2.64",
+    "@types/react-dom": "^18.2.20",
+    "preact": "^10.19.6",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.2"
   },
   "peerDependencies": {
     "@preact/signals": "^1.2.2",

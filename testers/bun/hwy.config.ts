@@ -4,7 +4,6 @@ export default {
   useClientSidePreact: true,
   useDotServerFiles: true,
   dev: {
-    watchExclusions: ["src/styles/tw-input.css"],
+    watchExclusions: ["src/styles/tw-output.bundle.css"],
   },
-  deploymentTarget: "cloudflare-pages",
 } satisfies HwyConfig;

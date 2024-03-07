@@ -11,15 +11,15 @@
   },
   "dependencies": {
     "hwy": "workspace:*",
-    "preact": "^10.19.3"
+    "preact": "^10.19.6"
   },
   "devDependencies": {
     "@hwy-js/build": "workspace:*",
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@preact/signals": "^1.2.2",
-    "@types/node": "^20.11.6",
-    "typescript": "^5.3.3"
+    "@types/node": "^20.11.25",
+    "typescript": "^5.4.2"
   },
   "engines": {
     "node": ">=18.14.1"

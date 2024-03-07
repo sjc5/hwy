@@ -1,9 +1,4 @@
-import {
-  createApp,
-  defineEventHandler,
-  setResponseHeader,
-  toNodeListener,
-} from "h3";
+import { createApp, eventHandler, setResponseHeader, toNodeListener } from "h3";
 import {
   ClientScripts,
   CssImports,
@@ -14,6 +9,7 @@ import {
   renderRoot,
 } from "hwy";
 import { createServer } from "node:http";
+import { AddressInfo } from "node:net";
 import { BodyInner } from "./components/body-inner.js";
 import { make_emoji_data_url } from "./utils/utils.js";
 
@@ -28,8 +24,7 @@ const defaultHeadBlocks: HeadBlock[] = [
     tag: "meta",
     attributes: {
       name: "description",
-      content:
-        "Hwy is a simple, lightweight, and flexible web framework, built on Hono and HTMX.",
+      content: "Hwy is a simple, lightweight, and flexible web framework.",
     },
   },
   {
@@ -50,11 +45,10 @@ const defaultHeadBlocks: HeadBlock[] = [
 
 app.use(
   "*",
-  defineEventHandler(async (event) => {
-    //  if (event.method === "GET") {
-    //    setResponseHeader(event, "Cache-Control", "max-age=0, s-maxage=2678400");
-    //  }
-
+  eventHandler(async (event) => {
+    if (event.method === "GET") {
+      setResponseHeader(event, "Cache-Control", "max-age=0, s-maxage=2678400");
+    }
     return await renderRoot({
       event,
       defaultHeadBlocks,
@@ -70,13 +64,11 @@ app.use(
               <HeadElements {...routeData} />
               <CssImports />
               <ClientScripts {...routeData} />
-              {/* <DevLiveRefreshScript /> */}
+              <DevLiveRefreshScript />
             </head>
 
             <body>
-              <div id="root">
-                <BodyInner routeData={routeData as any} />
-              </div>
+              <BodyInner routeData={routeData} />
             </body>
           </html>
         );
@@ -88,5 +80,5 @@ app.use(
 const server = createServer(toNodeListener(app)).listen(
   process.env.PORT || 3000,
 );
-
-console.log(server.address());
+const addrInfo = server.address() as AddressInfo;
+console.log(`Listening on http://localhost:${addrInfo.port}`);

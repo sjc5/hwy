@@ -1,4 +1,4 @@
-import { defineEventHandler, getQuery, H3Event, type H3EventContext } from "h3";
+import { getQuery, H3Event } from "h3";
 import {
   get_hwy_global,
   HeadBlock,
@@ -23,7 +23,6 @@ async function getRouteData({
   adHocData?: any;
 }) {
   const activePathData = await getMatchingPathData({ event });
-  console.log({ activePathData });
 
   if (activePathData.fetchResponse) {
     return activePathData.fetchResponse;
@@ -50,6 +49,35 @@ async function getRouteData({
 
   const buildId = hwy_global.get("build_id");
 
+  if (IS_PREACT_MPA && get_is_json_request({ event })) {
+    if (
+      event.web?.request?.signal.aborted ||
+      event.node.req.closed ||
+      event.handled
+    ) {
+      return;
+    }
+    return {
+      title,
+      metaHeadBlocks,
+      restHeadBlocks,
+      activeData: activePathData.activeData,
+      activePaths: activePathData.matchingPaths
+        ?.filter((x) => {
+          return !x.isServerFile;
+        })
+        .map((x) => {
+          return utils.getPublicUrl("dist/" + x.importPath);
+        }),
+      outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
+      splatSegments: activePathData.splatSegments,
+      params: activePathData.params,
+      actionData: activePathData.actionData,
+      adHocData,
+      buildId,
+    };
+  }
+
   const baseProps = {
     event,
     activePathData,
@@ -61,44 +89,9 @@ async function getRouteData({
     buildId,
   };
 
-  if (IS_PREACT_MPA) {
-    const IS_JSON = get_is_json_request({ event });
-
-    if (IS_JSON) {
-      // COME BACK
-      // if (c.req.raw.signal.aborted) {
-      //   return;
-      // }
-
-      console.log("IS_JSON");
-
-      return {
-        title,
-        metaHeadBlocks,
-        restHeadBlocks,
-        activeData: activePathData.activeData,
-        activePaths: activePathData.matchingPaths
-          ?.filter((x) => {
-            return !x.isServerFile;
-          })
-          .map((x) => {
-            return utils.getPublicUrl("dist/" + x.importPath);
-          }),
-        outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
-        splatSegments: activePathData.splatSegments,
-        params: activePathData.params,
-        actionData: activePathData.actionData,
-        adHocData,
-        buildId,
-      };
-    }
-  }
-
-  const headElementProps = getHeadElementProps(baseProps);
-
   return {
     ...baseProps,
-    ...headElementProps,
+    ...getHeadElementProps(baseProps),
   };
 }
 

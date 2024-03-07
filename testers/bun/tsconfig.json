@@ -10,7 +10,7 @@
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
-    "types": ["@cloudflare/workers-types", "node"]
+    "types": ["bun-types"]
   },
   "exclude": ["node_modules", "dist"]
 }

@@ -8,7 +8,7 @@ export const head: HeadFunction = () => {
       attributes: {
         name: "description",
         content:
-          "Documentation for the Hwy framework, a simple, lightweight, and flexible web framework, built on Hono and HTMX.",
+          "Documentation for the Hwy framework, a simple, lightweight, and flexible web framework.",
       },
     },
   ];

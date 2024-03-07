@@ -8,11 +8,6 @@ export const LIVE_REFRESH_RPC_PATH = `/${HWY_PREFIX}live_refresh_rpc`;
 
 export const DEFAULT_PORT = 3000;
 
-type CloudflarePages = "cloudflare-pages";
-type NonCloudflarePages = "bun" | "node" | "deno-deploy" | "deno";
-
-export type DeploymentTarget = NonCloudflarePages | CloudflarePages;
-
 export type HwyConfig = {
   scriptsToInject?: Array<string>;
   dev?: {
@@ -25,21 +20,13 @@ export type HwyConfig = {
 } & (
   | { useClientSidePreact?: false; useDotServerFiles?: boolean }
   | { useClientSidePreact?: true; useDotServerFiles: true }
-) &
-  (
-    | {
-        deploymentTarget: NonCloudflarePages;
-        routeStrategy?:
-          | "bundle"
-          | "warm-cache-at-startup"
-          | "always-lazy"
-          | "lazy-once-then-cache";
-      }
-    | {
-        deploymentTarget: "cloudflare-pages";
-        routeStrategy?: "bundle";
-      }
-  );
+) & {
+    routeStrategy?:
+      | "bundle"
+      | "warm-cache-at-startup"
+      | "always-lazy"
+      | "lazy-once-then-cache";
+  };
 
 export const SPLAT_SEGMENT = ":catch*";
 

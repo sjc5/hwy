@@ -9,7 +9,6 @@ import {
   SPLAT_SEGMENT,
 } from "../../common/index.mjs";
 import { get_hwy_config } from "./get-hwy-config.js";
-import { smart_normalize } from "./smart-normalize.js";
 
 const permitted_extensions = [
   "js",
@@ -23,10 +22,6 @@ const permitted_extensions = [
 ];
 
 const hwy_config = await get_hwy_config();
-
-const IS_PREACT_MPA = Boolean(hwy_config.useClientSidePreact);
-
-console.log(hwy_config);
 
 type FilesList = Array<{
   _path: string;
@@ -174,7 +169,7 @@ async function walk_pages(IS_DEV?: boolean): Promise<{
 
       if (is_server_file && !has_sibling_page_file) {
         paths.push({
-          importPath: smart_normalize("pages/" + _path + ".server.js"),
+          importPath: "pages/" + _path + ".server.js",
           path: path_to_use,
           segments: segments.map((x) => x.segment || null),
           pathType: path_type,
@@ -186,7 +181,7 @@ async function walk_pages(IS_DEV?: boolean): Promise<{
 
       if (is_page_file) {
         paths.push({
-          importPath: smart_normalize("pages/" + _path + ".page.js"),
+          importPath: "pages/" + _path + ".page.js",
           path: path_to_use,
           segments: segments.map((x) => x.segment || null),
           pathType: path_type,

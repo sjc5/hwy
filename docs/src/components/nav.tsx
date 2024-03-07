@@ -1,7 +1,7 @@
 function Nav() {
   return (
     <nav>
-      <a class="logo" href="/">
+      <a class="logo" href="/" data-boost="true">
         <h1>Hwy</h1>
       </a>
 

@@ -8,11 +8,7 @@ import { DEV_BUNDLED_CSS_LINK } from "./hashed-public-url.js";
 const hwy_global = get_hwy_global();
 
 function getShouldUseRefresh() {
-  return Boolean(
-    hwy_global.get("is_dev") &&
-      // Wrangler does its own live reload
-      hwy_global.get("hwy_config").deploymentTarget !== "cloudflare-pages",
-  );
+  return hwy_global.get("is_dev");
 }
 
 const getRefreshScript = (timeoutInMs = 300) => {

@@ -1,4 +1,3 @@
-import { H3Event } from "h3";
 import { utils } from "hwy";
 import { renderToString } from "preact-render-to-string";
 import { PreactApp } from "./preact-app.js";

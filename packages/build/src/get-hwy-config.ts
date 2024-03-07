@@ -52,17 +52,6 @@ async function get_hwy_config() {
     );
   }
 
-  if (
-    internal_hwy_config?.routeStrategy !== "bundle" &&
-    internal_hwy_config?.deploymentTarget === "cloudflare-pages"
-  ) {
-    hwyLog(
-      "WARN",
-      "Setting 'routeStrategy' has no effect when 'deploymentTarget' is 'cloudflare-pages'.",
-      "It will always effectively be 'bundle'.",
-    );
-  }
-
   cached_hwy_config = {
     dev: {
       port: Number(internal_hwy_config?.dev?.port || DEFAULT_PORT),
@@ -71,7 +60,6 @@ async function get_hwy_config() {
       hotReloadStyles:
         internal_hwy_config?.dev?.hotReloadStyles === false ? false : true,
     },
-    deploymentTarget: internal_hwy_config?.deploymentTarget || "node",
     routeStrategy: internal_hwy_config?.routeStrategy || "always-lazy",
     useClientSidePreact: IS_PREACT_MPA,
     useDotServerFiles: IS_PREACT_MPA

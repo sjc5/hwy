@@ -10,7 +10,7 @@ import { get_match_strength } from "./get-match-strength.js";
 import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
 import { matcher } from "./matcher.js";
 
-import { H3Event } from "h3";
+import { H3Event, getRequestURL } from "h3";
 import { ROOT_DIRNAME } from "../setup.js";
 import { get_is_json_request } from "../utils/get-root-data.js";
 import { node_path, path_to_file_url_string } from "../utils/url-polyfills.js";
@@ -172,7 +172,7 @@ function semi_decorate_paths({
   paths: Paths;
 }): SemiDecoratedPath[] {
   return paths?.map((path) => {
-    let path_to_use = event.path;
+    let path_to_use = getRequestURL(event).pathname;
 
     if (path_to_use !== "/" && path_to_use.endsWith("/")) {
       path_to_use = path_to_use.slice(0, -1);

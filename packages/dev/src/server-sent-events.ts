@@ -20,13 +20,12 @@ type ServerSentEventSink = {
 };
 
 type ServerSentEventsInit = {
-  responseInit?: ResponseInit;
   onOpen?: (sink: ServerSentEventSink) => void;
   onClose?: (sink: ServerSentEventSink) => void;
 };
 
-function server_sent_events(options: ServerSentEventsInit): Response {
-  const { onOpen, onClose, responseInit = {} } = options;
+function server_sent_events(options: ServerSentEventsInit) {
+  const { onOpen, onClose } = options;
 
   const defaultHeaders = {
     "Content-Type": "text/event-stream",
@@ -34,7 +33,7 @@ function server_sent_events(options: ServerSentEventsInit): Response {
     Connection: "keep-alive",
   };
 
-  const headers = new Headers(responseInit.headers);
+  const headers = new Headers();
 
   for (const [key, value] of Object.entries(defaultHeaders)) {
     if (!headers.has(key)) {
@@ -108,7 +107,7 @@ function server_sent_events(options: ServerSentEventsInit): Response {
     },
   });
 
-  return new Response(stream, { ...responseInit, headers });
+  return { stream, headers };
 }
 
 export { server_sent_events };

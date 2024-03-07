@@ -17,8 +17,6 @@ function global_setter_string(
 }
 
 function getSsrInnerHtml(routeData: RouteData) {
-  console.log("ASDF", routeData.activePathData, routeData);
-
   let html = `
 import { signal } from "@preact/signals";
 globalThis[Symbol.for("${HWY_PREFIX}")] = {};
