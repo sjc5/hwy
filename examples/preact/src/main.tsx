@@ -1,6 +1,5 @@
 import { RootOutlet } from "@hwy-js/client";
 import { createApp, eventHandler, toNodeListener } from "h3";
-import { createServer } from "http";
 import {
   ClientScripts,
   CssImports,
@@ -10,6 +9,7 @@ import {
   renderRoot,
 } from "hwy";
 import { AddressInfo } from "net";
+import { createServer } from "node:http";
 
 const { app } = await hwyInit({
   app: createApp(),
