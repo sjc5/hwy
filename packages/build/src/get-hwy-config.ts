@@ -44,8 +44,7 @@ async function get_hwy_config() {
   const IS_PREACT_MPA = internal_hwy_config?.useClientSidePreact === true;
 
   if (IS_PREACT_MPA && internal_hwy_config?.useDotServerFiles !== true) {
-    hwyLog(
-      "WARN",
+    hwyLog.warning(
       "When using Preact, 'hwyConfig.useDotServerFiles' is effectively always set to true.",
       "This helps keep your server code out of your client bundle.",
       "To quiet this warning, explicitly set 'useDotServerFiles' to true in your Hwy config.",

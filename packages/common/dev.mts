@@ -1,19 +1,52 @@
-/////////////////////////////////////
-// LOGGERS
-
-import pc from "picocolors";
-
-export function hwyLog(...args: any[]) {
-  if (args[0] === "WARN") {
-    const [_, ...rest] = args;
-    console.log(pc.bold(pc.bgYellow(pc.black(` Hwy --- START WARNING --- `))));
-    console.log(rest.join("\n"));
-    console.log(pc.bold(pc.bgYellow(pc.black(` Hwy ---- END WARNING ---- `))));
-    return;
-  }
-  console.log(pc.bold(pc.bgGreen(pc.black(` Hwy `))), ...args);
+interface Logger {
+  info(...args: any[]): void;
+  warning(...args: any[]): void;
+  error(...args: any[]): void;
 }
 
+class ColorLogger implements Logger {
+  private label: string;
+
+  constructor(label: string) {
+    this.label = label;
+  }
+
+  private log(level: string, ...args: any[]) {
+    let colorCode = "";
+    switch (level) {
+      case "info":
+        colorCode = "\x1b[36m"; // Light blue
+        break;
+      case "warning":
+        colorCode = "\x1b[33m"; // Yellow
+        break;
+      case "error":
+        colorCode = "\x1b[31m"; // Red
+        break;
+    }
+
+    console.log(
+      `${new Date().toLocaleString()}  ${this.label} ${colorCode}`,
+      ...args,
+      `\x1b[0m`,
+    );
+  }
+
+  info(...args: any[]) {
+    this.log("info", ...args);
+  }
+
+  warning(...args: any[]) {
+    this.log("warning", ...args);
+  }
+
+  error(...args: any[]) {
+    this.log("error", ...args);
+  }
+}
+
+export const hwyLog: Logger = new ColorLogger("Hwy");
+
 export function logPerf(task_name: string, p0: number, p1: number) {
-  hwyLog(`Completed ${task_name} in ${Math.round(p1 - p0).toFixed(0)}ms.`);
+  hwyLog.info(`completed ${task_name} in ${Math.round(p1 - p0).toFixed(0)}ms`);
 }

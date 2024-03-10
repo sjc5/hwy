@@ -1,10 +1,10 @@
-import { RootOutlet } from "@hwy-js/client";
 import { createApp, eventHandler, toNodeListener } from "h3";
 import {
   ClientScripts,
   CssImports,
   DevLiveRefreshScript,
   HeadElements,
+  RootOutletServer,
   hwyInit,
   renderRoot,
 } from "hwy";
@@ -46,7 +46,7 @@ app.use(
               <DevLiveRefreshScript />
             </head>
             <body>
-              <RootOutlet {...routeData} />
+              <RootOutletServer {...routeData} />
             </body>
           </html>
         );

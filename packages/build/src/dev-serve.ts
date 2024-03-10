@@ -25,7 +25,7 @@ function get_is_hot_reload_only(
 async function devServe() {
   let has_run_one_time = false;
 
-  hwyLog("Running in DEV mode.");
+  hwyLog.info("running in dev mode");
 
   dotenv.config();
 
@@ -102,12 +102,12 @@ async function devServe() {
     const is_css_change_to_critical =
       is_css_change && normalized_path.includes("/src/styles/critical/");
 
-    hwyLog(
+    hwyLog.info(
       is_css_change_to_bundle
-        ? "Hot reloading CSS bundle..."
+        ? "hot reloading CSS bundle"
         : is_css_change_to_critical
-          ? "Hot reloading critical CSS..."
-          : "Change detected, restarting server...",
+          ? "hot reloading critical CSS"
+          : "change detected, restarting server",
     );
 
     try {
@@ -132,10 +132,8 @@ async function devServe() {
     { ignoreInitial: true },
   );
   config_watcher.on("all", () => {
-    hwyLog(
-      "WARN",
-      "Detected activity in your hwy.config.* file.",
-      "Please restart your dev server for any changes to take effect.",
+    hwyLog.warning(
+      "action needed: restart your dev server to apply config changes",
     );
   });
 

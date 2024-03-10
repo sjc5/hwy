@@ -46,7 +46,7 @@ function setupLiveRefreshEndpoints({ app }: { app: App }) {
     eventHandler(async (event) => {
       const payload = (await readBody(event)) as Omit<RefreshFilePayload, "at">;
       if (payload.changeType === "standard") {
-        hwyLog("Doing a full browser reload...");
+        hwyLog.info("doing a full browser reload...");
       }
       for (const sink of sinks) {
         await sink.push(JSON.stringify(payload));

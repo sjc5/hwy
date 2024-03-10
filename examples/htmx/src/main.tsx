@@ -1,4 +1,3 @@
-import { RootOutlet } from "@hwy-js/client";
 import { getDefaultHtmxBodyProps } from "@hwy-js/utils/htmx";
 import { createApp, eventHandler, toNodeListener } from "h3";
 import {
@@ -6,6 +5,7 @@ import {
   CssImports,
   DevLiveRefreshScript,
   HeadElements,
+  RootOutletServer,
   hwyInit,
   renderRoot,
 } from "hwy";
@@ -76,7 +76,7 @@ app.use(
               </nav>
 
               <main>
-                <RootOutlet
+                <RootOutletServer
                   {...routeData}
                   fallbackErrorBoundary={() => {
                     return <div>Something went wrong.</div>;

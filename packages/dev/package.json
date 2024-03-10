@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/dev",
-  "version": "0.0.0-beta.50",
+  "version": "0.0.0-beta.51",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -18,9 +18,6 @@
     "publish-non-beta": "npm publish",
     "update-latest": "pnpm update --latest",
     "typecheck": "tsc"
-  },
-  "dependencies": {
-    "picocolors": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.25",

@@ -37,7 +37,7 @@ function replacer(_: string, __: string, p2: string) {
 async function bundle_css_files() {
   const using_styles_dir = fs.existsSync(path.resolve("./src/styles"));
   if (!using_styles_dir) {
-    hwyLog("Not using styles directory, skipping css bundling...");
+    hwyLog.info("not using styles directory, skipping css bundling");
     await Promise.all([write_critical_bundled_css_is_undefined()]);
     return;
   }
@@ -46,7 +46,9 @@ async function bundle_css_files() {
     const normal_path = path.resolve("src/styles/normal");
     const normal_exists = fs.existsSync(normal_path);
     if (!normal_exists) {
-      hwyLog("No normal css directory found, skipping normal css bundling...");
+      hwyLog.info(
+        "no normal css directory found, skipping normal css bundling",
+      );
       return;
     }
     const normal_files = await fs.promises.readdir(normal_path);
@@ -80,8 +82,8 @@ async function bundle_css_files() {
     const critical_path = path.resolve("src/styles/critical");
     const critical_exists = fs.existsSync(critical_path);
     if (!critical_exists) {
-      hwyLog(
-        "No critical css directory found, skipping critical css bundling...",
+      hwyLog.info(
+        "no critical css directory found, skipping critical css bundling",
       );
       await write_critical_bundled_css_is_undefined();
       return;

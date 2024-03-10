@@ -20,9 +20,6 @@ importers:
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
-      picocolors:
-        specifier: ^1.0.0
-        version: 1.0.0
       prettier:
         specifier: ^3.2.5
         version: 3.2.5
@@ -85,9 +82,6 @@ importers:
       '@hwy-js/build':
         specifier: workspace:*
         version: link:../../packages/build
-      '@hwy-js/client':
-        specifier: workspace:*
-        version: link:../../packages/client
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
@@ -128,9 +122,6 @@ importers:
       '@hwy-js/build':
         specifier: workspace:*
         version: link:../../packages/build
-      '@hwy-js/client':
-        specifier: workspace:*
-        version: link:../../packages/client
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
@@ -198,9 +189,6 @@ importers:
       jsonc-parser:
         specifier: ^3.2.1
         version: 3.2.1
-      picocolors:
-        specifier: ^1.0.0
-        version: 1.0.0
       readdirp:
         specifier: ^3.6.0
         version: 3.6.0
@@ -262,10 +250,6 @@ importers:
         version: 8.0.2(typescript@5.4.2)
 
   packages/dev:
-    dependencies:
-      picocolors:
-        specifier: ^1.0.0
-        version: 1.0.0
     devDependencies:
       '@types/node':
         specifier: ^20.11.25
@@ -2278,6 +2262,7 @@ packages:
 
   /picocolors@1.0.0:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
+    dev: true
 
   /picomatch@2.3.1:
     resolution: {integrity: sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==}

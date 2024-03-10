@@ -53,7 +53,7 @@ async function runBuildTasks({
   const IS_CLIENT_SIDE_PREACT = hwy_config.useClientSidePreact;
 
   // IDEA -- Should probably split "pre-build" into CSS pre-processing and other pre-processing
-  hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
+  hwyLog.info(`new build initiated${log ? ` (${log})` : ""}`);
   await handle_prebuild({ IS_DEV });
 
   const HOT_RELOAD_ONLY = get_is_hot_reload_only(changeType);
@@ -77,7 +77,7 @@ async function runBuildTasks({
     return;
   }
 
-  hwyLog(`Running standard build tasks...`);
+  hwyLog.info(`running standard build tasks`);
   const standard_tasks_p0 = performance.now();
 
   const DIST_DIR = path.join(process.cwd(), "dist");
@@ -410,7 +410,7 @@ async function handle_prebuild({ IS_DEV }: { IS_DEV?: boolean }) {
       return;
     }
 
-    hwyLog(`Running ${script_to_run}`);
+    hwyLog.info(`running ${script_to_run}`);
 
     const prebuild_p0 = performance.now();
 
