@@ -354,8 +354,8 @@ async function __navigate(props: {
       navigationType: props.navigationType,
     });
 
-    // TO-DO scroll to top on link clicks, but provide an opt-out
-    // TO-DO scroll to top on form responses, but provide an opt-out
+    // __TODO scroll to top on link clicks, but provide an opt-out
+    // __TODO scroll to top on form responses, but provide an opt-out
 
     if (
       props.navigationType === "userNavigation" ||
@@ -468,7 +468,7 @@ async function submit(
 
       if (!IS_GET) {
         if (options?.skipOnSuccessRevalidation) {
-          // HWY TO-DO This should probably be a specific endpoint, otherwise this might fail if the page doesn't exist anymore
+          // HWY __TODO This should probably be a specific endpoint, otherwise this might fail if the page doesn't exist anymore
           await __navigate({
             href: location.href,
             navigationType: "buildIdCheck",
@@ -675,4 +675,4 @@ export {
   submit,
 };
 
-// TO-DO -- return a revalidation function (consider not auto-revalidating)
+// __TODO -- return a revalidation function (consider not auto-revalidating)

@@ -2,7 +2,7 @@
 
 const el = document.getElementById("increment-button");
 
-console.log("JERRY");
+console.log("Hello from _index.client.ts!");
 
 if (el) {
   let count = 0;

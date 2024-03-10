@@ -65,7 +65,6 @@ async function get_hwy_config() {
     useDotServerFiles: IS_PREACT_MPA
       ? true
       : internal_hwy_config?.useDotServerFiles || false,
-    usePreactCompat: internal_hwy_config?.usePreactCompat || false,
     scriptsToInject: internal_hwy_config?.scriptsToInject || [],
   } as any;
 

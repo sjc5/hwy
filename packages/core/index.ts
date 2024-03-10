@@ -25,3 +25,5 @@ export {
   HeadElements,
   getHeadElementProps,
 } from "./src/components/head-elements-comp.js";
+
+export { RootOutletServer } from "./src/components/root-outlet-server.js";

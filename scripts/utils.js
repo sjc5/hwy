@@ -2,14 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
 
-const dirs_in_slash_packages = [
-  "core",
-  "build",
-  "dev",
-  "create-hwy",
-  "client",
-  "utils",
-];
+const dirs_in_slash_packages = ["core", "build", "dev", "client", "utils"];
 
 function get_current_pkg_jsons() {
   return dirs_in_slash_packages.map((pkg_dirname) => {

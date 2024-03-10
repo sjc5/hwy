@@ -58,7 +58,7 @@
 //       });
 //     }
 
-//     // TO-DO -- de-HTMX this
+//     // __TODO -- de-HTMX this
 //     // Maybe just return the callback
 //     document.body.addEventListener("htmx:afterSettle", callback);
 

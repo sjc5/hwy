@@ -155,7 +155,7 @@ function ClientScripts(routeData: RouteData) {
                     "dist/client-signals.js",
                   ),
 
-                  // TO-DO make this conditional on preact/compat flag?
+                  // __TODO make this conditional on preact/compat flag?
                   "preact/compat": utils.getPublicUrl(
                     "dist/preact-compat/compat.module.js",
                   ),

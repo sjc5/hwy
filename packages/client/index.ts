@@ -8,4 +8,4 @@ export {
   navigate,
   submit,
 } from "./src/init-preact-client.js";
-export { RootOutlet, getAdHocDataSignal } from "./src/recursive.js";
+export { RootOutletClient, getAdHocDataSignal } from "./src/recursive.js";

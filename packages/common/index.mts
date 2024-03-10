@@ -1,4 +1,4 @@
-import { signal } from "@preact/signals";
+import type { signal } from "@preact/signals";
 import type { H3Event } from "h3";
 
 export const HWY_PREFIX = "__hwy_internal__";
@@ -16,7 +16,6 @@ export type HwyConfig = {
     watchInclusions?: Array<string>;
     hotReloadStyles?: boolean;
   };
-  usePreactCompat?: boolean;
 } & (
   | { useClientSidePreact?: false; useDotServerFiles?: boolean }
   | { useClientSidePreact?: true; useDotServerFiles: true }
@@ -231,7 +230,15 @@ export function get_hwy_global() {
 // CLIENT GLOBAL
 ///////////////////////////////////
 
+let __signal_func: typeof signal;
+
 export function get_hwy_client_global() {
+  if (!__signal_func) {
+    import("@preact/signals").then((m) => {
+      __signal_func = m.signal;
+    });
+  }
+
   const global_this = globalThis as any;
 
   function get_signal<K extends HwyClientGlobalKey>(key: K) {
@@ -254,7 +261,7 @@ export function get_hwy_client_global() {
     value: V,
   ) {
     if (!global_this[HWY_SYMBOL][key]) {
-      global_this[HWY_SYMBOL][key] = signal(value);
+      global_this[HWY_SYMBOL][key] = __signal_func(value);
     } else {
       global_this[HWY_SYMBOL][key].value = value;
     }

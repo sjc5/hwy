@@ -1,28 +1,26 @@
-import { useCallback } from "preact/hooks";
-import { get_hwy_client_global } from "../../common/index.mjs";
+import type { ActivePathData } from "../../../common/index.mjs";
 
 type ErrorBoundaryComp<JSXElement> = () => JSXElement;
 type JSXElement = any;
 
-function getAdHocDataSignal(): any {
-  if (typeof document === "undefined") return;
-  return get_hwy_client_global().get_signal("adHocData");
-}
-
-function RootOutletClient(props: {
+export function RootOutletServer(props: {
+  activePathData?: ActivePathData | { fetchResponse: Response };
   index?: number;
   fallbackErrorBoundary?: ErrorBoundaryComp<JSXElement>;
   adHocData?: any;
 }): JSXElement {
-  const context = get_hwy_client_global();
+  const { activePathData } = props;
+  if (activePathData && "fetchResponse" in activePathData) {
+    return <></>;
+  }
+
+  const APD = props.activePathData as ActivePathData;
 
   let { index } = props;
   const index_to_use = index ?? 0;
-  const CurrentComponent = (context.get("activeComponents") as any)?.[
-    index_to_use
-  ];
+  const CurrentComponent = (APD["activeComponents"] as any)?.[index_to_use];
 
-  const adHocData = context.get("adHocData");
+  const adHocData = props.adHocData;
 
   try {
     if (!CurrentComponent) {
@@ -30,17 +28,17 @@ function RootOutletClient(props: {
     }
 
     const this_is_an_error_boundary =
-      context.get("outermostErrorBoundaryIndex") === index_to_use;
+      APD["outermostErrorBoundaryIndex"] === index_to_use;
 
     const next_outlet_is_an_error_boundary =
-      context.get("outermostErrorBoundaryIndex") === index_to_use + 1;
+      APD["outermostErrorBoundaryIndex"] === index_to_use + 1;
 
     if (
       this_is_an_error_boundary ||
-      context.get("outermostErrorBoundaryIndex") === -1
+      APD["outermostErrorBoundaryIndex"] === -1
     ) {
       const ErrorBoundary: ErrorBoundaryComp<JSXElement> | undefined =
-        (context.get("activeErrorBoundaries") as any)?.[index_to_use] ??
+        (APD["activeErrorBoundaries"] as any)?.[index_to_use] ??
         props.fallbackErrorBoundary;
 
       if (!ErrorBoundary) {
@@ -54,11 +52,17 @@ function RootOutletClient(props: {
 
     if (!next_outlet_is_an_error_boundary) {
       Outlet = (local_props: Record<string, any> | undefined) => {
-        return <RootOutletClient {...local_props} index={index_to_use + 1} />;
+        return (
+          <RootOutletServer
+            {...local_props}
+            activePathData={props.activePathData}
+            index={index_to_use + 1}
+          />
+        );
       };
     } else {
       Outlet =
-        (context.get("activeErrorBoundaries") as any)?.[index_to_use + 1] ??
+        (APD["activeErrorBoundaries"] as any)?.[index_to_use + 1] ??
         props.fallbackErrorBoundary;
 
       if (!Outlet) {
@@ -66,18 +70,14 @@ function RootOutletClient(props: {
       }
     }
 
-    const OutletToUse = useCallback(Outlet, [
-      (context.get("activePaths") as any)?.[index_to_use + 1],
-    ]);
-
     return (
       <CurrentComponent
         {...props}
-        params={context.get("params") ?? {}}
-        splatSegments={context.get("splatSegments") ?? []}
-        loaderData={(context.get("activeData") as any)?.[index_to_use]}
-        actionData={(context.get("actionData") as any)?.[index_to_use]}
-        Outlet={OutletToUse}
+        params={APD["params"] ?? {}}
+        splatSegments={APD["splatSegments"] ?? []}
+        loaderData={(APD["activeData"] as any)?.[index_to_use]}
+        actionData={(APD["actionData"] as any)?.[index_to_use]}
+        Outlet={Outlet}
         adHocData={adHocData}
       />
     );
@@ -85,7 +85,7 @@ function RootOutletClient(props: {
     console.error(error);
 
     const ErrorBoundary: ErrorBoundaryComp<JSXElement> | undefined =
-      (context.get("activeErrorBoundaries") as any)
+      (APD["activeErrorBoundaries"] as any)
         ?.splice(0, index_to_use + 1)
         ?.reverse()
         ?.find((x: any) => x) ?? props.fallbackErrorBoundary;
@@ -97,5 +97,3 @@ function RootOutletClient(props: {
     return <ErrorBoundary />;
   }
 }
-
-export { RootOutletClient, getAdHocDataSignal };

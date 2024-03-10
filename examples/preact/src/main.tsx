@@ -1,10 +1,10 @@
-import { RootOutlet } from "@hwy-js/client";
 import { createApp, eventHandler, toNodeListener } from "h3";
 import {
   ClientScripts,
   CssImports,
   DevLiveRefreshScript,
   HeadElements,
+  RootOutletServer,
   hwyInit,
   renderRoot,
 } from "hwy";
@@ -17,7 +17,7 @@ const { app } = await hwyInit({
 });
 
 const defaultHeadBlocks = [
-  { title: "bun-tester" },
+  { title: "hwy-example-preact" },
   {
     tag: "meta",
     attributes: {
@@ -77,7 +77,7 @@ app.use(
               </nav>
 
               <main>
-                <RootOutlet
+                <RootOutletServer
                   {...routeData}
                   fallbackErrorBoundary={() => {
                     return <div>Something went wrong.</div>;

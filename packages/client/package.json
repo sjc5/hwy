@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/client",
-  "version": "0.0.0-beta.27",
+  "version": "0.0.0-beta.38",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -19,11 +19,9 @@
     "update-latest": "pnpm update --latest",
     "typecheck": "tsc"
   },
-  "dependencies": {
-    "history": "^5.3.0"
-  },
   "devDependencies": {
     "@preact/signals": "^1.2.2",
+    "history": "^5.3.0",
     "preact": "^10.19.6",
     "tsup": "^8.0.2",
     "typescript": "^5.4.2"

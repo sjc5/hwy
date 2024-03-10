@@ -18,7 +18,7 @@ const { app } = await hwyInit({
 });
 
 const defaultHeadBlocks = [
-  { title: "bun-tester" },
+  { title: "hwy-example-htmx" },
   {
     tag: "meta",
     attributes: {

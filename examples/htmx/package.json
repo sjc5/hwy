@@ -1,6 +1,5 @@
 {
-  "name": "bun-tester",
-  "version": "0.0.0",
+  "name": "hwy-example-htmx",
   "private": true,
   "type": "module",
   "scripts": {

@@ -6,17 +6,12 @@ import pc from "picocolors";
 export function hwyLog(...args: any[]) {
   if (args[0] === "WARN") {
     const [_, ...rest] = args;
-    console.log(
-      "\n" + pc.bold(pc.bgYellow(pc.black(` Hwy --- START WARNING --- `))),
-    );
-    console.log("\n" + rest.join("\n\n") + "\n");
-    console.log(
-      pc.bold(pc.bgYellow(pc.black(` Hwy ---- END WARNING ---- `))),
-      "\n",
-    );
+    console.log(pc.bold(pc.bgYellow(pc.black(` Hwy --- START WARNING --- `))));
+    console.log(rest.join("\n"));
+    console.log(pc.bold(pc.bgYellow(pc.black(` Hwy ---- END WARNING ---- `))));
     return;
   }
-  console.log("\n" + pc.bold(pc.bgGreen(pc.black(` Hwy `))), ...args, "\n");
+  console.log(pc.bold(pc.bgGreen(pc.black(` Hwy `))), ...args);
 }
 
 export function logPerf(task_name: string, p0: number, p1: number) {

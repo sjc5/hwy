@@ -1,4 +1,4 @@
-import { RootOutlet, RouteData } from "@hwy-js/client";
+import { RootOutletClient, RouteData } from "@hwy-js/client";
 import { Nav } from "./nav.js";
 
 function BodyInner({ routeData }: { routeData?: RouteData }) {
@@ -8,7 +8,7 @@ function BodyInner({ routeData }: { routeData?: RouteData }) {
         <Nav />
 
         <div class="root-outlet-wrapper">
-          <RootOutlet {...routeData} />
+          <RootOutletClient {...routeData} />
         </div>
       </div>
 

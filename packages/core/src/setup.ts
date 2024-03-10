@@ -31,19 +31,6 @@ const IMMUTABLE_CACHE_HEADER_VALUE = "public, max-age=31536000, immutable";
 
 const hwy_global = get_hwy_global();
 
-// __TODO finish this for h3
-function immutable_cache() {
-  return function (event: H3Event) {
-    if (hwy_global.get("is_dev")) {
-      if (event.path.includes("public/dist/standard-bundled.css")) {
-        setResponseHeader(event, "Cache-Control", "no-cache");
-      }
-    }
-
-    setResponseHeader(event, "Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
-  };
-}
-
 async function hwyInit({
   app,
   importMetaUrl,
@@ -71,18 +58,29 @@ async function hwyInit({
     }),
   );
 
-  const static_path = "/public/**";
-  // COME BACK __TODO
-  //   app.use(static_path, eventHandler(immutable_cache()));
-
   const router = createRouter();
   app.use(router);
+
+  const static_path = "/public/**";
+  router.use(
+    static_path,
+    eventHandler(function (event) {
+      if (hwy_global.get("is_dev")) {
+        if (event.path.includes("public/dist/standard-bundled.css")) {
+          // __TODO check this is working
+          setResponseHeader(event, "Cache-Control", "no-cache");
+        }
+      }
+      setResponseHeader(event, "Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
+    }),
+  );
+
   router.use(
     static_path,
     defineEventHandler((event) => {
       return serveStatic(event, {
         indexNames: [],
-        getContents: (id) => {
+        getContents: (url) => {
           const pathname = getRequestURL(event).pathname;
           const mime = getMimeType(pathname);
           if (mime) {
@@ -90,25 +88,23 @@ async function hwyInit({
           }
           return readFile(
             get_original_public_url({
-              hashed_url: id,
+              hashed_url: url,
             }),
           );
         },
-        getMeta: async (id) => {
-          const mime = getMimeType(id);
+        getMeta: async (url) => {
+          const mime = getMimeType(url);
           if (mime) {
             setResponseHeader(event, "Content-Type", mime);
           }
           const stats = await stat(
             get_original_public_url({
-              hashed_url: id,
+              hashed_url: url,
             }),
-          ).catch(() => {});
-
+          ).catch();
           if (!stats || !stats.isFile()) {
             return;
           }
-
           return {
             size: stats.size,
             mtime: stats.mtimeMs,

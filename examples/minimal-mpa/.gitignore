@@ -9,6 +9,3 @@ public/dist
 .env
 .env.*
 !env.example
-
-# tailwind artifacts
-src/styles/tw-output.bundle.css

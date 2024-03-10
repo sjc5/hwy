@@ -1,8 +1,8 @@
-import { RootOutlet, initPreactClient } from "@hwy-js/client";
+import { RootOutletClient, initPreactClient } from "@hwy-js/client";
 
 await initPreactClient({
   hydrateWith: (
-    <RootOutlet
+    <RootOutletClient
       fallbackErrorBoundary={() => {
         return <div>Something went wrong.</div>;
       }}

@@ -50,7 +50,7 @@ async function runBuildTasks({
   log?: string;
   changeType?: RefreshFilePayload["changeType"];
 }) {
-  const IS_PROD = !IS_DEV;
+  const IS_CLIENT_SIDE_PREACT = hwy_config.useClientSidePreact;
 
   // IDEA -- Should probably split "pre-build" into CSS pre-processing and other pre-processing
   hwyLog(`New build initiated${log ? ` (${log})` : ""}`);
@@ -145,7 +145,7 @@ async function runBuildTasks({
     await write_paths_to_disk(IS_DEV);
 
   await esbuild.build({
-    // TO-DO -- customize entry point in Hwy Config
+    // __TODO -- customize entry point in Hwy Config
     entryPoints: [
       path.resolve("src/main.*"),
       ...page_files_list.map((x) => x.import_path_with_orig_ext),
@@ -169,22 +169,23 @@ async function runBuildTasks({
 
   const is_using_client_entry = get_is_using_client_entry();
 
-  // mkdir
-  await fs.promises.mkdir(
-    path.join(process.cwd(), "public/dist/preact-compat"),
-    {
-      recursive: true,
-    },
-  );
+  if (IS_CLIENT_SIDE_PREACT) {
+    // mkdir
+    await fs.promises.mkdir(
+      path.join(process.cwd(), "public/dist/preact-compat"),
+      {
+        recursive: true,
+      },
+    );
+  }
 
-  await Promise.all([
+  const promises: any[] = [
     esbuild.build({
-      // TO-DO -- customize entry point in Hwy Config
       entryPoints: [
         ...(is_using_client_entry
           ? [path.join(process.cwd(), "src/entry.client.*")]
           : []),
-        ...(hwy_config.useClientSidePreact ? page_files_list : []).map(
+        ...(IS_CLIENT_SIDE_PREACT ? page_files_list : []).map(
           (x) => x.import_path_with_orig_ext,
         ),
         ...client_files_list.map((x) => x.import_path_with_orig_ext),
@@ -209,48 +210,58 @@ async function runBuildTasks({
       ],
       tsconfigRaw: tsconfig,
     }),
+  ];
 
-    // PREACT STUFF, WE WANT TO CLOSELY CONTROL PREACT BUNDLE AND HAVE ACCESS MODULES
-    //  IN HEAD FROM IMPORT MAP, AND HAVE PREACT/DEBUG "JUST WORK"
-    esbuild.build({
-      stdin: {
-        contents: ` export * from "@preact/signals";
-                    export * from "preact";
-                    export * from "preact/hooks";
-                    export * from "preact/jsx-runtime";
-                    ${IS_DEV ? `export * from "preact/debug";` : ""}`,
-        resolveDir: DIST_DIR,
-      },
-      bundle: true,
-      outfile: path.join(process.cwd(), "public/dist/client-signals.js"),
-      treeShaking: true,
-      platform: "browser",
-      format: "esm",
-      minify: false,
-      splitting: false,
-      tsconfigRaw: tsconfig,
-    }),
+  if (IS_CLIENT_SIDE_PREACT) {
+    promises.push(
+      // PREACT STUFF, WE WANT TO CLOSELY CONTROL PREACT BUNDLE AND HAVE ACCESS MODULES
+      //  IN HEAD FROM IMPORT MAP, AND HAVE PREACT/DEBUG "JUST WORK"
+      esbuild.build({
+        stdin: {
+          contents: `export * from "@preact/signals";
+						 export * from "preact";
+						 export * from "preact/hooks";
+						 export * from "preact/jsx-runtime";
+						 ${IS_DEV ? `export * from "preact/debug";` : ""}`,
+          resolveDir: DIST_DIR,
+        },
+        bundle: true,
+        outfile: path.join(process.cwd(), "public/dist/client-signals.js"),
+        treeShaking: true,
+        platform: "browser",
+        format: "esm",
+        minify: false,
+        splitting: false,
+        tsconfigRaw: tsconfig,
+      }),
+    );
 
-    // compat layer
-    fs.promises.copyFile(
-      path.join(
-        process.cwd(),
-        "node_modules/preact/compat/dist/compat.module.js",
+    promises.push(
+      // compat layer
+      fs.promises.copyFile(
+        path.join(
+          process.cwd(),
+          "node_modules/preact/compat/dist/compat.module.js",
+        ),
+        path.join(process.cwd(), "public/dist/preact-compat/compat.module.js"),
       ),
-      path.join(process.cwd(), "public/dist/preact-compat/compat.module.js"),
-    ),
+    );
 
-    fs.promises.copyFile(
-      path.join(
-        process.cwd(),
-        "node_modules/preact/compat/dist/compat.module.js.map",
+    promises.push(
+      fs.promises.copyFile(
+        path.join(
+          process.cwd(),
+          "node_modules/preact/compat/dist/compat.module.js.map",
+        ),
+        path.join(
+          process.cwd(),
+          "public/dist/preact-compat/compat.module.js.map",
+        ),
       ),
-      path.join(
-        process.cwd(),
-        "public/dist/preact-compat/compat.module.js.map",
-      ),
-    ),
-  ]);
+    );
+  }
+
+  await Promise.all(promises);
 
   /////////////////////////////////////////////////////////////////////////////
 
