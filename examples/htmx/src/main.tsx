@@ -22,19 +22,6 @@ const defaultHeadBlocks = [
   {
     tag: "meta",
     attributes: {
-      charset: "UTF-8",
-    },
-  },
-  {
-    tag: "meta",
-    attributes: {
-      name: "viewport",
-      content: "width=device-width,initial-scale=1",
-    },
-  },
-  {
-    tag: "meta",
-    attributes: {
       name: "description",
       content: "Take the Hwy!",
     },
@@ -51,6 +38,11 @@ app.use(
         return (
           <html lang="en">
             <head>
+              <meta charset="UTF-8" />
+              <meta
+                name="viewport"
+                content="width=device-width,initial-scale=1"
+              />
               <HeadElements {...routeData} />
               <CssImports />
               <ClientScripts {...routeData} />
