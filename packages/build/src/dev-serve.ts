@@ -98,9 +98,9 @@ async function devServe() {
       normalized_path.includes("/src/styles/") &&
       normalized_path.endsWith(".css");
     const is_css_change_to_bundle =
-      is_css_change && normalized_path.endsWith(".bundle.css");
+      is_css_change && normalized_path.includes("/src/styles/normal/");
     const is_css_change_to_critical =
-      is_css_change && normalized_path.endsWith(".critical.css");
+      is_css_change && normalized_path.includes("/src/styles/critical/");
 
     hwyLog(
       is_css_change_to_bundle

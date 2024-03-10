@@ -38,7 +38,7 @@ async function hwyInit({
   app: App;
   importMetaUrl?: string;
 }) {
-  console.log("\nInitializing Hwy app...");
+  console.log("Initializing Hwy app...");
 
   if (hwy_global.get("is_dev")) {
     const { setupLiveRefreshEndpoints } = await import("@hwy-js/dev");
@@ -47,37 +47,30 @@ async function hwyInit({
 
   ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl ?? "");
 
-  app.use(
-    "/favicon.ico",
-    eventHandler(async (event) => {
-      try {
-        return sendRedirect(event, getPublicUrl("favicon.ico"));
-      } catch {
-        setResponseStatus(event, 404);
-      }
-    }),
-  );
-
   const router = createRouter();
   app.use(router);
 
-  const static_path = "/public/**";
   router.use(
-    static_path,
-    eventHandler(function (event) {
-      if (hwy_global.get("is_dev")) {
-        if (event.path.includes("public/dist/standard-bundled.css")) {
-          // __TODO check this is working
-          setResponseHeader(event, "Cache-Control", "no-cache");
-        }
+    "/favicon.ico",
+    eventHandler(async (event) => {
+      const publicUrl = getPublicUrl("favicon.ico");
+      if (publicUrl) {
+        return sendRedirect(event, getPublicUrl("favicon.ico"));
       }
-      setResponseHeader(event, "Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
+      setResponseStatus(event, 404);
+      return "Not found";
     }),
   );
 
   router.use(
-    static_path,
+    "/public/**",
     defineEventHandler((event) => {
+      setResponseHeader(event, "Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
+      if (hwy_global.get("is_dev")) {
+        if (event.path.includes("public/dist/standard-bundled.css")) {
+          setResponseHeader(event, "Cache-Control", "no-cache");
+        }
+      }
       return serveStatic(event, {
         indexNames: [],
         getContents: (url) => {

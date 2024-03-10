@@ -38,37 +38,34 @@ async function bundle_css_files() {
   const using_styles_dir = fs.existsSync(path.resolve("./src/styles"));
   if (!using_styles_dir) {
     hwyLog("Not using styles directory, skipping css bundling...");
-
     await Promise.all([write_critical_bundled_css_is_undefined()]);
-
     return;
   }
 
-  const directory_path = path.resolve("src/styles");
-  const files = await fs.promises.readdir(directory_path);
+  async function build_normal_css() {
+    const normal_path = path.resolve("src/styles/normal");
+    const normal_exists = fs.existsSync(normal_path);
+    if (!normal_exists) {
+      hwyLog("No normal css directory found, skipping normal css bundling...");
+      return;
+    }
+    const normal_files = await fs.promises.readdir(normal_path);
+    const normal_css_paths = normal_files
+      .filter((file) => file.endsWith(".css"))
+      .map((file) => path.join(normal_path, file))
+      .sort();
 
-  const standard_css_paths = files
-    .filter((file) => file.endsWith(".bundle.css"))
-    .map((file) => path.join(directory_path, file))
-    .sort();
-
-  const critical_css_paths = files
-    .filter((file) => file.endsWith(".critical.css"))
-    .map((file) => path.join(directory_path, file))
-    .sort();
-
-  async function build_standard_css() {
     const promises = await Promise.all(
-      standard_css_paths.map((x) => fs.promises.readFile(x, "utf-8")),
+      normal_css_paths.map((x) => fs.promises.readFile(x, "utf-8")),
     );
 
-    const standard_css_text = promises.join("\n").replace(URL_REGEX, replacer);
+    const normal_css_text = promises.join("\n").replace(URL_REGEX, replacer);
 
-    if (standard_css_paths.length) {
+    if (normal_css_paths.length) {
       await Promise.all([
         esbuild.build({
           stdin: {
-            contents: standard_css_text,
+            contents: normal_css_text,
             resolveDir: path.resolve("src/styles"),
             loader: "css",
           },
@@ -80,6 +77,21 @@ async function bundle_css_files() {
   }
 
   async function build_critical_css() {
+    const critical_path = path.resolve("src/styles/critical");
+    const critical_exists = fs.existsSync(critical_path);
+    if (!critical_exists) {
+      hwyLog(
+        "No critical css directory found, skipping critical css bundling...",
+      );
+      await write_critical_bundled_css_is_undefined();
+      return;
+    }
+    const critical_files = await fs.promises.readdir(critical_path);
+    const critical_css_paths = critical_files
+      .filter((file) => file.endsWith(".css"))
+      .map((file) => path.join(critical_path, file))
+      .sort();
+
     const promises = await Promise.all(
       critical_css_paths.map((x) => fs.promises.readFile(x, "utf-8")),
     );
@@ -115,7 +127,7 @@ async function bundle_css_files() {
   }
 
   const [_, critical_css] = await Promise.all([
-    build_standard_css(),
+    build_normal_css(),
     build_critical_css(),
   ]);
 

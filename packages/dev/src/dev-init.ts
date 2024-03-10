@@ -1,4 +1,4 @@
-import { App, eventHandler, readBody } from "h3";
+import { App, createEventStream, eventHandler, readBody } from "h3";
 import { hwyLog } from "../../common/dev.mjs";
 import {
   LIVE_REFRESH_RPC_PATH,
@@ -6,29 +6,54 @@ import {
   get_hwy_global,
   type RefreshFilePayload,
 } from "../../common/index.mjs";
-import { sinks } from "./constants.js";
-import { refreshMiddleware } from "./refresh-middleware.js";
 
-function send_signal_to_sinks(payload: Omit<RefreshFilePayload, "at">) {
-  if (payload.changeType === "standard") {
-    hwyLog("Doing a full browser reload...");
-  }
+type ServerSentEventSink = {
+  push(message: string): Promise<void>;
+  close(): Promise<void>;
+};
 
-  for (const sink of sinks) {
-    sink.send_message(JSON.stringify(payload));
-  }
-}
+export const sinks = new Set<ServerSentEventSink>();
 
 function setupLiveRefreshEndpoints({ app }: { app: App }) {
-  app.use(LIVE_REFRESH_SSE_PATH, refreshMiddleware);
+  app.use(
+    LIVE_REFRESH_SSE_PATH,
+    eventHandler(async function (event) {
+      if (sinks.size > 5) {
+        console.warn(
+          "You have too many client SSE connections open. Please close some of your dev browser tabs. See https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#listening_for_custom_events for more info on why this is a problem.",
+        );
+      }
+      const eventStream = createEventStream(event);
+      const sink: ServerSentEventSink = {
+        async push(message) {
+          await eventStream.push(message);
+        },
+        async close() {
+          sinks.delete(sink);
+          await eventStream.close();
+        },
+      };
+      sinks.add(sink);
+      eventStream.onClosed(async () => {
+        sink.close();
+      });
+      return eventStream.send();
+    }),
+  );
+
   app.use(
     LIVE_REFRESH_RPC_PATH,
     eventHandler(async (event) => {
       const payload = (await readBody(event)) as Omit<RefreshFilePayload, "at">;
-      send_signal_to_sinks(payload);
+      if (payload.changeType === "standard") {
+        hwyLog("Doing a full browser reload...");
+      }
+      for (const sink of sinks) {
+        await sink.push(JSON.stringify(payload));
+      }
       if (payload.changeType === "standard") {
         for (const sink of sinks) {
-          sink.close();
+          await sink.close();
         }
       }
       if (payload.changeType === "critical-css" && payload.criticalCss) {

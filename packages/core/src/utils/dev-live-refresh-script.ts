@@ -11,13 +11,13 @@ function getShouldUseRefresh() {
   return hwy_global.get("is_dev");
 }
 
-const getRefreshScript = (timeoutInMs = 300) => {
+const getRefreshScript = (timeoutInMs = 150) => {
   if (!getShouldUseRefresh()) {
     return "";
   }
-
   return `
-  new EventSource("${LIVE_REFRESH_SSE_PATH}").addEventListener("message", (e) => {
+  const es = new EventSource("${LIVE_REFRESH_SSE_PATH}");
+	es.addEventListener("message", (e) => {
     const { changeType, criticalCss } = JSON.parse(e.data);
     function refresh() {
       if (changeType === "css-bundle") {
@@ -44,6 +44,14 @@ const getRefreshScript = (timeoutInMs = 300) => {
     }
     refresh();
   });
+	es.addEventListener("error", (e) => {
+		console.log("SSE error", e);
+		es.close();
+		setTimeout(() => window.location.reload(), ${timeoutInMs});
+	});
+	window.addEventListener("beforeunload", () => {
+		es.close();
+	});
   `.trim();
 };
 
