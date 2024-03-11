@@ -1,38 +1,39 @@
 {
-  "name": "@hwy-js/utils",
+  "name": "create-hwy",
   "version": "0.0.0-beta.54",
   "author": {
     "name": "Samuel J. Cook"
   },
   "license": "MIT",
-  "description": "Various utilities for Hwy framework",
+  "description": "New project generator for Hwy framework",
   "type": "module",
   "exports": {
-    ".": "./dist/index.js",
-    "./htmx": "./dist/htmx.js"
+    ".": "./dist/index.js"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsup-node index.ts htmx.ts --format esm --dts",
-    "dev": "rm -rf dist && tsup-node index.ts htmx.ts --format esm --dts --watch",
+    "build": "rm -rf dist && tsup-node index.ts --format esm",
+    "lint": "tsc",
+    "create-hwy": "pnpm run build && node dist/index.js",
     "publish-beta": "npm publish --tag beta",
     "publish-non-beta": "npm publish",
     "update-latest": "pnpm update --latest",
-    "typecheck": "tsc"
+    "typecheck": "tsc --noEmit"
   },
-  "devDependencies": {
-    "h3": "^1.11.1",
-    "tsup": "^8.0.2",
-    "typescript": "^5.4.2"
+  "bin": {
+    "create-hwy": "./scripts/create-hwy.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/hwy-js/hwy",
-    "directory": "packages/utils"
+    "directory": "packages/create-hwy"
   },
   "homepage": "https://hwy.dev",
   "bugs": "https://github.com/hwy-js/hwy/issues",
-  "sideEffects": false
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "giget": "^1.2.1"
+  }
 }
