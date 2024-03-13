@@ -16,7 +16,7 @@
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@hwy-js/utils": "workspace:*",
-    "@types/node": "^20.11.25",
+    "@types/node": "^20.11.26",
     "@types/nprogress": "^0.2.3",
     "htmx.org": "^1.9.10",
     "idiomorph": "^0.3.0",
