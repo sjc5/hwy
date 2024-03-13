@@ -197,7 +197,7 @@ async function runBuildTasks({
       format: "esm",
       minify: false, // true,
       splitting: true,
-      chunkNames: "__hwy_chunk__[hash]",
+      chunkNames: "hwy_chunk__[hash]",
       outbase: path.join(process.cwd(), "src"),
       external: [
         "@preact/signals",
@@ -207,6 +207,8 @@ async function runBuildTasks({
         "preact/debug",
         "preact/compat",
         "@preact/compat",
+        "react",
+        "react-dom",
       ],
       tsconfigRaw: tsconfig,
     }),
