@@ -1,6 +1,6 @@
 function Sidebar() {
   return (
-    <ul class="sidebar">
+    <ul className="sidebar">
       <LinkListItem href="/does-not-exist" />
       <LinkListItem href="/this-should-be-ignored" />
       <LinkListItem href="/" />

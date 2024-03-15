@@ -26,7 +26,7 @@ export default function ({ Outlet }: PageProps) {
 
 function BigHeading() {
   return (
-    <h1 class="big-heading">
+    <h1 className="big-heading">
       Hwy is a <Boldtalic>simple</Boldtalic>, <Boldtalic>lightweight</Boldtalic>
       , and <Boldtalic>flexible</Boldtalic> web framework, built on{" "}
       <Boldtalic>Hono</Boldtalic> and <Boldtalic>HTMX</Boldtalic>.
@@ -76,7 +76,7 @@ function Quickstart() {
 function WhatIsHwy() {
   return (
     <H3Wrapper heading="What is Hwy?">
-      <div class="flex-col-wrapper">
+      <div className="flex-col-wrapper">
         <Paragraph>
           Hwy is a lot like NextJS or Remix, but it uses{" "}
           <Boldtalic>HTMX</Boldtalic> instead of React on the frontend.
@@ -161,7 +161,7 @@ function GuidingPrinciples() {
 function SimpleUsage() {
   return (
     <H3Wrapper heading="Simple usage">
-      <div class="flex-col-wrapper">
+      <div className="flex-col-wrapper">
         <Paragraph>
           Below is an example of a simple Hwy page. You'll notice it looks a lot
           like Remix, and you're right! Hwy is heavily inspired by Remix, but it
@@ -193,7 +193,7 @@ export default function ({ loaderData }: PageProps<typeof loader>) {
 function GetStarted() {
   return (
     <H3Wrapper heading="Get started">
-      <div class="flex-col-wrapper">
+      <div className="flex-col-wrapper">
         <Paragraph>
           If you want to dive right in, just open a terminal and run{" "}
           <InlineCode>npx create-hwy@latest</InlineCode> and follow the prompts.

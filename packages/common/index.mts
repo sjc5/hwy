@@ -1,4 +1,3 @@
-import type { signal } from "@preact/signals";
 import type { H3Event } from "h3";
 
 export const HWY_PREFIX = "__hwy_internal__";
@@ -17,8 +16,8 @@ export type HwyConfig = {
     hotReloadStyles?: boolean;
   };
 } & (
-  | { useClientSidePreact?: false; useDotServerFiles?: boolean }
-  | { useClientSidePreact?: true; useDotServerFiles: true }
+  | { useClientSideReact?: false; useDotServerFiles?: boolean }
+  | { useClientSideReact?: true; useDotServerFiles: true }
 ) & {
     routeStrategy?:
       | "bundle"
@@ -41,7 +40,7 @@ export const CRITICAL_CSS_ELEMENT_ID = "data-hwy-critical-css";
  * Client global
  **************************************/
 
-export const CLIENT_SIGNAL_KEYS = [
+export const CLIENT_KEYS = [
   "activeData",
   "activePaths",
   "outermostErrorBoundaryIndex",
@@ -50,12 +49,11 @@ export const CLIENT_SIGNAL_KEYS = [
   "actionData",
   "activeComponents",
   "activeErrorBoundaries",
-  "fallbackIndex",
   "adHocData",
   "buildId",
 ] as const;
 
-export const CLIENT_GLOBAL_KEYS = CLIENT_SIGNAL_KEYS;
+export const CLIENT_GLOBAL_KEYS = CLIENT_KEYS;
 
 export type HwyClientGlobal = Partial<{
   [K in (typeof CLIENT_GLOBAL_KEYS)[number]]: any;
@@ -71,7 +69,6 @@ export type ActivePathData = {
   // not needed in recursive component
   matchingPaths?: any[];
   activeHeads: any[];
-  fallbackIndex: number;
 
   // needed in recursive component
   activeData: any[];
@@ -230,44 +227,21 @@ export function get_hwy_global() {
 // CLIENT GLOBAL
 ///////////////////////////////////
 
-let __signal_func: typeof signal;
-
 export function get_hwy_client_global() {
-  if (!__signal_func) {
-    import("@preact/signals").then((m) => {
-      __signal_func = m.signal;
-    });
-  }
-
   const global_this = globalThis as any;
 
-  function get_signal<K extends HwyClientGlobalKey>(key: K) {
-    return global_this[HWY_SYMBOL][key] as HwyClientGlobal[K];
-  }
-
   function get<K extends HwyClientGlobalKey>(key: K) {
-    return global_this[HWY_SYMBOL][key].value as HwyClientGlobal[K];
-  }
-
-  function set_signal<
-    K extends HwyClientGlobalKey,
-    V extends HwyClientGlobal[K],
-  >(key: K, value: V) {
-    global_this[HWY_SYMBOL][key] = value;
+    return global_this[HWY_SYMBOL][key] as HwyClientGlobal[K];
   }
 
   function set<K extends HwyClientGlobalKey, V extends HwyClientGlobal[K]>(
     key: K,
     value: V,
   ) {
-    if (!global_this[HWY_SYMBOL][key]) {
-      global_this[HWY_SYMBOL][key] = __signal_func(value);
-    } else {
-      global_this[HWY_SYMBOL][key].value = value;
-    }
+    global_this[HWY_SYMBOL][key] = value;
   }
 
-  return { get_signal, get, set_signal, set };
+  return { get, set };
 }
 
 // CORE TYPES

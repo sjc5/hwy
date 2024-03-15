@@ -34,8 +34,8 @@ async function getRouteData({
 
   const hwy_global = get_hwy_global();
 
-  const IS_PREACT_MPA = Boolean(
-    hwy_global.get("hwy_config").useClientSidePreact,
+  const IS_CLIENT_SIDE_REACT = Boolean(
+    hwy_global.get("hwy_config").useClientSideReact,
   );
 
   const headBlocks = utils.getExportedHeadBlocks({
@@ -49,7 +49,7 @@ async function getRouteData({
 
   const buildId = hwy_global.get("build_id");
 
-  if (IS_PREACT_MPA && get_is_json_request({ event })) {
+  if (IS_CLIENT_SIDE_REACT && get_is_json_request({ event })) {
     if (
       event.web?.request?.signal.aborted ||
       event.node.req.closed ||

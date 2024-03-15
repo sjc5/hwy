@@ -1,15 +1,17 @@
-import { signal, Signal } from "@preact/signals";
 import { createBrowserHistory } from "history";
-import { hydrate, type ComponentChild } from "preact";
+import { Root, hydrateRoot } from "react-dom/client";
 import {
-  CLIENT_SIGNAL_KEYS,
-  get_hwy_client_global,
+  CLIENT_KEYS,
   HWY_PREFIX,
+  get_hwy_client_global,
 } from "../../common/index.mjs";
+import { RootOutletClient } from "./recursive.js";
 
-const isNavigatingSignal = signal(false) as Signal<boolean>;
-const isSubmittingSignal = signal(false) as Signal<boolean>;
-const isRevalidatingSignal = signal(false) as Signal<boolean>;
+let isNavigating = false;
+let isSubmitting = false;
+let isRevalidating = false;
+
+let root: Root;
 
 const abort_controllers = new Map<string, AbortController>();
 
@@ -101,9 +103,9 @@ function getShouldPreventLinkDefault(event: MouseEvent) {
   return should_prevent_default;
 }
 
-async function initPreactClient(props: {
-  elementToHydrate: HTMLElement;
-  hydrateWith: ComponentChild;
+async function initReactClient(props: {
+  elementToHydrate: Parameters<typeof hydrateRoot>[0];
+  hydrateWith: Parameters<typeof hydrateRoot>[1];
 }) {
   customHistory = createBrowserHistory();
 
@@ -148,19 +150,9 @@ async function initPreactClient(props: {
 
   const awaited_components = await Promise.all(components);
 
-  const fallbackIndex = hwy_client_global.get("fallbackIndex");
-
   hwy_client_global.set(
     "activeComponents",
-    awaited_components.map((x, i) => {
-      if (fallbackIndex === -1) {
-        return x.default;
-      }
-      if (i === fallbackIndex) {
-        return x.Fallback;
-      }
-      return x.default;
-    }),
+    awaited_components.map((x, i) => x.default),
   );
 
   hwy_client_global.set(
@@ -168,7 +160,8 @@ async function initPreactClient(props: {
     awaited_components.map((x) => x.ErrorBoundary),
   );
 
-  hydrate(props.hydrateWith, props.elementToHydrate);
+  const domNode = props.elementToHydrate;
+  root = hydrateRoot(domNode, props.hydrateWith);
 
   document.body.addEventListener("click", async function (event) {
     const anchor = (event.target as HTMLElement).closest("a");
@@ -213,12 +206,12 @@ async function initPreactClient(props: {
     }
   });
 
-  if (fallbackIndex !== -1) {
-    __navigate({
-      href: location.href,
-      navigationType: "revalidation",
-    });
-  }
+  // if (fallbackIndex !== -1) {
+  //   __navigate({
+  //     href: location.href,
+  //     navigationType: "revalidation",
+  //   });
+  // }
 }
 
 type NavigationType =
@@ -286,7 +279,7 @@ async function handle_redirects(props: {
   return res;
 }
 
-function set_status_signal({
+function set_status({
   type,
   value,
 }: {
@@ -294,11 +287,11 @@ function set_status_signal({
   value: boolean;
 }) {
   if (type === "revalidation") {
-    isRevalidatingSignal.value = value;
+    isRevalidating = value;
   } else if (type === "submission") {
-    isSubmittingSignal.value = value;
+    isSubmitting = value;
   } else if (type !== "buildIdCheck") {
-    isNavigatingSignal.value = value;
+    isNavigating = value;
   }
 }
 
@@ -308,7 +301,7 @@ async function __navigate(props: {
   scrollStateToRestore?: { x: number; y: number };
   replace?: boolean;
 }) {
-  set_status_signal({ type: props.navigationType, value: true });
+  set_status({ type: props.navigationType, value: true });
 
   const abort_controller_key =
     props.href === "." || props.href === window.location.href
@@ -329,7 +322,7 @@ async function __navigate(props: {
     abort_controllers.delete(abort_controller_key);
 
     if (!res || res.status !== 200) {
-      set_status_signal({ type: props.navigationType, value: false });
+      set_status({ type: props.navigationType, value: false });
       return;
     }
 
@@ -345,7 +338,7 @@ async function __navigate(props: {
     }
 
     if (props.navigationType === "buildIdCheck") {
-      set_status_signal({ type: props.navigationType, value: false });
+      set_status({ type: props.navigationType, value: false });
       return;
     }
 
@@ -383,13 +376,13 @@ async function __navigate(props: {
       );
     }
 
-    set_status_signal({ type: props.navigationType, value: false });
+    set_status({ type: props.navigationType, value: false });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       // eat
     } else {
       console.error(error);
-      set_status_signal({ type: props.navigationType, value: false });
+      set_status({ type: props.navigationType, value: false });
     }
   }
 }
@@ -412,7 +405,7 @@ async function submit(
     }
   | { success: false; error: string }
 > {
-  set_status_signal({ type: "submission", value: true });
+  set_status({ type: "submission", value: true });
 
   const abort_controller_key = url + (requestInit?.method || "");
   const { abort_controller, did_abort } =
@@ -435,7 +428,7 @@ async function submit(
       (String(response?.status).startsWith("4") ||
         String(response?.status).startsWith("5"))
     ) {
-      set_status_signal({ type: "submission", value: false });
+      set_status({ type: "submission", value: false });
 
       return {
         success: false,
@@ -481,7 +474,7 @@ async function submit(
         }
       }
 
-      set_status_signal({ type: "submission", value: false });
+      set_status({ type: "submission", value: false });
     }
 
     return {
@@ -497,7 +490,7 @@ async function submit(
       } as const;
     } else {
       console.error(error);
-      set_status_signal({ type: "submission", value: false });
+      set_status({ type: "submission", value: false });
 
       return {
         success: false,
@@ -524,12 +517,7 @@ async function reRenderApp({
 
   // compare and populate updated_list
   for (let i = 0; i < Math.max(old_list.length, new_list.length); i++) {
-    if (i < new_list.length && i === hwy_client_global.get("fallbackIndex")) {
-      updated_list.push({
-        importPath: new_list[i],
-        type: "new",
-      });
-    } else if (
+    if (
       i < old_list.length &&
       i < new_list.length &&
       old_list[i] === new_list[i]
@@ -576,6 +564,23 @@ async function reRenderApp({
   // NOW ACTUALLY SET EVERYTHING
   hwy_client_global.set("activeComponents", new_active_components);
 
+  let highest_index: number | undefined;
+
+  for (let i = 0; i < updated_list.length; i++) {
+    if (updated_list[i].type === "new") {
+      highest_index = i;
+      break;
+    }
+  }
+
+  // dispatch event
+  const event = new CustomEvent("hwy:route-change", {
+    detail: {
+      index: highest_index,
+    },
+  });
+  window.dispatchEvent(event);
+
   const identical_keys_to_set = [
     "activeErrorBoundaries",
     "activeData",
@@ -585,7 +590,7 @@ async function reRenderApp({
     "params",
     "adHocData",
     "buildId",
-  ] as const satisfies ReadonlyArray<(typeof CLIENT_SIGNAL_KEYS)[number]>;
+  ] as const satisfies ReadonlyArray<(typeof CLIENT_KEYS)[number]>;
 
   for (const key of identical_keys_to_set) {
     hwy_client_global.set(key, json[key]);
@@ -663,14 +668,27 @@ async function navigate(href: string, options?: { replace?: boolean }) {
   });
 }
 
+function getCustomHistory() {
+  return customHistory;
+}
+function getIsNavigating() {
+  return isNavigating;
+}
+function getIsRevalidating() {
+  return isRevalidating;
+}
+function getIsSubmitting() {
+  return isSubmitting;
+}
+
 export {
-  customHistory,
+  getCustomHistory,
   getIsInternalLink,
+  getIsNavigating,
+  getIsRevalidating,
+  getIsSubmitting,
   getShouldPreventLinkDefault,
-  initPreactClient,
-  isNavigatingSignal,
-  isRevalidatingSignal,
-  isSubmittingSignal,
+  initReactClient,
   navigate,
   submit,
 };

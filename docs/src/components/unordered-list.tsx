@@ -9,7 +9,7 @@ function UnorderedList({
 }) {
   return (
     // @ts-ignore
-    <ul {...rest} class={cx("flex-col-wrapper-bigger", rest.class)}>
+    <ul {...rest} className={cx("flex-col-wrapper-bigger", rest.class)}>
       {children}
     </ul>
   );
@@ -24,7 +24,7 @@ function ListItem({
 }) {
   return (
     // @ts-ignore
-    <li {...rest} class={cx("list-item", rest.class)}>
+    <li {...rest} className={cx("list-item", rest.class)}>
       {children}
     </li>
   );

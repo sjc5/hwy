@@ -1,8 +1,11 @@
 import { PageProps } from "hwy";
+import Clicker from "./_index.page.js";
 
 export default function ({ Outlet }: PageProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <Clicker />
+
       <p>
         This is the about page. This is coming from{" "}
         <code>src/pages/about.page.tsx</code> This is functioning as a "layout
@@ -14,7 +17,7 @@ export default function ({ Outlet }: PageProps) {
         Outlet:
       </div>
 
-      <div class="outlet-wrapper">
+      <div className="outlet-wrapper">
         <Outlet test="bob" />
       </div>
     </div>

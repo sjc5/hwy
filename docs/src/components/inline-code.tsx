@@ -3,7 +3,7 @@ import { cx } from "../utils/utils.js";
 function InlineCode({
   children,
   high_contrast,
-  ...rest
+  style,
 }: {
   children: string;
   high_contrast?: boolean;
@@ -11,9 +11,8 @@ function InlineCode({
 }) {
   return (
     <code
-      {...rest}
-      // @ts-ignore
-      class={cx("inline-code", high_contrast && "high-contrast", rest.class)}
+      className={cx("inline-code", high_contrast && "high-contrast")}
+      style={style}
     >
       {children}
     </code>

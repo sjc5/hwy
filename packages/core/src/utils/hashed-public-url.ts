@@ -65,10 +65,7 @@ function get_original_public_url({
     }
   }
 
-  if (
-    sliced_url.includes("hwy_chunk__") ||
-    sliced_url === "public/dist/preact-compat/compat.module.js.map"
-  ) {
+  if (sliced_url.includes("hwy_chunk__")) {
     return "./" + PUBLIC_URL_PREFIX + sliced_url;
   }
 

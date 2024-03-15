@@ -23,9 +23,9 @@ function getMetaElementsProps(baseProps: RouteData) {
   });
 }
 
-// Only needed if using client-side Preact
+// Only needed if using client-side React
 function getServerRenderingProps(props: RouteData) {
-  if (!hwy_global.get("hwy_config").useClientSidePreact) {
+  if (!hwy_global.get("hwy_config").useClientSideReact) {
     return;
   }
 
@@ -115,13 +115,12 @@ function HeadElements(routeData: RouteData) {
     <>
       <title>{routeData.title}</title>
 
-      {getMetaElementsProps(routeData).map((props) => (
-        <meta {...props} />
+      {getMetaElementsProps(routeData).map((props, i) => (
+        <meta {...props} key={i} />
       ))}
 
-      {getRestHeadElementsProps(routeData).map((props) => (
-        /* @ts-ignore */
-        <props.tag {...props.attributes} />
+      {getRestHeadElementsProps(routeData).map((props, i) => (
+        <props.tag {...props.attributes} key={i} />
       ))}
     </>
   );
@@ -139,59 +138,18 @@ function CssImports() {
 function ClientScripts(routeData: RouteData) {
   return (
     <>
-      {hwy_global.get("hwy_config").useClientSidePreact && (
-        <>
-          <script
-            type="importmap"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                imports: {
-                  "@preact/signals": utils.getPublicUrl(
-                    "dist/client-signals.js",
-                  ),
-                  preact: utils.getPublicUrl("dist/client-signals.js"),
-                  "preact/hooks": utils.getPublicUrl("dist/client-signals.js"),
-                  "preact/jsx-runtime": utils.getPublicUrl(
-                    "dist/client-signals.js",
-                  ),
-
-                  // __TODO make this conditional on preact/compat flag?
-                  "preact/compat": utils.getPublicUrl(
-                    "dist/preact-compat/compat.module.js",
-                  ),
-                  "@preact/compat": utils.getPublicUrl(
-                    "dist/preact-compat/compat.module.js",
-                  ),
-                  react: utils.getPublicUrl(
-                    "dist/preact-compat/compat.module.js",
-                  ),
-                  "react-dom": utils.getPublicUrl(
-                    "dist/preact-compat/compat.module.js",
-                  ),
-
-                  ...(hwy_global.get("is_dev")
-                    ? {
-                        "preact/debug": utils.getPublicUrl(
-                          "dist/client-signals.js",
-                        ),
-                      }
-                    : {}),
-                },
-              }),
-            }}
-          />
-          <script {...getServerRenderingProps(routeData)} />
-        </>
+      {hwy_global.get("hwy_config").useClientSideReact && (
+        <script {...getServerRenderingProps(routeData)} />
       )}
 
-      {getInjectedScriptsProps().map((props) => (
-        <script {...props} />
+      {getInjectedScriptsProps().map((props, i) => (
+        <script {...props} key={i} />
       ))}
 
       <script {...getClientEntryModuleProps()} />
 
-      {getPageSiblingsProps(routeData).map((props) => (
-        <script {...props} />
+      {getPageSiblingsProps(routeData).map((props, i) => (
+        <script {...props} key={i} />
       ))}
     </>
   );

@@ -35,7 +35,7 @@ app.use(
         return (
           <html lang="en">
             <head>
-              <meta charset="UTF-8" />
+              <meta charSet="UTF-8" />
               <meta
                 name="viewport"
                 content="width=device-width,initial-scale=1"
@@ -56,9 +56,11 @@ app.use(
 );
 
 const server = createServer(toNodeListener(app)).listen(
-  process.env.PORT || 3000,
+  process.env.PORT || 8976,
 );
 
 const addrInfo = server.address() as AddressInfo;
+
+console.log(addrInfo);
 
 console.log(`Listening on http://localhost:${addrInfo.port}`);

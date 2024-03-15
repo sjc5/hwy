@@ -16,7 +16,7 @@ export default function () {
         <code>src/pages/_index.client.ts</code>):
       </p>
 
-      <button id="increment-button" class="btn">
+      <button id="increment-button" className="btn">
         0
       </button>
     </>

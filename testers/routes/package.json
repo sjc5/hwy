@@ -11,14 +11,16 @@
   },
   "dependencies": {
     "hwy": "workspace:*",
-    "preact": "^10.19.6"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@hwy-js/build": "workspace:*",
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@preact/signals": "^1.2.2",
     "@types/node": "^20.11.26",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
     "typescript": "^5.4.2"
   },
   "engines": {

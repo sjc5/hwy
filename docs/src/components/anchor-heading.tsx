@@ -4,7 +4,7 @@ function AnchorHeading({ content }: { content: string }) {
   );
 
   return (
-    <div id={slugified} class="anchor-heading">
+    <div id={slugified} className="anchor-heading">
       <a href={`#${slugified}`}>#</a>
       {content}
     </div>

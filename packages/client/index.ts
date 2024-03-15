@@ -1,11 +1,13 @@
 export type { RouteData } from "../common/index.mjs";
 export {
-  customHistory,
+  getCustomHistory,
   getIsInternalLink,
+  getIsNavigating,
+  getIsRevalidating,
+  getIsSubmitting,
   getShouldPreventLinkDefault,
-  initPreactClient,
-  isNavigatingSignal,
+  initReactClient,
   navigate,
   submit,
-} from "./src/init-preact-client.js";
-export { RootOutletClient, getAdHocDataSignal } from "./src/recursive.js";
+} from "./src/init-react-client.js";
+export { RootOutletClient, getAdHocData } from "./src/recursive.js";

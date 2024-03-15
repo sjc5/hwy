@@ -95,18 +95,6 @@ function fully_decorate_paths({
           }
         },
 
-        fallbackImporter: async () => {
-          if (NO_CLIENT_FUNCTIONS) return;
-
-          try {
-            const imported = await get_path(_path.importPath);
-            return imported.Fallback ? imported.Fallback : undefined;
-          } catch (e) {
-            console.error(e);
-            throw e;
-          }
-        },
-
         errorBoundaryImporter: async () => {
           if (NO_CLIENT_FUNCTIONS) return;
 
@@ -253,49 +241,18 @@ async function getMatchingPathData({ event }: { event: H3Event }) {
     return { fetchResponse: action_data };
   }
 
-  let [active_components, active_fallbacks] = await Promise.all([
+  let [active_components] = await Promise.all([
     Promise.all(
       (fully_decorated_matching_paths || [])?.map((path) => {
         return path?.componentImporter();
       }),
     ),
-
-    Promise.all(
-      (fully_decorated_matching_paths || [])?.map((path) => {
-        return path?.fallbackImporter();
-      }),
-    ),
   ]);
-
-  let first_fallback_index = active_fallbacks.findIndex((x) => x);
-
-  const is_json_request = get_is_json_request({ event });
-
-  if (is_json_request) {
-    first_fallback_index = -1;
-  }
-
-  if (first_fallback_index !== -1) {
-    active_components = [
-      ...active_components.slice(0, first_fallback_index),
-      active_fallbacks[first_fallback_index],
-    ];
-
-    fully_decorated_matching_paths.splice(first_fallback_index + 1);
-
-    active_paths.splice(first_fallback_index + 1);
-  }
 
   let [active_data_obj, active_heads, active_error_boundaries] =
     await Promise.all([
       Promise.all(
-        (first_fallback_index === -1
-          ? fully_decorated_matching_paths || []
-          : fully_decorated_matching_paths?.slice(
-              0,
-              fully_decorated_matching_paths.length - 1,
-            )
-        ).map(async (path) => {
+        fully_decorated_matching_paths.map(async (path) => {
           return path
             ?.loader?.({
               event,
@@ -392,7 +349,6 @@ async function getMatchingPathData({ event }: { event: H3Event }) {
         outermost_error_index + 1, // adding one because it's still an active path, we just only want boundary
       ),
       activeHeads: active_heads.slice(0, outermost_error_index),
-      fallbackIndex: first_fallback_index,
 
       // needed in recursive component
       activeData: active_data.slice(0, outermost_error_index), // loader data for active routes
@@ -422,7 +378,6 @@ async function getMatchingPathData({ event }: { event: H3Event }) {
     // not needed in recursive component
     matchingPaths: fully_decorated_matching_paths,
     activeHeads: active_heads,
-    fallbackIndex: first_fallback_index,
 
     // needed in recursive component
     activeData: active_data, // loader data for active routes

@@ -40,13 +40,17 @@ export async function action({ event }: DataProps) {
 }
 
 export default function ({ actionData }: PageProps<never, typeof action>) {
-  const colStyles = { display: "flex", flexDirection: "column", gap: "1.5rem" };
+  const colStyles = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "1.5rem",
+  } as const;
   const labelStyles = {
     display: "flex",
     flexDirection: "column",
     gap: "0.5rem",
     fontSize: "0.9rem",
-  };
+  } as const;
 
   return (
     <div style={colStyles}>
@@ -89,7 +93,7 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
             />
           </label>
 
-          <button class="btn" type="submit">
+          <button className="btn" type="submit">
             Login
           </button>
         </form>

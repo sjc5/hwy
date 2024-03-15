@@ -8,10 +8,10 @@ import { ListItem, UnorderedList } from "../components/unordered-list.js";
 
 export default function ({ Outlet }: PageProps) {
   return (
-    <div class="flex-col-wrapper-bigger">
+    <div className="flex-col-wrapper-bigger">
       <Outlet />
 
-      <h2 class="h2">Docs</h2>
+      <h2 className="h2">Docs</h2>
       <AnchorHeading content="Creating a new project" />
       <Paragraph>
         To create a new project, open a terminal and run the following commands
@@ -21,7 +21,7 @@ export default function ({ Outlet }: PageProps) {
         language="bash"
         code={`npx create-hwy@latest\nnpm i\nnpm run dev`}
       />
-      <AnchorHeading content="Project structure" />
+      {/* <AnchorHeading content="Project structure" />
       <Paragraph>A simple Hwy project is structured like this:</Paragraph>
       <CodeBlock
         language="bash"
@@ -541,7 +541,7 @@ app.all('*', async (c, next) => {
       return (
         <html lang="en">
           <head>
-            <meta charset="UTF-8" />
+            <meta charSet="UTF-8" />
             <meta name="viewport" content="width=device-width,initial-scale=1" />
   
             <HeadElements
@@ -767,7 +767,7 @@ export const head: HeadFunction = (props) => {
         </ListItem>
 
         <ListItem>What else? You tell me!</ListItem>
-      </UnorderedList>
+      </UnorderedList> */}
     </div>
   );
 }

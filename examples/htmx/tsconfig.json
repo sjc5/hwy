@@ -9,7 +9,6 @@
     "noEmit": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "preact",
     "types": ["node"]
   },
   "exclude": ["node_modules", "dist"]

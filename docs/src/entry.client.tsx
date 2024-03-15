@@ -1,7 +1,6 @@
-import { initPreactClient } from "@hwy-js/client";
-import { BodyInner } from "./components/body-inner.js";
+import { RootOutletClient, initReactClient } from "@hwy-js/client";
 
-await initPreactClient({
-  elementToHydrate: document.body,
-  hydrateWith: <BodyInner />,
+await initReactClient({
+  elementToHydrate: document.getElementById("root-outlet-wrapper")!,
+  hydrateWith: <RootOutletClient />,
 });

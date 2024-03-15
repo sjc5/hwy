@@ -1,6 +1,8 @@
-import { useState } from "preact/hooks";
+import { useState } from "react";
 
-export default function () {
+export default Clicker;
+
+export function Clicker() {
   const [count, setCount] = useState(0);
 
   return (

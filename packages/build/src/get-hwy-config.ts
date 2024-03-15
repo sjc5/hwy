@@ -41,11 +41,11 @@ async function get_hwy_config() {
     throw new Error("hwy.config must export an object");
   }
 
-  const IS_PREACT_MPA = internal_hwy_config?.useClientSidePreact === true;
+  const IS_CLIENT_SIDE_REACT = internal_hwy_config?.useClientSideReact === true;
 
-  if (IS_PREACT_MPA && internal_hwy_config?.useDotServerFiles !== true) {
+  if (IS_CLIENT_SIDE_REACT && internal_hwy_config?.useDotServerFiles !== true) {
     hwyLog.warning(
-      "When using Preact, 'hwyConfig.useDotServerFiles' is effectively always set to true.",
+      "When using client-side React, 'hwyConfig.useDotServerFiles' is effectively always set to true.",
       "This helps keep your server code out of your client bundle.",
       "To quiet this warning, explicitly set 'useDotServerFiles' to true in your Hwy config.",
     );
@@ -60,12 +60,12 @@ async function get_hwy_config() {
         internal_hwy_config?.dev?.hotReloadStyles === false ? false : true,
     },
     routeStrategy: internal_hwy_config?.routeStrategy || "always-lazy",
-    useClientSidePreact: IS_PREACT_MPA,
-    useDotServerFiles: IS_PREACT_MPA
+    useClientSideReact: IS_CLIENT_SIDE_REACT as any,
+    useDotServerFiles: IS_CLIENT_SIDE_REACT
       ? true
       : internal_hwy_config?.useDotServerFiles || false,
     scriptsToInject: internal_hwy_config?.scriptsToInject || [],
-  } as any;
+  } satisfies HwyConfig;
 
   // delete the file now that we're done with it
   await fs.promises.unlink(path_to_config_in_dist);

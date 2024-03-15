@@ -4,13 +4,17 @@ import { ActionType } from "./login.server.js";
 const thisRoute = "/login";
 
 export default function ({ actionData }: PageProps<never, ActionType>) {
-  const colStyles = { display: "flex", flexDirection: "column", gap: "1.5rem" };
+  const colStyles = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "1.5rem",
+  } as const;
   const labelStyles = {
     display: "flex",
     flexDirection: "column",
     gap: "0.5rem",
     fontSize: "0.9rem",
-  };
+  } as const;
 
   return (
     <div style={colStyles}>
@@ -53,7 +57,7 @@ export default function ({ actionData }: PageProps<never, ActionType>) {
             />
           </label>
 
-          <button class="btn" type="submit">
+          <button className="btn" type="submit">
             Login
           </button>
         </form>

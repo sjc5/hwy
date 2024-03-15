@@ -5,12 +5,13 @@ import {
   DevLiveRefreshScript,
   HeadBlock,
   HeadElements,
+  RootOutletServer,
   hwyInit,
   renderRoot,
 } from "hwy";
 import { createServer } from "node:http";
 import { AddressInfo } from "node:net";
-import { BodyInner } from "./components/body-inner.js";
+import { Nav } from "./components/nav.js";
 import { make_emoji_data_url } from "./utils/utils.js";
 
 const { app } = await hwyInit({
@@ -68,7 +69,21 @@ app.use(
             </head>
 
             <body>
-              <BodyInner routeData={routeData} />
+              <div className="body-inner">
+                <div style={{ flexGrow: 1 }}>
+                  <Nav />
+
+                  <div id="root-outlet-wrapper">
+                    <RootOutletServer {...routeData} />
+                  </div>
+                </div>
+
+                <footer>
+                  <span style={{ opacity: 0.6 }}>
+                    MIT License. Copyright (c) 2023 Samuel J. Cook.
+                  </span>
+                </footer>
+              </div>
             </body>
           </html>
         );

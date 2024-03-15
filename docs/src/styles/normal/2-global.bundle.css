@@ -86,7 +86,7 @@ nav a.logo:hover {
   }
 }
 
-.root-outlet-wrapper {
+#root-outlet-wrapper {
   gap: 3rem;
   display: flex;
   flex-direction: column;
@@ -96,7 +96,7 @@ nav a.logo:hover {
 }
 
 @media screen and (max-width: 1024px) {
-  .root-outlet-wrapper {
+  #root-outlet-wrapper {
     gap: 2rem;
   }
 }

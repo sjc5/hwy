@@ -1,5 +1,5 @@
 import { PageProps } from "hwy";
-import { useState } from "preact/hooks";
+import { useState } from "react";
 
 function TesterComp({ Outlet, params, splatSegments }: PageProps) {
   let pathname = new URL(import.meta.url).pathname;
@@ -11,12 +11,12 @@ function TesterComp({ Outlet, params, splatSegments }: PageProps) {
 
   return (
     <div
-      class="outlet-wrapper"
+      className="outlet-wrapper"
       style={{
         background: random_color,
       }}
     >
-      <div class="tester-comp-wrapper">
+      <div className="tester-comp-wrapper">
         <p>Pathname: {pathname}</p>
 
         <p>Splat Segments:{JSON.stringify(splatSegments)}</p>

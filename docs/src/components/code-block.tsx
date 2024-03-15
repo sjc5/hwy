@@ -2,8 +2,8 @@ type Language = "tsx" | "typescript" | "bash" | "json";
 
 function CodeBlock({ language, code }: { language: Language; code: string }) {
   return (
-    <pre class="code-block">
-      <code class={`language-${language}`}>{code.trim()}</code>
+    <pre className="code-block">
+      <code className={`language-${language}`}>{code.trim()}</code>
       <div />
     </pre>
   );

@@ -1,7 +1,7 @@
 import type { HwyConfig } from "@hwy-js/build";
 
 export default {
-  useClientSidePreact: true,
+  useClientSideReact: true,
   useDotServerFiles: true,
   dev: {
     port: 2389,

@@ -1,9 +1,9 @@
 import type { HwyConfig } from "@hwy-js/build";
 
 export default {
-  useClientSidePreact: true,
+  useClientSideReact: true,
   useDotServerFiles: true,
   dev: {
-    watchExclusions: ["src/styles/tw-output.bundle.css"],
+    watchExclusions: ["src/styles/normal/tw-output.css"],
   },
 } satisfies HwyConfig;

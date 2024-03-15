@@ -1,5 +1,5 @@
 import { H3Event } from "h3";
-import { renderToString } from "preact-render-to-string";
+import { renderToString } from "react-dom/server";
 import { HeadBlock, RouteData } from "../../../common/index.mjs";
 import { getRouteData, get_is_json_request } from "../utils/get-root-data.js";
 
@@ -27,6 +27,7 @@ async function renderRoot({
     return;
   }
 
+  // __TODO -- streaming?
   return (
     "<!doctype html>" +
     renderToString(

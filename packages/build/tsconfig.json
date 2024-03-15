@@ -8,8 +8,7 @@
     "skipLibCheck": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsx": "react-jsx"
   },
   "exclude": ["node_modules", "dist"]
 }
