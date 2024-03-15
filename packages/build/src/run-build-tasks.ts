@@ -20,6 +20,15 @@ import {
   type Paths,
 } from "./walk-pages.js";
 
+function get_standard_define_and_sourcemap(IS_DEV: boolean | undefined) {
+  return {
+    define: {
+      "process.env.NODE_ENV": IS_DEV ? '"development"' : '"production"',
+    },
+    sourcemap: IS_DEV ? "inline" : false,
+  } as const satisfies esbuild.BuildOptions;
+}
+
 const tsconfig_path = path.resolve("tsconfig.json");
 let tsconfig = json_c_parse(fs.readFileSync(tsconfig_path, "utf8")) as Record<
   string,
@@ -135,17 +144,13 @@ async function runBuildTasks({
 
   /********************* STEP 3 *********************
    * BUILD SERVER ENTRY AND WRITE PATHS TO DISK
-   *
-   * Note that we're putting the server entry code into memory
-   * at this point, and not yet writing it to disk. We'll modify
-   * it and write it to disk later.
    */
 
   const { page_files_list, client_files_list, server_files_list } =
     await write_paths_to_disk(IS_DEV);
 
   await esbuild.build({
-    // __TODO -- customize entry point in Hwy Config
+    ...get_standard_define_and_sourcemap(IS_DEV),
     entryPoints: [
       path.resolve("src/main.*"),
       ...page_files_list.map((x) => x.import_path_with_orig_ext),
@@ -170,6 +175,7 @@ async function runBuildTasks({
   const is_using_client_entry = get_is_using_client_entry();
 
   await esbuild.build({
+    ...get_standard_define_and_sourcemap(IS_DEV),
     entryPoints: [
       ...(is_using_client_entry
         ? [path.join(process.cwd(), "src/entry.client.*")]
@@ -479,6 +485,7 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
    */
   if (SHOULD_BUNDLE_PATHS) {
     await esbuild.build({
+      ...get_standard_define_and_sourcemap(IS_DEV),
       entryPoints: [path.resolve("dist/main.js")],
       bundle: true,
       outfile: path.resolve("dist/main.js"),

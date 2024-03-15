@@ -1,10 +1,5 @@
-function Paragraph({ children, ...rest }: { children: any }) {
-  return (
-    // @ts-ignore
-    <p {...rest} style={{ lineHeight: 1.75, ...rest.style }}>
-      {children}
-    </p>
-  );
+function Paragraph({ children }: { children: any }) {
+  return <p style={{ lineHeight: 1.75 }}>{children}</p>;
 }
 
 export { Paragraph };

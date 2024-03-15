@@ -28,8 +28,7 @@ function BigHeading() {
   return (
     <h1 className="big-heading">
       Hwy is a <Boldtalic>simple</Boldtalic>, <Boldtalic>lightweight</Boldtalic>
-      , and <Boldtalic>flexible</Boldtalic> web framework, built on{" "}
-      <Boldtalic>Hono</Boldtalic> and <Boldtalic>HTMX</Boldtalic>.
+      , and <Boldtalic>flexible</Boldtalic> web framework.
     </h1>
   );
 }
@@ -135,8 +134,6 @@ function Features() {
         <ListItem>Remix-style actions and parallel loaders</ListItem>
         <ListItem>Rich Hono middleware ecosystem</ListItem>
         <ListItem>100% type-safe</ListItem>
-        <ListItem>Server built on Hono</ListItem>
-        <ListItem>Client built on HTMX</ListItem>
         <ListItem>Built-in critical CSS inlining</ListItem>
         <ListItem>Live browser refresh during development</ListItem>
         <ListItem>And more...</ListItem>

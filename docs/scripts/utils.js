@@ -10,11 +10,9 @@ console.log(
 );
 
 const override_hwy_version = undefined;
-
 console.log("Override hwy version:", override_hwy_version + "\n");
 
 const hwy_version = override_hwy_version || current_latest_hwy_core_version;
-
 console.log("Using hwy version:", hwy_version + "\n");
 
 const hwy_pkg_regex = /"hwy": "([^"]+)"/;
@@ -32,22 +30,16 @@ function replace_versions(pkg_json_string, version) {
 
 function to_workspace() {
   let pkg_json_string = fs.readFileSync("package.json", "utf-8");
-
   pkg_json_string = replace_versions(pkg_json_string, "workspace:*");
-
   fs.writeFileSync("package.json", pkg_json_string);
-
   console.log("Updated package.json to use workspace\n");
 }
 
 function to_latest() {
   let pkg_json_string = fs.readFileSync("package.json", "utf-8");
-
   pkg_json_string = replace_versions(pkg_json_string, hwy_version);
-
   fs.writeFileSync("package.json", pkg_json_string);
-
   console.log(`Updated package.json to use ${hwy_version}\n`);
 }
 
-export { to_workspace, to_latest };
+export { to_latest, to_workspace };

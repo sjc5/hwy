@@ -1,11 +1,11 @@
 {
   "name": "hwy",
-  "version": "0.0.0-beta.60",
+  "version": "0.0.0-beta.61",
   "author": {
     "name": "Samuel J. Cook"
   },
   "license": "MIT",
-  "description": "Simple, lightweight, and flexible web framework, built on h3, esbuild, and React.",
+  "description": "Simple, lightweight, and flexible web framework.",
   "type": "module",
   "exports": {
     ".": "./dist/index.js"

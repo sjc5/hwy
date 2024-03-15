@@ -2,14 +2,13 @@ import { cx } from "../utils/utils.js";
 
 function UnorderedList({
   children,
-  ...rest
+  style,
 }: {
   children: any;
   style?: Record<string, any>;
 }) {
   return (
-    // @ts-ignore
-    <ul {...rest} className={cx("flex-col-wrapper-bigger", rest.class)}>
+    <ul className={"flex-col-wrapper-bigger"} style={style}>
       {children}
     </ul>
   );
@@ -17,14 +16,13 @@ function UnorderedList({
 
 function ListItem({
   children,
-  ...rest
+  style,
 }: {
   children: any;
   style?: Record<string, any>;
 }) {
   return (
-    // @ts-ignore
-    <li {...rest} className={cx("list-item", rest.class)}>
+    <li className={"list-item"} style={style}>
       {children}
     </li>
   );

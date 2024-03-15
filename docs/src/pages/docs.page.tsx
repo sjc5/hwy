@@ -21,7 +21,7 @@ export default function ({ Outlet }: PageProps) {
         language="bash"
         code={`npx create-hwy@latest\nnpm i\nnpm run dev`}
       />
-      {/* <AnchorHeading content="Project structure" />
+      <AnchorHeading content="Project structure" />
       <Paragraph>A simple Hwy project is structured like this:</Paragraph>
       <CodeBlock
         language="bash"
@@ -58,84 +58,82 @@ root
         This is where you'll put your page files. This is similar to the
         "routes" directory in Remix.
       </Paragraph>
-      <Paragraph>
-        The rules are very simple:
-        <UnorderedList>
-          <ListItem>
-            Pages should include <InlineCode>.page.</InlineCode> (e.g.,
-            <InlineCode>about.page.tsx</InlineCode>) in the filename. If you
-            want co-location in this directory, you can always just exclude the{" "}
-            <InlineCode>.page.</InlineCode> part in any filename (e.g.,
-            <InlineCode>about-components.tsx</InlineCode>).
-          </ListItem>
+      <Paragraph>The rules are very simple:</Paragraph>
+      <UnorderedList>
+        <ListItem>
+          Pages should include <InlineCode>.page.</InlineCode> (e.g.,
+          <InlineCode>about.page.tsx</InlineCode>) in the filename. If you want
+          co-location in this directory, you can always just exclude the{" "}
+          <InlineCode>.page.</InlineCode> part in any filename (e.g.,
+          <InlineCode>about-components.tsx</InlineCode>).
+        </ListItem>
 
-          <ListItem>
-            Directory names will become part of the path, unless they are
-            prefixed with double underscores. For example, if you have a{" "}
-            <InlineCode>src/pages/foo</InlineCode> directory, and a file inside
-            the <InlineCode>foo</InlineCode> directory called{" "}
-            <InlineCode>bar.page.tsx</InlineCode> (
-            <InlineCode>/src/pages/foo/bar.page.tsx</InlineCode>
-            ), the path would be <InlineCode>example.com/foo/bar</InlineCode>.
-            If you want the directory to be ignored, prefix it with two
-            underscores (e.g., <InlineCode>__foo</InlineCode>). In that case,
-            the route will just be <InlineCode>example.com/bar</InlineCode>.
-          </ListItem>
+        <ListItem>
+          Directory names will become part of the path, unless they are prefixed
+          with double underscores. For example, if you have a{" "}
+          <InlineCode>src/pages/foo</InlineCode> directory, and a file inside
+          the <InlineCode>foo</InlineCode> directory called{" "}
+          <InlineCode>bar.page.tsx</InlineCode> (
+          <InlineCode>/src/pages/foo/bar.page.tsx</InlineCode>
+          ), the path would be <InlineCode>example.com/foo/bar</InlineCode>. If
+          you want the directory to be ignored, prefix it with two underscores
+          (e.g., <InlineCode>__foo</InlineCode>). In that case, the route will
+          just be <InlineCode>example.com/bar</InlineCode>.
+        </ListItem>
 
-          <ListItem>
-            If you want a default index page inside at any route, just include
-            an <InlineCode>_index.page.tsx</InlineCode> file in that directory.
-            This includes the <InlineCode>pages</InlineCode> directory itself;{" "}
-            <InlineCode>/src/pages/_index.page.tsx</InlineCode> will be the
-            default route for your site.
-          </ListItem>
+        <ListItem>
+          If you want a default index page inside at any route, just include an{" "}
+          <InlineCode>_index.page.tsx</InlineCode> file in that directory. This
+          includes the <InlineCode>pages</InlineCode> directory itself;{" "}
+          <InlineCode>/src/pages/_index.page.tsx</InlineCode> will be the
+          default route for your site.
+        </ListItem>
 
-          <ListItem>
-            If you want to include a layout for a route (e.g., a sidebar or
-            sub-navigation), include a file with the same name as the directory
-            (but with <InlineCode>.page.tsx</InlineCode> included) as a sibling
-            to the route directory. For example, if you have a route at{" "}
-            <InlineCode>/foo/bar</InlineCode>, you can include a layout at
-            <InlineCode>/src/pages/foo/bar.page.tsx</InlineCode> and a default
-            page at <InlineCode>/src/pages/foo/bar/_index.page.tsx</InlineCode>.
-            Note that any layouts for your main home page (
-            <InlineCode>src/_index.page.tsx</InlineCode>), such as a global
-            navigation header, should be inserted into your root component that
-            is rendered from your main server entry point (i.e.,{" "}
-            <InlineCode>src/main.tsx</InlineCode>).
-          </ListItem>
+        <ListItem>
+          If you want to include a layout for a route (e.g., a sidebar or
+          sub-navigation), include a file with the same name as the directory
+          (but with <InlineCode>.page.tsx</InlineCode> included) as a sibling to
+          the route directory. For example, if you have a route at{" "}
+          <InlineCode>/foo/bar</InlineCode>, you can include a layout at
+          <InlineCode>/src/pages/foo/bar.page.tsx</InlineCode> and a default
+          page at <InlineCode>/src/pages/foo/bar/_index.page.tsx</InlineCode>.
+          Note that any layouts for your main home page (
+          <InlineCode>src/_index.page.tsx</InlineCode>), such as a global
+          navigation header, should be inserted into your root component that is
+          rendered from your main server entry point (i.e.,{" "}
+          <InlineCode>src/main.tsx</InlineCode>).
+        </ListItem>
 
-          <ListItem>
-            If you want to include dynamic child routes, you can just prefix the
-            file name with a dollar sign (<InlineCode>$</InlineCode>). For
-            example, if you have a route at <InlineCode>/foo/bar</InlineCode>,
-            you can include a dynamic child route at{" "}
-            <InlineCode>/src/pages/foo/bar/$id.page.tsx</InlineCode>. This will
-            match any route that starts with <InlineCode>/foo/bar/</InlineCode>{" "}
-            and will pass the id as a parameter to the page (including the
-            page's loader, action, and component... more on this later). The{" "}
-            <InlineCode>/foo/bar</InlineCode> route will still render the index
-            page, if you have one.
-            <br />
-            <br />
-            NOTE: One "gotcha" with this is that you need to use a string that
-            would be safe to use as a JavaScript variable for your dynamic
-            properties. For example,{" "}
-            <InlineCode>/src/pages/$user_id.page.tsx</InlineCode> would be fine,
-            but <InlineCode>/src/pages/$user-id.page.tsx</InlineCode> would not.
-          </ListItem>
+        <ListItem>
+          If you want to include dynamic child routes, you can just prefix the
+          file name with a dollar sign (<InlineCode>$</InlineCode>). For
+          example, if you have a route at <InlineCode>/foo/bar</InlineCode>, you
+          can include a dynamic child route at{" "}
+          <InlineCode>/src/pages/foo/bar/$id.page.tsx</InlineCode>. This will
+          match any route that starts with <InlineCode>/foo/bar/</InlineCode>{" "}
+          and will pass the id as a parameter to the page (including the page's
+          loader, action, and component... more on this later). The{" "}
+          <InlineCode>/foo/bar</InlineCode> route will still render the index
+          page, if you have one.
+          <br />
+          <br />
+          NOTE: One "gotcha" with this is that you need to use a string that
+          would be safe to use as a JavaScript variable for your dynamic
+          properties. For example,{" "}
+          <InlineCode>/src/pages/$user_id.page.tsx</InlineCode> would be fine,
+          but <InlineCode>/src/pages/$user-id.page.tsx</InlineCode> would not.
+        </ListItem>
 
-          <ListItem>
-            If you want to have "catch-all" or "splat" routes, you can include a
-            file named simply <InlineCode>$.page.tsx</InlineCode>. This will
-            match any route that hasn't already been matched by a more specific
-            route. You can also include a top-level 404 page by including a file
-            named <InlineCode>$.page.tsx</InlineCode> in{" "}
-            <InlineCode>src/pages</InlineCode>. Any splat parameters "caught" by
-            one of these routes will be passed into the page.
-          </ListItem>
-        </UnorderedList>
-      </Paragraph>
+        <ListItem>
+          If you want to have "catch-all" or "splat" routes, you can include a
+          file named simply <InlineCode>$.page.tsx</InlineCode>. This will match
+          any route that hasn't already been matched by a more specific route.
+          You can also include a top-level 404 page by including a file named{" "}
+          <InlineCode>$.page.tsx</InlineCode> in{" "}
+          <InlineCode>src/pages</InlineCode>. Any splat parameters "caught" by
+          one of these routes will be passed into the page.
+        </ListItem>
+      </UnorderedList>
       <AnchorHeading content="Page components" />
       <Paragraph>
         Pages are very simple as well. They are simply JSX components default
@@ -183,72 +181,70 @@ export default function ({
 }
         `}
       />
-      <Paragraph>
-        <UnorderedList>
-          <ListItem>
-            <InlineCode>c</InlineCode> - This is the Hono Context object. It
-            contains the request and response objects, as well as some other
-            useful properties and methods. See the{" "}
-            <a
-              href="https://hono.dev"
-              target="_blank"
-              style={{
-                textDecoration: "underline",
-              }}
-            >
-              Hono docs
-            </a>{" "}
-            for more info.
-          </ListItem>
+      <UnorderedList>
+        <ListItem>
+          <InlineCode>c</InlineCode> - This is the Hono Context object. It
+          contains the request and response objects, as well as some other
+          useful properties and methods. See the{" "}
+          <a
+            href="https://hono.dev"
+            target="_blank"
+            style={{
+              textDecoration: "underline",
+            }}
+          >
+            Hono docs
+          </a>{" "}
+          for more info.
+        </ListItem>
 
-          <ListItem>
-            <InlineCode>loaderData</InlineCode> - This is the data returned from
-            the route loader. If you aren't using a route loader, this will be{" "}
-            <InlineCode>undefined</InlineCode>. If you are using a route loader
-            and pass in <InlineCode>typeof loader</InlineCode> as a generic to{" "}
-            <InlineCode>PageProps</InlineCode>, this will be 100% type-safe.
-          </ListItem>
+        <ListItem>
+          <InlineCode>loaderData</InlineCode> - This is the data returned from
+          the route loader. If you aren't using a route loader, this will be{" "}
+          <InlineCode>undefined</InlineCode>. If you are using a route loader
+          and pass in <InlineCode>typeof loader</InlineCode> as a generic to{" "}
+          <InlineCode>PageProps</InlineCode>, this will be 100% type-safe.
+        </ListItem>
 
-          <ListItem>
-            <InlineCode>actionData</InlineCode> - Same as{" "}
-            <InlineCode>loaderData</InlineCode>, except in this case the data
-            comes from your route's action, if applicable. If you are using a
-            route action but <Boldtalic>not</Boldtalic> a route loader, this is
-            how you'd handle the generics:{" "}
-            <InlineCode>{`PageProps<never, typeof action>`}</InlineCode>.
-          </ListItem>
+        <ListItem>
+          <InlineCode>actionData</InlineCode> - Same as{" "}
+          <InlineCode>loaderData</InlineCode>, except in this case the data
+          comes from your route's action, if applicable. If you are using a
+          route action but <Boldtalic>not</Boldtalic> a route loader, this is
+          how you'd handle the generics:{" "}
+          <InlineCode>{`PageProps<never, typeof action>`}</InlineCode>.
+        </ListItem>
 
-          <ListItem>
-            <InlineCode>Outlet</InlineCode> - This is the outlet for the page,
-            and it's where child routes get rendered. You render outlets just
-            like any other component (you can even pass in props if you want): (
-            <InlineCode>{`<Outlet whatever={whatever} />`}</InlineCode>)
-          </ListItem>
+        <ListItem>
+          <InlineCode>Outlet</InlineCode> - This is the outlet for the page, and
+          it's where child routes get rendered. You render outlets just like any
+          other component (you can even pass in props if you want): (
+          <InlineCode>{`<Outlet whatever={whatever} />`}</InlineCode>)
+        </ListItem>
 
-          <ListItem>
-            <InlineCode>params</InlineCode> - This is an object containing any
-            parameters passed to the page. For example, if you have a page at{" "}
-            <InlineCode>src/pages/foo/bar/$id.page.tsx</InlineCode>, the{" "}
-            <InlineCode>params</InlineCode> object will contain a property
-            called <InlineCode>id</InlineCode> with the value of the{" "}
-            <InlineCode>id</InlineCode> parameter. In other words, if the user
-            visits the route <InlineCode>example.com/foo/bar/123</InlineCode>,
-            the <InlineCode>params</InlineCode> object will be{" "}
-            <InlineCode>{`{ id: '123' }`}</InlineCode>.
-          </ListItem>
+        <ListItem>
+          <InlineCode>params</InlineCode> - This is an object containing any
+          parameters passed to the page. For example, if you have a page at{" "}
+          <InlineCode>src/pages/foo/bar/$id.page.tsx</InlineCode>, the{" "}
+          <InlineCode>params</InlineCode> object will contain a property called{" "}
+          <InlineCode>id</InlineCode> with the value of the{" "}
+          <InlineCode>id</InlineCode> parameter. In other words, if the user
+          visits the route <InlineCode>example.com/foo/bar/123</InlineCode>, the{" "}
+          <InlineCode>params</InlineCode> object will be{" "}
+          <InlineCode>{`{ id: '123' }`}</InlineCode>.
+        </ListItem>
 
-          <ListItem>
-            <InlineCode>splatSegments</InlineCode> - This is an array of any
-            "splat" segments caught by the "deepest" splat route. For example,
-            if you have a page at{" "}
-            <InlineCode>src/pages/foo/bar/$.page.tsx</InlineCode> (a splat
-            route) and the user visits{" "}
-            <InlineCode>example.com/foo/bar/123/456</InlineCode>, the{" "}
-            <InlineCode>splatSegments</InlineCode> array will be{" "}
-            <InlineCode>{`['123', '456']`}</InlineCode>.
-          </ListItem>
-        </UnorderedList>
-      </Paragraph>
+        <ListItem>
+          <InlineCode>splatSegments</InlineCode> - This is an array of any
+          "splat" segments caught by the "deepest" splat route. For example, if
+          you have a page at{" "}
+          <InlineCode>src/pages/foo/bar/$.page.tsx</InlineCode> (a splat route)
+          and the user visits{" "}
+          <InlineCode>example.com/foo/bar/123/456</InlineCode>, the{" "}
+          <InlineCode>splatSegments</InlineCode> array will be{" "}
+          <InlineCode>{`['123', '456']`}</InlineCode>.
+        </ListItem>
+      </UnorderedList>
       <Paragraph>
         <InlineCode>PageProps</InlineCode> is also a generic type, which takes{" "}
         <InlineCode>typeof loader</InlineCode> and{" "}
@@ -592,7 +588,7 @@ app.all('*', async (c, next) => {
       props: {
         name: 'description',
         content:
-          'Hwy is a simple, lightweight, and flexible web framework, built on Hono and HTMX.',
+          'Hwy is a simple, lightweight, and flexible web framework.',
       },
     },
   ]}
@@ -767,7 +763,7 @@ export const head: HeadFunction = (props) => {
         </ListItem>
 
         <ListItem>What else? You tell me!</ListItem>
-      </UnorderedList> */}
+      </UnorderedList>
     </div>
   );
 }
