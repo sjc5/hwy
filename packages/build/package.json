@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/build",
-  "version": "0.0.0-beta.59",
+  "version": "0.0.0-beta.60",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -26,12 +26,12 @@
   "dependencies": {
     "chokidar": "^3.6.0",
     "dotenv": "^16.4.5",
-    "esbuild": "^0.20.1",
+    "esbuild": "^0.20.2",
     "jsonc-parser": "^3.2.1",
     "readdirp": "^3.6.0"
   },
   "devDependencies": {
-    "@types/node": "^20.11.26",
+    "@types/node": "^20.11.27",
     "tsup": "^8.0.2",
     "typescript": "^5.4.2"
   },
