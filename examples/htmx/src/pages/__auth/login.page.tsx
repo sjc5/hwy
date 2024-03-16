@@ -45,6 +45,7 @@ export default function ({ actionData }: PageProps<never, typeof action>) {
     flexDirection: "column",
     gap: "1.5rem",
   } as const;
+
   const labelStyles = {
     display: "flex",
     flexDirection: "column",

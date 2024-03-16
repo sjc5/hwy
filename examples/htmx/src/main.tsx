@@ -1,4 +1,4 @@
-import { getDefaultHtmxBodyProps } from "@hwy-js/utils/htmx";
+import { getDefaultHTMXBodyProps } from "@hwy-js/utils/htmx";
 import { createApp, eventHandler, toNodeListener } from "h3";
 import {
   ClientScripts,
@@ -50,7 +50,7 @@ app.use(
             </head>
 
             <body
-              {...getDefaultHtmxBodyProps({ idiomorph: true, nProgress: true })}
+              {...getDefaultHTMXBodyProps({ idiomorph: true, nProgress: true })}
             >
               <nav>
                 <a href="/">

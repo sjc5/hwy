@@ -139,7 +139,7 @@ export const RootOutlet = memo(
           splatSegments={splatSegments}
           loaderData={loaderData}
           actionData={actionData}
-          Outlet={OutletToUse}
+          Outlet={OutletToUse || <></>}
           adHocData={adHocData}
         />
       );

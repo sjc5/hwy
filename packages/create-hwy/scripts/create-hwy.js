@@ -6,7 +6,7 @@ import fs from "node:fs";
 const TARGET_REGISTRY = "github";
 const TARGET_REPO = "hwy-js/hwy";
 const TARGET_SUBDIR = "examples/minimal-mpa";
-const TARGET_BRANCH = "h3";
+const TARGET_BRANCH = "h3-react";
 const GIGET_TARGET = `${TARGET_REGISTRY}:${TARGET_REPO}/${TARGET_SUBDIR}#${TARGET_BRANCH}`;
 
 function isSafeDirName(name) {

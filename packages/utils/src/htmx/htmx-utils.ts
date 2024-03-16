@@ -61,7 +61,7 @@ const idiomorphBodyProps = {
   "hx-swap": "morph:innerHTML",
 } as const;
 
-function getDefaultHtmxBodyProps(options?: {
+function getDefaultHTMXBodyProps(options?: {
   nProgress?: boolean;
   idiomorph?: boolean;
 }) {
@@ -73,4 +73,4 @@ function getDefaultHtmxBodyProps(options?: {
 }
 
 // EXPORTS ------------------------------------------------------------------------
-export { getDefaultHtmxBodyProps, htmxRedirect };
+export { getDefaultHTMXBodyProps, htmxRedirect };
