@@ -5,12 +5,9 @@ export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
 export const LIVE_REFRESH_SSE_PATH = `/${HWY_PREFIX}live_refresh_sse`;
 export const LIVE_REFRESH_RPC_PATH = `/${HWY_PREFIX}live_refresh_rpc`;
 
-export const DEFAULT_PORT = 3000;
-
 export type HwyConfig = {
   scriptsToInject?: Array<string>;
   dev?: {
-    port?: number;
     watchExclusions?: Array<string>;
     watchInclusions?: Array<string>;
     hotReloadStyles?: boolean;

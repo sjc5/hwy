@@ -1,9 +1,6 @@
 import type { HwyConfig } from "@hwy-js/build";
 
 export default {
-  dev: {
-    port: 9823,
-  },
   scriptsToInject: [
     "node_modules/htmx.org/dist/htmx.min.js",
     "node_modules/htmx.org/dist/ext/head-support.js",

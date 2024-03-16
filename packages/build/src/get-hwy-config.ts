@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { hwyLog } from "../../common/dev.mjs";
-import { DEFAULT_PORT, type HwyConfig } from "../../common/index.mjs";
+import { type HwyConfig } from "../../common/index.mjs";
 
 let cached_hwy_config: HwyConfig | undefined;
 
@@ -53,7 +53,6 @@ async function get_hwy_config() {
 
   cached_hwy_config = {
     dev: {
-      port: Number(internal_hwy_config?.dev?.port || DEFAULT_PORT),
       watchExclusions: internal_hwy_config?.dev?.watchExclusions || [],
       watchInclusions: internal_hwy_config?.dev?.watchInclusions || [],
       hotReloadStyles:

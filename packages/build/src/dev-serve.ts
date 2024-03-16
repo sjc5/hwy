@@ -1,5 +1,6 @@
 import chokidar from "chokidar";
 import dotenv from "dotenv";
+import { getPort } from "get-port-please";
 import { ChildProcess, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -29,6 +30,15 @@ async function devServe() {
 
   dotenv.config();
 
+  const env = {
+    NODE_ENV: "development",
+    ...process.env,
+  };
+
+  if (typeof process.env.PORT === "undefined") {
+    process.env.PORT = String(await getPort());
+  }
+
   const refresh_watcher = chokidar.watch(
     path.join(process.cwd(), "dist", "refresh.txt"),
     { ignoreInitial: true },
@@ -48,7 +58,7 @@ async function devServe() {
     if (has_run_one_time) {
       try {
         await fetch(
-          `http://127.0.0.1:${dev_config?.port}${LIVE_REFRESH_RPC_PATH}`,
+          `http://127.0.0.1:${process.env.PORT}${LIVE_REFRESH_RPC_PATH}`,
           {
             method: "POST",
             headers: {
@@ -141,28 +151,10 @@ async function devServe() {
 
   let current_proc: ChildProcess | null = null;
 
-  const base_env = {
-    NODE_ENV: "development",
-    PORT: String(dev_config?.port || "") || undefined,
-  };
-
   async function run_command_with_spawn() {
     return new Promise<void>((resolve, reject) => {
       if (current_proc) {
         current_proc.kill();
-      }
-
-      const env = {
-        ...base_env,
-        ...process.env,
-      };
-
-      // Make sure your .env overrides your Hwy config
-      if (env.PORT) {
-        if (!dev_config) {
-          dev_config = {};
-        }
-        dev_config.port = Number(env.PORT);
       }
 
       const proc = spawn("node", ["dist/main.js"], {
