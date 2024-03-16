@@ -36,7 +36,9 @@ async function devServe() {
   };
 
   if (typeof process.env.PORT === "undefined") {
-    process.env.PORT = String(await getPort());
+    const port = String(await getPort());
+    process.env.PORT = port;
+    (env as any).PORT = port;
   }
 
   const refresh_watcher = chokidar.watch(
