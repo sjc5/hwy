@@ -23,12 +23,12 @@ export async function renderRoot({
   if (!maybeRootData) {
     return;
   }
-  if (!isRouteDataType(maybeRootData)) {
+  if (!isRouteDataType(maybeRootData, event)) {
     return maybeRootData;
   }
   return renderToPipeableStream(<Root {...maybeRootData} />);
 }
 
-function isRouteDataType(x: any): x is RouteData {
-  return !(x instanceof Response) && !get_is_json_request(x);
+function isRouteDataType(x: any, event: H3Event): x is RouteData {
+  return !(x instanceof Response) && !get_is_json_request(event);
 }

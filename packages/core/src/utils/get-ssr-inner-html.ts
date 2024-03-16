@@ -10,7 +10,7 @@ import { getPublicUrl } from "./hashed-public-url.js";
 
 const hwy_global = get_hwy_global();
 
-function global_setter_string(key: (typeof CLIENT_KEYS)[number], value: any) {
+function setter_str(key: (typeof CLIENT_KEYS)[number], value: any) {
   return `x.${key}=${uneval(value)};`;
 }
 
@@ -19,22 +19,22 @@ function getSsrInnerHtml(routeData: RouteData) {
 globalThis[Symbol.for("${HWY_PREFIX}")] = {};
 const x = globalThis[Symbol.for("${HWY_PREFIX}")];
 x.is_dev = ${uneval(hwy_global.get("is_dev"))};
-${global_setter_string("buildId", routeData.buildId)}
-${global_setter_string("activeData", routeData.activePathData.activeData)}
-${global_setter_string(
+${setter_str("buildId", routeData.buildId)}
+${setter_str("activeData", routeData.activePathData.activeData)}
+${setter_str(
   "activePaths",
   routeData.activePathData.matchingPaths?.map((x) => {
     return getPublicUrl("dist/" + x.importPath);
   }),
 )}
-${global_setter_string(
+${setter_str(
   "outermostErrorBoundaryIndex",
   routeData.activePathData.outermostErrorBoundaryIndex,
 )}
-${global_setter_string("splatSegments", routeData.activePathData.splatSegments)}
-${global_setter_string("params", routeData.activePathData.params)}
-${global_setter_string("actionData", routeData.activePathData.actionData)}
-${global_setter_string("adHocData", routeData.adHocData)}
+${setter_str("splatSegments", routeData.activePathData.splatSegments)}
+${setter_str("params", routeData.activePathData.params)}
+${setter_str("actionData", routeData.activePathData.actionData)}
+${setter_str("adHocData", routeData.adHocData)}
 `.trim();
   return html;
 }

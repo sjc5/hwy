@@ -9,7 +9,7 @@ import { getHeadElementProps } from "../components/head-elements-comp.js";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
 import { utils } from "./hwy-utils.js";
 
-export function get_is_json_request({ event }: { event: H3Event }) {
+export function get_is_json_request(event: H3Event) {
   return Boolean(getQuery(event)[`${HWY_PREFIX}json`]);
 }
 
@@ -22,7 +22,7 @@ async function getRouteData({
   defaultHeadBlocks: HeadBlock[];
   adHocData?: any;
 }) {
-  const activePathData = await getMatchingPathData({ event });
+  const activePathData = await getMatchingPathData(event);
 
   if (activePathData.fetchResponse) {
     return activePathData.fetchResponse;
@@ -49,12 +49,8 @@ async function getRouteData({
 
   const buildId = hwy_global.get("build_id");
 
-  if (IS_CLIENT_SIDE_REACT && get_is_json_request({ event })) {
-    if (
-      event.web?.request?.signal.aborted ||
-      event.node.req.closed ||
-      event.handled
-    ) {
+  if (IS_CLIENT_SIDE_REACT && get_is_json_request(event)) {
+    if (event.web?.request?.signal.aborted || event.handled) {
       return;
     }
     return {

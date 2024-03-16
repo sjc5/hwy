@@ -194,17 +194,11 @@ async function initReactClient(hydrateFn: () => void) {
     if (submit_res.success) {
       const json = await submit_res.response.json();
       hwy_client_global.set("actionData", json.actionData);
+      reRenderApp({ json, navigationType: "revalidation" });
     } else {
       console.error(submit_res.error);
     }
   });
-
-  // if (fallbackIndex !== -1) {
-  //   __navigate({
-  //     href: location.href,
-  //     navigationType: "revalidation",
-  //   });
-  // }
 }
 
 type NavigationType =
@@ -453,18 +447,12 @@ async function submit(
       }
 
       if (!IS_GET) {
-        if (options?.skipOnSuccessRevalidation) {
-          // HWY __TODO This should probably be a specific endpoint, otherwise this might fail if the page doesn't exist anymore
-          await __navigate({
-            href: location.href,
-            navigationType: "buildIdCheck",
-          });
-        } else {
-          await __navigate({
-            href: location.href,
-            navigationType: "revalidation",
-          });
-        }
+        // HWY __TODO This should probably be a specific endpoint, otherwise this might fail if the page doesn't exist anymore
+        // __TODO need to remind myself why this is here specifically
+        await __navigate({
+          href: location.href,
+          navigationType: "buildIdCheck",
+        });
       }
 
       set_status({ type: "submission", value: false });
@@ -557,23 +545,6 @@ async function reRenderApp({
   // NOW ACTUALLY SET EVERYTHING
   hwy_client_global.set("activeComponents", new_active_components);
 
-  let highest_index: number | undefined;
-
-  for (let i = 0; i < updated_list.length; i++) {
-    if (updated_list[i].type === "new") {
-      highest_index = i;
-      break;
-    }
-  }
-
-  // dispatch event
-  const event = new CustomEvent("hwy:route-change", {
-    detail: {
-      index: highest_index,
-    },
-  });
-  window.dispatchEvent(event);
-
   const identical_keys_to_set = [
     "activeErrorBoundaries",
     "activeData",
@@ -592,6 +563,29 @@ async function reRenderApp({
   if (navigationType !== "revalidation") {
     hwy_client_global.set("actionData", json.actionData);
   }
+
+  let highest_index: number | undefined;
+  if (navigationType !== "revalidation") {
+    for (let i = 0; i < updated_list.length; i++) {
+      if (updated_list[i].type === "new") {
+        highest_index = i;
+        break;
+      }
+    }
+  } else {
+    for (let i = 0; i < (json.actionData as any[]).length; i++) {
+      if (json.actionData[i] !== undefined) {
+        highest_index = i;
+        break;
+      }
+    }
+  }
+
+  // dispatch event
+  const event = new CustomEvent("hwy:route-change", {
+    detail: { index: highest_index },
+  });
+  window.dispatchEvent(event);
 
   document.title = json.title;
   removeAllBetween("meta");
@@ -673,7 +667,6 @@ function getIsRevalidating() {
 function getIsSubmitting() {
   return isSubmitting;
 }
-
 export {
   getCustomHistory,
   getIsInternalLink,
@@ -685,5 +678,4 @@ export {
   navigate,
   submit,
 };
-
 // __TODO -- return a revalidation function (consider not auto-revalidating)

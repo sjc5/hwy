@@ -188,7 +188,7 @@ async function get_action_data({
   last_path: FullyDecoratedPath;
 }) {
   try {
-    if (event.method !== "GET") {
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(event.method)) {
       return await last_path?.action?.({
         event,
         params: last_path?.params,
@@ -200,7 +200,7 @@ async function get_action_data({
   }
 }
 
-async function getMatchingPathData({ event }: { event: H3Event }) {
+async function getMatchingPathData(event: H3Event) {
   const paths = hwy_global.get("paths");
 
   if (!paths) {

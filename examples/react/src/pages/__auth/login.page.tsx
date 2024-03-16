@@ -36,7 +36,7 @@ export default function ({ actionData }: PageProps<never, ActionType>) {
       </p>
 
       {!actionData?.success && (
-        <form action={thisRoute} method="POST" style={colStyles}>
+        <form action={thisRoute} method="POST" style={colStyles} data-boost>
           <label style={labelStyles}>
             Email
             <input

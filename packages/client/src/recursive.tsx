@@ -15,18 +15,6 @@ const RootOutletClient = memo(
     fallbackErrorBoundary?: ErrorBoundaryComp<JSXElement>;
     adHocData?: any;
   }): JSXElement => {
-    const [key, setKey] = useState("");
-    useEffect(() => {
-      window.addEventListener("hwy:route-change", (evt) => {
-        const detail = (evt as CustomEvent).detail;
-        if (typeof detail.index === "number") {
-          if (detail.index === index_to_use) {
-            startTransition(() => setKey(Math.random() + ""));
-          }
-        }
-      });
-    }, []);
-
     const context = get_hwy_client_global();
 
     let { index } = props;
@@ -83,16 +71,46 @@ const RootOutletClient = memo(
         (context.get("activePaths") as any)?.[index_to_use + 1],
       ]);
 
+      const [params, setParams] = useState(context.get("params") ?? {});
+      const [splatSegments, setSplatSegments] = useState(
+        context.get("splatSegments") ?? [],
+      );
+      const [loaderData, setLoaderData] = useState(
+        (context.get("activeData") as any)?.[index_to_use],
+      );
+      const [actionData, setActionData] = useState(
+        (context.get("actionData") as any)?.[index_to_use],
+      );
+
+      useEffect(() => {
+        window.addEventListener("hwy:route-change", (evt) => {
+          const detail = (evt as CustomEvent).detail;
+          if (typeof detail.index === "number") {
+            if (detail.index === index_to_use) {
+              startTransition(() => {
+                setParams(context.get("params") ?? {});
+                setSplatSegments(context.get("splatSegments") ?? []);
+                setLoaderData(
+                  (context.get("activeData") as any)?.[index_to_use],
+                );
+                setActionData(
+                  (context.get("actionData") as any)?.[index_to_use],
+                );
+              });
+            }
+          }
+        });
+      }, []);
+
       return (
         <CurrentComponent
           {...props}
-          params={context.get("params") ?? {}}
-          splatSegments={context.get("splatSegments") ?? []}
-          loaderData={(context.get("activeData") as any)?.[index_to_use]}
-          actionData={(context.get("actionData") as any)?.[index_to_use]}
+          params={params}
+          splatSegments={splatSegments}
+          loaderData={loaderData}
+          actionData={actionData}
           Outlet={OutletToUse}
           adHocData={adHocData}
-          key={key}
         />
       );
     } catch (error) {

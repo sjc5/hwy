@@ -42,7 +42,7 @@ function gmpd_tester({
     } as any;
     const res: ServerResponse = {} as any;
     const event = createEvent(req, res);
-    const raw = await getMatchingPathData({ event });
+    const raw = await getMatchingPathData(event);
 
     const simplified = {
       params: raw.params || {},
