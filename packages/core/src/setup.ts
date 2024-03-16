@@ -9,7 +9,7 @@ import {
   setResponseHeader,
   setResponseStatus,
 } from "h3";
-import { readFile, stat } from "node:fs/promises";
+import type { readFile, stat } from "node:fs/promises";
 import { get_hwy_global } from "../../common/index.mjs";
 import { getMimeType } from "./get-mimes.js";
 import {
@@ -17,6 +17,19 @@ import {
   get_original_public_url,
 } from "./utils/hashed-public-url.js";
 import { file_url_to_path, node_path } from "./utils/url-polyfills.js";
+
+let dynamic_read_file: typeof readFile;
+let dynamic_stat: typeof stat;
+
+const IS_SERVER = typeof document === "undefined";
+
+try {
+  if (IS_SERVER) {
+    const { readFile, stat } = await import("node:fs/promises");
+    dynamic_read_file = readFile;
+    dynamic_stat = stat;
+  }
+} catch {}
 
 function dirname_from_import_meta(import_meta_url: string) {
   return node_path?.dirname(file_url_to_path(import_meta_url)) ?? "";
@@ -78,7 +91,7 @@ async function hwyInit({
           if (mime) {
             setResponseHeader(event, "Content-Type", mime);
           }
-          return readFile(
+          return dynamic_read_file(
             get_original_public_url({
               hashed_url: url,
             }),
@@ -89,7 +102,7 @@ async function hwyInit({
           if (mime) {
             setResponseHeader(event, "Content-Type", mime);
           }
-          const stats = await stat(
+          const stats = await dynamic_stat(
             get_original_public_url({
               hashed_url: url,
             }),

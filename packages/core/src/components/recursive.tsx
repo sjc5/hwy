@@ -1,21 +1,41 @@
+import type { ReactElement } from "react";
 import { memo, startTransition, useCallback, useEffect, useState } from "react";
-import { get_hwy_client_global } from "../../common/index.mjs";
+import {
+  get_hwy_client_global,
+  type ActivePathData,
+} from "../../../common/index.mjs";
 
-type ErrorBoundaryComp<JSXElement> = () => JSXElement;
-type JSXElement = any;
+type ErrorBoundaryComp = () => ReactElement;
 
-function getAdHocData(): any {
+type ServerKey = keyof ActivePathData;
+
+export function getAdHocData(): any {
   if (typeof document === "undefined") return;
   return get_hwy_client_global().get("adHocData");
 }
 
-const RootOutletClient = memo(
+export const RootOutlet = memo(
   (props: {
+    activePathData?: ActivePathData | { fetchResponse: Response };
     index?: number;
-    fallbackErrorBoundary?: ErrorBoundaryComp<JSXElement>;
+    fallbackErrorBoundary?: ErrorBoundaryComp;
     adHocData?: any;
-  }): JSXElement => {
-    const context = get_hwy_client_global();
+  }): ReactElement => {
+    const { activePathData } = props;
+    if (activePathData && "fetchResponse" in activePathData) {
+      return <></>;
+    }
+
+    const IS_SERVER = typeof document === "undefined";
+
+    const context: {
+      get: (str: ServerKey) => ActivePathData[ServerKey];
+    } = IS_SERVER
+      ? {
+          get: (str: ServerKey) =>
+            (props.activePathData as ActivePathData)?.[str],
+        }
+      : (get_hwy_client_global() as any);
 
     let { index } = props;
     const index_to_use = index ?? 0;
@@ -23,7 +43,9 @@ const RootOutletClient = memo(
       index_to_use
     ];
 
-    const adHocData = context.get("adHocData");
+    const adHocData = IS_SERVER
+      ? props.adHocData
+      : get_hwy_client_global().get("adHocData");
 
     try {
       if (!CurrentComponent) {
@@ -40,7 +62,7 @@ const RootOutletClient = memo(
         this_is_an_error_boundary ||
         context.get("outermostErrorBoundaryIndex") === -1
       ) {
-        const ErrorBoundary: ErrorBoundaryComp<JSXElement> | undefined =
+        const ErrorBoundary: ErrorBoundaryComp | undefined =
           (context.get("activeErrorBoundaries") as any)?.[index_to_use] ??
           props.fallbackErrorBoundary;
 
@@ -55,7 +77,13 @@ const RootOutletClient = memo(
 
       if (!next_outlet_is_an_error_boundary) {
         Outlet = (local_props: Record<string, any> | undefined) => {
-          return <RootOutletClient {...local_props} index={index_to_use + 1} />;
+          return (
+            <RootOutlet
+              {...local_props}
+              activePathData={IS_SERVER ? props.activePathData : undefined}
+              index={index_to_use + 1}
+            />
+          );
         };
       } else {
         Outlet =
@@ -67,9 +95,11 @@ const RootOutletClient = memo(
         }
       }
 
-      const OutletToUse = useCallback(Outlet, [
-        (context.get("activePaths") as any)?.[index_to_use + 1],
-      ]);
+      const OutletToUse = IS_SERVER
+        ? Outlet
+        : useCallback(Outlet, [
+            (context.get("activePaths") as any)?.[index_to_use + 1],
+          ]);
 
       const [params, setParams] = useState(context.get("params") ?? {});
       const [splatSegments, setSplatSegments] = useState(
@@ -116,7 +146,7 @@ const RootOutletClient = memo(
     } catch (error) {
       console.error(error);
 
-      const ErrorBoundary: ErrorBoundaryComp<JSXElement> | undefined =
+      const ErrorBoundary: ErrorBoundaryComp | undefined =
         (context.get("activeErrorBoundaries") as any)
           ?.splice(0, index_to_use + 1)
           ?.reverse()
@@ -130,5 +160,3 @@ const RootOutletClient = memo(
     }
   },
 );
-
-export { RootOutletClient, getAdHocData };

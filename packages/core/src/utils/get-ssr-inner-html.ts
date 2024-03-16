@@ -1,5 +1,3 @@
-import { uneval } from "devalue"; // __TODO -- should this be a dynamic import so you only need it if you're using client-side React?
-
 import {
   CLIENT_KEYS,
   HWY_PREFIX,
@@ -10,11 +8,9 @@ import { getPublicUrl } from "./hashed-public-url.js";
 
 const hwy_global = get_hwy_global();
 
-function setter_str(key: (typeof CLIENT_KEYS)[number], value: any) {
-  return `x.${key}=${uneval(value)};`;
-}
+const { uneval } = await import("devalue");
 
-function getSsrInnerHtml(routeData: RouteData) {
+export function getSsrInnerHtml(routeData: RouteData) {
   let html = `
 globalThis[Symbol.for("${HWY_PREFIX}")] = {};
 const x = globalThis[Symbol.for("${HWY_PREFIX}")];
@@ -39,4 +35,6 @@ ${setter_str("adHocData", routeData.adHocData)}
   return html;
 }
 
-export { getSsrInnerHtml };
+function setter_str(key: (typeof CLIENT_KEYS)[number], value: any) {
+  return `x.${key}=${uneval(value)};`;
+}

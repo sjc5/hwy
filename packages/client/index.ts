@@ -10,4 +10,3 @@ export {
   navigate,
   submit,
 } from "./src/init-react-client.js";
-export { RootOutletClient, getAdHocData } from "./src/recursive.js";

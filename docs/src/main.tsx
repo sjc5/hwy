@@ -5,7 +5,7 @@ import {
   DevLiveRefreshScript,
   HeadBlock,
   HeadElements,
-  RootOutletServer,
+  RootOutlet,
   hwyInit,
   renderRoot,
 } from "hwy";
@@ -74,7 +74,7 @@ app.use(
                   <Nav />
 
                   <div id="root-outlet-wrapper">
-                    <RootOutletServer {...routeData} />
+                    <RootOutlet {...routeData} />
                   </div>
                 </div>
 

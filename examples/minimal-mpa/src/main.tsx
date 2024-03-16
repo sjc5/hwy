@@ -4,7 +4,7 @@ import {
   CssImports,
   DevLiveRefreshScript,
   HeadElements,
-  RootOutletServer,
+  RootOutlet,
   hwyInit,
   renderRoot,
 } from "hwy";
@@ -46,7 +46,7 @@ app.use(
               <DevLiveRefreshScript />
             </head>
             <body>
-              <RootOutletServer {...routeData} />
+              <RootOutlet {...routeData} />
             </body>
           </html>
         );

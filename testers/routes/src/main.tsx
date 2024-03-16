@@ -1,10 +1,10 @@
-import { RootOutletClient } from "@hwy-js/client";
 import { createApp, defineEventHandler, toNodeListener } from "h3";
 import {
   ClientScripts,
   CssImports,
   DevLiveRefreshScript,
   HeadElements,
+  RootOutlet,
   hwyInit,
   renderRoot,
 } from "hwy";
@@ -41,7 +41,7 @@ app.use(
             <body>
               <Sidebar />
               <main>
-                <RootOutletClient
+                <RootOutlet
                   {...routeData}
                   fallbackErrorBoundary={function ErrorBoundary() {
                     return <div>Error Boundary in Root</div>;

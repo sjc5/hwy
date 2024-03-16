@@ -1,5 +1,5 @@
 import { createEvent } from "h3";
-import http, { IncomingMessage, ServerResponse } from "node:http";
+import { IncomingMessage, ServerResponse } from "node:http";
 import { expect, test } from "vitest";
 import { HWY_PREFIX, get_hwy_global } from "../../../common/index.mjs";
 import { getMatchingPathData } from "./get-matching-path-data.js";

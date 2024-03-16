@@ -4,7 +4,7 @@ import {
   CssImports,
   DevLiveRefreshScript,
   HeadElements,
-  RootOutletServer,
+  RootOutlet,
   hwyInit,
   renderRoot,
 } from "hwy";
@@ -69,7 +69,7 @@ app.use(
               </nav>
 
               <main>
-                <RootOutletServer
+                <RootOutlet
                   {...routeData}
                   fallbackErrorBoundary={() => {
                     return <div>Something went wrong.</div>;

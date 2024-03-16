@@ -1,4 +1,5 @@
 import type { H3Event } from "h3";
+import type { ReactElement } from "react";
 
 export const HWY_PREFIX = "__hwy_internal__";
 export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
@@ -274,8 +275,7 @@ export type PageComponent<
   LoaderType extends Loader = Loader,
   ActionType extends Action = Action,
   AdHocData extends any = any,
-  JSXElement = any,
-> = (props: PageProps<LoaderType, ActionType, AdHocData>) => JSXElement;
+> = (props: PageProps<LoaderType, ActionType, AdHocData>) => ReactElement;
 
 export type HeadProps<
   LoaderType extends Loader = Loader,
