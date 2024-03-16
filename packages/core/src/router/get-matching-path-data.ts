@@ -12,7 +12,6 @@ import { matcher } from "./matcher.js";
 
 import { H3Event, getRequestURL } from "h3";
 import { ROOT_DIRNAME } from "../setup.js";
-import { get_is_json_request } from "../utils/get-root-data.js";
 import { node_path, path_to_file_url_string } from "../utils/url-polyfills.js";
 
 const hwy_global = get_hwy_global();

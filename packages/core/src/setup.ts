@@ -1,6 +1,5 @@
 import {
   App,
-  H3Event,
   createRouter,
   defineEventHandler,
   eventHandler,
@@ -38,7 +37,7 @@ async function hwyInit({
   app: App;
   importMetaUrl?: string;
 }) {
-  console.log("Initializing Hwy app...");
+  console.log("Initializing Hwy app");
 
   if (hwy_global.get("is_dev")) {
     const { setupLiveRefreshEndpoints } = await import("@hwy-js/dev");

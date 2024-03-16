@@ -20,20 +20,25 @@ import {
   type Paths,
 } from "./walk-pages.js";
 
-function get_standard_define_and_sourcemap(IS_DEV: boolean | undefined) {
-  return {
-    define: {
-      "process.env.NODE_ENV": IS_DEV ? '"development"' : '"production"',
-    },
-    sourcemap: IS_DEV ? "inline" : false,
-  } as const satisfies esbuild.BuildOptions;
-}
-
 const tsconfig_path = path.resolve("tsconfig.json");
 let tsconfig = json_c_parse(fs.readFileSync(tsconfig_path, "utf8")) as Record<
   string,
   unknown
 >;
+
+function get_esbuild_build_args_base(IS_DEV: boolean | undefined) {
+  return {
+    format: "esm",
+    bundle: true,
+    treeShaking: true,
+    define: {
+      "process.env.NODE_ENV": IS_DEV ? '"development"' : '"production"',
+    },
+    sourcemap: IS_DEV ? "inline" : false,
+    minify: !IS_DEV,
+    tsconfigRaw: tsconfig,
+  } as const satisfies esbuild.BuildOptions;
+}
 
 // If verbatimModuleSyntax is true, then esbuild fails to strip server code :-/
 if (tsconfig.compilerOptions) {
@@ -150,22 +155,17 @@ async function runBuildTasks({
     await write_paths_to_disk(IS_DEV);
 
   await esbuild.build({
-    ...get_standard_define_and_sourcemap(IS_DEV),
+    ...get_esbuild_build_args_base(IS_DEV),
     entryPoints: [
       path.resolve("src/main.*"),
       ...page_files_list.map((x) => x.import_path_with_orig_ext),
       ...server_files_list.map((x) => x.import_path_with_orig_ext),
     ],
-    bundle: true,
     outdir: path.resolve("dist"),
-    treeShaking: true,
     platform: "node",
-    format: "esm",
-    minify: false,
     write: true,
     packages: "external",
     splitting: true,
-    tsconfigRaw: tsconfig,
   });
 
   ///////////////////////////////////////////////////////////////////////////
@@ -175,7 +175,7 @@ async function runBuildTasks({
   const is_using_client_entry = get_is_using_client_entry();
 
   await esbuild.build({
-    ...get_standard_define_and_sourcemap(IS_DEV),
+    ...get_esbuild_build_args_base(IS_DEV),
     entryPoints: [
       ...(is_using_client_entry
         ? [path.join(process.cwd(), "src/entry.client.*")]
@@ -185,16 +185,11 @@ async function runBuildTasks({
       ),
       ...client_files_list.map((x) => x.import_path_with_orig_ext),
     ],
-    bundle: true,
     outdir: PUBLIC_DIST_DIR,
-    treeShaking: true,
     platform: "browser",
-    format: "esm",
-    minify: true,
     splitting: true,
     chunkNames: "hwy_chunk__[hash]",
     outbase: path.join(process.cwd(), "src"),
-    tsconfigRaw: tsconfig,
   });
 
   /////////////////////////////////////////////////////////////////////////////
@@ -485,18 +480,13 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
    */
   if (SHOULD_BUNDLE_PATHS) {
     await esbuild.build({
-      ...get_standard_define_and_sourcemap(IS_DEV),
+      ...get_esbuild_build_args_base(IS_DEV),
       entryPoints: [path.resolve("dist/main.js")],
-      bundle: true,
       outfile: path.resolve("dist/main.js"),
-      treeShaking: true,
       platform: "node",
-      format: "esm",
-      minify: false,
       write: true,
       packages: "external",
       allowOverwrite: true,
-      tsconfigRaw: tsconfig,
     });
 
     // rmv dist/pages folder -- no longer needed if bundling routes

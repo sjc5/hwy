@@ -1,17 +1,14 @@
 import { createBrowserHistory } from "history";
-import { Root, hydrateRoot } from "react-dom/client";
+import { startTransition } from "react";
 import {
   CLIENT_KEYS,
   HWY_PREFIX,
   get_hwy_client_global,
 } from "../../common/index.mjs";
-import { RootOutletClient } from "./recursive.js";
 
 let isNavigating = false;
 let isSubmitting = false;
 let isRevalidating = false;
-
-let root: Root;
 
 const abort_controllers = new Map<string, AbortController>();
 
@@ -103,10 +100,7 @@ function getShouldPreventLinkDefault(event: MouseEvent) {
   return should_prevent_default;
 }
 
-async function initReactClient(props: {
-  elementToHydrate: Parameters<typeof hydrateRoot>[0];
-  hydrateWith: Parameters<typeof hydrateRoot>[1];
-}) {
+async function initReactClient(hydrateFn: () => void) {
   customHistory = createBrowserHistory();
 
   lastKnownCustomLocation = customHistory.location;
@@ -160,8 +154,7 @@ async function initReactClient(props: {
     awaited_components.map((x) => x.ErrorBoundary),
   );
 
-  const domNode = props.elementToHydrate;
-  root = hydrateRoot(domNode, props.hydrateWith);
+  startTransition(hydrateFn);
 
   document.body.addEventListener("click", async function (event) {
     const anchor = (event.target as HTMLElement).closest("a");

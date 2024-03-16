@@ -16,8 +16,6 @@ function getCriticalCss() {
   return hwy_global.get("critical_bundled_css") || "";
 }
 
-getSiblingClientHeadBlocks;
-
 const utils = {
   getClientEntryUrl: () => getPublicUrl("dist/entry.client.js"),
   getBundledCssUrl: () => getPublicUrl("dist/standard-bundled.css"),

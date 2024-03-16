@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, startTransition, useCallback, useEffect, useState } from "react";
 import { get_hwy_client_global } from "../../common/index.mjs";
 
 type ErrorBoundaryComp<JSXElement> = () => JSXElement;
@@ -21,7 +21,7 @@ const RootOutletClient = memo(
         const detail = (evt as CustomEvent).detail;
         if (typeof detail.index === "number") {
           if (detail.index === index_to_use) {
-            setKey(Math.random() + "");
+            startTransition(() => setKey(Math.random() + ""));
           }
         }
       });

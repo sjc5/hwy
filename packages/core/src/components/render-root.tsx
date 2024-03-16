@@ -1,11 +1,10 @@
 import { H3Event } from "h3";
-import { renderToString } from "react-dom/server";
+import { ReactElement } from "react";
+import { renderToPipeableStream } from "react-dom/server";
 import { HeadBlock, RouteData } from "../../../common/index.mjs";
 import { getRouteData, get_is_json_request } from "../utils/get-root-data.js";
 
-type JSXElement = any;
-
-async function renderRoot({
+export async function renderRoot({
   event,
   defaultHeadBlocks,
   root: Root,
@@ -13,28 +12,23 @@ async function renderRoot({
 }: {
   event: H3Event;
   defaultHeadBlocks: HeadBlock[];
-  root: (props: RouteData) => JSXElement;
+  root: (props: RouteData) => ReactElement;
   adHocData?: any;
 }) {
-  const routeData = await getRouteData({ event, defaultHeadBlocks, adHocData });
-
-  // __TODO -- see if resource routes still work!
-  if (routeData instanceof Response || get_is_json_request({ event })) {
-    return routeData;
-  }
-
-  if (!routeData) {
+  const maybeRootData = await getRouteData({
+    event,
+    defaultHeadBlocks,
+    adHocData,
+  });
+  if (!maybeRootData) {
     return;
   }
-
-  // __TODO -- streaming?
-  return (
-    "<!doctype html>" +
-    renderToString(
-      // @ts-ignore
-      <Root {...routeData} />,
-    )
-  );
+  if (!isRouteDataType(maybeRootData)) {
+    return maybeRootData;
+  }
+  return renderToPipeableStream(<Root {...maybeRootData} />);
 }
 
-export { renderRoot };
+function isRouteDataType(x: any): x is RouteData {
+  return !(x instanceof Response) && !get_is_json_request(x);
+}
