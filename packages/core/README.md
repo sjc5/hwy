@@ -10,7 +10,7 @@ npx create-hwy@latest
 
 ## What is Hwy?
 
-At its core, Hwy is a server-rendered, multi-page app framework for NodeJS. Hwy is built on top of <a href="https://h3.unjs.io" target="_blank">h3</a> (the core server framework behind Nuxt and SolidStart), esbuild, and React.
+At its core, Hwy is a server-rendered, multi-page app framework for NodeJS. Hwy is built on top of <a href="https://h3.unjs.io" target="_blank">h3</a> (the core server framework behind Nuxt and SolidStart), esbuild (for TypeScript transpilation and bundling), and React (for rendering JSX on the server, and optionally on the client).
 
 If you want to upgrade beyond an MPA pattern, Hwy has first-class support for both React and HTMX on the client. This means you can build a full-featured SPA with Hwy, or you can build a traditional MPA, or you can build something in between.
 
