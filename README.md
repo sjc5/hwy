@@ -1,4 +1,4 @@
-# Hwy
+# 🛣️ Hwy
 
 Hwy is a simple, lightweight, and flexible web framework.
 
