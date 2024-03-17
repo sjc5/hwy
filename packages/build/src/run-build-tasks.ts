@@ -401,14 +401,14 @@ function getIsUsingClientEntry() {
 async function getPathImportSnippet() {
   if (hwyConfig.routeStrategy === "warm-cache-at-startup") {
     return `
-${HWY_PREFIX}paths.forEach(function (x) {
+${HWY_PREFIX}arbitraryGlobal.${HWY_GLOBAL_KEYS.paths}.forEach(function (x) {
   const pathFromDist = "./" + x.importPath;
   import(pathFromDist).then((x) => ${HWY_PREFIX}arbitraryGlobal[pathFromDist] = x);
   ${
     hwyConfig.useDotServerFiles
       ? `
   if (x.hasSiblingServerFile) {
-    const serverPathFromDist = pathFromDist.slice(0, -3) + ".server.js";
+    const serverPathFromDist = pathFromDist.replace(".page.js", ".server.js");
     import(serverPathFromDist).then((x) => ${HWY_PREFIX}arbitraryGlobal[serverPathFromDist] = x);
   }
     `.trim() + "\n"
