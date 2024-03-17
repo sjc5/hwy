@@ -1,11 +1,8 @@
 import { PageProps } from "hwy";
 import { useState } from "react";
 
-function TesterComp({ Outlet, params, splatSegments }: PageProps) {
-  let pathname = new URL(import.meta.url).pathname;
-  pathname = pathname.split("/dist/pages")[1];
-
-  const [random_color] = useState(
+function TesterComp({ Outlet, params, splatSegments, ...rest }: PageProps) {
+  const [randomColor] = useState(
     "#" + Math.floor(Math.random() * 16777215).toString(16),
   );
 
@@ -13,12 +10,10 @@ function TesterComp({ Outlet, params, splatSegments }: PageProps) {
     <div
       className="outlet-wrapper"
       style={{
-        background: random_color,
+        background: randomColor,
       }}
     >
       <div className="tester-comp-wrapper">
-        <p>Pathname: {pathname}</p>
-
         <p>Splat Segments:{JSON.stringify(splatSegments)}</p>
 
         {Object.keys(params).length ? (

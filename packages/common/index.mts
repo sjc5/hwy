@@ -1,5 +1,5 @@
 import type { H3Event } from "h3";
-import type { ReactElement } from "react";
+import type { FunctionComponent, ReactElement } from "react";
 
 export const HWY_PREFIX = "__hwy_internal__";
 export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
@@ -14,8 +14,30 @@ export type HwyConfig = {
     hotReloadStyles?: boolean;
   };
 } & (
-  | { useClientSideReact?: false; useDotServerFiles?: boolean }
-  | { useClientSideReact?: true; useDotServerFiles: true }
+  | {
+      /**
+       * @experimental
+       * `useClientSideReact` is experimental.
+       */
+      useClientSideReact?: false;
+      /**
+       * @experimental
+       * `useDotServerFiles` is experimental.
+       */
+      useDotServerFiles?: boolean;
+    }
+  | {
+      /**
+       * @experimental
+       * `useClientSideReact` is experimental.
+       */
+      useClientSideReact?: true;
+      /**
+       * @experimental
+       * `useDotServerFiles` is experimental.
+       */
+      useDotServerFiles?: true;
+    }
 ) & {
     routeStrategy?:
       | "bundle"
@@ -48,7 +70,7 @@ export const CLIENT_KEYS = [
   "activeComponents",
   "activeErrorBoundaries",
   "adHocData",
-  "buildId",
+  "buildID",
 ] as const;
 
 export const CLIENT_GLOBAL_KEYS = CLIENT_KEYS;
@@ -101,25 +123,23 @@ const BLOCK_TYPES = [
 
 export type BlockType = (typeof BLOCK_TYPES)[number];
 
-export function get_head_block_type(
-  head_block: HeadBlock,
-): BlockType | "unknown" {
-  if ("title" in head_block) {
+export function getHeadBlockType(headBlock: HeadBlock): BlockType | "unknown" {
+  if ("title" in headBlock) {
     return "title";
   }
-  if (BLOCK_TYPES.includes(head_block.tag as BlockType)) {
-    return head_block.tag as BlockType;
+  if (BLOCK_TYPES.includes(headBlock.tag as BlockType)) {
+    return headBlock.tag as BlockType;
   }
   return "unknown";
 }
 
-export function sort_head_blocks(head_blocks: HeadBlock[]) {
+export function sortHeadBlocks(headBlocks: HeadBlock[]) {
   let title = "";
   let metaHeadBlocks: Array<TagHeadBlock> = [];
   let restHeadBlocks: Array<TagHeadBlock> = [];
 
-  head_blocks.forEach((block) => {
-    const type = get_head_block_type(block);
+  headBlocks.forEach((block) => {
+    const type = getHeadBlockType(block);
 
     if (type === "title") {
       title = (block as TitleHeadBlock).title;
@@ -145,7 +165,7 @@ export type RouteData = {
   metaHeadBlocks: TagHeadBlock[];
   restHeadBlocks: TagHeadBlock[];
   adHocData: any;
-  buildId: string;
+  buildID: string;
 };
 
 // PATHS
@@ -172,50 +192,50 @@ export type Paths = Array<Path>;
 // HWY GLOBAL (SERVER)
 
 export type HwyGlobal = {
-  hwy_config: HwyConfig;
-  is_dev: boolean;
-  critical_bundled_css: string;
+  hwyConfig: HwyConfig;
+  isDev: boolean;
+  criticalBundledCSS: string;
   paths: Paths;
-  public_map: Record<string, string>;
-  public_reverse_map: Record<string, string>;
-  test_dirname?: string;
-  injected_scripts: Array<string>;
-  build_id: string;
+  publicMap: Record<string, string>;
+  publicReverseMap: Record<string, string>;
+  testDirname?: string;
+  injectedScripts: Array<string>;
+  buildID: string;
 };
 
 export type HwyGlobalKey = keyof HwyGlobal;
 
 export const HWY_GLOBAL_KEYS: { [K in keyof HwyGlobal]: any } = {
-  hwy_config: "",
-  is_dev: "",
-  critical_bundled_css: "",
+  hwyConfig: "",
+  isDev: "",
+  criticalBundledCSS: "",
   paths: "",
-  public_map: "",
-  public_reverse_map: "",
-  injected_scripts: "",
-  build_id: "",
+  publicMap: "",
+  publicReverseMap: "",
+  injectedScripts: "",
+  buildID: "",
 } as const;
 
 for (const key in HWY_GLOBAL_KEYS) {
   HWY_GLOBAL_KEYS[key as HwyGlobalKey] = HWY_PREFIX + key;
 }
 
-export function get_hwy_global() {
-  const global_this = globalThis as any;
+export function getHwyGlobal() {
+  const dangerousGlobalThis = globalThis as any;
 
-  if (!global_this[HWY_SYMBOL]) {
-    global_this[HWY_SYMBOL] = {};
+  if (!dangerousGlobalThis[HWY_SYMBOL]) {
+    dangerousGlobalThis[HWY_SYMBOL] = {};
   }
 
   function get<K extends HwyGlobalKey>(key: K) {
-    return global_this[HWY_SYMBOL][HWY_PREFIX + key] as HwyGlobal[K];
+    return dangerousGlobalThis[HWY_SYMBOL][HWY_PREFIX + key] as HwyGlobal[K];
   }
 
   function set<K extends HwyGlobalKey, V extends HwyGlobal[K]>(
     key: K,
     value: V,
   ) {
-    global_this[HWY_SYMBOL][HWY_PREFIX + key] = value;
+    dangerousGlobalThis[HWY_SYMBOL][HWY_PREFIX + key] = value;
   }
 
   return { get, set };
@@ -225,18 +245,18 @@ export function get_hwy_global() {
 // CLIENT GLOBAL
 ///////////////////////////////////
 
-export function get_hwy_client_global() {
-  const global_this = globalThis as any;
+export function getHwyClientGlobal() {
+  const dangerousGlobalThis = globalThis as any;
 
   function get<K extends HwyClientGlobalKey>(key: K) {
-    return global_this[HWY_SYMBOL][key] as HwyClientGlobal[K];
+    return dangerousGlobalThis[HWY_SYMBOL][key] as HwyClientGlobal[K];
   }
 
   function set<K extends HwyClientGlobalKey, V extends HwyClientGlobal[K]>(
     key: K,
     value: V,
   ) {
-    global_this[HWY_SYMBOL][key] = value;
+    dangerousGlobalThis[HWY_SYMBOL][key] = value;
   }
 
   return { get, set };
@@ -251,7 +271,6 @@ export type DataProps = {
 };
 
 export type Loader = (args: DataProps) => Promise<any> | any;
-
 export type Action = (args: DataProps) => Promise<any> | any;
 
 type NotResponse<T> = T extends Response ? never : T;
@@ -260,14 +279,12 @@ export type PageProps<
   LoaderType extends Loader = Loader,
   ActionType extends Action = Action,
   AdHocData extends any = any,
-  FunctionComponent = any,
 > = {
   loaderData: NotResponse<Awaited<ReturnType<LoaderType>>>;
   actionData: NotResponse<Awaited<ReturnType<ActionType>>> | undefined;
   Outlet: FunctionComponent;
   params: Record<string, string>;
   splatSegments: string[];
-  path: string;
   adHocData: AdHocData;
 };
 

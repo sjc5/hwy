@@ -3,37 +3,37 @@ import { startTransition } from "react";
 import {
   CLIENT_KEYS,
   HWY_PREFIX,
-  get_hwy_client_global,
+  getHwyClientGlobal,
 } from "../../common/index.mjs";
 
 let isNavigating = false;
 let isSubmitting = false;
 let isRevalidating = false;
 
-const abort_controllers = new Map<string, AbortController>();
+const abortControllers = new Map<string, AbortController>();
 
-function handle_abort_controller(key: string) {
-  const needs_abort = abort_controllers.has(key);
-  if (needs_abort) {
-    const controller = abort_controllers.get(key);
+function handleAbortController(key: string) {
+  const needsAbort = abortControllers.has(key);
+  if (needsAbort) {
+    const controller = abortControllers.get(key);
     controller?.abort();
-    abort_controllers.delete(key);
+    abortControllers.delete(key);
   }
-  const new_controller = new AbortController();
-  abort_controllers.set(key, new_controller);
-  return { abort_controller: new_controller, did_abort: needs_abort };
+  const newController = new AbortController();
+  abortControllers.set(key, newController);
+  return { abortController: newController, didAbort: needsAbort };
 }
 
-const hwy_client_global = get_hwy_client_global();
+const hwyClientGlobal = getHwyClientGlobal();
 
 function getIsInternalLink(href: string) {
   try {
     if (!href.startsWith("http://") && !href.startsWith("https://")) {
       return true;
     }
-    const link_url = new URL(href);
-    const current_origin = window.location.origin;
-    return link_url.origin === current_origin;
+    const linkURL = new URL(href);
+    const currentOrigin = window.location.origin;
+    return linkURL.origin === currentOrigin;
   } catch (e) {
     console.error("Invalid URL:", href);
     return false;
@@ -85,7 +85,7 @@ function readScrollStateMapSubKey(key: string) {
 function getShouldPreventLinkDefault(event: MouseEvent) {
   const anchor = (event.target as HTMLElement).closest("a");
 
-  const should_prevent_default =
+  const shouldPreventDefault =
     anchor && // ignore clicks with no anchor
     anchor.target !== "_blank" && // ignore new tabs
     event.button !== 1 && // middle mouse button click
@@ -97,7 +97,7 @@ function getShouldPreventLinkDefault(event: MouseEvent) {
     !event.altKey && // ignore alt+click
     getIsInternalLink(anchor.href); // ignore external links
 
-  return should_prevent_default;
+  return shouldPreventDefault;
 }
 
 async function initReactClient(hydrateFn: () => void) {
@@ -112,7 +112,7 @@ async function initReactClient(hydrateFn: () => void) {
         (location.pathname !== lastKnownCustomLocation.pathname ||
           location.search !== lastKnownCustomLocation.search)
       ) {
-        await __navigate({
+        await internalNavigate({
           href: window.location.href,
           navigationType: "browserHistory",
           scrollStateToRestore: readScrollStateMapSubKey(
@@ -138,20 +138,20 @@ async function initReactClient(hydrateFn: () => void) {
     history.scrollRestoration = "manual";
   }
 
-  const components = hwy_client_global.get("activePaths").map((x: any) => {
+  const components = hwyClientGlobal.get("activePaths").map((x: any) => {
     return import(("." + x).replace("public/dist/", ""));
   });
 
-  const awaited_components = await Promise.all(components);
+  const awaitedComps = await Promise.all(components);
 
-  hwy_client_global.set(
+  hwyClientGlobal.set(
     "activeComponents",
-    awaited_components.map((x, i) => x.default),
+    awaitedComps.map((x, i) => x.default),
   );
 
-  hwy_client_global.set(
+  hwyClientGlobal.set(
     "activeErrorBoundaries",
-    awaited_components.map((x) => x.ErrorBoundary),
+    awaitedComps.map((x) => x.ErrorBoundary),
   );
 
   startTransition(hydrateFn);
@@ -165,7 +165,7 @@ async function initReactClient(hydrateFn: () => void) {
 
     if (getShouldPreventLinkDefault(event)) {
       event.preventDefault();
-      await __navigate({
+      await internalNavigate({
         href: anchor.href,
         navigationType: "userNavigation",
       });
@@ -186,17 +186,17 @@ async function initReactClient(hydrateFn: () => void) {
 
     const formData = new FormData(form);
 
-    const submit_res = await submit(action || window.location.href, {
+    const submitRes = await submit(action || window.location.href, {
       method,
       body: method.toLowerCase() === "get" ? undefined : formData,
     });
 
-    if (submit_res.success) {
-      const json = await submit_res.response.json();
-      hwy_client_global.set("actionData", json.actionData);
+    if (submitRes.success) {
+      const json = await submitRes.response.json();
+      hwyClientGlobal.set("actionData", json.actionData);
       reRenderApp({ json, navigationType: "revalidation" });
     } else {
-      console.error(submit_res.error);
+      console.error(submitRes.error);
     }
   });
 }
@@ -206,10 +206,10 @@ type NavigationType =
   | "userNavigation"
   | "revalidation"
   | "redirect"
-  | "buildIdCheck";
+  | "buildIDCheck";
 
-async function handle_redirects(props: {
-  abort_controller: AbortController;
+async function handleRedirects(props: {
+  abortController: AbortController;
   url: URL;
   requestInit?: RequestInit;
 }) {
@@ -233,23 +233,23 @@ async function handle_redirects(props: {
 
   try {
     res = await fetch(props.url, {
-      signal: props.abort_controller.signal,
+      signal: props.abortController.signal,
       ...props.requestInit,
       ...bodyParentObj,
     });
 
     if (res?.redirected) {
-      const new_url = new URL(res.url);
+      const newURL = new URL(res.url);
 
-      if (!getIsInternalLink(new_url.href)) {
+      if (!getIsInternalLink(newURL.href)) {
         // external link, hard redirecting
-        window.location.href = new_url.href;
+        window.location.href = newURL.href;
         return;
       }
 
       // internal link, soft redirecting
-      await __navigate({
-        href: new_url.href,
+      await internalNavigate({
+        href: newURL.href,
         navigationType: "redirect",
       });
 
@@ -259,14 +259,14 @@ async function handle_redirects(props: {
     // If this was an attempted redirect,
     // potentially a CORS error here
     // Recommend returning a JSON instruction to redirect on client
-    // with window.location.href = new_url.href;
+    // with window.location.href = newURL.href;
     console.error(e);
   }
 
   return res;
 }
 
-function set_status({
+function setStatus({
   type,
   value,
 }: {
@@ -277,39 +277,39 @@ function set_status({
     isRevalidating = value;
   } else if (type === "submission") {
     isSubmitting = value;
-  } else if (type !== "buildIdCheck") {
+  } else if (type !== "buildIDCheck") {
     isNavigating = value;
   }
 }
 
-async function __navigate(props: {
+async function internalNavigate(props: {
   href: string;
   navigationType: NavigationType;
   scrollStateToRestore?: { x: number; y: number };
   replace?: boolean;
 }) {
-  set_status({ type: props.navigationType, value: true });
+  setStatus({ type: props.navigationType, value: true });
 
-  const abort_controller_key =
+  const abortControllerKey =
     props.href === "." || props.href === window.location.href
       ? "revalidate"
       : "navigate";
-  const { abort_controller } = handle_abort_controller(abort_controller_key);
+  const { abortController } = handleAbortController(abortControllerKey);
 
   try {
     const url = new URL(props.href, window.location.origin);
 
     url.searchParams.set(`${HWY_PREFIX}json`, "1");
 
-    const res = await handle_redirects({
-      abort_controller,
+    const res = await handleRedirects({
+      abortController,
       url,
     });
 
-    abort_controllers.delete(abort_controller_key);
+    abortControllers.delete(abortControllerKey);
 
     if (!res || res.status !== 200) {
-      set_status({ type: props.navigationType, value: false });
+      setStatus({ type: props.navigationType, value: false });
       return;
     }
 
@@ -319,13 +319,13 @@ async function __navigate(props: {
       throw new Error("No JSON response");
     }
 
-    if (json.buildId !== hwy_client_global.get("buildId")) {
+    if (json.buildID !== hwyClientGlobal.get("buildID")) {
       window.location.href = props.href;
       return;
     }
 
-    if (props.navigationType === "buildIdCheck") {
-      set_status({ type: props.navigationType, value: false });
+    if (props.navigationType === "buildIDCheck") {
+      setStatus({ type: props.navigationType, value: false });
       return;
     }
 
@@ -363,13 +363,13 @@ async function __navigate(props: {
       );
     }
 
-    set_status({ type: props.navigationType, value: false });
+    setStatus({ type: props.navigationType, value: false });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       // eat
     } else {
       console.error(error);
-      set_status({ type: props.navigationType, value: false });
+      setStatus({ type: props.navigationType, value: false });
     }
   }
 }
@@ -392,30 +392,30 @@ async function submit(
     }
   | { success: false; error: string }
 > {
-  set_status({ type: "submission", value: true });
+  setStatus({ type: "submission", value: true });
 
-  const abort_controller_key = url + (requestInit?.method || "");
-  const { abort_controller, did_abort } =
-    handle_abort_controller(abort_controller_key);
+  const abortControllerKey = url + (requestInit?.method || "");
+  const { abortController, didAbort } =
+    handleAbortController(abortControllerKey);
 
-  const url_to_use = new URL(url, window.location.origin);
-  url_to_use.searchParams.set(`${HWY_PREFIX}json`, "1");
+  const urlToUse = new URL(url, window.location.origin);
+  urlToUse.searchParams.set(`${HWY_PREFIX}json`, "1");
 
   try {
-    const response = await handle_redirects({
-      abort_controller,
-      url: url_to_use,
+    const response = await handleRedirects({
+      abortController,
+      url: urlToUse,
       requestInit,
     });
 
-    abort_controllers.delete(abort_controller_key);
+    abortControllers.delete(abortControllerKey);
 
     if (
       response &&
       (String(response?.status).startsWith("4") ||
         String(response?.status).startsWith("5"))
     ) {
-      set_status({ type: "submission", value: false });
+      setStatus({ type: "submission", value: false });
 
       return {
         success: false,
@@ -423,12 +423,12 @@ async function submit(
       } as const;
     }
 
-    const IS_GET = requestInit?.method?.toLowerCase() === "get";
+    const isMethodGet = requestInit?.method?.toLowerCase() === "get";
 
-    if (did_abort) {
-      if (!IS_GET) {
+    if (didAbort) {
+      if (!isMethodGet) {
         // revalidate
-        await __navigate({
+        await internalNavigate({
           href: location.href,
           navigationType: "revalidation",
         }); // this shuts off loading indicator too
@@ -446,16 +446,16 @@ async function submit(
         } as const;
       }
 
-      if (!IS_GET) {
+      if (!isMethodGet) {
         // HWY __TODO This should probably be a specific endpoint, otherwise this might fail if the page doesn't exist anymore
         // __TODO need to remind myself why this is here specifically
-        await __navigate({
+        await internalNavigate({
           href: location.href,
-          navigationType: "buildIdCheck",
+          navigationType: "buildIDCheck",
         });
       }
 
-      set_status({ type: "submission", value: false });
+      setStatus({ type: "submission", value: false });
     }
 
     return {
@@ -471,7 +471,7 @@ async function submit(
       } as const;
     } else {
       console.error(error);
-      set_status({ type: "submission", value: false });
+      setStatus({ type: "submission", value: false });
 
       return {
         success: false,
@@ -488,64 +488,58 @@ async function reRenderApp({
   json: any;
   navigationType: NavigationType;
 }) {
-  const old_list = hwy_client_global.get("activePaths");
-  const new_list = json.activePaths;
+  const oldList = hwyClientGlobal.get("activePaths");
+  const newList = json.activePaths;
 
-  let updated_list: {
+  let updatedList: {
     importPath: string;
     type: "new" | "same";
   }[] = [];
 
-  // compare and populate updated_list
-  for (let i = 0; i < Math.max(old_list.length, new_list.length); i++) {
-    if (
-      i < old_list.length &&
-      i < new_list.length &&
-      old_list[i] === new_list[i]
-    ) {
-      updated_list.push({
-        importPath: old_list[i],
+  // compare and populate updatedList
+  for (let i = 0; i < Math.max(oldList.length, newList.length); i++) {
+    if (i < oldList.length && i < newList.length && oldList[i] === newList[i]) {
+      updatedList.push({
+        importPath: oldList[i],
         type: "same",
       });
-    } else if (i < new_list.length) {
-      updated_list.push({
-        importPath: new_list[i],
+    } else if (i < newList.length) {
+      updatedList.push({
+        importPath: newList[i],
         type: "new",
       });
     }
   }
 
   // get new components only
-  const components = updated_list.map((x: any) => {
+  const components = updatedList.map((x: any) => {
     if (x.type === "new") {
       return import(("." + x.importPath).replace("public/dist/", ""));
     }
     return undefined;
   });
-  const awaited_components = await Promise.all(components);
-  const awaited_defaults = awaited_components.map((x) =>
-    x ? x.default : undefined,
-  );
+  const awaitedComps = await Promise.all(components);
+  const awaitedDefaults = awaitedComps.map((x) => (x ? x.default : undefined));
 
   // placeholder list based on old list
-  let new_active_components = hwy_client_global.get("activeComponents");
+  let newActiveComps = hwyClientGlobal.get("activeComponents");
 
   // replace stale components with new ones where applicable
-  for (let i = 0; i < awaited_defaults.length; i++) {
-    if (awaited_defaults[i]) {
-      new_active_components[i] = awaited_defaults[i];
+  for (let i = 0; i < awaitedDefaults.length; i++) {
+    if (awaitedDefaults[i]) {
+      newActiveComps[i] = awaitedDefaults[i];
     }
   }
 
   // delete any remaining stale components
-  if (old_list.length > new_list.length) {
-    new_active_components = new_active_components.slice(0, new_list.length);
+  if (oldList.length > newList.length) {
+    newActiveComps = newActiveComps.slice(0, newList.length);
   }
 
   // NOW ACTUALLY SET EVERYTHING
-  hwy_client_global.set("activeComponents", new_active_components);
+  hwyClientGlobal.set("activeComponents", newActiveComps);
 
-  const identical_keys_to_set = [
+  const identicalKeysToSet = [
     "activeErrorBoundaries",
     "activeData",
     "activePaths",
@@ -553,29 +547,29 @@ async function reRenderApp({
     "splatSegments",
     "params",
     "adHocData",
-    "buildId",
+    "buildID",
   ] as const satisfies ReadonlyArray<(typeof CLIENT_KEYS)[number]>;
 
-  for (const key of identical_keys_to_set) {
-    hwy_client_global.set(key, json[key]);
+  for (const key of identicalKeysToSet) {
+    hwyClientGlobal.set(key, json[key]);
   }
 
   if (navigationType !== "revalidation") {
-    hwy_client_global.set("actionData", json.actionData);
+    hwyClientGlobal.set("actionData", json.actionData);
   }
 
-  let highest_index: number | undefined;
+  let highestIndex: number | undefined;
   if (navigationType !== "revalidation") {
-    for (let i = 0; i < updated_list.length; i++) {
-      if (updated_list[i].type === "new") {
-        highest_index = i;
+    for (let i = 0; i < updatedList.length; i++) {
+      if (updatedList[i].type === "new") {
+        highestIndex = i;
         break;
       }
     }
   } else {
     for (let i = 0; i < (json.actionData as any[]).length; i++) {
       if (json.actionData[i] !== undefined) {
-        highest_index = i;
+        highestIndex = i;
         break;
       }
     }
@@ -583,7 +577,7 @@ async function reRenderApp({
 
   // dispatch event
   const event = new CustomEvent("hwy:route-change", {
-    detail: { index: highest_index },
+    detail: { index: highestIndex },
   });
   window.dispatchEvent(event);
 
@@ -648,7 +642,7 @@ function addBlocksToHead(type: "meta" | "rest", blocks: Array<any>) {
 }
 
 async function navigate(href: string, options?: { replace?: boolean }) {
-  await __navigate({
+  await internalNavigate({
     href,
     navigationType: "userNavigation",
     replace: options?.replace,

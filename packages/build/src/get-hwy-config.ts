@@ -5,25 +5,25 @@ import { pathToFileURL } from "node:url";
 import { hwyLog } from "../../common/dev.mjs";
 import { type HwyConfig } from "../../common/index.mjs";
 
-let cached_hwy_config: HwyConfig | undefined;
+let cachedHwyConfig: HwyConfig | undefined;
 
-const js_path = path.join(process.cwd(), "hwy.config.js");
-const ts_path = path.join(process.cwd(), "hwy.config.ts");
-const ts_config_exists = fs.existsSync(ts_path);
-const dist_dir_path = path.join(process.cwd(), "dist");
-const dist_dir_exists = fs.existsSync(dist_dir_path);
+const jsPath = path.join(process.cwd(), "hwy.config.js");
+const tsPath = path.join(process.cwd(), "hwy.config.ts");
+const tsconfigExists = fs.existsSync(tsPath);
+const distDirPath = path.join(process.cwd(), "dist");
+const distDirExists = fs.existsSync(distDirPath);
 
-async function get_hwy_config() {
-  if (cached_hwy_config) {
-    return cached_hwy_config;
+async function getHwyConfig() {
+  if (cachedHwyConfig) {
+    return cachedHwyConfig;
   }
 
-  if (!dist_dir_exists) {
-    await fs.promises.mkdir(dist_dir_path, { recursive: true });
+  if (!distDirExists) {
+    await fs.promises.mkdir(distDirPath, { recursive: true });
   }
 
   await esbuild.build({
-    entryPoints: [ts_config_exists ? ts_path : js_path],
+    entryPoints: [tsconfigExists ? tsPath : jsPath],
     bundle: true,
     outdir: path.resolve("dist"),
     treeShaking: true,
@@ -32,18 +32,18 @@ async function get_hwy_config() {
     packages: "external",
   });
 
-  const path_to_config_in_dist = path.join(dist_dir_path, "hwy.config.js");
-  const full_url_to_import = pathToFileURL(path_to_config_in_dist).href;
-  const imported = await import(full_url_to_import);
-  const internal_hwy_config = imported.default as HwyConfig | undefined;
+  const pathToConfigInDist = path.join(distDirPath, "hwy.config.js");
+  const fullURLToImport = pathToFileURL(pathToConfigInDist).href;
+  const imported = await import(fullURLToImport);
+  const internalHwyConfig = imported.default as HwyConfig | undefined;
 
-  if (internal_hwy_config && typeof internal_hwy_config !== "object") {
+  if (internalHwyConfig && typeof internalHwyConfig !== "object") {
     throw new Error("hwy.config must export an object");
   }
 
-  const IS_CLIENT_SIDE_REACT = internal_hwy_config?.useClientSideReact === true;
+  const isUsingClientSideReact = internalHwyConfig?.useClientSideReact === true;
 
-  if (IS_CLIENT_SIDE_REACT && internal_hwy_config?.useDotServerFiles !== true) {
+  if (isUsingClientSideReact && internalHwyConfig?.useDotServerFiles !== true) {
     hwyLog.warning(
       "When using client-side React, 'hwyConfig.useDotServerFiles' is effectively always set to true.",
       "This helps keep your server code out of your client bundle.",
@@ -51,26 +51,26 @@ async function get_hwy_config() {
     );
   }
 
-  cached_hwy_config = {
+  cachedHwyConfig = {
     dev: {
-      watchExclusions: internal_hwy_config?.dev?.watchExclusions || [],
-      watchInclusions: internal_hwy_config?.dev?.watchInclusions || [],
+      watchExclusions: internalHwyConfig?.dev?.watchExclusions || [],
+      watchInclusions: internalHwyConfig?.dev?.watchInclusions || [],
       hotReloadStyles:
-        internal_hwy_config?.dev?.hotReloadStyles === false ? false : true,
+        internalHwyConfig?.dev?.hotReloadStyles === false ? false : true,
     },
-    routeStrategy: internal_hwy_config?.routeStrategy || "always-lazy",
-    useClientSideReact: IS_CLIENT_SIDE_REACT as any,
-    useDotServerFiles: IS_CLIENT_SIDE_REACT
+    routeStrategy: internalHwyConfig?.routeStrategy || "always-lazy",
+    useClientSideReact: isUsingClientSideReact as any,
+    useDotServerFiles: isUsingClientSideReact
       ? true
-      : internal_hwy_config?.useDotServerFiles || false,
-    scriptsToInject: internal_hwy_config?.scriptsToInject || [],
+      : internalHwyConfig?.useDotServerFiles || false,
+    scriptsToInject: internalHwyConfig?.scriptsToInject || [],
   } satisfies HwyConfig;
 
   // delete the file now that we're done with it
-  await fs.promises.unlink(path_to_config_in_dist);
+  await fs.promises.unlink(pathToConfigInDist);
 
-  return cached_hwy_config as HwyConfig;
+  return cachedHwyConfig as HwyConfig;
 }
 
-export { get_hwy_config };
+export { getHwyConfig };
 export type { HwyConfig };

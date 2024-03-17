@@ -4,89 +4,89 @@ import {
   HWY_PREFIX,
   Paths,
   SPLAT_SEGMENT,
-  get_hwy_global,
+  getHwyGlobal,
 } from "../../../common/index.mjs";
-import { get_match_strength } from "./get-match-strength.js";
-import { get_matching_paths_internal } from "./get-matching-path-data-internal.js";
+import { getMatchStrength } from "./get-match-strength.js";
+import { getMatchingPathsInternal } from "./get-matching-path-data-internal.js";
 import { matcher } from "./matcher.js";
 
 import { H3Event, getRequestURL } from "h3";
 import { ROOT_DIRNAME } from "../setup.js";
-import { node_path, path_to_file_url_string } from "../utils/url-polyfills.js";
+import { dynamicNodePath, pathToFileURLStr } from "../utils/url-polyfills.js";
 
-const hwy_global = get_hwy_global();
+const hwyGlobal = getHwyGlobal();
 
-async function get_path(import_path: string) {
-  const route_strategy = hwy_global.get("hwy_config").routeStrategy;
+async function getPath(importPath: string) {
+  const routeStrategy = hwyGlobal.get("hwyConfig").routeStrategy;
 
-  const arbitrary_global = (globalThis as any)[Symbol.for(HWY_PREFIX)];
+  const arbitraryGlobal = (globalThis as any)[Symbol.for(HWY_PREFIX)];
 
-  if (!arbitrary_global) {
+  if (!arbitraryGlobal) {
     (globalThis as any)[Symbol.for(HWY_PREFIX)] = {};
   }
 
-  let _path = arbitrary_global["./" + import_path];
+  let localPath = arbitraryGlobal["./" + importPath];
 
   // If "bundle" this should definitely be true
   // If "warm-cache-at-startup" or "lazy-once-then-cache", this might be true
   // If "always-lazy", this should definitely be false
-  if (_path) {
-    return _path;
+  if (localPath) {
+    return localPath;
   }
 
-  const inner = node_path?.join(
-    hwy_global.get("test_dirname") || ROOT_DIRNAME || "./",
-    import_path,
+  const inner = dynamicNodePath?.join(
+    hwyGlobal.get("testDirname") || ROOT_DIRNAME || "./",
+    importPath,
   );
 
-  if (route_strategy === "always-lazy") {
-    return import(path_to_file_url_string(inner));
+  if (routeStrategy === "always-lazy") {
+    return import(pathToFileURLStr(inner));
   }
 
-  _path = await import(path_to_file_url_string(inner));
+  localPath = await import(pathToFileURLStr(inner));
 
-  arbitrary_global["./" + import_path] = _path;
+  arbitraryGlobal["./" + importPath] = localPath;
 
-  return _path;
+  return localPath;
 }
 
-function fully_decorate_paths({
-  matching_paths,
-  splat_segments,
+function fullyDecoratePaths({
+  matchingPaths,
+  splatSegments,
 }: {
-  matching_paths: ReturnType<typeof semi_decorate_paths>;
-  splat_segments: string[];
+  matchingPaths: ReturnType<typeof semiDecoratePaths>;
+  splatSegments: string[];
 }) {
   return (
-    matching_paths?.map((_path) => {
-      const server_import_path =
-        !_path.isServerFile && hwy_global.get("hwy_config").useDotServerFiles
-          ? _path.importPath.replace(".page.js", ".server.js")
-          : _path.importPath;
+    matchingPaths?.map((localPath) => {
+      const serverImportPath =
+        !localPath.isServerFile && hwyGlobal.get("hwyConfig").useDotServerFiles
+          ? localPath.importPath.replace(".page.js", ".server.js")
+          : localPath.importPath;
 
-      const NO_SERVER_FUNCTIONS =
-        hwy_global.get("hwy_config").useDotServerFiles &&
-        !_path.hasSiblingServerFile &&
-        !_path.isServerFile;
+      const noServerFns =
+        hwyGlobal.get("hwyConfig").useDotServerFiles &&
+        !localPath.hasSiblingServerFile &&
+        !localPath.isServerFile;
 
-      const NO_CLIENT_FUNCTIONS = _path.isServerFile;
+      const noClientFns = localPath.isServerFile;
 
       // public
       return {
-        hasSiblingClientFile: _path.hasSiblingClientFile,
-        hasSiblingServerFile: _path.hasSiblingServerFile,
-        isServerFile: _path.isServerFile,
-        importPath: _path.importPath,
-        params: _path.params,
-        pathType: _path.pathType,
-        splatSegments: splat_segments,
+        hasSiblingClientFile: localPath.hasSiblingClientFile,
+        hasSiblingServerFile: localPath.hasSiblingServerFile,
+        isServerFile: localPath.isServerFile,
+        importPath: localPath.importPath,
+        params: localPath.params,
+        pathType: localPath.pathType,
+        splatSegments: splatSegments,
 
         // ON CLIENT
         componentImporter: async () => {
-          if (NO_CLIENT_FUNCTIONS) return;
+          if (noClientFns) return;
 
           try {
-            const imported = await get_path(_path.importPath);
+            const imported = await getPath(localPath.importPath);
             return imported.default;
           } catch (e) {
             console.error(e);
@@ -95,10 +95,10 @@ function fully_decorate_paths({
         },
 
         errorBoundaryImporter: async () => {
-          if (NO_CLIENT_FUNCTIONS) return;
+          if (noClientFns) return;
 
           try {
-            const imported = await get_path(_path.importPath);
+            const imported = await getPath(localPath.importPath);
             return imported.ErrorBoundary ? imported.ErrorBoundary : undefined;
           } catch (e) {
             console.error(e);
@@ -108,10 +108,10 @@ function fully_decorate_paths({
 
         // REST ON SERVER
         headImporter: async () => {
-          if (NO_SERVER_FUNCTIONS) return () => [];
+          if (noServerFns) return () => [];
 
           try {
-            const imported = await get_path(server_import_path);
+            const imported = await getPath(serverImportPath);
             return imported.head ? imported.head : () => [];
           } catch (e) {
             console.error(e);
@@ -120,24 +120,24 @@ function fully_decorate_paths({
         },
 
         loader: async (loaderArgs: DataProps) => {
-          if (NO_SERVER_FUNCTIONS) return;
+          if (noServerFns) return;
 
           try {
-            const imported = await get_path(server_import_path);
+            const imported = await getPath(serverImportPath);
             return imported.loader ? imported.loader(loaderArgs) : undefined;
           } catch (e) {
-            return handle_caught_maybe_response(e);
+            return handleCaughtMaybeResponse(e);
           }
         },
 
         action: async (actionArgs: DataProps) => {
-          if (NO_SERVER_FUNCTIONS) return;
+          if (noServerFns) return;
 
           try {
-            const imported = await get_path(server_import_path);
+            const imported = await getPath(serverImportPath);
             return imported.action ? imported.action(actionArgs) : undefined;
           } catch (e) {
-            return handle_caught_maybe_response(e);
+            return handleCaughtMaybeResponse(e);
           }
         },
       };
@@ -149,9 +149,9 @@ type SemiDecoratedPath = Paths[number] & {
   pattern: string;
   matches: boolean;
   params: Record<string, string>;
-} & ReturnType<typeof get_match_strength>;
+} & ReturnType<typeof getMatchStrength>;
 
-function semi_decorate_paths({
+function semiDecoratePaths({
   event,
   paths,
 }: {
@@ -159,10 +159,10 @@ function semi_decorate_paths({
   paths: Paths;
 }): SemiDecoratedPath[] {
   return paths?.map((path) => {
-    let path_to_use = getRequestURL(event).pathname;
+    let pathToUse = getRequestURL(event).pathname;
 
-    if (path_to_use !== "/" && path_to_use.endsWith("/")) {
-      path_to_use = path_to_use.slice(0, -1);
+    if (pathToUse !== "/" && pathToUse.endsWith("/")) {
+      pathToUse = pathToUse.slice(0, -1);
     }
 
     return {
@@ -170,7 +170,7 @@ function semi_decorate_paths({
       ...path,
       ...matcher({
         pattern: path.path,
-        path: path_to_use,
+        path: pathToUse,
       }),
       pathType:
         path.path === `/${SPLAT_SEGMENT}` ? "ultimate-catch" : path.pathType,
@@ -178,160 +178,159 @@ function semi_decorate_paths({
   });
 }
 
-type FullyDecoratedPath = ReturnType<typeof fully_decorate_paths>[number];
+type FullyDecoratedPath = ReturnType<typeof fullyDecoratePaths>[number];
 
-async function get_action_data({
+async function getActionData({
   event,
-  last_path,
+  lastPath,
 }: {
   event: H3Event;
-  last_path: FullyDecoratedPath;
+  lastPath: FullyDecoratedPath;
 }) {
   try {
     if (["POST", "PUT", "PATCH", "DELETE"].includes(event.method)) {
-      return await last_path?.action?.({
+      return await lastPath?.action?.({
         event,
-        params: last_path?.params,
-        splatSegments: last_path?.splatSegments,
+        params: lastPath?.params,
+        splatSegments: lastPath?.splatSegments,
       });
     }
   } catch (e) {
-    return handle_caught_maybe_response(e);
+    return handleCaughtMaybeResponse(e);
   }
 }
 
 async function getMatchingPathData(event: H3Event) {
-  const paths = hwy_global.get("paths");
+  const paths = hwyGlobal.get("paths");
 
   if (!paths) {
     throw new Error("Paths not found.");
   }
 
-  const semi_decorated_paths = semi_decorate_paths({
+  const semiDecoratedPaths = semiDecoratePaths({
     event,
     paths,
   });
 
-  const { paths: matching_paths, splat_segments } =
-    get_matching_paths_internal(semi_decorated_paths);
+  const { paths: matchingPaths, splatSegments } =
+    getMatchingPathsInternal(semiDecoratedPaths);
 
-  const active_paths = matching_paths?.map((path) => path.pattern);
+  const activePaths = matchingPaths?.map((path) => path.pattern);
 
-  let fully_decorated_matching_paths = fully_decorate_paths({
-    matching_paths,
-    splat_segments,
+  let fullyDecoratedMatchingPaths = fullyDecoratePaths({
+    matchingPaths,
+    splatSegments,
   });
 
-  const last_path =
-    fully_decorated_matching_paths?.[fully_decorated_matching_paths.length - 1];
+  const lastPath =
+    fullyDecoratedMatchingPaths?.[fullyDecoratedMatchingPaths.length - 1];
 
-  const params = last_path?.params;
+  const params = lastPath?.params;
 
-  let action_data: any;
-  let action_data_error: any;
+  let actionData: any;
+  let actionDataError: any;
 
   try {
-    action_data = await get_action_data({ event, last_path });
+    actionData = await getActionData({ event, lastPath });
   } catch (e) {
-    action_data_error = e;
+    actionDataError = e;
   }
 
-  if (action_data instanceof Response && last_path.isServerFile) {
-    return { fetchResponse: action_data };
+  if (actionData instanceof Response && lastPath.isServerFile) {
+    return { fetchResponse: actionData };
   }
 
-  let [active_components] = await Promise.all([
+  let [activeComponents] = await Promise.all([
     Promise.all(
-      (fully_decorated_matching_paths || [])?.map((path) => {
+      (fullyDecoratedMatchingPaths || [])?.map((path) => {
         return path?.componentImporter();
       }),
     ),
   ]);
 
-  let [active_data_obj, active_heads, active_error_boundaries] =
-    await Promise.all([
-      Promise.all(
-        fully_decorated_matching_paths.map(async (path) => {
-          return path
-            ?.loader?.({
-              event,
-              params,
-              splatSegments: splat_segments,
-            })
-            .then((result) => ({ error: undefined, result }))
-            .catch((error) => {
-              if (error instanceof Response) {
-                return { result: error, error: undefined };
-              }
-              console.error("Loader error:", error);
-              return { error, result: undefined };
-            });
-        }),
-      ),
+  let [activeDataObj, activeHeads, activeErrorBoundaries] = await Promise.all([
+    Promise.all(
+      fullyDecoratedMatchingPaths.map(async (path) => {
+        return path
+          ?.loader?.({
+            event,
+            params,
+            splatSegments: splatSegments,
+          })
+          .then((result) => ({ error: undefined, result }))
+          .catch((error) => {
+            if (error instanceof Response) {
+              return { result: error, error: undefined };
+            }
+            console.error("Loader error:", error);
+            return { error, result: undefined };
+          });
+      }),
+    ),
 
-      Promise.all(
-        (fully_decorated_matching_paths || []).map((path) => {
-          return path?.headImporter();
-        }),
-      ),
+    Promise.all(
+      (fullyDecoratedMatchingPaths || []).map((path) => {
+        return path?.headImporter();
+      }),
+    ),
 
-      Promise.all(
-        (fully_decorated_matching_paths || []).map((path) => {
-          return path?.errorBoundaryImporter();
-        }),
-      ),
-    ]);
+    Promise.all(
+      (fullyDecoratedMatchingPaths || []).map((path) => {
+        return path?.errorBoundaryImporter();
+      }),
+    ),
+  ]);
 
-  const errors = active_data_obj.map((item) => item.error);
-  const active_data = active_data_obj.map((item) => item.result);
+  const errors = activeDataObj.map((item) => item.error);
+  const activeData = activeDataObj.map((item) => item.result);
 
-  const there_are_errors = Boolean(
-    action_data_error || errors.some((error) => error),
+  const thereAreErrors = Boolean(
+    actionDataError || errors.some((error) => error),
   );
 
-  let outermost_error_index = errors?.findIndex((error) => error);
+  let outermostErrorIndex = errors?.findIndex((error) => error);
 
-  if (action_data_error) {
-    const action_data_error_index = active_data_obj.length - 1;
+  if (actionDataError) {
+    const actionDataErrorIndex = activeDataObj.length - 1;
 
-    if (there_are_errors && action_data_error_index < outermost_error_index) {
-      outermost_error_index = action_data_error_index;
+    if (thereAreErrors && actionDataErrorIndex < outermostErrorIndex) {
+      outermostErrorIndex = actionDataErrorIndex;
     }
   }
 
-  let closest_parent_error_boundary_index;
+  let closestParentErrorBoundaryIndex;
 
   if (
-    there_are_errors &&
-    outermost_error_index !== undefined &&
-    outermost_error_index !== -1
+    thereAreErrors &&
+    outermostErrorIndex !== undefined &&
+    outermostErrorIndex !== -1
   ) {
-    closest_parent_error_boundary_index = active_error_boundaries
-      .slice(0, outermost_error_index + 1)
+    closestParentErrorBoundaryIndex = activeErrorBoundaries
+      .slice(0, outermostErrorIndex + 1)
       .reverse()
       .findIndex((boundary) => boundary != null);
 
-    if (closest_parent_error_boundary_index !== -1) {
-      closest_parent_error_boundary_index =
-        outermost_error_index - closest_parent_error_boundary_index;
+    if (closestParentErrorBoundaryIndex !== -1) {
+      closestParentErrorBoundaryIndex =
+        outermostErrorIndex - closestParentErrorBoundaryIndex;
     }
 
     if (
-      closest_parent_error_boundary_index !== undefined &&
-      closest_parent_error_boundary_index !== -1
+      closestParentErrorBoundaryIndex !== undefined &&
+      closestParentErrorBoundaryIndex !== -1
     ) {
-      const closest_parent_error_boundary =
-        active_error_boundaries[closest_parent_error_boundary_index];
-      active_components = [
-        ...active_components.slice(0, closest_parent_error_boundary_index),
-        closest_parent_error_boundary,
+      const closestParentErrorBoundary =
+        activeErrorBoundaries[closestParentErrorBoundaryIndex];
+      activeComponents = [
+        ...activeComponents.slice(0, closestParentErrorBoundaryIndex),
+        closestParentErrorBoundary,
       ];
     }
   }
 
   const responses = [
-    ...active_data,
-    ...(action_data ? [action_data] : []),
+    ...activeData,
+    ...(actionData ? [actionData] : []),
   ]?.filter((data) => data instanceof Response);
 
   if (responses.length) {
@@ -340,59 +339,59 @@ async function getMatchingPathData(event: H3Event) {
     };
   }
 
-  if (there_are_errors) {
-    const error_payload = {
+  if (thereAreErrors) {
+    const errorPayload = {
       // not needed in recursive component
-      matchingPaths: fully_decorated_matching_paths.slice(
+      matchingPaths: fullyDecoratedMatchingPaths.slice(
         0,
-        outermost_error_index + 1, // adding one because it's still an active path, we just only want boundary
+        outermostErrorIndex + 1, // adding one because it's still an active path, we just only want boundary
       ),
-      activeHeads: active_heads.slice(0, outermost_error_index),
+      activeHeads: activeHeads.slice(0, outermostErrorIndex),
 
       // needed in recursive component
-      activeData: active_data.slice(0, outermost_error_index), // loader data for active routes
-      activePaths: active_paths.slice(
+      activeData: activeData.slice(0, outermostErrorIndex), // loader data for active routes
+      activePaths: activePaths.slice(
         0,
-        outermost_error_index + 1, // adding one because it's still an active path, we just only want boundary
+        outermostErrorIndex + 1, // adding one because it's still an active path, we just only want boundary
       ),
-      outermostErrorBoundaryIndex: closest_parent_error_boundary_index,
-      splatSegments: splat_segments,
+      outermostErrorBoundaryIndex: closestParentErrorBoundaryIndex,
+      splatSegments: splatSegments,
       params,
-      actionData: fully_decorated_matching_paths
-        .slice(0, outermost_error_index)
+      actionData: fullyDecoratedMatchingPaths
+        .slice(0, outermostErrorIndex)
         .map((x) => {
           return null;
         }),
-      activeComponents: active_components.slice(0, outermost_error_index), // list of import paths for active routes
-      activeErrorBoundaries: active_error_boundaries.slice(
+      activeComponents: activeComponents.slice(0, outermostErrorIndex), // list of import paths for active routes
+      activeErrorBoundaries: activeErrorBoundaries.slice(
         0,
-        outermost_error_index + 1,
+        outermostErrorIndex + 1,
       ),
     } satisfies ActivePathData;
 
-    return error_payload;
+    return errorPayload;
   }
 
   return {
     // not needed in recursive component
-    matchingPaths: fully_decorated_matching_paths,
-    activeHeads: active_heads,
+    matchingPaths: fullyDecoratedMatchingPaths,
+    activeHeads,
 
     // needed in recursive component
-    activeData: active_data, // loader data for active routes
-    activePaths: active_paths,
-    outermostErrorBoundaryIndex: closest_parent_error_boundary_index,
-    splatSegments: splat_segments,
+    activeData, // loader data for active routes
+    activePaths,
+    outermostErrorBoundaryIndex: closestParentErrorBoundaryIndex,
+    splatSegments: splatSegments,
     params,
-    actionData: fully_decorated_matching_paths?.map((x) => {
-      return x.importPath === last_path?.importPath ? action_data : null;
+    actionData: fullyDecoratedMatchingPaths?.map((x) => {
+      return x.importPath === lastPath?.importPath ? actionData : null;
     }),
-    activeComponents: active_components, // list of import paths for active routes
-    activeErrorBoundaries: active_error_boundaries,
+    activeComponents, // list of import paths for active routes
+    activeErrorBoundaries,
   } satisfies ActivePathData;
 }
 
-function handle_caught_maybe_response(e: any) {
+function handleCaughtMaybeResponse(e: any) {
   if (e instanceof Response) {
     return e;
   }

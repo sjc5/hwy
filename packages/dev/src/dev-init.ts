@@ -3,7 +3,7 @@ import { hwyLog } from "../../common/dev.mjs";
 import {
   LIVE_REFRESH_RPC_PATH,
   LIVE_REFRESH_SSE_PATH,
-  get_hwy_global,
+  getHwyGlobal,
   type RefreshFilePayload,
 } from "../../common/index.mjs";
 
@@ -57,8 +57,8 @@ function setupLiveRefreshEndpoints({ app }: { app: App }) {
         }
       }
       if (payload.changeType === "critical-css" && payload.criticalCss) {
-        const hwy_global = get_hwy_global();
-        hwy_global.set("critical_bundled_css", payload.criticalCss);
+        const hwyGlobal = getHwyGlobal();
+        hwyGlobal.set("criticalBundledCSS", payload.criticalCss);
       }
       return "you called chokidar rpc";
     }),

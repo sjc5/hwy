@@ -6,7 +6,7 @@ import {
 } from "../../../common/index.mjs";
 import { getPublicUrl } from "./hashed-public-url.js";
 
-function stable_hash(obj: Record<string, any>): string {
+function stableHash(obj: Record<string, any>): string {
   return JSON.stringify(
     Object.keys(obj)
       .sort()
@@ -20,11 +20,11 @@ function stable_hash(obj: Record<string, any>): string {
   );
 }
 
-function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
+function dedupeHeadBlocks(headBlocks: HeadBlock[]): HeadBlock[] {
   const results = new Map<any, HeadBlock>();
 
-  for (let i = 0; i < head_blocks.length; i++) {
-    const block = head_blocks[i];
+  for (let i = 0; i < headBlocks.length; i++) {
+    const block = headBlocks[i];
 
     if ("title" in block) {
       results.set("title", block);
@@ -33,10 +33,10 @@ function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
       if (name === "description") {
         results.set("description", block);
       } else {
-        results.set(stable_hash(block), block);
+        results.set(stableHash(block), block);
       }
     } else {
-      results.set(stable_hash(block), block);
+      results.set(stableHash(block), block);
     }
   }
 
@@ -46,33 +46,32 @@ function dedupe_head_blocks(head_blocks: HeadBlock[]): HeadBlock[] {
 function getExportedHeadBlocks(
   props: Pick<RouteData, "activePathData" | "event" | "defaultHeadBlocks">,
 ): HeadBlock[] {
-  const { activePathData: active_path_data } = props;
+  const { activePathData } = props;
 
-  const non_deduped =
-    active_path_data?.activeHeads?.flatMap((head: HeadFunction, i) => {
-      const current_active_path = active_path_data?.activePaths?.[i];
+  const nonDeduped =
+    activePathData?.activeHeads?.flatMap((head: HeadFunction, i) => {
+      const currentActivePath = activePathData?.activePaths?.[i];
 
-      if (!current_active_path) {
+      if (!currentActivePath) {
         return [];
       }
 
-      const current_data = active_path_data?.activeData?.[i];
+      const currentData = activePathData?.activeData?.[i];
 
       return head({
-        loaderData: current_data,
-        actionData: active_path_data.actionData,
+        loaderData: currentData,
+        actionData: activePathData.actionData,
         event: props.event,
-        params: active_path_data?.matchingPaths?.[i].params,
-        splatSegments: active_path_data?.matchingPaths?.[i].splatSegments,
-        path: current_active_path,
+        params: activePathData?.matchingPaths?.[i].params,
+        splatSegments: activePathData?.matchingPaths?.[i].splatSegments,
       });
     }) ?? [];
 
   const defaults = props.defaultHeadBlocks ?? [];
 
-  const heads = [...defaults, ...non_deduped];
+  const heads = [...defaults, ...nonDeduped];
 
-  return dedupe_head_blocks(heads);
+  return dedupeHeadBlocks(heads);
 }
 
 function getSiblingClientHeadBlocks(

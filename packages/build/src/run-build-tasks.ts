@@ -1,6 +1,6 @@
-import { exec as exec_callback } from "child_process";
+import { exec as execCallback } from "child_process";
 import esbuild from "esbuild";
-import { parse as json_c_parse } from "jsonc-parser";
+import { parse as jsonCParse } from "jsonc-parser";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -11,31 +11,31 @@ import {
   HWY_PREFIX,
   type RefreshFilePayload,
 } from "../../common/index.mjs";
-import { get_is_hot_reload_only } from "./dev-serve.js";
-import { get_hwy_config } from "./get-hwy-config.js";
+import { getIsHotReloadOnly } from "./dev-serve.js";
+import { getHwyConfig } from "./get-hwy-config.js";
 import {
-  generate_public_file_map,
-  sha1_short,
-  write_paths_to_disk,
+  genPublicFileMap,
+  sha1Short,
+  writePathsToDisk,
   type Paths,
 } from "./walk-pages.js";
 
-const tsconfig_path = path.resolve("tsconfig.json");
-let tsconfig = json_c_parse(fs.readFileSync(tsconfig_path, "utf8")) as Record<
+const tsconfigPath = path.resolve("tsconfig.json");
+let tsconfig = jsonCParse(fs.readFileSync(tsconfigPath, "utf8")) as Record<
   string,
   unknown
 >;
 
-function get_esbuild_build_args_base(IS_DEV: boolean | undefined) {
+function getEsbuildBuildArgsBase(isDev: boolean | undefined) {
   return {
     format: "esm",
     bundle: true,
     treeShaking: true,
     define: {
-      "process.env.NODE_ENV": IS_DEV ? '"development"' : '"production"',
+      "process.env.NODE_ENV": isDev ? '"development"' : '"production"',
     },
-    sourcemap: IS_DEV ? "inline" : false,
-    minify: !IS_DEV,
+    sourcemap: isDev ? "inline" : false,
+    minify: !isDev,
     tsconfigRaw: tsconfig,
   } as const satisfies esbuild.BuildOptions;
 }
@@ -45,73 +45,73 @@ if (tsconfig.compilerOptions) {
   (tsconfig.compilerOptions as any).verbatimModuleSyntax = false;
 }
 
-const FILE_NAMES = [
+const filenames = [
   "critical-bundled-css.js",
   "paths.js",
   "public-map.js",
   "public-reverse-map.js",
 ] as const;
 
-const exec = promisify(exec_callback);
-const hwy_config = await get_hwy_config();
-const SHOULD_BUNDLE_PATHS = hwy_config.routeStrategy === "bundle";
+const exec = promisify(execCallback);
+const hwyConfig = await getHwyConfig();
+const shouldBundlePaths = hwyConfig.routeStrategy === "bundle";
 async function runBuildTasks({
-  IS_DEV,
+  isDev,
   log,
   changeType,
 }: {
-  IS_DEV?: boolean;
+  isDev?: boolean;
   log?: string;
   changeType?: RefreshFilePayload["changeType"];
 }) {
-  const IS_CLIENT_SIDE_REACT = hwy_config.useClientSideReact;
+  const isUsingClientSideReact = hwyConfig.useClientSideReact;
 
   // IDEA -- Should probably split "pre-build" into CSS pre-processing and other pre-processing
   hwyLog.info(`new build initiated${log ? ` (${log})` : ""}`);
-  await handle_prebuild({ IS_DEV });
+  await handlePreBuild({ isDev });
 
-  const HOT_RELOAD_ONLY = get_is_hot_reload_only(changeType);
+  const hotReloadOnly = getIsHotReloadOnly(changeType);
 
-  if (HOT_RELOAD_ONLY) {
+  if (hotReloadOnly) {
     /*
-     * Why is "bundle_css_files" dynamically imported here?
+     * Why is "bundleCSSFiles" dynamically imported here?
      * That file needs to only run once you have a public-map.js file.
      * In this case, you're hot reloading, so we expect you to already
      * have the public-map.js file generated.
      */
-    const { bundle_css_files } = await import("./bundle-css-files.js");
+    const { bundleCSSFiles } = await import("./bundle-css-files.js");
 
-    const css_bundle_res = await bundle_css_files();
+    const cssBundleRes = await bundleCSSFiles();
 
-    await write_refresh_txt({
+    await writeRefreshTxt({
       changeType,
-      criticalCss: css_bundle_res?.critical_css,
+      criticalCss: cssBundleRes?.criticalCSS,
     });
 
     return;
   }
 
   hwyLog.info(`running standard build tasks`);
-  const standard_tasks_p0 = performance.now();
+  const stdTasksP0 = performance.now();
 
-  const DIST_DIR = path.join(process.cwd(), "dist");
-  const DIST_EXISTS = fs.existsSync(DIST_DIR);
-  const PUBLIC_DIST_DIR = path.join(process.cwd(), "public/dist");
-  const PUBLIC_DIST_EXISTS = fs.existsSync(PUBLIC_DIST_DIR);
+  const distDir = path.join(process.cwd(), "dist");
+  const distExists = fs.existsSync(distDir);
+  const publicDistDir = path.join(process.cwd(), "public/dist");
+  const publicDistExists = fs.existsSync(publicDistDir);
 
   // delete dist and public/dist folders
   await Promise.all([
-    DIST_EXISTS && fs.promises.rm(DIST_DIR, { recursive: true }),
-    PUBLIC_DIST_EXISTS &&
-      fs.promises.rm(PUBLIC_DIST_DIR, {
+    distExists && fs.promises.rm(distDir, { recursive: true }),
+    publicDistExists &&
+      fs.promises.rm(publicDistDir, {
         recursive: true,
       }),
   ]);
 
   // recreate them
   await Promise.all([
-    fs.promises.mkdir(DIST_DIR, { recursive: true }),
-    fs.promises.mkdir(PUBLIC_DIST_DIR, {
+    fs.promises.mkdir(distDir, { recursive: true }),
+    fs.promises.mkdir(publicDistDir, {
       recursive: true,
     }),
   ]);
@@ -119,47 +119,47 @@ async function runBuildTasks({
   /********************* STEP 1 *********************
    * GENERATE PUBLIC FILE MAP -- TAKE 1
    */
-  await generate_public_file_map();
+  await genPublicFileMap();
 
   /*
-   * Why is "bundle_css_files" dynamically imported here?
+   * Why is "bundleCSSFiles" dynamically imported here?
    * Needs to come after generating the public file map,
    * which now we have just done above.
    */
-  const { bundle_css_files } = await import("./bundle-css-files.js");
+  const { bundleCSSFiles } = await import("./bundle-css-files.js");
 
   /********************* STEP 2 *********************
    * BUNDLE CSS FILES AND CLIENT ENTRY
    */
 
   await Promise.all([
-    bundle_css_files(),
+    bundleCSSFiles(),
 
-    ...(hwy_config.scriptsToInject ?? []).map(async (item) => {
+    ...(hwyConfig.scriptsToInject ?? []).map(async (item) => {
       return fs.promises.copyFile(
         path.join(process.cwd(), item),
-        path.join(process.cwd(), "public/dist", sha1_short(item) + ".js"),
+        path.join(process.cwd(), "public/dist", sha1Short(item) + ".js"),
       );
     }),
   ]);
 
-  const injected_scripts = (hwy_config.scriptsToInject ?? []).map(
-    (item) => "dist/" + sha1_short(item) + ".js",
+  const injectedScripts = (hwyConfig.scriptsToInject ?? []).map(
+    (item) => "dist/" + sha1Short(item) + ".js",
   );
 
   /********************* STEP 3 *********************
    * BUILD SERVER ENTRY AND WRITE PATHS TO DISK
    */
 
-  const { page_files_list, client_files_list, server_files_list } =
-    await write_paths_to_disk(IS_DEV);
+  const { pageFilesList, clientFilesList, serverFilesList } =
+    await writePathsToDisk();
 
   await esbuild.build({
-    ...get_esbuild_build_args_base(IS_DEV),
+    ...getEsbuildBuildArgsBase(isDev),
     entryPoints: [
       path.resolve("src/main.*"),
-      ...page_files_list.map((x) => x.import_path_with_orig_ext),
-      ...server_files_list.map((x) => x.import_path_with_orig_ext),
+      ...pageFilesList.map((x) => x.importPathWithOrigExt),
+      ...serverFilesList.map((x) => x.importPathWithOrigExt),
     ],
     outdir: path.resolve("dist"),
     platform: "node",
@@ -172,20 +172,20 @@ async function runBuildTasks({
   ///////////////////////////////// STEP 3.5 -- AND NOW THE CLIENT FILES
   ///////////////////////////////////////////////////////////////////////////
 
-  const is_using_client_entry = get_is_using_client_entry();
+  const isUsingClientEntry = getIsUsingClientEntry();
 
   await esbuild.build({
-    ...get_esbuild_build_args_base(IS_DEV),
+    ...getEsbuildBuildArgsBase(isDev),
     entryPoints: [
-      ...(is_using_client_entry
+      ...(isUsingClientEntry
         ? [path.join(process.cwd(), "src/entry.client.*")]
         : []),
-      ...(IS_CLIENT_SIDE_REACT ? page_files_list : []).map(
-        (x) => x.import_path_with_orig_ext,
+      ...(isUsingClientSideReact ? pageFilesList : []).map(
+        (x) => x.importPathWithOrigExt,
       ),
-      ...client_files_list.map((x) => x.import_path_with_orig_ext),
+      ...clientFilesList.map((x) => x.importPathWithOrigExt),
     ],
-    outdir: PUBLIC_DIST_DIR,
+    outdir: publicDistDir,
     platform: "browser",
     splitting: true,
     chunkNames: "hwy_chunk__[hash]",
@@ -198,10 +198,10 @@ async function runBuildTasks({
    * GENERATE PUBLIC FILE MAP -- TAKE 2
    *
    * Needs to come after writing paths to disk.
-   * This is because the client scripts are written during walk_pages inside write_paths_to_disk.
+   * This is because the client scripts are written during walkPages inside writePathsToDisk.
    * This is the last time we generate the public file map -- now final
    */
-  await generate_public_file_map();
+  await genPublicFileMap();
 
   /********************* STEP 5 *********************
    * PREPARE AND WRITE SERVER ENTRY CODE TO DISK
@@ -211,7 +211,7 @@ async function runBuildTasks({
    */
 
   // Grab the specific build output we need -- server entry code
-  let main_code = await fs.promises.readFile(
+  let mainCode = await fs.promises.readFile(
     path.join(process.cwd(), "dist/main.js"),
     "utf8",
   );
@@ -220,10 +220,10 @@ async function runBuildTasks({
    * Grab the rest of the build outputs (previously written to disk)
    * as text in memory. This is a string array.
    */
-  let files_text = await Promise.all(
-    FILE_NAMES.map((file_name) => {
+  let filesText = await Promise.all(
+    filenames.map((filename) => {
       return fs.promises.readFile(
-        path.join(process.cwd(), `dist/${file_name}`),
+        path.join(process.cwd(), `dist/${filename}`),
         "utf-8",
       );
     }),
@@ -234,55 +234,53 @@ async function runBuildTasks({
    * accessible variable. This is how we can access things like the CSS
    * bundle and the public file map at runtime when we need them.
    */
-  files_text = files_text.map((x, i) => {
-    return x.replace("export const ", `${HWY_PREFIX}arbitrary_global.`);
+  filesText = filesText.map((x, i) => {
+    return x.replace("export const ", `${HWY_PREFIX}arbitraryGlobal.`);
   });
 
   /*
    * Prepare to append those file contents into main server entry code.
    * This is now one big string, separated by double newlines.
    */
-  let to_be_appended = files_text.join("\n\n") + "\n\n";
+  let toBeAppended = filesText.join("\n\n") + "\n\n";
 
   /*
    * Set up some additional global variables
    * This is how we can know these settings at runtime
    */
-  const warmup_line = `
+  const warmupLine = `
 if (!globalThis[Symbol.for("${HWY_PREFIX}")]) {
   globalThis[Symbol.for("${HWY_PREFIX}")] = {};
 }
 
-const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
+const ${HWY_PREFIX}arbitraryGlobal = globalThis[Symbol.for("${HWY_PREFIX}")];
 
 `;
 
-  const dev_line = `${HWY_PREFIX}arbitrary_global.${HWY_GLOBAL_KEYS.is_dev} = ${IS_DEV};\n\n`;
+  const devLine = `${HWY_PREFIX}arbitraryGlobal.${HWY_GLOBAL_KEYS.isDev} = ${isDev};\n\n`;
 
-  const hwy_config_line = `${HWY_PREFIX}arbitrary_global.${
-    HWY_GLOBAL_KEYS.hwy_config
-  } = ${JSON.stringify(hwy_config)};\n\n`;
+  const hwyConfigLine = `${HWY_PREFIX}arbitraryGlobal.${
+    HWY_GLOBAL_KEYS.hwyConfig
+  } = ${JSON.stringify(hwyConfig)};\n\n`;
 
-  const injected_scripts_line = `${HWY_PREFIX}arbitrary_global.${
-    HWY_GLOBAL_KEYS.injected_scripts
-  } = ${JSON.stringify(injected_scripts)};\n\n`;
+  const injectedScriptsLine = `${HWY_PREFIX}arbitraryGlobal.${
+    HWY_GLOBAL_KEYS.injectedScripts
+  } = ${JSON.stringify(injectedScripts)};\n\n`;
 
-  const BUILD_ID = Date.now().toString();
-
-  const build_id_line = `${HWY_PREFIX}arbitrary_global.${HWY_GLOBAL_KEYS.build_id} = ${BUILD_ID};\n\n`;
+  const buildIDLine = `${HWY_PREFIX}arbitraryGlobal.${HWY_GLOBAL_KEYS.buildID} = ${Date.now().toString()};\n\n`;
 
   /*
    * Now put it all together and write main.js to disk
    */
   await fs.promises.writeFile(
     path.join(process.cwd(), "dist/main.js"),
-    warmup_line +
-      dev_line +
-      hwy_config_line +
-      injected_scripts_line +
-      build_id_line +
-      to_be_appended +
-      main_code,
+    warmupLine +
+      devLine +
+      hwyConfigLine +
+      injectedScriptsLine +
+      buildIDLine +
+      toBeAppended +
+      mainCode,
   );
 
   /*
@@ -295,57 +293,53 @@ const ${HWY_PREFIX}arbitrary_global = globalThis[Symbol.for("${HWY_PREFIX}")];
    * Only applicable for "bundle" and "warm-cache-at-startup" route loading strategies.
    */
   if (
-    SHOULD_BUNDLE_PATHS ||
-    hwy_config.routeStrategy === "warm-cache-at-startup"
+    shouldBundlePaths ||
+    hwyConfig.routeStrategy === "warm-cache-at-startup"
   ) {
-    await handle_custom_route_loading_code(IS_DEV);
+    await handleCustomRouteLoadingCode(isDev);
   }
 
-  if (IS_DEV) {
-    await write_refresh_txt({ changeType: "standard" });
+  if (isDev) {
+    await writeRefreshTxt({ changeType: "standard" });
   }
 
-  const standard_tasks_p1 = performance.now();
+  const stdTasksP1 = performance.now();
 
-  logPerf("standard build tasks", standard_tasks_p0, standard_tasks_p1);
+  logPerf("standard build tasks", stdTasksP0, stdTasksP1);
 }
 
 export { runBuildTasks };
 
 /* -------------------------------------------------------------------------- */
 
-async function handle_prebuild({ IS_DEV }: { IS_DEV?: boolean }) {
+async function handlePreBuild({ isDev }: { isDev?: boolean }) {
   try {
-    const pkg_json = JSON.parse(
+    const pkgJSON = JSON.parse(
       await fs.promises.readFile(
         path.join(process.cwd(), "package.json"),
         "utf-8",
       ),
     );
-    const prebuild_script = pkg_json.scripts?.["hwy-prebuild"];
-    const prebuild_dev_script = pkg_json.scripts?.["hwy-prebuild-dev"];
+    const prebuildScript = pkgJSON.scripts?.["hwy-prebuild"];
+    const prebuildDevScript = pkgJSON.scripts?.["hwy-prebuild-dev"];
 
-    if (!prebuild_script && !prebuild_dev_script) {
+    if (!prebuildScript && !prebuildDevScript) {
       return;
     }
 
-    const should_use_dev_script = IS_DEV && prebuild_dev_script;
-
-    const script_to_run = should_use_dev_script
-      ? prebuild_dev_script
-      : prebuild_script;
-
-    if (!script_to_run) {
+    const shouldUseDevScript = isDev && prebuildDevScript;
+    const scriptToRun = shouldUseDevScript ? prebuildDevScript : prebuildScript;
+    if (!scriptToRun) {
       return;
     }
 
-    hwyLog.info(`running ${script_to_run}`);
+    hwyLog.info(`running ${scriptToRun}`);
 
-    const prebuild_p0 = performance.now();
+    const prebuildP0 = performance.now();
 
-    const { stdout, stderr } = await exec(script_to_run);
+    const { stdout, stderr } = await exec(scriptToRun);
 
-    const prebuild_p1 = performance.now();
+    const prebuildP1 = performance.now();
 
     console.log(stdout);
 
@@ -353,7 +347,7 @@ async function handle_prebuild({ IS_DEV }: { IS_DEV?: boolean }) {
       console.error(stderr);
     }
 
-    logPerf("pre-build tasks", prebuild_p0, prebuild_p1);
+    logPerf("pre-build tasks", prebuildP0, prebuildP1);
   } catch (error) {
     console.error("Error running pre-build tasks:", error);
   }
@@ -361,7 +355,7 @@ async function handle_prebuild({ IS_DEV }: { IS_DEV?: boolean }) {
 
 /* -------------------------------------------------------------------------- */
 
-async function write_refresh_txt({
+async function writeRefreshTxt({
   changeType,
   criticalCss,
 }: {
@@ -380,10 +374,10 @@ async function write_refresh_txt({
 
 /* -------------------------------------------------------------------------- */
 
-function convert_to_var_name(file_name: string) {
+function toVarName(filename: string) {
   return (
     HWY_PREFIX +
-    file_name
+    filename
       .replace(/-/g, "_")
       .replace(".js", "")
       .replace(/\//g, "")
@@ -393,10 +387,9 @@ function convert_to_var_name(file_name: string) {
 
 /* -------------------------------------------------------------------------- */
 
-function get_is_using_client_entry() {
-  const file_endings = [".js", ".ts", ".jsx", ".tsx"];
-
-  for (const ending of file_endings) {
+function getIsUsingClientEntry() {
+  const extsWithDot = [".js", ".ts", ".jsx", ".tsx"];
+  for (const ending of extsWithDot) {
     if (fs.existsSync(path.join(process.cwd(), `src/entry.client${ending}`))) {
       return true;
     }
@@ -405,18 +398,18 @@ function get_is_using_client_entry() {
 
 /* -------------------------------------------------------------------------- */
 
-async function get_path_import_snippet() {
-  if (hwy_config.routeStrategy === "warm-cache-at-startup") {
+async function getPathImportSnippet() {
+  if (hwyConfig.routeStrategy === "warm-cache-at-startup") {
     return `
 ${HWY_PREFIX}paths.forEach(function (x) {
-  const path_from_dist = "./" + x.importPath;
-  import(path_from_dist).then((x) => ${HWY_PREFIX}arbitrary_global[path_from_dist] = x);
+  const pathFromDist = "./" + x.importPath;
+  import(pathFromDist).then((x) => ${HWY_PREFIX}arbitraryGlobal[pathFromDist] = x);
   ${
-    hwy_config.useDotServerFiles
+    hwyConfig.useDotServerFiles
       ? `
   if (x.hasSiblingServerFile) {
-    const server_path_from_dist = path_from_dist.slice(0, -3) + ".server.js";
-    import(server_path_from_dist).then((x) => ${HWY_PREFIX}arbitrary_global[server_path_from_dist] = x);
+    const serverPathFromDist = pathFromDist.slice(0, -3) + ".server.js";
+    import(serverPathFromDist).then((x) => ${HWY_PREFIX}arbitraryGlobal[serverPathFromDist] = x);
   }
     `.trim() + "\n"
       : ""
@@ -425,9 +418,9 @@ ${HWY_PREFIX}paths.forEach(function (x) {
         `.trim();
   }
 
-  if (SHOULD_BUNDLE_PATHS) {
+  if (shouldBundlePaths) {
     // Read the paths from disk. Results in an array of path objects.
-    const paths_import_list = (
+    const pathsImportList = (
       await import(
         pathToFileURL(path.join(process.cwd(), "dist/paths.js")).href
       )
@@ -438,24 +431,24 @@ ${HWY_PREFIX}paths.forEach(function (x) {
      * and put them into a global variable. This is how we can access each route at runtime.
      * This is the snippet that will be appended to main.js for the "bundle" route loading strategy
      */
-    return paths_import_list
+    return pathsImportList
       .map((x) => {
-        const as_var = convert_to_var_name(x.importPath);
-        const line_1 = `import * as ${as_var} from "./${x.importPath}";\n`;
-        const line_2 = `${HWY_PREFIX}arbitrary_global["./${x.importPath}"] = ${as_var};`;
+        const asVar = toVarName(x.importPath);
+        const line1 = `import * as ${asVar} from "./${x.importPath}";\n`;
+        const line2 = `${HWY_PREFIX}arbitraryGlobal["./${x.importPath}"] = ${asVar};`;
 
         if (x.hasSiblingServerFile) {
-          const import_path_server = x.importPath.replace(
+          const importPathServer = x.importPath.replace(
             ".page.js",
             ".server.js",
           );
-          const as_var_server = convert_to_var_name(import_path_server);
-          const line_3 = `import * as ${as_var_server} from "./${import_path_server}";\n`;
-          const line_4 = `${HWY_PREFIX}arbitrary_global["./${import_path_server}"] = ${as_var_server};`;
-          return line_1 + line_2 + "\n" + line_3 + line_4;
+          const asVarServer = toVarName(importPathServer);
+          const line3 = `import * as ${asVarServer} from "./${importPathServer}";\n`;
+          const line4 = `${HWY_PREFIX}arbitraryGlobal["./${importPathServer}"] = ${asVarServer};`;
+          return line1 + line2 + "\n" + line3 + line4;
         }
 
-        return line_1 + line_2;
+        return line1 + line2;
       })
       .join("\n");
   }
@@ -465,22 +458,22 @@ ${HWY_PREFIX}paths.forEach(function (x) {
 
 /* -------------------------------------------------------------------------- */
 
-async function handle_custom_route_loading_code(IS_DEV?: boolean) {
+async function handleCustomRouteLoadingCode(isDev?: boolean) {
   // Write the final main.js to disk again, with the route loading strategy appended
   await fs.promises.writeFile(
     "dist/main.js",
     (await fs.promises.readFile("./dist/main.js", "utf8")) +
       "\n" +
-      (await get_path_import_snippet()),
+      (await getPathImportSnippet()),
   );
 
   /*
    * Bundle paths with server entry, if applicable.
    * Needs to come after appending route loading strategy.
    */
-  if (SHOULD_BUNDLE_PATHS) {
+  if (shouldBundlePaths) {
     await esbuild.build({
-      ...get_esbuild_build_args_base(IS_DEV),
+      ...getEsbuildBuildArgsBase(isDev),
       entryPoints: [path.resolve("dist/main.js")],
       outfile: path.resolve("dist/main.js"),
       platform: "node",
@@ -497,7 +490,7 @@ async function handle_custom_route_loading_code(IS_DEV?: boolean) {
 
   // rmv the rest
   await Promise.all(
-    FILE_NAMES.map((x) => {
+    filenames.map((x) => {
       return fs.promises.rm(path.join(process.cwd(), `dist/${x}`));
     }),
   );

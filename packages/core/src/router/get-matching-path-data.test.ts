@@ -1,18 +1,18 @@
 import { createEvent } from "h3";
 import { IncomingMessage, ServerResponse } from "node:http";
 import { expect, test } from "vitest";
-import { HWY_PREFIX, get_hwy_global } from "../../../common/index.mjs";
+import { HWY_PREFIX, getHwyGlobal } from "../../../common/index.mjs";
 import { getMatchingPathData } from "./get-matching-path-data.js";
 
-const hwy_global = get_hwy_global();
+const hwyGlobal = getHwyGlobal();
 
-const test_paths = await import(
+const testPaths = await import(
   "../../../../testers/routes/dist/paths.js" as any
 ).then((m) => m[HWY_PREFIX + "paths"]);
 
-hwy_global.set("paths", test_paths);
-hwy_global.set("test_dirname", "testers/routes/dist");
-hwy_global.set("hwy_config", { useDotServerFiles: false } as any);
+hwyGlobal.set("paths", testPaths);
+hwyGlobal.set("testDirname", "testers/routes/dist");
+hwyGlobal.set("hwyConfig", { useDotServerFiles: false } as any);
 
 type ExpectedOutput = {
   params: Record<string, string>;
@@ -25,12 +25,12 @@ type ExpectedOutput = {
   }>;
 };
 
-function gmpd_tester({
+function gmpdTester({
   path,
-  expected_output,
+  expectedOutput,
 }: {
   path: string;
-  expected_output: ExpectedOutput;
+  expectedOutput: ExpectedOutput;
 }) {
   test(`getMatchingPathData: ${path}`, async () => {
     const req: IncomingMessage = {
@@ -56,13 +56,13 @@ function gmpd_tester({
         }) || [],
     } satisfies ExpectedOutput;
 
-    expect(simplified).toEqual(expected_output);
+    expect(simplified).toEqual(expectedOutput);
   });
 }
 
 type IndividualMatch = ExpectedOutput["matchingPaths"][number];
 
-const ultimate_catch = {
+const ultimateCatch = {
   pathType: "ultimate-catch",
   filePath: "pages/$.page.tsx",
 } as const satisfies IndividualMatch;
@@ -73,10 +73,10 @@ ULTIMATE CATCH
 
 // does not exist
 
-gmpd_tester({
+gmpdTester({
   path: "/does-not-exist",
-  expected_output: {
-    matchingPaths: [ultimate_catch],
+  expectedOutput: {
+    matchingPaths: [ultimateCatch],
     params: {},
     splatSegments: ["does-not-exist"],
   },
@@ -84,10 +84,10 @@ gmpd_tester({
 
 // ".page." not in file name, otherwise a valid component
 
-gmpd_tester({
+gmpdTester({
   path: "/this-should-be-ignored",
-  expected_output: {
-    matchingPaths: [ultimate_catch],
+  expectedOutput: {
+    matchingPaths: [ultimateCatch],
     params: {},
     splatSegments: ["this-should-be-ignored"],
   },
@@ -97,9 +97,9 @@ gmpd_tester({
 ULTIMATE INDEX
 ******************/
 
-gmpd_tester({
+gmpdTester({
   path: "/",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "index",
@@ -119,9 +119,9 @@ LIONS
 // should render "lion.page.tsx" (LAYOUT)
 // and "lion/_index.page.tsx" (INDEX)
 
-gmpd_tester({
+gmpdTester({
   path: "/lion",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -141,9 +141,9 @@ gmpd_tester({
 // should render "lion.page.tsx" (LAYOUT)
 // and "lion/$.page.tsx" (SPLAT)
 
-gmpd_tester({
+gmpdTester({
   path: "/lion/123",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -162,9 +162,9 @@ gmpd_tester({
 // "/lion/123/456"
 // same as above but with two splat segments
 
-gmpd_tester({
+gmpdTester({
   path: "/lion/123/456",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -183,9 +183,9 @@ gmpd_tester({
 // "/lion/123/456/789"
 // same as above but with three splat segments
 
-gmpd_tester({
+gmpdTester({
   path: "/lion/123/456/789",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -209,9 +209,9 @@ AND TIGERS
 // should render "tiger.page.tsx" (LAYOUT)
 // and "tiger/_index.page.tsx" (INDEX)
 
-gmpd_tester({
+gmpdTester({
   path: "/tiger",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -232,9 +232,9 @@ gmpd_tester({
 // and "tiger/$tiger_id.page.tsx" ($tiger_id LAYOUT)
 // and "tiger/$tiger_id/_index.page.tsx" ($tiger_id INDEX)
 
-gmpd_tester({
+gmpdTester({
   path: "/tiger/123",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -259,9 +259,9 @@ gmpd_tester({
 // and "tiger/$tiger_id.page.tsx" ($tiger_id LAYOUT)
 // and "tiger/$tiger_id/$tiger_cub_id.page.tsx" ($tiger_cub_id LAYOUT)
 
-gmpd_tester({
+gmpdTester({
   path: "/tiger/123/456",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -286,9 +286,9 @@ gmpd_tester({
 // and "tiger/$tiger_id.page.tsx" ($tiger_id LAYOUT)
 // and "tiger/$tiger_id/$.page.tsx" (CATCH)
 
-gmpd_tester({
+gmpdTester({
   path: "/tiger/123/456/789",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -312,9 +312,9 @@ gmpd_tester({
 AND BEARS
 ******************/
 
-gmpd_tester({
+gmpdTester({
   path: "/bear",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -333,9 +333,9 @@ gmpd_tester({
 
 // "/bear/123"
 
-gmpd_tester({
+gmpdTester({
   path: "/bear/123",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -355,9 +355,9 @@ gmpd_tester({
 // should render bear.page.tsx (bear layout), and bear/$bear_id.page.tsx (123 layout), and bear/$bear_id/$.page.tsx (456 catch)
 // params should be { bear_id: "123" } and splatSegments should be ["456"]
 
-gmpd_tester({
+gmpdTester({
   path: "/bear/123/456",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -380,9 +380,9 @@ gmpd_tester({
 // "/bear/123/456/789"
 // same as above but with two splat segments
 
-gmpd_tester({
+gmpdTester({
   path: "/bear/123/456/789",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -414,9 +414,9 @@ DASHBOARD
 // should render "/dashboard.page.tsx" (LAYOUT)
 // and "/dashboard/_index.page.tsx" (INDEX)
 
-gmpd_tester({
+gmpdTester({
   path: "/dashboard",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -436,9 +436,9 @@ gmpd_tester({
 // should render "/dashboard.page.tsx" (LAYOUT)
 // and "/dashboard/$.page.tsx" (CATCH)
 
-gmpd_tester({
+gmpdTester({
   path: "/dashboard/asdf",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -459,9 +459,9 @@ gmpd_tester({
 // and "/dashboard/customers.page.tsx" (customers LAYOUT)
 // and "/dashboard/customers/_index.page.tsx" (customers INDEX)
 
-gmpd_tester({
+gmpdTester({
   path: "/dashboard/customers",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -487,9 +487,9 @@ gmpd_tester({
 // and "/dashboard/customers/$customer_id.page.tsx" ($customer_id LAYOUT)
 // and "/dashboard/customers/$customer_id/_index.page.tsx" ($customer_id INDEX)
 
-gmpd_tester({
+gmpdTester({
   path: "/dashboard/customers/123",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -522,9 +522,9 @@ gmpd_tester({
 // and "/dashboard/customers/$customer_id/orders.page.tsx" (orders LAYOUT)
 // and "/dashboard/customers/$customer_id/orders/_index.page.tsx" (orders INDEX)
 
-gmpd_tester({
+gmpdTester({
   path: "/dashboard/customers/123/orders",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -562,9 +562,9 @@ gmpd_tester({
 // and "/dashboard/customers/$customer_id/orders.page.tsx" (orders LAYOUT)
 // and "/dashboard/customers/$customer_id/orders/$order_id.page.tsx" ($order_id LAYOUT)
 
-gmpd_tester({
+gmpdTester({
   path: "/dashboard/customers/123/orders/456",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",
@@ -599,9 +599,9 @@ gmpd_tester({
 // "/articles"
 // should render "/articles/_index.page.tsx" (INDEX)
 
-gmpd_tester({
+gmpdTester({
   path: "/articles",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "index",
@@ -615,10 +615,10 @@ gmpd_tester({
 
 // "/articles/bob"
 // should render ultimate catch
-gmpd_tester({
+gmpdTester({
   path: "/articles/bob",
-  expected_output: {
-    matchingPaths: [ultimate_catch],
+  expectedOutput: {
+    matchingPaths: [ultimateCatch],
     params: {},
     splatSegments: ["articles", "bob"],
   },
@@ -627,10 +627,10 @@ gmpd_tester({
 // "/articles/test"
 // should render ultimate catch (even though "test" directory exists)
 
-gmpd_tester({
+gmpdTester({
   path: "/articles/test",
-  expected_output: {
-    matchingPaths: [ultimate_catch],
+  expectedOutput: {
+    matchingPaths: [ultimateCatch],
     params: {},
     splatSegments: ["articles", "test"],
   },
@@ -639,9 +639,9 @@ gmpd_tester({
 // "/articles/test/articles"
 // should render "/articles/test/articles/_index.page.tsx" (articles-test-articles INDEX)
 
-gmpd_tester({
+gmpdTester({
   path: "/articles/test/articles",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "index",
@@ -656,9 +656,9 @@ gmpd_tester({
 // "/index"
 // should render "/dynamic-index/__site_index/index.page.tsx"
 
-gmpd_tester({
+gmpdTester({
   path: "/dynamic-index/index",
-  expected_output: {
+  expectedOutput: {
     matchingPaths: [
       {
         pathType: "static-layout",

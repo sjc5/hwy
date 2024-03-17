@@ -2,7 +2,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function make_emoji_data_url(emoji_str: string) {
+function makeEmojiDataURL(emojiStr: string) {
   const prepend =
     `data:image/svg+xml,` +
     `<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 16 16'>` +
@@ -10,7 +10,7 @@ function make_emoji_data_url(emoji_str: string) {
 
   const append = `</text>` + `</svg>`;
 
-  return prepend + emoji_str + append;
+  return prepend + emojiStr + append;
 }
 
-export { cx, make_emoji_data_url };
+export { cx, makeEmojiDataURL };

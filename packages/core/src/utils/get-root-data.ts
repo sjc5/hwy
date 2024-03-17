@@ -1,15 +1,15 @@
 import { getQuery, H3Event } from "h3";
 import {
-  get_hwy_global,
+  getHwyGlobal,
   HeadBlock,
   HWY_PREFIX,
-  sort_head_blocks,
+  sortHeadBlocks,
 } from "../../../common/index.mjs";
 import { getHeadElementProps } from "../components/head-elements-comp.js";
 import { getMatchingPathData } from "../router/get-matching-path-data.js";
 import { utils } from "./hwy-utils.js";
 
-export function get_is_json_request(event: H3Event) {
+export function getIsJSONRequest(event: H3Event) {
   return Boolean(getQuery(event)[`${HWY_PREFIX}json`]);
 }
 
@@ -32,10 +32,10 @@ async function getRouteData({
     return null;
   }
 
-  const hwy_global = get_hwy_global();
+  const hwyGlobal = getHwyGlobal();
 
-  const IS_CLIENT_SIDE_REACT = Boolean(
-    hwy_global.get("hwy_config").useClientSideReact,
+  const isUsingClientSideReact = Boolean(
+    hwyGlobal.get("hwyConfig").useClientSideReact,
   );
 
   const headBlocks = utils.getExportedHeadBlocks({
@@ -44,12 +44,11 @@ async function getRouteData({
     defaultHeadBlocks,
   });
 
-  const { title, metaHeadBlocks, restHeadBlocks } =
-    sort_head_blocks(headBlocks);
+  const { title, metaHeadBlocks, restHeadBlocks } = sortHeadBlocks(headBlocks);
 
-  const buildId = hwy_global.get("build_id");
+  const buildID = hwyGlobal.get("buildID");
 
-  if (IS_CLIENT_SIDE_REACT && get_is_json_request(event)) {
+  if (isUsingClientSideReact && getIsJSONRequest(event)) {
     if (event.web?.request?.signal.aborted || event.handled) {
       return;
     }
@@ -70,7 +69,7 @@ async function getRouteData({
       params: activePathData.params,
       actionData: activePathData.actionData,
       adHocData,
-      buildId,
+      buildID,
     };
   }
 
@@ -82,7 +81,7 @@ async function getRouteData({
     restHeadBlocks,
     defaultHeadBlocks,
     adHocData,
-    buildId,
+    buildID,
   };
 
   return {

@@ -1,6 +1,6 @@
 import {
   CRITICAL_CSS_ELEMENT_ID,
-  get_hwy_global,
+  getHwyGlobal,
 } from "../../../common/index.mjs";
 import { getRefreshScript } from "./dev-live-refresh-script.js";
 import {
@@ -10,10 +10,10 @@ import {
 import { getSsrInnerHtml } from "./get-ssr-inner-html.js";
 import { getPublicUrl } from "./hashed-public-url.js";
 
-const hwy_global = get_hwy_global();
+const hwyGlobal = getHwyGlobal();
 
 function getCriticalCss() {
-  return hwy_global.get("critical_bundled_css") || "";
+  return hwyGlobal.get("criticalBundledCSS") || "";
 }
 
 const utils = {

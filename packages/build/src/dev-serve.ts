@@ -9,22 +9,22 @@ import {
   LIVE_REFRESH_RPC_PATH,
   RefreshFilePayload,
 } from "../../common/index.mjs";
-import { get_hwy_config } from "./get-hwy-config.js";
+import { getHwyConfig } from "./get-hwy-config.js";
 import { runBuildTasks } from "./run-build-tasks.js";
 
-const hwy_config = await get_hwy_config();
-let dev_config = hwy_config.dev;
+const hwyConfig = await getHwyConfig();
+let devConfig = hwyConfig.dev;
 
-function get_is_hot_reload_only(
+function getIsHotReloadOnly(
   changeType: RefreshFilePayload["changeType"] | undefined,
 ): changeType is "css-bundle" | "critical-css" {
   return Boolean(
-    hwy_config.dev?.hotReloadStyles && changeType && changeType !== "standard",
+    hwyConfig.dev?.hotReloadStyles && changeType && changeType !== "standard",
   );
 }
 
 async function devServe() {
-  let has_run_one_time = false;
+  let hasRunOneTime = false;
 
   hwyLog.info("running in dev mode");
 
@@ -41,23 +41,23 @@ async function devServe() {
     (env as any).PORT = port;
   }
 
-  const refresh_watcher = chokidar.watch(
+  const refreshWatcher = chokidar.watch(
     path.join(process.cwd(), "dist", "refresh.txt"),
     { ignoreInitial: true },
   );
 
-  refresh_watcher.on("all", async () => {
-    const refresh_txt_path = path.join(process.cwd(), "dist", "refresh.txt");
+  refreshWatcher.on("all", async () => {
+    const refreshTxtPath = path.join(process.cwd(), "dist", "refresh.txt");
 
-    if (!fs.existsSync(refresh_txt_path)) {
+    if (!fs.existsSync(refreshTxtPath)) {
       return;
     }
 
-    const refresh_obj = JSON.parse(
-      fs.readFileSync(refresh_txt_path, "utf8"),
+    const refreshObj = JSON.parse(
+      fs.readFileSync(refreshTxtPath, "utf8"),
     ) as RefreshFilePayload;
 
-    if (has_run_one_time) {
+    if (hasRunOneTime) {
       try {
         await fetch(
           `http://127.0.0.1:${process.env.PORT}${LIVE_REFRESH_RPC_PATH}`,
@@ -66,7 +66,7 @@ async function devServe() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(refresh_obj),
+            body: JSON.stringify(refreshObj),
           },
         );
       } catch (e) {
@@ -74,21 +74,20 @@ async function devServe() {
       }
     }
 
-    has_run_one_time = true;
+    hasRunOneTime = true;
 
-    const HOT_RELOAD_ONLY = get_is_hot_reload_only(refresh_obj.changeType);
-
-    if (!HOT_RELOAD_ONLY) {
-      run_command_with_spawn().catch((error) => {
+    const hotReloadOnly = getIsHotReloadOnly(refreshObj.changeType);
+    if (!hotReloadOnly) {
+      runCmdWithSpawn().catch((error) => {
         console.error(error);
       });
     }
   });
 
   const exclusions =
-    dev_config?.watchExclusions?.map((x) => path.join(process.cwd(), x)) || [];
+    devConfig?.watchExclusions?.map((x) => path.join(process.cwd(), x)) || [];
   const inclusions =
-    dev_config?.watchInclusions?.map((x) => path.join(process.cwd(), x)) || [];
+    devConfig?.watchInclusions?.map((x) => path.join(process.cwd(), x)) || [];
 
   const watcher = chokidar.watch(
     [
@@ -103,32 +102,32 @@ async function devServe() {
   );
 
   watcher.on("all", async (type, path) => {
-    const is_change = type === "change";
-    const normalized_path = path.replace(/\\/g, "/");
-    const is_css_change =
-      is_change &&
-      normalized_path.includes("/src/styles/") &&
-      normalized_path.endsWith(".css");
-    const is_css_change_to_bundle =
-      is_css_change && normalized_path.includes("/src/styles/normal/");
-    const is_css_change_to_critical =
-      is_css_change && normalized_path.includes("/src/styles/critical/");
+    const isChange = type === "change";
+    const normalizedPath = path.replace(/\\/g, "/");
+    const isCSSChange =
+      isChange &&
+      normalizedPath.includes("/src/styles/") &&
+      normalizedPath.endsWith(".css");
+    const isCSSChangeToBundle =
+      isCSSChange && normalizedPath.includes("/src/styles/normal/");
+    const isCSSChangeToCritical =
+      isCSSChange && normalizedPath.includes("/src/styles/critical/");
 
     hwyLog.info(
-      is_css_change_to_bundle
+      isCSSChangeToBundle
         ? "hot reloading CSS bundle"
-        : is_css_change_to_critical
+        : isCSSChangeToCritical
           ? "hot reloading critical CSS"
           : "change detected, restarting server",
     );
 
     try {
       await runBuildTasks({
-        IS_DEV: true,
+        isDev: true,
         log: "triggered from chokidar watcher: " + path,
-        changeType: is_css_change_to_critical
+        changeType: isCSSChangeToCritical
           ? "critical-css"
-          : is_css_change_to_bundle
+          : isCSSChangeToBundle
             ? "css-bundle"
             : "standard",
       });
@@ -139,11 +138,11 @@ async function devServe() {
 
   // Watch for changes to hwy.config.* files
   // And if found, warn user they need to restart the server
-  const config_watcher = chokidar.watch(
+  const configWatcher = chokidar.watch(
     path.join(process.cwd(), "hwy.config.*"),
     { ignoreInitial: true },
   );
-  config_watcher.on("all", () => {
+  configWatcher.on("all", () => {
     hwyLog.warning(
       "action needed: restart your dev server to apply config changes",
     );
@@ -151,12 +150,12 @@ async function devServe() {
 
   // --- Node command runner ---
 
-  let current_proc: ChildProcess | null = null;
+  let currentProc: ChildProcess | null = null;
 
-  async function run_command_with_spawn() {
+  async function runCmdWithSpawn() {
     return new Promise<void>((resolve, reject) => {
-      if (current_proc) {
-        current_proc.kill();
+      if (currentProc) {
+        currentProc.kill();
       }
 
       const proc = spawn("node", ["dist/main.js"], {
@@ -164,11 +163,11 @@ async function devServe() {
         stdio: "inherit",
       });
 
-      current_proc = proc;
+      currentProc = proc;
 
       proc.on("exit", (code) => {
-        if (current_proc === proc) {
-          current_proc = null;
+        if (currentProc === proc) {
+          currentProc = null;
         }
 
         if (code === null) {
@@ -184,8 +183,8 @@ async function devServe() {
       });
 
       proc.on("error", (error) => {
-        if (current_proc === proc) {
-          current_proc = null;
+        if (currentProc === proc) {
+          currentProc = null;
         }
         reject(error);
       });
@@ -193,10 +192,10 @@ async function devServe() {
   }
 
   try {
-    await runBuildTasks({ IS_DEV: true, log: "triggered from dev-serve.js" });
+    await runBuildTasks({ isDev: true, log: "triggered from dev-serve.js" });
   } catch (e) {
     console.error("ERROR: Build tasks failed:", e);
   }
 }
 
-export { devServe, get_is_hot_reload_only };
+export { devServe, getIsHotReloadOnly };

@@ -12,7 +12,7 @@ import {
 import { createServer } from "node:http";
 import { AddressInfo } from "node:net";
 import { Nav } from "./components/nav.js";
-import { make_emoji_data_url } from "./utils/utils.js";
+import { makeEmojiDataURL } from "./utils/utils.js";
 
 const { app } = await hwyInit({
   app: createApp(),
@@ -32,7 +32,7 @@ const defaultHeadBlocks: HeadBlock[] = [
     tag: "link",
     attributes: {
       rel: "icon",
-      href: make_emoji_data_url("⭐"),
+      href: makeEmojiDataURL("⭐"),
     },
   },
   {

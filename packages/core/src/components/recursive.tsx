@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { memo, startTransition, useCallback, useEffect, useState } from "react";
 import {
-  get_hwy_client_global,
+  getHwyClientGlobal,
   type ActivePathData,
 } from "../../../common/index.mjs";
 
@@ -11,7 +11,7 @@ type ServerKey = keyof ActivePathData;
 
 export function getAdHocData(): any {
   if (typeof document === "undefined") return;
-  return get_hwy_client_global().get("adHocData");
+  return getHwyClientGlobal().get("adHocData");
 }
 
 export const RootOutlet = memo(
@@ -26,44 +26,44 @@ export const RootOutlet = memo(
       return <></>;
     }
 
-    const IS_SERVER = typeof document === "undefined";
+    const isServer = typeof document === "undefined";
 
     const context: {
       get: (str: ServerKey) => ActivePathData[ServerKey];
-    } = IS_SERVER
+    } = isServer
       ? {
           get: (str: ServerKey) =>
             (props.activePathData as ActivePathData)?.[str],
         }
-      : (get_hwy_client_global() as any);
+      : (getHwyClientGlobal() as any);
 
     let { index } = props;
-    const index_to_use = index ?? 0;
+    const indexToUse = index ?? 0;
     const CurrentComponent = (context.get("activeComponents") as any)?.[
-      index_to_use
+      indexToUse
     ];
 
-    const adHocData = IS_SERVER
+    const adHocData = isServer
       ? props.adHocData
-      : get_hwy_client_global().get("adHocData");
+      : getHwyClientGlobal().get("adHocData");
 
     try {
       if (!CurrentComponent) {
         return <></>;
       }
 
-      const this_is_an_error_boundary =
-        context.get("outermostErrorBoundaryIndex") === index_to_use;
+      const thisIsAnErrorBoundary =
+        context.get("outermostErrorBoundaryIndex") === indexToUse;
 
-      const next_outlet_is_an_error_boundary =
-        context.get("outermostErrorBoundaryIndex") === index_to_use + 1;
+      const nextOutletIsAnErrorBoundary =
+        context.get("outermostErrorBoundaryIndex") === indexToUse + 1;
 
       if (
-        this_is_an_error_boundary ||
+        thisIsAnErrorBoundary ||
         context.get("outermostErrorBoundaryIndex") === -1
       ) {
         const ErrorBoundary: ErrorBoundaryComp | undefined =
-          (context.get("activeErrorBoundaries") as any)?.[index_to_use] ??
+          (context.get("activeErrorBoundaries") as any)?.[indexToUse] ??
           props.fallbackErrorBoundary;
 
         if (!ErrorBoundary) {
@@ -75,19 +75,19 @@ export const RootOutlet = memo(
 
       let Outlet;
 
-      if (!next_outlet_is_an_error_boundary) {
-        Outlet = (local_props: Record<string, any> | undefined) => {
+      if (!nextOutletIsAnErrorBoundary) {
+        Outlet = (localProps: Record<string, any> | undefined) => {
           return (
             <RootOutlet
-              {...local_props}
-              activePathData={IS_SERVER ? props.activePathData : undefined}
-              index={index_to_use + 1}
+              {...localProps}
+              activePathData={isServer ? props.activePathData : undefined}
+              index={indexToUse + 1}
             />
           );
         };
       } else {
         Outlet =
-          (context.get("activeErrorBoundaries") as any)?.[index_to_use + 1] ??
+          (context.get("activeErrorBoundaries") as any)?.[indexToUse + 1] ??
           props.fallbackErrorBoundary;
 
         if (!Outlet) {
@@ -95,10 +95,10 @@ export const RootOutlet = memo(
         }
       }
 
-      const OutletToUse = IS_SERVER
+      const OutletToUse = isServer
         ? Outlet
         : useCallback(Outlet, [
-            (context.get("activePaths") as any)?.[index_to_use + 1],
+            (context.get("activePaths") as any)?.[indexToUse + 1],
           ]);
 
       const [params, setParams] = useState(context.get("params") ?? {});
@@ -106,29 +106,23 @@ export const RootOutlet = memo(
         context.get("splatSegments") ?? [],
       );
       const [loaderData, setLoaderData] = useState(
-        (context.get("activeData") as any)?.[index_to_use],
+        (context.get("activeData") as any)?.[indexToUse],
       );
       const [actionData, setActionData] = useState(
-        (context.get("actionData") as any)?.[index_to_use],
+        (context.get("actionData") as any)?.[indexToUse],
       );
 
       useEffect(() => {
         window.addEventListener("hwy:route-change", (evt) => {
           const detail = (evt as CustomEvent).detail;
-          if (typeof detail.index === "number") {
-            if (detail.index === index_to_use) {
-              startTransition(() => {
-                setParams(context.get("params") ?? {});
-                setSplatSegments(context.get("splatSegments") ?? []);
-                setLoaderData(
-                  (context.get("activeData") as any)?.[index_to_use],
-                );
-                setActionData(
-                  (context.get("actionData") as any)?.[index_to_use],
-                );
-              });
+          startTransition(() => {
+            setParams(context.get("params") ?? {});
+            setSplatSegments(context.get("splatSegments") ?? []);
+            if (detail.index === indexToUse) {
+              setLoaderData((context.get("activeData") as any)?.[indexToUse]);
+              setActionData((context.get("actionData") as any)?.[indexToUse]);
             }
-          }
+          });
         });
       }, []);
 
@@ -139,7 +133,7 @@ export const RootOutlet = memo(
           splatSegments={splatSegments}
           loaderData={loaderData}
           actionData={actionData}
-          Outlet={OutletToUse || <></>}
+          Outlet={OutletToUse}
           adHocData={adHocData}
         />
       );
@@ -148,7 +142,7 @@ export const RootOutlet = memo(
 
       const ErrorBoundary: ErrorBoundaryComp | undefined =
         (context.get("activeErrorBoundaries") as any)
-          ?.splice(0, index_to_use + 1)
+          ?.splice(0, indexToUse + 1)
           ?.reverse()
           ?.find((x: any) => x) ?? props.fallbackErrorBoundary;
 

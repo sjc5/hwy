@@ -18,7 +18,7 @@ export default function ({ Outlet }: PageProps) {
       </div>
 
       <div className="outlet-wrapper">
-        <Outlet test="bob" />
+        <Outlet />
       </div>
     </div>
   );

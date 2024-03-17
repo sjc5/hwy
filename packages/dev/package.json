@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/dev",
-  "version": "0.0.0-beta.64",
+  "version": "0.0.0-beta.65",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -20,7 +20,7 @@
     "typecheck": "tsc"
   },
   "devDependencies": {
-    "@types/node": "^20.11.27",
+    "@types/node": "^20.11.28",
     "tsup": "^8.0.2",
     "typescript": "^5.4.2"
   },

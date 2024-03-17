@@ -10,29 +10,29 @@ import {
   setResponseStatus,
 } from "h3";
 import type { readFile, stat } from "node:fs/promises";
-import { get_hwy_global } from "../../common/index.mjs";
+import { getHwyGlobal } from "../../common/index.mjs";
 import { getMimeType } from "./get-mimes.js";
+import { getOrigPublicURL, getPublicUrl } from "./utils/hashed-public-url.js";
 import {
-  getPublicUrl,
-  get_original_public_url,
-} from "./utils/hashed-public-url.js";
-import { file_url_to_path, node_path } from "./utils/url-polyfills.js";
+  dynamicFileURLToPath,
+  dynamicNodePath,
+} from "./utils/url-polyfills.js";
 
-let dynamic_read_file: typeof readFile;
-let dynamic_stat: typeof stat;
+let dynamicReadFile: typeof readFile;
+let dynamicStat: typeof stat;
 
-const IS_SERVER = typeof document === "undefined";
+const isServer = typeof document === "undefined";
 
 try {
-  if (IS_SERVER) {
+  if (isServer) {
     const { readFile, stat } = await import("node:fs/promises");
-    dynamic_read_file = readFile;
-    dynamic_stat = stat;
+    dynamicReadFile = readFile;
+    dynamicStat = stat;
   }
 } catch {}
 
-function dirname_from_import_meta(import_meta_url: string) {
-  return node_path?.dirname(file_url_to_path(import_meta_url)) ?? "";
+function dirnameFromImportMeta(importMetaURL: string) {
+  return dynamicNodePath?.dirname(dynamicFileURLToPath(importMetaURL)) ?? "";
 }
 
 // although instantiated with let, this should only ever be set once inside hwyInit
@@ -41,7 +41,7 @@ let PUBLIC_URL_PREFIX = "";
 
 const IMMUTABLE_CACHE_HEADER_VALUE = "public, max-age=31536000, immutable";
 
-const hwy_global = get_hwy_global();
+const hwyGlobal = getHwyGlobal();
 
 async function hwyInit({
   app,
@@ -52,12 +52,12 @@ async function hwyInit({
 }) {
   console.log("Initializing Hwy app");
 
-  if (hwy_global.get("is_dev")) {
+  if (hwyGlobal.get("isDev")) {
     const { setupLiveRefreshEndpoints } = await import("@hwy-js/dev");
     setupLiveRefreshEndpoints({ app });
   }
 
-  ROOT_DIRNAME = dirname_from_import_meta(importMetaUrl ?? "");
+  ROOT_DIRNAME = dirnameFromImportMeta(importMetaUrl ?? "");
 
   const router = createRouter();
   app.use(router);
@@ -78,7 +78,7 @@ async function hwyInit({
     "/public/**",
     defineEventHandler((event) => {
       setResponseHeader(event, "Cache-Control", IMMUTABLE_CACHE_HEADER_VALUE);
-      if (hwy_global.get("is_dev")) {
+      if (hwyGlobal.get("isDev")) {
         if (event.path.includes("public/dist/standard-bundled.css")) {
           setResponseHeader(event, "Cache-Control", "no-cache");
         }
@@ -91,9 +91,9 @@ async function hwyInit({
           if (mime) {
             setResponseHeader(event, "Content-Type", mime);
           }
-          return dynamic_read_file(
-            get_original_public_url({
-              hashed_url: url,
+          return dynamicReadFile(
+            getOrigPublicURL({
+              hashedURL: url,
             }),
           );
         },
@@ -102,9 +102,9 @@ async function hwyInit({
           if (mime) {
             setResponseHeader(event, "Content-Type", mime);
           }
-          const stats = await dynamic_stat(
-            get_original_public_url({
-              hashed_url: url,
+          const stats = await dynamicStat(
+            getOrigPublicURL({
+              hashedURL: url,
             }),
           ).catch();
           if (!stats || !stats.isFile()) {

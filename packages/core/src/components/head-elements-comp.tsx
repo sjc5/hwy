@@ -1,7 +1,7 @@
-import { RouteData, get_hwy_global } from "../../../common/index.mjs";
+import { RouteData, getHwyGlobal } from "../../../common/index.mjs";
 import { utils } from "../utils/hwy-utils.js";
 
-const hwy_global = get_hwy_global();
+const hwyGlobal = getHwyGlobal();
 
 function getCriticalInlinedCssProps() {
   return {
@@ -25,7 +25,7 @@ function getMetaElementsProps(baseProps: RouteData) {
 
 // Only needed if using client-side React
 function getServerRenderingProps(props: RouteData) {
-  if (!hwy_global.get("hwy_config").useClientSideReact) {
+  if (!hwyGlobal.get("hwyConfig").useClientSideReact) {
     return;
   }
 
@@ -38,7 +38,7 @@ function getServerRenderingProps(props: RouteData) {
 }
 
 function getInjectedScriptsProps() {
-  return (hwy_global.get("injected_scripts") ?? []).map((script) => {
+  return (hwyGlobal.get("injectedScripts") ?? []).map((script) => {
     return {
       src: utils.getPublicUrl(script),
       defer: true,
@@ -69,11 +69,11 @@ function getBundledStylesheetProps() {
 }
 
 function getDevRefreshScriptProps(timeoutInMs?: number) {
-  const dev_refresh_script = utils.getRefreshScript(timeoutInMs);
+  const devRefreshScript = utils.getRefreshScript(timeoutInMs);
   return {
     type: "module",
     dangerouslySetInnerHTML: {
-      __html: dev_refresh_script,
+      __html: devRefreshScript,
     },
   };
 }
@@ -138,7 +138,7 @@ function CssImports() {
 function ClientScripts(routeData: RouteData) {
   return (
     <>
-      {hwy_global.get("hwy_config").useClientSideReact && (
+      {hwyGlobal.get("hwyConfig").useClientSideReact && (
         <script {...getServerRenderingProps(routeData)} />
       )}
 

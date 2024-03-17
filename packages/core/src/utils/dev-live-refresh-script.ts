@@ -1,14 +1,14 @@
 import {
   CRITICAL_CSS_ELEMENT_ID,
   LIVE_REFRESH_SSE_PATH,
-  get_hwy_global,
+  getHwyGlobal,
 } from "../../../common/index.mjs";
 import { DEV_BUNDLED_CSS_LINK } from "./hashed-public-url.js";
 
-const hwy_global = get_hwy_global();
+const hwyGlobal = getHwyGlobal();
 
 function getShouldUseRefresh() {
-  return hwy_global.get("is_dev");
+  return hwyGlobal.get("isDev");
 }
 
 const getRefreshScript = (timeoutInMs = 150) => {
@@ -34,9 +34,9 @@ const getRefreshScript = (timeoutInMs = 150) => {
           }
         }
       } else if (changeType === "critical-css") {
-        const inline_style_el = document.getElementById("${CRITICAL_CSS_ELEMENT_ID}");
-        if (inline_style_el) {
-          inline_style_el.innerHTML = criticalCss;
+        const inlineStyleEl = document.getElementById("${CRITICAL_CSS_ELEMENT_ID}");
+        if (inlineStyleEl) {
+          inlineStyleEl.innerHTML = criticalCss;
         }
       } else {
         setTimeout(() => window.location.reload(), ${timeoutInMs});

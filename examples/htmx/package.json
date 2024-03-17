@@ -18,11 +18,11 @@
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@hwy-js/utils": "workspace:*",
-    "@types/node": "^20.11.27",
+    "@types/node": "^20.11.28",
     "@types/nprogress": "^0.2.3",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
-    "htmx.org": "^1.9.10",
+    "htmx.org": "^1.9.11",
     "idiomorph": "^0.3.0",
     "nprogress": "^0.2.0",
     "typescript": "^5.4.2"

@@ -47,6 +47,6 @@ class ColorLogger implements Logger {
 
 export const hwyLog: Logger = new ColorLogger("Hwy");
 
-export function logPerf(task_name: string, p0: number, p1: number) {
-  hwyLog.info(`completed ${task_name} in ${Math.round(p1 - p0).toFixed(0)}ms`);
+export function logPerf(taskName: string, p0: number, p1: number) {
+  hwyLog.info(`completed ${taskName} in ${Math.round(p1 - p0).toFixed(0)}ms`);
 }

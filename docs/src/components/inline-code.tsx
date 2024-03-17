@@ -2,16 +2,16 @@ import { cx } from "../utils/utils.js";
 
 function InlineCode({
   children,
-  high_contrast,
+  highContrast,
   style,
 }: {
   children: string;
-  high_contrast?: boolean;
+  highContrast?: boolean;
   style?: Record<string, any>;
 }) {
   return (
     <code
-      className={cx("inline-code", high_contrast && "high-contrast")}
+      className={cx("inline-code", highContrast && "high-contrast")}
       style={style}
     >
       {children}

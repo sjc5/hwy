@@ -20,7 +20,7 @@
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
     "@hwy-js/utils": "workspace:*",
-    "@types/node": "^20.11.27",
+    "@types/node": "^20.11.28",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "tailwindcss": "^3.4.1",

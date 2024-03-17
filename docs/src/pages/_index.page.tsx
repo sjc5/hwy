@@ -58,7 +58,7 @@ function Quickstart() {
   return (
     <H3Wrapper heading="Quickstart">
       <InlineCode
-        high_contrast
+        highContrast
         style={{
           alignSelf: "flex-start",
           fontSize: "1.25rem",

@@ -4,7 +4,7 @@ try {
   const { runBuildTasks } = await import("../dist/index.js");
 
   await runBuildTasks({
-    IS_DEV: false,
+    isDev: false,
     log: "triggered from run-build-tasks.js",
   });
 } catch (e) {

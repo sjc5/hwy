@@ -22,7 +22,7 @@
     "@hwy-js/build": "workspace:*",
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@types/node": "^20.11.27",
+    "@types/node": "^20.11.28",
     "@types/nprogress": "^0.2.3",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",

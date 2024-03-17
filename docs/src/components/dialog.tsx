@@ -1,22 +1,22 @@
 function DialogModal({
-  open_button_inner,
-  dialog_inner,
-  wrapper_class,
-  open_button_class,
+  openButtonInner,
+  dialogInner,
+  wrapperClassName,
+  openButtonClassName,
 }: {
-  open_button_inner: any;
-  dialog_inner: any;
-  wrapper_class?: string;
-  open_button_class?: string;
+  openButtonInner: any;
+  dialogInner: any;
+  wrapperClassName?: string;
+  openButtonClassName?: string;
 }) {
   return (
-    <div className={wrapper_class}>
+    <div className={wrapperClassName}>
       <button
         // @ts-ignore
         onclick={`this.nextElementSibling.showModal()`}
-        className={open_button_class}
+        className={openButtonClassName}
       >
-        {open_button_inner}
+        {openButtonInner}
       </button>
 
       <dialog
@@ -24,7 +24,7 @@ function DialogModal({
         onclick="event.target==this && this.close()"
         className="dialog-reset"
       >
-        <form method="dialog">{dialog_inner}</form>
+        <form method="dialog">{dialogInner}</form>
       </dialog>
     </div>
   );
