@@ -37,11 +37,11 @@ import type { DataProps, PageProps } from "hwy";
 import { UserProfile, getUser } from "./somewhere.js";
 
 export async function loader({ params }: DataProps) {
-  return await getUser(params.user_id);
+	return await getUser(params.user_id);
 }
 
 export default function ({ loaderData }: PageProps<typeof loader>) {
-  return <UserProfile user={loaderData} />;
+	return <UserProfile user={loaderData} />;
 }
 ```
 

@@ -1,6 +1,5 @@
 {
   "name": "docs",
-  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,8 +12,10 @@
     "nuke": "rm -rf dist && rm -rf public/dist"
   },
   "dependencies": {
-    "devalue": "^4.3.2",
+    "gray-matter": "^4.0.3",
+    "h3": "^1.11.1",
     "hwy": "workspace:*",
+    "markdown-it": "^14.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -22,11 +23,12 @@
     "@hwy-js/build": "workspace:*",
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
+    "@shikijs/markdown-it": "^1.2.0",
+    "@types/markdown-it": "^13.0.7",
     "@types/node": "^20.11.28",
-    "@types/nprogress": "^0.2.3",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
-    "nprogress": "^0.2.0",
+    "shiki": "^1.2.0",
     "typescript": "^5.4.2"
   }
 }

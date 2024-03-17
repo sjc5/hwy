@@ -1,59 +1,38 @@
-import { createApp, eventHandler, setResponseHeader, toNodeListener } from "h3";
+import { createApp, eventHandler, toNodeListener } from "h3";
 import {
   ClientScripts,
   CssImports,
   DevLiveRefreshScript,
-  HeadBlock,
   HeadElements,
   RootOutlet,
   hwyInit,
   renderRoot,
 } from "hwy";
+import { AddressInfo } from "net";
 import { createServer } from "node:http";
-import { AddressInfo } from "node:net";
-import { Nav } from "./components/nav.js";
-import { makeEmojiDataURL } from "./utils/utils.js";
+import { SidebarNavItems } from "./components/sidebar_nav_items.js";
 
 const { app } = await hwyInit({
   app: createApp(),
   importMetaUrl: import.meta.url,
 });
 
-const defaultHeadBlocks: HeadBlock[] = [
-  { title: "Hwy Framework" },
-  {
-    tag: "meta",
-    attributes: {
-      name: "description",
-      content: "Hwy is a simple, lightweight, and flexible web framework.",
-    },
-  },
-  {
-    tag: "link",
-    attributes: {
-      rel: "icon",
-      href: makeEmojiDataURL("⭐"),
-    },
-  },
-  {
-    tag: "meta",
-    attributes: {
-      name: "og:image",
-      content: "/create-hwy-snippet.webp",
-    },
-  },
-];
-
 app.use(
   "*",
   eventHandler(async (event) => {
-    if (event.method === "GET") {
-      setResponseHeader(event, "Cache-Control", "max-age=0, s-maxage=2678400");
-    }
     return await renderRoot({
       event,
-      defaultHeadBlocks,
-      root: function (routeData) {
+      defaultHeadBlocks: [
+        { title: "hwy-example-minimal-mpa" },
+        {
+          tag: "meta",
+          attributes: {
+            name: "description",
+            content: "Take the Hwy!",
+          },
+        },
+      ],
+      root: (routeData) => {
         return (
           <html lang="en">
             <head>
@@ -67,23 +46,17 @@ app.use(
               <ClientScripts {...routeData} />
               <DevLiveRefreshScript />
             </head>
-
             <body>
-              <div className="body-inner">
-                <div style={{ flexGrow: 1 }}>
-                  <Nav />
+              <nav>
+                <a href="/" id="logo" data-boost>
+                  <h1>Hwy</h1>
+                </a>
 
-                  <div id="root-outlet-wrapper">
-                    <RootOutlet {...routeData} />
-                  </div>
-                </div>
-
-                <footer>
-                  <span style={{ opacity: 0.6 }}>
-                    MIT License. Copyright (c) 2023 Samuel J. Cook.
-                  </span>
-                </footer>
-              </div>
+                <SidebarNavItems />
+              </nav>
+              <main>
+                <RootOutlet {...routeData} />
+              </main>
             </body>
           </html>
         );

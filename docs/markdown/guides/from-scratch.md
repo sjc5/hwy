@@ -1,3 +1,7 @@
+---
+Title: "From Scratch"
+---
+
 ```sh
 #########################################################################
 ### Create a new directory and navigate into it
@@ -19,6 +23,7 @@ echo '{
     "noEmit": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "types": ["node"]
   },
   "exclude": ["node_modules", "dist"]
@@ -41,8 +46,8 @@ echo '{
 #########################################################################
 ### Install the necessary packages
 #########################################################################
-npm i h3 hwy react react-dom
-npm i -D @hwy-js/build @hwy-js/dev @types/node @types/react @types/react-dom typescript
+npm i h3 hwy preact-render-to-string
+npm i -D @hwy-js/build @hwy-js/dev @types/node preact typescript
 
 #########################################################################
 ### Create a hwy.config.ts file
@@ -92,7 +97,7 @@ app.use(
     return await renderRoot({
       event,
       defaultHeadBlocks: [
-        { title: "your-project-name },
+        { title: "your-project-name" },
         {
           tag: "meta",
           attributes: {
@@ -105,7 +110,7 @@ app.use(
         return (
           <html lang="en">
             <head>
-              <meta charSet="UTF-8" />
+              <meta charset="UTF-8" />
               <meta
                 name="viewport"
                 content="width=device-width,initial-scale=1"

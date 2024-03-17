@@ -5,9 +5,13 @@ import { hydrateRoot } from "react-dom/client";
 
 await initReactClient(() => {
   hydrateRoot(
-    document.getElementById("root-outlet-wrapper") as HTMLElement,
+    document.querySelector("main") as HTMLElement,
     <React.StrictMode>
-      <RootOutlet />
+      <RootOutlet
+        fallbackErrorBoundary={function ErrorBoundary() {
+          return <div>Something went wrong.</div>;
+        }}
+      />
     </React.StrictMode>,
   );
 });

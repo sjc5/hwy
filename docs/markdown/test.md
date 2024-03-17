@@ -1,0 +1,6 @@
+---
+title: Hello
+slug: home
+---
+
+<h1>Hello world!</h1>

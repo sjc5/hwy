@@ -146,7 +146,7 @@ async function initReactClient(hydrateFn: () => void) {
 
   hwyClientGlobal.set(
     "activeComponents",
-    awaitedComps.map((x, i) => x.default),
+    awaitedComps.map((x) => x.default),
   );
 
   hwyClientGlobal.set(
@@ -377,14 +377,10 @@ async function internalNavigate(props: {
 // Take in a custom stringifier for the body, or build in devalue?
 // Build in Ky?
 // Make this take generics
-// Allow "boost=`false`" on any form or link
 
 async function submit(
   url: string | URL,
   requestInit?: RequestInit,
-  options?: {
-    skipOnSuccessRevalidation?: boolean;
-  },
 ): Promise<
   | {
       success: true;
@@ -577,7 +573,7 @@ async function reRenderApp({
 
   // dispatch event
   const event = new CustomEvent("hwy:route-change", {
-    detail: { index: highestIndex },
+    detail: { index: highestIndex ?? 0 },
   });
   window.dispatchEvent(event);
 

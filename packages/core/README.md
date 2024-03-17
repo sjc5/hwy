@@ -10,7 +10,7 @@ npx create-hwy@latest
 
 ## What is Hwy?
 
-At its core, Hwy is a server-rendered, multi-page app framework for NodeJS. Hwy is built on top of <a href="https://h3.unjs.io" target="_blank">h3</a> (the core server framework behind Nuxt and SolidStart), esbuild (for TypeScript transpilation and bundling), and React (for rendering JSX on the server, and optionally on the client).
+At its core, Hwy is a server-rendered, multi-page app ("MPA") framework for NodeJS. Hwy is built on top of <a href="https://h3.unjs.io" target="_blank">h3</a> (the core server framework behind Nuxt and SolidStart), <a href="https://esbuild.github.io" target="_blank">esbuild</a> (for TypeScript transpilation and bundling), and <a href="https://react.dev" target="_blank">React</a> (for rendering JSX on the server, and optionally on the client).
 
 If you want to upgrade beyond an MPA pattern, Hwy has first-class support for both React and HTMX on the client. This means you can build a full-featured SPA with Hwy, or you can build a traditional MPA, or you can build something in between.
 
@@ -25,13 +25,6 @@ If you want to upgrade beyond an MPA pattern, Hwy has first-class support for bo
 - Built-in critical CSS inlining
 - Live browser refresh during development
 - And more...
-
-## Guiding Principles
-
-- No speed limits
-- Numerous off-ramps
-- Smooth, safe roads
-- Clear traffic signs
 
 ## Simple usage
 
@@ -60,7 +53,7 @@ If you'd prefer to read more first, take a peek at [our website](https://hwy.dev
 
 ## Acknowledgements
 
-Hwy's APIs are obviously inspired by Remix. If Remix didn't exist, Hwy likely wouldn't exist either. Hwy doesn't use any Remix code, but it still owes a big thanks to the Remix team (past and present) for their top-tier patterns design. If you're building something huge and important today, use Remix.
+Hwy's APIs are heavily inspired by Remix. If Remix didn't exist, Hwy likely wouldn't exist either. Hwy doesn't use any Remix code, but it still owes a big thanks to the Remix team (past and present) for their top-tier patterns design. If you're building something huge and important today, use Remix.
 
 ## Disclaimer
 
@@ -68,6 +61,4 @@ Hwy is in beta! Act accordingly.
 
 ## License
 
-MIT License
-
-Copyright (c) 2023 Samuel J. Cook
+MIT License. Copyright (c) 2023 Samuel J. Cook.
