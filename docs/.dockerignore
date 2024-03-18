@@ -1,0 +1,13 @@
+# flyctl launch added from .gitignore
+# standard exclusions
+**/node_modules
+
+# build artifacts
+**/dist
+**/public/dist
+
+# environment files
+**/.env
+**/.env.*
+!**/env.example
+fly.toml
