@@ -15,6 +15,4 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public/dist ./public/dist
 COPY --from=builder /app/markdown ./markdown
 COPY --from=builder /app/package.json ./package.json
-# ENV NODE_ENV=production
-# EXPOSE 3000
 CMD ["node", "dist/main.js"]
