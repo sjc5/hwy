@@ -484,6 +484,9 @@ async function reRenderApp({
   json: any;
   navigationType: NavigationType;
 }) {
+  // Changing the title instantly makes it feel faster
+  document.title = json.title;
+
   const oldList = hwyClientGlobal.get("activePaths");
   const newList = json.activePaths;
 
@@ -577,7 +580,6 @@ async function reRenderApp({
   });
   window.dispatchEvent(event);
 
-  document.title = json.title;
   removeAllBetween("meta");
   addBlocksToHead("meta", json.metaHeadBlocks);
   removeAllBetween("rest");

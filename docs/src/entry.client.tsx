@@ -5,7 +5,7 @@ import { hydrateRoot } from "react-dom/client";
 
 await initReactClient(() => {
   hydrateRoot(
-    document.querySelector("main") as HTMLElement,
+    document.getElementById("root") as HTMLElement,
     <React.StrictMode>
       <RootOutlet
         fallbackErrorBoundary={function ErrorBoundary() {

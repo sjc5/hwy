@@ -10,7 +10,6 @@ import {
 } from "hwy";
 import { AddressInfo } from "net";
 import { createServer } from "node:http";
-import { SidebarNavItems } from "./components/sidebar_nav_items.js";
 
 const { app } = await hwyInit({
   app: createApp(),
@@ -47,16 +46,9 @@ app.use(
               <DevLiveRefreshScript />
             </head>
             <body>
-              <nav>
-                <a href="/" id="logo" data-boost>
-                  <h1>Hwy</h1>
-                </a>
-
-                <SidebarNavItems />
-              </nav>
-              <main>
+              <div id="root">
                 <RootOutlet {...routeData} />
-              </main>
+              </div>
             </body>
           </html>
         );
