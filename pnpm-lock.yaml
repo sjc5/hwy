@@ -51,7 +51,7 @@ importers:
         specifier: ^1.11.1
         version: 1.11.1
       hwy:
-        specifier: 0.0.0-beta.67
+        specifier: workspace:*
         version: link:../packages/core
       markdown-it:
         specifier: ^14.0.0
@@ -64,13 +64,13 @@ importers:
         version: 18.2.0(react@18.2.0)
     devDependencies:
       '@hwy-js/build':
-        specifier: 0.0.0-beta.67
+        specifier: workspace:*
         version: link:../packages/build
       '@hwy-js/client':
-        specifier: 0.0.0-beta.67
+        specifier: workspace:*
         version: link:../packages/client
       '@hwy-js/dev':
-        specifier: 0.0.0-beta.67
+        specifier: workspace:*
         version: link:../packages/dev
       '@types/markdown-it':
         specifier: ^13.0.7
@@ -84,12 +84,15 @@ importers:
       '@types/react-dom':
         specifier: ^18.2.22
         version: 18.2.22
-      history:
-        specifier: ^5.3.0
-        version: 5.3.0
       typescript:
         specifier: ^5.4.2
         version: 5.4.2
+      use-html-dialog:
+        specifier: ^0.2.1
+        version: 0.2.1(react@18.2.0)
+      usehooks-ts:
+        specifier: ^3.0.1
+        version: 3.0.1(react@18.2.0)
 
   examples/htmx:
     dependencies:
@@ -389,6 +392,7 @@ packages:
     engines: {node: '>=6.9.0'}
     dependencies:
       regenerator-runtime: 0.14.1
+    dev: false
 
   /@clack/core@0.3.4:
     resolution: {integrity: sha512-H4hxZDXgHtWTwV3RAVenqcC4VbJZNegbBjlPvzOzCouXtS2y3sDvlO3IsbrPNWuLWPPlYVYPghQdSF64683Ldw==}
@@ -1944,6 +1948,7 @@ packages:
     resolution: {integrity: sha512-ZqaKwjjrAYUYfLG+htGaIIZ4nioX2L70ZUMIFysS3xvBsSG4x/n1V6TXV3N8ZYNuFGlDirFg32T7B6WOUPDYcQ==}
     dependencies:
       '@babel/runtime': 7.24.0
+    dev: false
 
   /hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
@@ -2214,6 +2219,10 @@ packages:
     dependencies:
       mlly: 1.6.1
       pkg-types: 1.0.3
+    dev: true
+
+  /lodash.debounce@4.0.8:
+    resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
     dev: true
 
   /lodash.sortby@4.7.0:
@@ -2720,6 +2729,7 @@ packages:
 
   /regenerator-runtime@0.14.1:
     resolution: {integrity: sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw==}
+    dev: false
 
   /regexp.prototype.flags@1.5.2:
     resolution: {integrity: sha512-NcDiDkTLuPR+++OCKB0nWafEmhg/Da8aUPLPMQbK+bxKKCm1/S5he+AqYa4PlMCVBalb4/yxIRub6qkEx5yJbw==}
@@ -3280,6 +3290,24 @@ packages:
       mime: 3.0.0
       node-fetch-native: 1.6.2
       pathe: 1.1.2
+
+  /use-html-dialog@0.2.1(react@18.2.0):
+    resolution: {integrity: sha512-onN065TdroLRMtXmUTHkyIq3ZW31ph0AezmG2VZge49fCWDZMi/vBO8juTDV4MSg+2+1dvHRBR+TpULn7XoECQ==}
+    peerDependencies:
+      react: '>=16.8.0'
+    dependencies:
+      react: 18.2.0
+    dev: true
+
+  /usehooks-ts@3.0.1(react@18.2.0):
+    resolution: {integrity: sha512-bgJ8S9w/SnQyACd3RvWp3CGncROxEENGqQLCsdaoyTb0zTENIna7MIV3OW6ywCfPaYYD2OPokw7oLPmSLLWP4w==}
+    engines: {node: '>=16.15.0'}
+    peerDependencies:
+      react: ^16.8.0  || ^17 || ^18
+    dependencies:
+      lodash.debounce: 4.0.8
+      react: 18.2.0
+    dev: true
 
   /util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}

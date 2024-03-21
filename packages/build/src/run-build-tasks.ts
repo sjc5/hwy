@@ -172,13 +172,14 @@ async function runBuildTasks({
   ///////////////////////////////// STEP 3.5 -- AND NOW THE CLIENT FILES
   ///////////////////////////////////////////////////////////////////////////
 
-  const isUsingClientEntry = getIsUsingClientEntry();
+  const clientEntryExt = getClientEntryExtension();
+  const isUsingClientEntry = !!clientEntryExt;
 
   await esbuild.build({
     ...getEsbuildBuildArgsBase(isDev),
     entryPoints: [
       ...(isUsingClientEntry
-        ? [path.join(process.cwd(), "src/entry.client.*")]
+        ? [path.join(process.cwd(), "src/entry.client" + clientEntryExt)]
         : []),
       ...(isUsingClientSideReact ? pageFilesList : []).map(
         (x) => x.importPathWithOrigExt,
@@ -387,11 +388,11 @@ function toVarName(filename: string) {
 
 /* -------------------------------------------------------------------------- */
 
-function getIsUsingClientEntry() {
-  const extsWithDot = [".js", ".ts", ".jsx", ".tsx"];
+function getClientEntryExtension() {
+  const extsWithDot = [".js", ".ts", ".jsx", ".tsx"] as const;
   for (const ending of extsWithDot) {
     if (fs.existsSync(path.join(process.cwd(), `src/entry.client${ending}`))) {
-      return true;
+      return ending;
     }
   }
 }

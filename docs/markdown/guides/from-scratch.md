@@ -1,5 +1,5 @@
 ---
-Title: "From Scratch"
+title: "From Scratch"
 ---
 
 ```sh

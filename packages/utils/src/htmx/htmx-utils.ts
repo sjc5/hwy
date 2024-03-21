@@ -22,23 +22,18 @@ function htmxRedirect({
   useHxLocation?: boolean;
 }) {
   setResponseStatus(event, status ?? 302);
-
   const isHxRequest = Boolean(getRequestHeader(event, "HX-Request"));
-
   if (!isHxRequest) {
     return sendRedirect(event, to, status);
   }
-
   if (to.startsWith("http")) {
     setResponseHeader(event, "HX-Redirect", to);
     return null;
   }
-
   if (useHxLocation) {
     setResponseHeader(event, "HX-Location", to);
     return null;
   }
-
   return sendRedirect(event, to, status);
 }
 

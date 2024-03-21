@@ -1,5 +1,5 @@
 import {
-  CLIENT_KEYS,
+  CLIENT_GLOBAL_KEYS,
   HWY_PREFIX,
   RouteData,
   getHwyGlobal,
@@ -35,6 +35,6 @@ ${mkSetterStr("adHocData", routeData.adHocData)}
   return html;
 }
 
-function mkSetterStr(key: (typeof CLIENT_KEYS)[number], value: any) {
+function mkSetterStr(key: (typeof CLIENT_GLOBAL_KEYS)[number], value: any) {
   return `x.${key}=${uneval(value)};`;
 }

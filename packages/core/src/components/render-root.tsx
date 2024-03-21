@@ -1,7 +1,7 @@
 import { H3Event } from "h3";
 import { ReactElement } from "react";
 import { renderToPipeableStream } from "react-dom/server";
-import { HeadBlock, RouteData } from "../../../common/index.mjs";
+import { AdHocData, HeadBlock, RouteData } from "../../../common/index.mjs";
 import { getIsJSONRequest, getRouteData } from "../utils/get-root-data.js";
 
 export async function renderRoot({
@@ -13,7 +13,7 @@ export async function renderRoot({
   event: H3Event;
   defaultHeadBlocks: HeadBlock[];
   root: (props: RouteData) => ReactElement;
-  adHocData?: any;
+  adHocData?: AdHocData;
 }) {
   const maybeRootData = await getRouteData({
     event,

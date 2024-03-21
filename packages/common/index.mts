@@ -60,7 +60,7 @@ export const CRITICAL_CSS_ELEMENT_ID = "data-hwy-critical-css";
  * Client global
  **************************************/
 
-export const CLIENT_KEYS = [
+export const CLIENT_GLOBAL_KEYS = [
   "activeData",
   "activePaths",
   "outermostErrorBoundaryIndex",
@@ -72,8 +72,6 @@ export const CLIENT_KEYS = [
   "adHocData",
   "buildID",
 ] as const;
-
-export const CLIENT_GLOBAL_KEYS = CLIENT_KEYS;
 
 export type HwyClientGlobal = Partial<{
   [K in (typeof CLIENT_GLOBAL_KEYS)[number]]: any;
@@ -157,6 +155,8 @@ export function sortHeadBlocks(headBlocks: HeadBlock[]) {
   };
 }
 
+export interface AdHocData extends Record<string, any> {}
+
 export type RouteData = {
   event: H3Event;
   activePathData: ActivePathData;
@@ -164,7 +164,7 @@ export type RouteData = {
   title: string;
   metaHeadBlocks: TagHeadBlock[];
   restHeadBlocks: TagHeadBlock[];
-  adHocData: any;
+  adHocData: AdHocData | undefined;
   buildID: string;
 };
 
@@ -278,21 +278,19 @@ type NotResponse<T> = T extends Response ? never : T;
 export type PageProps<
   LoaderType extends Loader = Loader,
   ActionType extends Action = Action,
-  AdHocData extends any = any,
 > = {
   loaderData: NotResponse<Awaited<ReturnType<LoaderType>>>;
   actionData: NotResponse<Awaited<ReturnType<ActionType>>> | undefined;
   Outlet: FunctionComponent;
   params: Record<string, string>;
   splatSegments: string[];
-  adHocData: AdHocData;
+  adHocData: AdHocData | undefined;
 };
 
 export type PageComponent<
   LoaderType extends Loader = Loader,
   ActionType extends Action = Action,
-  AdHocData extends any = any,
-> = (props: PageProps<LoaderType, ActionType, AdHocData>) => ReactElement;
+> = (props: PageProps<LoaderType, ActionType>) => ReactElement;
 
 export type HeadProps<
   LoaderType extends Loader = Loader,
@@ -305,3 +303,9 @@ export type HeadFunction<
   LoaderType extends Loader = Loader,
   ActionType extends Action = Action,
 > = (props: HeadProps<LoaderType, ActionType>) => Array<HeadBlock>;
+
+export type RootLayoutProps = { children: ReactElement } & Pick<
+  PageProps,
+  "params" | "splatSegments" | "adHocData"
+>;
+export type RootLayoutComponent = FunctionComponent<RootLayoutProps>;

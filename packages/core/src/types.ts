@@ -1,27 +1,29 @@
 import {
   Action,
   ActivePathData,
-  // SERVER
+  AdHocData,
   DataProps,
   HeadBlock,
   HeadFunction,
   HeadProps,
   Loader,
   PageComponent,
-  // CLIENT
   PageProps,
+  RootLayoutComponent,
+  RootLayoutProps,
 } from "../../common/index.mjs";
 
 export type {
   Action,
   ActivePathData,
-  // SERVER
+  AdHocData,
   DataProps,
   HeadBlock,
   HeadFunction,
   HeadProps,
   Loader,
   PageComponent,
-  // CLIENT
   PageProps,
+  RootLayoutComponent,
+  RootLayoutProps,
 };

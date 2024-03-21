@@ -10,6 +10,14 @@ import {
 } from "hwy";
 import { AddressInfo } from "net";
 import { createServer } from "node:http";
+import { RootLayout } from "./pages/layout.js";
+
+declare module "hwy" {
+  interface AdHocData {}
+}
+declare module "h3" {
+  interface H3EventContext {}
+}
 
 const { app } = await hwyInit({
   app: createApp(),
@@ -31,6 +39,7 @@ app.use(
           },
         },
       ],
+      adHocData: { test2: "bob" },
       root: (routeData) => {
         return (
           <html lang="en">
@@ -47,7 +56,11 @@ app.use(
             </head>
             <body>
               <div id="root">
-                <RootOutlet {...routeData} />
+                <RootOutlet
+                  {...routeData}
+                  fallbackErrorBoundary={() => <div>Something went wrong.</div>}
+                  layout={RootLayout}
+                />
               </div>
             </body>
           </html>

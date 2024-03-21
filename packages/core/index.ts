@@ -5,6 +5,7 @@ export { utils } from "./src/utils/hwy-utils.js";
 export type {
   Action,
   ActivePathData,
+  AdHocData,
   DataProps,
   HeadBlock,
   HeadFunction,

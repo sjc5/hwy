@@ -15,19 +15,21 @@
     "@shikijs/markdown-it": "^1.2.0",
     "gray-matter": "^4.0.3",
     "h3": "^1.11.1",
-    "hwy": "0.0.0-beta.68",
+    "hwy": "workspace:*",
     "markdown-it": "^14.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@hwy-js/build": "0.0.0-beta.68",
-    "@hwy-js/client": "0.0.0-beta.68",
-    "@hwy-js/dev": "0.0.0-beta.68",
+    "@hwy-js/build": "workspace:*",
+    "@hwy-js/client": "workspace:*",
+    "@hwy-js/dev": "workspace:*",
     "@types/markdown-it": "^13.0.7",
     "@types/node": "^20.11.28",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
-    "typescript": "^5.4.2"
+    "typescript": "^5.4.2",
+    "use-html-dialog": "^0.2.1",
+    "usehooks-ts": "^3.0.1"
   }
 }

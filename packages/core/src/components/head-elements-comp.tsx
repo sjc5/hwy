@@ -28,7 +28,6 @@ function getServerRenderingProps(props: RouteData) {
   if (!hwyGlobal.get("hwyConfig").useClientSideReact) {
     return;
   }
-
   return {
     type: "module",
     dangerouslySetInnerHTML: {
@@ -114,11 +113,9 @@ function HeadElements(routeData: RouteData) {
   return (
     <>
       <title>{routeData.title}</title>
-
       {getMetaElementsProps(routeData).map((props, i) => (
         <meta {...props} key={i} />
       ))}
-
       {getRestHeadElementsProps(routeData).map((props, i) => (
         <props.tag {...props.attributes} key={i} />
       ))}
@@ -141,13 +138,10 @@ function ClientScripts(routeData: RouteData) {
       {hwyGlobal.get("hwyConfig").useClientSideReact && (
         <script {...getServerRenderingProps(routeData)} />
       )}
-
       {getInjectedScriptsProps().map((props, i) => (
         <script {...props} key={i} />
       ))}
-
       <script {...getClientEntryModuleProps()} />
-
       {getPageSiblingsProps(routeData).map((props, i) => (
         <script {...props} key={i} />
       ))}

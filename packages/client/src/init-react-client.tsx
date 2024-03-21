@@ -1,7 +1,7 @@
 import { createBrowserHistory } from "history";
 import { startTransition } from "react";
 import {
-  CLIENT_KEYS,
+  CLIENT_GLOBAL_KEYS,
   HWY_PREFIX,
   getHwyClientGlobal,
 } from "../../common/index.mjs";
@@ -547,7 +547,7 @@ async function reRenderApp({
     "params",
     "adHocData",
     "buildID",
-  ] as const satisfies ReadonlyArray<(typeof CLIENT_KEYS)[number]>;
+  ] as const satisfies ReadonlyArray<(typeof CLIENT_GLOBAL_KEYS)[number]>;
 
   for (const key of identicalKeysToSet) {
     hwyClientGlobal.set(key, json[key]);

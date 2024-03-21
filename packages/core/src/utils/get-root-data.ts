@@ -1,5 +1,6 @@
 import { getQuery, H3Event } from "h3";
 import {
+  AdHocData,
   getHwyGlobal,
   HeadBlock,
   HWY_PREFIX,
@@ -20,7 +21,7 @@ async function getRouteData({
 }: {
   event: H3Event;
   defaultHeadBlocks: HeadBlock[];
-  adHocData?: any;
+  adHocData: AdHocData | undefined;
 }) {
   const activePathData = await getMatchingPathData(event);
 
