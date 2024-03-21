@@ -48,14 +48,11 @@ export const RootOutlet = memo((props: BaseProps): ReactElement => {
   );
   useEffect(() => {
     window.addEventListener("hwy:route-change", (evt) => {
-      const detail = (evt as CustomEvent).detail;
       startTransition(() => {
         setParams(context.get("params") ?? {});
         setSplatSegments(context.get("splatSegments") ?? []);
-        if (detail.index === idx) {
-          setLoaderData((context.get("activeData") as any)?.[idx]);
-          setActionData((context.get("actionData") as any)?.[idx]);
-        }
+        setLoaderData((context.get("activeData") as any)?.[idx]);
+        setActionData((context.get("actionData") as any)?.[idx]);
       });
     });
   }, []);
