@@ -107,10 +107,10 @@ async function walkPages(): Promise<{
       preExtDelineator +
       ("." + ext);
 
-    let pathTOUse = "/" + segments.map((x) => x.segment).join("/");
+    let pathToUse = "/" + segments.map((x) => x.segment).join("/");
 
-    if (pathTOUse !== "/" && pathTOUse.endsWith("/")) {
-      pathTOUse = pathTOUse.slice(0, -1);
+    if (pathToUse !== "/" && pathToUse.endsWith("/")) {
+      pathToUse = pathToUse.slice(0, -1);
     }
 
     if (isPageFile || isServerFile) {
@@ -161,7 +161,7 @@ async function walkPages(): Promise<{
       if (isServerFile && !hasSiblingPageFile) {
         paths.push({
           importPath: "pages/" + path + ".server.js",
-          path: pathTOUse,
+          path: pathToUse,
           segments: segments.map((x) => x.segment || null),
           pathType: pathType,
           hasSiblingClientFile: hasSiblingClientFile,
@@ -173,7 +173,7 @@ async function walkPages(): Promise<{
       if (isPageFile) {
         paths.push({
           importPath: "pages/" + path + ".page.js",
-          path: pathTOUse,
+          path: pathToUse,
           segments: segments.map((x) => x.segment || null),
           pathType: pathType,
           hasSiblingClientFile: hasSiblingClientFile,

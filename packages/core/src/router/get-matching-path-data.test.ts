@@ -653,7 +653,7 @@ gmpdTester({
   },
 });
 
-// "/index"
+// "/dynamic-index/index"
 // should render "/dynamic-index/__site_index/index.page.tsx"
 
 gmpdTester({
@@ -662,7 +662,7 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        filePath: "pages/dynamic-index/__site_index/index.page.tsx", // INDEX
+        filePath: "pages/dynamic-index/__site_index/index.page.tsx",
       },
     ],
     params: {},

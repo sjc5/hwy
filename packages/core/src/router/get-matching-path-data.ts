@@ -1,3 +1,4 @@
+import { H3Event, getRequestURL } from "h3";
 import {
   ActivePathData,
   DataProps,
@@ -6,13 +7,11 @@ import {
   SPLAT_SEGMENT,
   getHwyGlobal,
 } from "../../../common/index.mjs";
+import { ROOT_DIRNAME } from "../setup.js";
+import { dynamicNodePath, pathToFileURLStr } from "../utils/url-polyfills.js";
 import { getMatchStrength } from "./get-match-strength.js";
 import { getMatchingPathsInternal } from "./get-matching-path-data-internal.js";
 import { matcher } from "./matcher.js";
-
-import { H3Event, getRequestURL } from "h3";
-import { ROOT_DIRNAME } from "../setup.js";
-import { dynamicNodePath, pathToFileURLStr } from "../utils/url-polyfills.js";
 
 const hwyGlobal = getHwyGlobal();
 
@@ -158,13 +157,11 @@ function semiDecoratePaths({
   event: H3Event;
   paths: Paths;
 }): SemiDecoratedPath[] {
+  let pathToUse = getRequestURL(event).pathname;
+  if (pathToUse !== "/" && pathToUse.endsWith("/")) {
+    pathToUse = pathToUse.slice(0, -1);
+  }
   return paths?.map((path) => {
-    let pathToUse = getRequestURL(event).pathname;
-
-    if (pathToUse !== "/" && pathToUse.endsWith("/")) {
-      pathToUse = pathToUse.slice(0, -1);
-    }
-
     return {
       // public shape
       ...path,

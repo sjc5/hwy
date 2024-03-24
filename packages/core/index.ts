@@ -17,7 +17,7 @@ export type {
 
 export { renderRoot } from "./src/components/render-root.js";
 
-export { getRouteData } from "./src/utils/get-root-data.js";
+export { getRouteData } from "./src/utils/get-route-data.js";
 
 export {
   ClientScripts,

@@ -2,7 +2,7 @@ import { H3Event } from "h3";
 import { ReactElement } from "react";
 import { renderToPipeableStream } from "react-dom/server";
 import { AdHocData, HeadBlock, RouteData } from "../../../common/index.mjs";
-import { getIsJSONRequest, getRouteData } from "../utils/get-root-data.js";
+import { getIsJSONRequest, getRouteData } from "../utils/get-route-data.js";
 
 export async function renderRoot({
   event,
