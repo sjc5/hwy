@@ -22,6 +22,7 @@ export async function renderRoot({
     adHocData,
   });
   const b = performance.now();
+  console.log(new URL(request.url).pathname);
   console.log(`getRouteData took ${b - a} ms`);
   if (!maybeRootData) {
     return;
