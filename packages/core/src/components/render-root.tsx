@@ -15,11 +15,14 @@ export async function renderRoot({
   root: (props: RouteData) => ReactElement;
   adHocData?: AdHocData;
 }) {
+  const a = performance.now();
   const maybeRootData = await getRouteData({
     event,
     defaultHeadBlocks,
     adHocData,
   });
+  const b = performance.now();
+  console.log("getRouteData took", b - a, "ms");
   if (!maybeRootData) {
     return;
   }
