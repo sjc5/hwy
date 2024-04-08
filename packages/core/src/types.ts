@@ -3,7 +3,7 @@ import {
   ActivePathData,
   AdHocData,
   DataProps,
-  HeadBlock,
+  // HeadBlock,
   HeadFunction,
   HeadProps,
   Loader,
@@ -12,6 +12,7 @@ import {
   RootLayoutComponent,
   RootLayoutProps,
 } from "../../common/index.mjs";
+import { HeadBlock } from "./router/router.js";
 
 export type {
   Action,

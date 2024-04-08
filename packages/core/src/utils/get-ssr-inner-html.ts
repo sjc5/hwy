@@ -1,36 +1,30 @@
 import {
   CLIENT_GLOBAL_KEYS,
   HWY_PREFIX,
-  RouteData,
   getHwyGlobal,
 } from "../../../common/index.mjs";
-import { getPublicUrl } from "./hashed-public-url.js";
+import { GetRouteDataOutput } from "../router/router.js";
 
 const hwyGlobal = getHwyGlobal();
 
 const { uneval } = await import("devalue");
 
-export function getSsrInnerHtml(routeData: RouteData) {
+export function getSsrInnerHtml(baseProps: GetRouteDataOutput) {
   let html = `
 globalThis[Symbol.for("${HWY_PREFIX}")] = {};
 const x = globalThis[Symbol.for("${HWY_PREFIX}")];
 x.isDev = ${uneval(hwyGlobal.get("isDev"))};
-${mkSetterStr("buildID", routeData.buildID)}
-${mkSetterStr("activeData", routeData.activePathData.activeData)}
-${mkSetterStr(
-  "activePaths",
-  routeData.activePathData.matchingPaths?.map((x) => {
-    return getPublicUrl("dist/" + x.importPath);
-  }),
-)}
+${mkSetterStr("buildID", baseProps.buildID)}
+${mkSetterStr("activeData", baseProps.activeData)}
+${mkSetterStr("activePaths", baseProps.activePaths)}
 ${mkSetterStr(
   "outermostErrorBoundaryIndex",
-  routeData.activePathData.outermostErrorBoundaryIndex,
+  baseProps.outermostErrorBoundaryIndex,
 )}
-${mkSetterStr("splatSegments", routeData.activePathData.splatSegments)}
-${mkSetterStr("params", routeData.activePathData.params)}
-${mkSetterStr("actionData", routeData.activePathData.actionData)}
-${mkSetterStr("adHocData", routeData.adHocData)}
+${mkSetterStr("splatSegments", baseProps.splatSegments)}
+${mkSetterStr("params", baseProps.params)}
+${mkSetterStr("actionData", baseProps.actionData)}
+${mkSetterStr("adHocData", baseProps.adHocData)}
 `.trim();
   return html;
 }

@@ -1,34 +1,33 @@
-import { H3Event } from "h3";
 import { ReactElement } from "react";
 import { renderToPipeableStream } from "react-dom/server";
-import { AdHocData, HeadBlock, RouteData } from "../../../common/index.mjs";
+import { AdHocData } from "../../../common/index.mjs";
+import { GetRouteDataOutput, HeadBlock } from "../router/router.js";
 import { getIsJSONRequest, getRouteData } from "../utils/get-route-data.js";
 
 export async function renderRoot({
-  event,
+  request,
   defaultHeadBlocks,
   root: Root,
   adHocData,
 }: {
-  event: H3Event;
+  request: Request;
   defaultHeadBlocks: HeadBlock[];
-  root: (props: RouteData) => ReactElement;
+  root: (props: GetRouteDataOutput) => ReactElement;
   adHocData?: AdHocData;
 }) {
+  const a = performance.now();
   const maybeRootData = await getRouteData({
-    event,
+    request,
     defaultHeadBlocks,
     adHocData,
   });
+  const b = performance.now();
+  console.log(`getRouteData took ${b - a} ms`);
   if (!maybeRootData) {
     return;
   }
-  if (!isRouteDataType(maybeRootData, event)) {
+  if (getIsJSONRequest(request)) {
     return maybeRootData;
   }
   return renderToPipeableStream(<Root {...maybeRootData} />);
-}
-
-function isRouteDataType(x: any, event: H3Event): x is RouteData {
-  return !(x instanceof Response) && !getIsJSONRequest(event);
 }

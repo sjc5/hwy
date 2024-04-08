@@ -1,10 +1,4 @@
-import {
-  HeadBlock,
-  HeadFunction,
-  RouteData,
-  TagHeadBlock,
-} from "../../../common/index.mjs";
-import { getPublicUrl } from "./hashed-public-url.js";
+import { ActivePathData, HeadBlock } from "../router/router.js";
 
 function stableHash(obj: Record<string, any>): string {
   return JSON.stringify(
@@ -26,10 +20,10 @@ function dedupeHeadBlocks(headBlocks: HeadBlock[]): HeadBlock[] {
   for (let i = 0; i < headBlocks.length; i++) {
     const block = headBlocks[i];
 
-    if ("title" in block) {
+    if (block.tag === "title") {
       results.set("title", block);
     } else if (block.tag === "meta") {
-      const name = block.attributes.name;
+      const name = block.attributes?.name;
       if (name === "description") {
         results.set("description", block);
       } else {
@@ -43,13 +37,19 @@ function dedupeHeadBlocks(headBlocks: HeadBlock[]): HeadBlock[] {
   return [...results.values()];
 }
 
-function getExportedHeadBlocks(
-  props: Pick<RouteData, "activePathData" | "event" | "defaultHeadBlocks">,
-): HeadBlock[] {
-  const { activePathData } = props;
+type GetExportedHeadBlocksProps = {
+  r: Request;
+  activePathData: ActivePathData;
+  defaultHeadBlocks: Array<HeadBlock>;
+};
 
+function getExportedHeadBlocks({
+  r,
+  activePathData,
+  defaultHeadBlocks,
+}: GetExportedHeadBlocksProps): Array<HeadBlock> {
   const nonDeduped =
-    activePathData?.activeHeads?.flatMap((head: HeadFunction, i) => {
+    activePathData?.activeHeads?.flatMap((head, i) => {
       const currentActivePath = activePathData?.activePaths?.[i];
 
       if (!currentActivePath) {
@@ -58,42 +58,23 @@ function getExportedHeadBlocks(
 
       const currentData = activePathData?.activeData?.[i];
 
-      return head({
-        loaderData: currentData,
-        actionData: activePathData.actionData,
-        event: props.event,
-        params: activePathData?.matchingPaths?.[i].params,
-        splatSegments: activePathData?.matchingPaths?.[i].splatSegments,
-      });
+      return (
+        head?.({
+          loaderData: currentData,
+          actionData: activePathData.actionData,
+          dataProps: {
+            request: r,
+            params: activePathData.params,
+            splatSegments: activePathData.splatSegments,
+          },
+        }) ?? []
+      );
     }) ?? [];
 
-  const defaults = props.defaultHeadBlocks ?? [];
-
-  const heads = [...defaults, ...nonDeduped];
+  const defaults = defaultHeadBlocks ?? [];
+  const heads = [...defaults, ...nonDeduped.flat()];
 
   return dedupeHeadBlocks(heads);
 }
 
-function getSiblingClientHeadBlocks(
-  props: Pick<RouteData, "activePathData">,
-): TagHeadBlock[] {
-  return (
-    props.activePathData.matchingPaths
-      ?.filter((x) => {
-        return x.hasSiblingClientFile;
-      })
-      .map((x) => {
-        return {
-          tag: "script",
-          attributes: {
-            type: "module",
-            src: getPublicUrl(
-              "dist/" + x.importPath.replace(".page.js", ".client.js"),
-            ),
-          },
-        };
-      }) ?? []
-  );
-}
-
-export { getExportedHeadBlocks, getSiblingClientHeadBlocks };
+export { getExportedHeadBlocks };

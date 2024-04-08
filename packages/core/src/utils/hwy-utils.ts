@@ -3,10 +3,7 @@ import {
   getHwyGlobal,
 } from "../../../common/index.mjs";
 import { getRefreshScript } from "./dev-live-refresh-script.js";
-import {
-  getExportedHeadBlocks,
-  getSiblingClientHeadBlocks,
-} from "./get-head-blocks.js";
+import { getExportedHeadBlocks } from "./get-head-blocks.js";
 import { getSsrInnerHtml } from "./get-ssr-inner-html.js";
 import { getPublicUrl } from "./hashed-public-url.js";
 
@@ -25,7 +22,6 @@ const utils = {
   getSsrInnerHtml,
   getExportedHeadBlocks,
   getPublicUrl,
-  getSiblingClientHeadBlocks,
 } as const;
 
 export { utils };

@@ -1,28 +1,25 @@
-import { getFormStrings } from "@hwy-js/utils";
 import type { DataProps } from "hwy";
 
-export async function action({ event }: DataProps) {
-  const data = await getFormStrings<"email" | "password">({ event });
+export async function action({ request }: DataProps) {
+  const formData = await request.formData();
+  const email = formData.get("email") as string;
+  const password = formData.get("password") as string;
 
-  if (!data) {
-    throw new Error("No data was returned from getFormStrings.");
-  }
-
-  if (!data.email || !data.password) {
+  if (!email || !password) {
     return {
       error: true,
       message: "Error: Please enter a valid email and password.",
     };
   }
 
-  if (!data.email.includes(".") || !data.email.includes("@")) {
+  if (!email.includes(".") || !email.includes("@")) {
     return {
       error: true,
       message: "Error: Please enter a valid email address.",
     };
   }
 
-  if (data.password.length < 4) {
+  if (password.length < 4) {
     return {
       error: true,
       message: "Error: Please enter a password that is at least 4 characters.",
@@ -32,7 +29,7 @@ export async function action({ event }: DataProps) {
   return {
     email: "",
     success: true,
-    message: `Congrats! You are signed in as ${data.email}.`,
+    message: `Congrats! You are signed in as ${email}.`,
   };
 }
 

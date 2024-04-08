@@ -1,5 +1,5 @@
-import type { H3Event } from "h3";
 import type { FunctionComponent, ReactElement } from "react";
+import type { HeadBlock, Path } from "../core/src/router/router.js";
 
 export const HWY_PREFIX = "__hwy_internal__";
 export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
@@ -13,40 +13,14 @@ export type HwyConfig = {
     watchInclusions?: Array<string>;
     hotReloadStyles?: boolean;
   };
-} & (
-  | {
-      /**
-       * @experimental
-       * `useClientSideReact` is experimental.
-       */
-      useClientSideReact?: false;
-      /**
-       * @experimental
-       * `useDotServerFiles` is experimental.
-       */
-      useDotServerFiles?: boolean;
-    }
-  | {
-      /**
-       * @experimental
-       * `useClientSideReact` is experimental.
-       */
-      useClientSideReact?: true;
-      /**
-       * @experimental
-       * `useDotServerFiles` is experimental.
-       */
-      useDotServerFiles?: true;
-    }
-) & {
-    routeStrategy?:
-      | "bundle"
-      | "warm-cache-at-startup"
-      | "always-lazy"
-      | "lazy-once-then-cache";
-  };
+  routeStrategy?:
+    | "bundle"
+    | "warm-cache-at-startup"
+    | "always-lazy"
+    | "lazy-once-then-cache";
+};
 
-export const SPLAT_SEGMENT = ":catch*";
+// export const SPLAT_SEGMENT = ":catch*";
 
 export type RefreshFilePayload = {
   changeType: "critical-css" | "css-bundle" | "standard";
@@ -99,95 +73,9 @@ export type ActivePathData = {
   activeErrorBoundaries: any[];
 };
 
-///////////////////////////////////////////////
-// Head Block stuff
-
-export type TitleHeadBlock = { title: string };
-export type TagHeadBlock = {
-  tag: "meta" | "base" | "link" | "style" | "script" | "noscript" | string;
-  attributes: Partial<Record<string, string>>;
-};
-export type HeadBlock = TitleHeadBlock | TagHeadBlock;
-
-const BLOCK_TYPES = [
-  "title",
-  "meta",
-  "base",
-  "link",
-  "style",
-  "script",
-  "noscript",
-] as const;
-
-export type BlockType = (typeof BLOCK_TYPES)[number];
-
-export function getHeadBlockType(headBlock: HeadBlock): BlockType | "unknown" {
-  if ("title" in headBlock) {
-    return "title";
-  }
-  if (BLOCK_TYPES.includes(headBlock.tag as BlockType)) {
-    return headBlock.tag as BlockType;
-  }
-  return "unknown";
-}
-
-export function sortHeadBlocks(headBlocks: HeadBlock[]) {
-  let title = "";
-  let metaHeadBlocks: Array<TagHeadBlock> = [];
-  let restHeadBlocks: Array<TagHeadBlock> = [];
-
-  headBlocks.forEach((block) => {
-    const type = getHeadBlockType(block);
-
-    if (type === "title") {
-      title = (block as TitleHeadBlock).title;
-    } else if (type === "meta") {
-      metaHeadBlocks.push(block as TagHeadBlock);
-    } else {
-      restHeadBlocks.push(block as TagHeadBlock);
-    }
-  });
-
-  return {
-    title,
-    metaHeadBlocks,
-    restHeadBlocks,
-  };
-}
-
 export interface AdHocData extends Record<string, any> {}
 
-export type RouteData = {
-  event: H3Event;
-  activePathData: ActivePathData;
-  defaultHeadBlocks: HeadBlock[];
-  title: string;
-  metaHeadBlocks: TagHeadBlock[];
-  restHeadBlocks: TagHeadBlock[];
-  adHocData: AdHocData | undefined;
-  buildID: string;
-};
-
 // PATHS
-
-export type PathType =
-  | "ultimate-catch"
-  | "index"
-  | "static-layout"
-  | "dynamic-layout"
-  | "non-ultimate-splat";
-
-export type Path = {
-  importPath: string;
-  path: string;
-  segments: Array<string | null>;
-  pathType: PathType;
-  hasSiblingClientFile: boolean;
-  hasSiblingServerFile: boolean;
-  isServerFile: boolean;
-};
-
-export type Paths = Array<Path>;
 
 // HWY GLOBAL (SERVER)
 
@@ -195,7 +83,7 @@ export type HwyGlobal = {
   hwyConfig: HwyConfig;
   isDev: boolean;
   criticalBundledCSS: string;
-  paths: Paths;
+  paths: Array<Path>;
   publicMap: Record<string, string>;
   publicReverseMap: Record<string, string>;
   testDirname?: string;
@@ -265,7 +153,7 @@ export function getHwyClientGlobal() {
 // CORE TYPES
 
 export type DataProps = {
-  event: H3Event;
+  request: Request;
   params: Record<string, string>;
   splatSegments: string[];
 };
@@ -296,7 +184,7 @@ export type HeadProps<
   LoaderType extends Loader = Loader,
   ActionType extends Action = Action,
 > = Omit<PageProps<LoaderType, ActionType>, "Outlet" | "adHocData"> & {
-  event: H3Event;
+  request: Request;
 };
 
 export type HeadFunction<

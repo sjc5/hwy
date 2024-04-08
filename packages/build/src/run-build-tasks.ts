@@ -64,8 +64,6 @@ async function runBuildTasks({
   log?: string;
   changeType?: RefreshFilePayload["changeType"];
 }) {
-  const isUsingClientSideReact = hwyConfig.useClientSideReact;
-
   // IDEA -- Should probably split "pre-build" into CSS pre-processing and other pre-processing
   hwyLog.info(`new build initiated${log ? ` (${log})` : ""}`);
   await handlePreBuild({ isDev });
@@ -151,8 +149,7 @@ async function runBuildTasks({
    * BUILD SERVER ENTRY AND WRITE PATHS TO DISK
    */
 
-  const { pageFilesList, clientFilesList, serverFilesList } =
-    await writePathsToDisk();
+  const { pageFilesList, serverFilesList } = await writePathsToDisk();
 
   await esbuild.build({
     ...getEsbuildBuildArgsBase(isDev),
@@ -181,10 +178,7 @@ async function runBuildTasks({
       ...(isUsingClientEntry
         ? [path.join(process.cwd(), "src/entry.client" + clientEntryExt)]
         : []),
-      ...(isUsingClientSideReact ? pageFilesList : []).map(
-        (x) => x.importPathWithOrigExt,
-      ),
-      ...clientFilesList.map((x) => x.importPathWithOrigExt),
+      ...pageFilesList.map((x) => x.importPathWithOrigExt),
     ],
     outdir: publicDistDir,
     platform: "browser",
@@ -402,18 +396,12 @@ function getClientEntryExtension() {
 async function getPathImportSnippet() {
   if (hwyConfig.routeStrategy === "warm-cache-at-startup") {
     return `
-${HWY_PREFIX}arbitraryGlobal.${HWY_GLOBAL_KEYS.paths}.forEach(function (x) {
+		${HWY_PREFIX}arbitraryGlobal.${HWY_GLOBAL_KEYS.paths}.forEach(function (x) {
   const pathFromDist = "./" + x.importPath;
   import(pathFromDist).then((x) => ${HWY_PREFIX}arbitraryGlobal[pathFromDist] = x);
-  ${
-    hwyConfig.useDotServerFiles
-      ? `
-  if (x.hasSiblingServerFile) {
+	if (x.hasSiblingServerFile) {
     const serverPathFromDist = pathFromDist.replace(".page.js", ".server.js");
     import(serverPathFromDist).then((x) => ${HWY_PREFIX}arbitraryGlobal[serverPathFromDist] = x);
-  }
-    `.trim() + "\n"
-      : ""
   }
 });
         `.trim();

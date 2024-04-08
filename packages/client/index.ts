@@ -1,12 +1,13 @@
-export type { RouteData } from "../common/index.mjs";
+export type { GetRouteDataOutput } from "../core/src/router/router.js";
 export {
+  getAdHocData,
   getCustomHistory,
   getIsInternalLink,
   getIsNavigating,
   getIsRevalidating,
   getIsSubmitting,
   getShouldPreventLinkDefault,
-  initReactClient,
+  initClient,
   navigate,
   submit,
-} from "./src/init-react-client.js";
+} from "./src/base/init-client.js";

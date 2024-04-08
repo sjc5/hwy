@@ -1,58 +1,54 @@
 import type { ReactElement } from "react";
-import { memo, startTransition, useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import {
   AdHocData,
   RootLayoutComponent,
   RootLayoutProps,
   getHwyClientGlobal,
-  type ActivePathData,
 } from "../../../common/index.mjs";
+import { GetRouteDataOutput } from "../router/router.js";
 
 type ErrorBoundaryComp = () => ReactElement;
-type ServerKey = keyof ActivePathData;
-type BaseProps = {
-  activePathData?: ActivePathData | { fetchResponse: Response };
+type ServerKey = keyof GetRouteDataOutput;
+type BaseProps = Partial<GetRouteDataOutput> & {
   index?: number;
   fallbackErrorBoundary?: ErrorBoundaryComp;
   adHocData?: AdHocData;
   layout?: RootLayoutComponent;
 };
 
-export const RootOutlet = memo((props: BaseProps): ReactElement => {
-  const { activePathData } = props;
-  if (activePathData && "fetchResponse" in activePathData) {
-    return <></>;
-  }
+export function RootOutlet(props: BaseProps): ReactElement {
   const isServer = typeof document === "undefined";
-  const context: {
-    get: (sk: ServerKey) => ActivePathData[ServerKey];
+  console.log({ props });
+  const ctx: {
+    get: (sk: ServerKey) => GetRouteDataOutput[ServerKey];
   } = isServer
     ? {
-        get: (sk: ServerKey) => (props.activePathData as ActivePathData)?.[sk],
+        get: (sk: ServerKey) => props[sk],
       }
     : (getHwyClientGlobal() as any);
   const idx = props.index ?? 0;
-  const CurrentComponent = (context.get("activeComponents") as any)?.[idx];
+  const CurrentComponent = (ctx.get("activeComponents") as any)?.[idx];
   const adHocData = isServer
     ? props.adHocData
     : getHwyClientGlobal().get("adHocData");
-  const [params, setParams] = useState(context.get("params") ?? {});
+  const [params, setParams] = useState(ctx.get("params") ?? {});
   const [splatSegments, setSplatSegments] = useState(
-    context.get("splatSegments") ?? [],
+    ctx.get("splatSegments") ?? [],
   );
   const [loaderData, setLoaderData] = useState(
-    (context.get("activeData") as any)?.[idx],
+    (ctx.get("activeData") as any)?.[idx],
   );
   const [actionData, setActionData] = useState(
-    (context.get("actionData") as any)?.[idx],
+    (ctx.get("actionData") as any)?.[idx],
   );
   useEffect(() => {
     window.addEventListener("hwy:route-change", (evt) => {
       startTransition(() => {
-        setParams(context.get("params") ?? {});
-        setSplatSegments(context.get("splatSegments") ?? []);
-        setLoaderData((context.get("activeData") as any)?.[idx]);
-        setActionData((context.get("actionData") as any)?.[idx]);
+        setParams(ctx.get("params") ?? {});
+        setSplatSegments(ctx.get("splatSegments") ?? []);
+        setLoaderData((ctx.get("activeData") as any)?.[idx]);
+        setActionData((ctx.get("actionData") as any)?.[idx]);
       });
     });
   }, []);
@@ -61,18 +57,17 @@ export const RootOutlet = memo((props: BaseProps): ReactElement => {
     return <></>;
   }
 
-  const thisIsAnErrorBoundary =
-    context.get("outermostErrorBoundaryIndex") === idx;
+  const thisIsAnErrorBoundary = ctx.get("outermostErrorBoundaryIndex") === idx;
   const nextOutletIsAnErrorBoundary =
-    context.get("outermostErrorBoundaryIndex") === idx + 1;
+    ctx.get("outermostErrorBoundaryIndex") === idx + 1;
   const shouldRenderEB =
-    thisIsAnErrorBoundary || context.get("outermostErrorBoundaryIndex") === -1;
+    thisIsAnErrorBoundary || ctx.get("outermostErrorBoundaryIndex") === -1;
 
   try {
     if (shouldRenderEB) {
       const EB = useMemo(
         () =>
-          (context.get("activeErrorBoundaries") as any)?.[idx] ??
+          (ctx.get("activeErrorBoundaries") as any)?.[idx] ??
           props.fallbackErrorBoundary ?? (
             <div>Error: No error boundary found.</div>
           ),
@@ -86,7 +81,7 @@ export const RootOutlet = memo((props: BaseProps): ReactElement => {
             params={params as any}
             splatSegments={splatSegments as any}
           >
-            {EB}
+            <EB />
           </props.layout>
         );
       }
@@ -98,24 +93,18 @@ export const RootOutlet = memo((props: BaseProps): ReactElement => {
       let Outlet;
       if (!nextOutletIsAnErrorBoundary) {
         Outlet = (localProps: Record<string, any> | undefined) => {
-          return (
-            <RootOutlet
-              {...localProps}
-              activePathData={isServer ? props.activePathData : undefined}
-              index={idx + 1}
-            />
-          );
+          return <RootOutlet {...localProps} {...props} index={idx + 1} />;
         };
       } else {
         Outlet =
-          (context.get("activeErrorBoundaries") as any)?.[idx + 1] ??
+          (ctx.get("activeErrorBoundaries") as any)?.[idx + 1] ??
           props.fallbackErrorBoundary;
         if (!Outlet) {
           Outlet = () => <div>Error: No error boundary found.</div>;
         }
       }
       return Outlet;
-    }, [(context.get("activePaths") as any)?.[idx + 1]]);
+    }, [(ctx.get("activePaths") as any)?.[idx + 1]]);
 
     const extendedProps = useMemo(() => {
       return {
@@ -152,7 +141,7 @@ export const RootOutlet = memo((props: BaseProps): ReactElement => {
         splatSegments={splatSegments as any}
         children={useMemo(() => {
           return (
-            (context.get("activeErrorBoundaries") as any)
+            (ctx.get("activeErrorBoundaries") as any)
               ?.splice(0, idx + 1)
               ?.reverse()
               ?.find((x: any) => x) ??
@@ -164,7 +153,7 @@ export const RootOutlet = memo((props: BaseProps): ReactElement => {
       />
     );
   }
-});
+}
 
 function MaybeWithLayout(
   props: BaseProps & RootLayoutProps & { children: ReactElement },

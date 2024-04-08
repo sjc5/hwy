@@ -2,7 +2,6 @@ import esbuild from "esbuild";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { hwyLog } from "../../common/dev.mjs";
 import { type HwyConfig } from "../../common/index.mjs";
 
 let cachedHwyConfig: HwyConfig | undefined;
@@ -41,16 +40,6 @@ async function getHwyConfig() {
     throw new Error("hwy.config must export an object");
   }
 
-  const isUsingClientSideReact = internalHwyConfig?.useClientSideReact === true;
-
-  if (isUsingClientSideReact && internalHwyConfig?.useDotServerFiles !== true) {
-    hwyLog.warning(
-      "When using client-side React, 'hwyConfig.useDotServerFiles' is effectively always set to true.",
-      "This helps keep your server code out of your client bundle.",
-      "To quiet this warning, explicitly set 'useDotServerFiles' to true in your Hwy config.",
-    );
-  }
-
   cachedHwyConfig = {
     dev: {
       watchExclusions: internalHwyConfig?.dev?.watchExclusions || [],
@@ -59,10 +48,6 @@ async function getHwyConfig() {
         internalHwyConfig?.dev?.hotReloadStyles === false ? false : true,
     },
     routeStrategy: internalHwyConfig?.routeStrategy || "always-lazy",
-    useClientSideReact: isUsingClientSideReact as any,
-    useDotServerFiles: isUsingClientSideReact
-      ? true
-      : internalHwyConfig?.useDotServerFiles || false,
     scriptsToInject: internalHwyConfig?.scriptsToInject || [],
   } satisfies HwyConfig;
 

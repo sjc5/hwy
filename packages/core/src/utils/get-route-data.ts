@@ -1,33 +1,45 @@
-import { getQuery, H3Event } from "h3";
+import { AdHocData, getHwyGlobal, HWY_PREFIX } from "../../../common/index.mjs";
 import {
-  AdHocData,
-  getHwyGlobal,
+  getMatchingPathData,
+  GetRouteDataOutput,
   HeadBlock,
-  HWY_PREFIX,
-  sortHeadBlocks,
-} from "../../../common/index.mjs";
-import { getHeadElementProps } from "../components/head-elements-comp.js";
-import { getMatchingPathData } from "../router/get-matching-path-data.js";
+  SortHeadBlocksOutput,
+} from "../router/router.js";
 import { utils } from "./hwy-utils.js";
 
-export function getIsJSONRequest(event: H3Event) {
-  return Boolean(getQuery(event)[`${HWY_PREFIX}json`]);
+export function getIsJSONRequest(request: Request): boolean {
+  const url = new URL(request.url);
+  return Boolean(url.searchParams.get(`${HWY_PREFIX}json`));
 }
 
-async function getRouteData({
-  event,
+function sortHeadBlocks(blocks: Array<HeadBlock>): SortHeadBlocksOutput {
+  const result: SortHeadBlocksOutput = {
+    title: "",
+    metaHeadBlocks: [],
+    restHeadBlocks: [],
+  };
+  for (const block of blocks) {
+    if (block.tag === "title" && block.value) {
+      result.title = block.value;
+    } else if (block.tag === "meta") {
+      result.metaHeadBlocks.push(block);
+    } else {
+      result.restHeadBlocks.push(block);
+    }
+  }
+  return result;
+}
+
+export async function getRouteData({
+  request,
   defaultHeadBlocks,
   adHocData,
 }: {
-  event: H3Event;
+  request: Request;
   defaultHeadBlocks: HeadBlock[];
   adHocData: AdHocData | undefined;
-}) {
-  const activePathData = await getMatchingPathData(event);
-
-  if (activePathData.fetchResponse) {
-    return activePathData.fetchResponse;
-  }
+}): Promise<GetRouteDataOutput | null> {
+  const activePathData = await getMatchingPathData(request);
 
   if (!activePathData.matchingPaths?.length) {
     return null;
@@ -35,12 +47,8 @@ async function getRouteData({
 
   const hwyGlobal = getHwyGlobal();
 
-  const isUsingClientSideReact = Boolean(
-    hwyGlobal.get("hwyConfig").useClientSideReact,
-  );
-
   const headBlocks = utils.getExportedHeadBlocks({
-    event,
+    r: request,
     activePathData,
     defaultHeadBlocks,
   });
@@ -49,46 +57,29 @@ async function getRouteData({
 
   const buildID = hwyGlobal.get("buildID");
 
-  if (isUsingClientSideReact && getIsJSONRequest(event)) {
-    if (event.web?.request?.signal.aborted || event.handled) {
-      return;
-    }
-    return {
-      title,
-      metaHeadBlocks,
-      restHeadBlocks,
-      activeData: activePathData.activeData,
-      activePaths: activePathData.matchingPaths
-        ?.filter((x) => {
-          return !x.isServerFile;
-        })
-        .map((x) => {
-          return utils.getPublicUrl("dist/" + x.importPath);
-        }),
-      outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
-      splatSegments: activePathData.splatSegments,
-      params: activePathData.params,
-      actionData: activePathData.actionData,
-      adHocData,
-      buildID,
-    };
-  }
-
-  const baseProps = {
-    event,
-    activePathData,
-    title,
-    metaHeadBlocks,
-    restHeadBlocks,
-    defaultHeadBlocks,
-    adHocData,
-    buildID,
-  };
+  const isJSON = getIsJSONRequest(request);
 
   return {
-    ...baseProps,
-    ...getHeadElementProps(baseProps),
-  };
+    title: title,
+    metaHeadBlocks: metaHeadBlocks,
+    restHeadBlocks: restHeadBlocks,
+    activeData: activePathData.activeData,
+    activePaths: activePathData.activePaths,
+    outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
+    splatSegments: activePathData.splatSegments,
+    params: activePathData.params,
+    actionData: activePathData.actionData,
+    adHocData: adHocData ?? {},
+    buildID,
+    activeComponents: isJSON ? null : activePathData.activeComponents,
+    activeErrorBoundaries: isJSON ? null : activePathData.activeErrorBoundaries,
+  } satisfies GetRouteDataOutput;
 }
 
-export { getRouteData };
+// activePaths: activePathData.matchingPaths
+// ?.filter((x) => {
+// 	return !x.isServerFile;
+// })
+// .map((x) => {
+// 	return utils.getPublicUrl("dist/" + x.importPath);
+// }),

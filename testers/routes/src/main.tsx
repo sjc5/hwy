@@ -1,4 +1,9 @@
-import { createApp, defineEventHandler, toNodeListener } from "h3";
+import {
+  createApp,
+  defineEventHandler,
+  toNodeListener,
+  toWebRequest,
+} from "h3";
 import {
   ClientScripts,
   CssImports,
@@ -21,7 +26,7 @@ app.use(
   "*",
   defineEventHandler(async (event) => {
     return await renderRoot({
-      event,
+      request: toWebRequest(event),
       defaultHeadBlocks: [],
       root: function (routeData) {
         return (

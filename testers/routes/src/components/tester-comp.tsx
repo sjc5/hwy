@@ -17,7 +17,7 @@ function TesterComp({ Outlet, params, splatSegments, ...rest }: PageProps) {
         <p>Splat Segments:{JSON.stringify(splatSegments)}</p>
 
         {Object.keys(params).length ? (
-          <p>Params: {JSON.stringify(params)}</p>
+          <p>params: {JSON.stringify(params)}</p>
         ) : null}
 
         <Outlet />
