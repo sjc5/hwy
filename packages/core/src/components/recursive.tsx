@@ -19,7 +19,6 @@ type BaseProps = Partial<GetRouteDataOutput> & {
 
 export function RootOutlet(props: BaseProps): ReactElement {
   const isServer = typeof document === "undefined";
-  console.log({ props });
   const ctx: {
     get: (sk: ServerKey) => GetRouteDataOutput[ServerKey];
   } = isServer

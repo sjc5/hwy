@@ -1,7 +1,7 @@
 import { PageProps } from "hwy";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-function TesterComp({ Outlet, params, splatSegments, ...rest }: PageProps) {
+function TesterComp({ Outlet, params, splatSegments }: PageProps) {
   const [randomColor] = useState(
     "#" + Math.floor(Math.random() * 16777215).toString(16),
   );

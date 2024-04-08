@@ -142,7 +142,6 @@ export type SortHeadBlocksOutput = {
 function getInitialMatchingPaths(pathToUse: string): Array<MatchingPath> {
   let initialMatchingPaths: Array<MatchingPath> = [];
   const instancePaths = getHwyGlobal().get("paths");
-  console.log(instancePaths);
   for (const path of instancePaths) {
     let pathType = path.pathType;
     if (path.pattern === "/" + SPLAT_SEGMENT) {
@@ -190,8 +189,6 @@ async function getPath(importPath: string) {
     hwyGlobal.get("testDirname") || ROOT_DIRNAME || "./",
     importPath,
   );
-
-  console.log(hwyGlobal.get("isDev"));
 
   if (routeStrategy === "always-lazy") {
     return import(pathToFileURLStr(inner));
@@ -693,7 +690,6 @@ export async function getMatchingPathData(r: Request): Promise<ActivePathData> {
       getMatchingPathsInternal(initialMatchingPaths, realPath);
     const activePaths: Array<string> = [];
     for (const path of matchingPaths) {
-      console.log(path.importPath);
       activePaths.push(getPublicUrl("./dist/" + path.importPath)); // __TODO This is weird
     }
     const lastPath =
@@ -714,16 +710,12 @@ export async function getMatchingPathData(r: Request): Promise<ActivePathData> {
       item.decoratedMatchingPaths[item.decoratedMatchingPaths.length - 1];
   }
 
-  console.log(lastPath, lastPath?.action);
-
   const { data: actionData, error: actionDataError } = await getActionData(
     r,
     lastPath?.action,
     item.params,
     item.splatSegments,
   );
-
-  console.log({ actionData });
 
   let [activeComponents, activeHeads, activeErrorBoundaries] =
     await Promise.all([
@@ -862,7 +854,6 @@ export async function getMatchingPathData(r: Request): Promise<ActivePathData> {
   activePathData.params = item.params;
   activePathData.activeComponents = activeComponents;
   activePathData.activeErrorBoundaries = activeErrorBoundaries;
-  console.log(activePathData);
   return activePathData;
 }
 
@@ -887,7 +878,6 @@ async function getActionData(
       splatSegments: splatSegments,
     });
 
-    console.log({ data });
     return { data, error: null };
   } catch (e) {
     console.error(e);
