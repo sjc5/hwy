@@ -1,6 +1,3 @@
 import type { HwyConfig } from "@hwy-js/build";
 
-export default {
-  useClientSideReact: true,
-  useDotServerFiles: true,
-} satisfies HwyConfig;
+export default {} satisfies HwyConfig;

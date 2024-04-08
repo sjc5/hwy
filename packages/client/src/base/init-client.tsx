@@ -1,10 +1,10 @@
 import { createBrowserHistory } from "history";
-import { startTransition } from "react";
 import {
+  AdHocData,
   CLIENT_GLOBAL_KEYS,
   HWY_PREFIX,
   getHwyClientGlobal,
-} from "../../common/index.mjs";
+} from "../../../common/index.mjs";
 
 let isNavigating = false;
 let isSubmitting = false;
@@ -100,7 +100,7 @@ function getShouldPreventLinkDefault(event: MouseEvent) {
   return shouldPreventDefault;
 }
 
-async function initReactClient(hydrateFn: () => void) {
+async function initClient(renderFn: () => void) {
   customHistory = createBrowserHistory();
 
   lastKnownCustomLocation = customHistory.location;
@@ -151,10 +151,10 @@ async function initReactClient(hydrateFn: () => void) {
 
   hwyClientGlobal.set(
     "activeErrorBoundaries",
-    awaitedComps.map((x) => x.ErrorBoundary),
+    awaitedComps.map((x) => x.errorBoundary),
   );
 
-  startTransition(hydrateFn);
+  renderFn();
 
   document.body.addEventListener("click", async function (event) {
     const anchor = (event.target as HTMLElement).closest("a");
@@ -659,14 +659,19 @@ function getIsRevalidating() {
 function getIsSubmitting() {
   return isSubmitting;
 }
+function getAdHocData(): AdHocData | undefined {
+  return getHwyClientGlobal().get("adHocData");
+}
+
 export {
+  getAdHocData,
   getCustomHistory,
   getIsInternalLink,
   getIsNavigating,
   getIsRevalidating,
   getIsSubmitting,
   getShouldPreventLinkDefault,
-  initReactClient,
+  initClient,
   navigate,
   submit,
 };

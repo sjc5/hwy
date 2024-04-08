@@ -1,4 +1,4 @@
-export { getMatchingPathData } from "./src/router/get-matching-path-data.js";
+export { getMatchingPathData } from "./src/router/router.js";
 export { hwyInit } from "./src/setup.js";
 export { utils } from "./src/utils/hwy-utils.js";
 
@@ -24,7 +24,6 @@ export {
   CssImports,
   DevLiveRefreshScript,
   HeadElements,
-  getHeadElementProps,
 } from "./src/components/head-elements-comp.js";
 
 export { RootOutlet } from "./src/components/recursive.js";

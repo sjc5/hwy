@@ -2,17 +2,11 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import nodePath from "node:path";
 import readdirp from "readdirp";
-import {
-  HWY_GLOBAL_KEYS,
-  Path,
-  PathType,
-  SPLAT_SEGMENT,
-} from "../../common/index.mjs";
+import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
+import { Path, PathType, SPLAT_SEGMENT } from "../../core/src/router/router.js";
 import { getHwyConfig } from "./get-hwy-config.js";
 
 const permittedExts = ["js", "jsx", "ts", "tsx", "mjs", "cjs", "mts", "cts"];
-
-const hwyConfig = await getHwyConfig();
 
 type FilesList = Array<{
   path: string;
@@ -22,23 +16,18 @@ type FilesList = Array<{
 async function walkPages(): Promise<{
   paths: Array<Path>;
   pageFilesList: FilesList;
-  clientFilesList: FilesList;
   serverFilesList: FilesList;
 }> {
   let pageFilesList: FilesList = [];
-  let clientFilesList: FilesList = [];
   let serverFilesList: FilesList = [];
 
   const paths: Paths = [];
 
   for await (const entry of readdirp(nodePath.resolve("./src/pages"))) {
     const isPageFile = entry.path.includes(".page.");
-    const isClientFile = entry.path.includes(".client.");
-    const isServerFile = Boolean(
-      hwyConfig.useDotServerFiles && entry.path.includes(".server."),
-    );
+    const isServerFile = entry.path.includes(".server.");
 
-    if (!isPageFile && !isClientFile && !isServerFile) {
+    if (!isPageFile && !isServerFile) {
       continue;
     }
 
@@ -115,7 +104,6 @@ async function walkPages(): Promise<{
 
     if (isPageFile || isServerFile) {
       let hasSiblingPageFile = false;
-      let hasSiblingClientFile = false;
       let hasSiblingServerFile = false;
 
       for (const sibling of await fs.promises.readdir(
@@ -123,25 +111,13 @@ async function walkPages(): Promise<{
       )) {
         const filename = nodePath.basename(path);
 
-        if (sibling.includes(filename + ".client.")) {
-          hasSiblingClientFile = true;
-        }
-
-        if (
-          isPageFile &&
-          hwyConfig.useDotServerFiles &&
-          sibling.includes(filename + ".server.")
-        ) {
+        if (isPageFile && sibling.includes(filename + ".server.")) {
           hasSiblingServerFile = true;
 
           break;
         }
 
-        if (
-          isServerFile &&
-          hwyConfig.useDotServerFiles &&
-          sibling.includes(filename + ".page.")
-        ) {
+        if (isServerFile && sibling.includes(filename + ".page.")) {
           hasSiblingPageFile = true;
 
           break;
@@ -161,10 +137,9 @@ async function walkPages(): Promise<{
       if (isServerFile && !hasSiblingPageFile) {
         paths.push({
           importPath: "pages/" + path + ".server.js",
-          path: pathToUse,
-          segments: segments.map((x) => x.segment || null),
+          pattern: pathToUse,
+          segments: segments.map((x) => x.segment || ""),
           pathType: pathType,
-          hasSiblingClientFile: hasSiblingClientFile,
           hasSiblingServerFile: false,
           isServerFile: true,
         });
@@ -173,10 +148,9 @@ async function walkPages(): Promise<{
       if (isPageFile) {
         paths.push({
           importPath: "pages/" + path + ".page.js",
-          path: pathToUse,
-          segments: segments.map((x) => x.segment || null),
+          pattern: pathToUse,
+          segments: segments.map((x) => x.segment || ""),
           pathType: pathType,
-          hasSiblingClientFile: hasSiblingClientFile,
           hasSiblingServerFile: hasSiblingServerFile,
           isServerFile: false,
         });
@@ -195,10 +169,6 @@ async function walkPages(): Promise<{
       if (isPageFile) {
         pageFilesList.push({ path, importPathWithOrigExt });
       }
-
-      if (isClientFile) {
-        clientFilesList.push({ path, importPathWithOrigExt });
-      }
     } catch (e) {
       console.error(e);
     }
@@ -207,21 +177,19 @@ async function walkPages(): Promise<{
   return {
     paths,
     pageFilesList,
-    clientFilesList,
     serverFilesList,
   };
 }
 
 async function writePathsToDisk() {
-  const { paths, pageFilesList, clientFilesList, serverFilesList } =
-    await walkPages();
+  const { paths, pageFilesList, serverFilesList } = await walkPages();
 
   await fs.promises.writeFile(
     nodePath.join(process.cwd(), "dist", "paths.js"),
     `export const ${HWY_GLOBAL_KEYS.paths} = ${JSON.stringify(paths)}`,
   );
 
-  return { pageFilesList, clientFilesList, serverFilesList };
+  return { pageFilesList, serverFilesList };
 }
 
 function sha1Short(content: crypto.BinaryLike) {

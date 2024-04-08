@@ -1,4 +1,4 @@
-import { createApp, eventHandler, toNodeListener } from "h3";
+import { createApp, eventHandler, toNodeListener, toWebRequest } from "h3";
 import {
   ClientScripts,
   CssImports,
@@ -20,9 +20,9 @@ app.use(
   "*",
   eventHandler(async (event) => {
     return await renderRoot({
-      event,
+      request: toWebRequest(event),
       defaultHeadBlocks: [
-        { title: "hwy-example-minimal-mpa" },
+        { tag: "title", value: "hwy-example-minimal-mpa" },
         {
           tag: "meta",
           attributes: {

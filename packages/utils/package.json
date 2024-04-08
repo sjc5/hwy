@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/utils",
-  "version": "0.0.0-beta.69",
+  "version": "0.0.0-beta.70",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -8,15 +8,14 @@
   "description": "Various utilities for Hwy framework",
   "type": "module",
   "exports": {
-    ".": "./dist/index.js",
-    "./htmx": "./dist/htmx.js"
+    ".": "./dist/index.js"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsup-node index.ts htmx.ts --format esm --dts",
-    "dev": "rm -rf dist && tsup-node index.ts htmx.ts --format esm --dts --watch",
+    "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
     "publish-beta": "npm publish --tag beta",
     "publish-non-beta": "npm publish",
     "update-latest": "pnpm update --latest",

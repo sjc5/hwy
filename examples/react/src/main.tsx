@@ -1,4 +1,4 @@
-import { createApp, eventHandler, toNodeListener } from "h3";
+import { createApp, eventHandler, toNodeListener, toWebRequest } from "h3";
 import {
   ClientScripts,
   CssImports,
@@ -17,7 +17,7 @@ const { app } = await hwyInit({
 });
 
 const defaultHeadBlocks = [
-  { title: "hwy-example-react" },
+  { tag: "title", value: "hwy-example-react" },
   {
     tag: "meta",
     attributes: {
@@ -31,7 +31,7 @@ app.use(
   "*",
   eventHandler(async (event) => {
     return await renderRoot({
-      event,
+      request: toWebRequest(event),
       defaultHeadBlocks,
       root: (routeData) => {
         return (

@@ -1,4 +1,5 @@
-import { RouteData, getHwyGlobal } from "../../../common/index.mjs";
+import { getHwyGlobal } from "../../../common/index.mjs";
+import { GetRouteDataOutput } from "../router/router.js";
 import { utils } from "../utils/hwy-utils.js";
 
 const hwyGlobal = getHwyGlobal();
@@ -12,26 +13,22 @@ function getCriticalInlinedCssProps() {
   };
 }
 
-function getMetaElementsProps(baseProps: RouteData) {
+function getMetaElementsProps(baseProps: GetRouteDataOutput) {
   const arr = [
     { attributes: { "data-hwy": "meta-start" } },
     ...baseProps.metaHeadBlocks,
     { attributes: { "data-hwy": "meta-end" } },
-  ];
+  ] as const;
   return arr.map((block) => {
     return block.attributes;
   });
 }
 
-// Only needed if using client-side React
-function getServerRenderingProps(props: RouteData) {
-  if (!hwyGlobal.get("hwyConfig").useClientSideReact) {
-    return;
-  }
+function getServerRenderingProps(baseProps: GetRouteDataOutput) {
   return {
     type: "module",
     dangerouslySetInnerHTML: {
-      __html: utils.getSsrInnerHtml(props),
+      __html: utils.getSsrInnerHtml(baseProps),
     },
   };
 }
@@ -52,7 +49,7 @@ function getClientEntryModuleProps() {
   };
 }
 
-function getRestHeadElementsProps(baseProps: RouteData) {
+function getRestHeadElementsProps(baseProps: GetRouteDataOutput) {
   return [
     { tag: "meta", attributes: { "data-hwy": "rest-start" } },
     ...baseProps.restHeadBlocks,
@@ -77,46 +74,20 @@ function getDevRefreshScriptProps(timeoutInMs?: number) {
   };
 }
 
-function getPageSiblingsProps(baseProps: RouteData) {
-  return utils.getSiblingClientHeadBlocks(baseProps).map((block) => {
-    return block.attributes;
-  });
-}
-
-function getHeadElementProps(baseProps: RouteData) {
-  return {
-    criticalInlinedCssProps: getCriticalInlinedCssProps(),
-    metaElementsProps: getMetaElementsProps(baseProps),
-    serverRenderingProps: getServerRenderingProps(baseProps),
-    injectedScriptsProps: getInjectedScriptsProps(),
-    clientEntryModuleProps: getClientEntryModuleProps(),
-    restHeadElementsProps: getRestHeadElementsProps(baseProps),
-    pageSiblingsProps: getPageSiblingsProps(baseProps),
-    bundledStylesheetProps: getBundledStylesheetProps(),
-    devRefreshScriptProps: getDevRefreshScriptProps(),
-  } as const;
-}
-
-export {
-  ClientScripts,
-  CssImports,
-  DevLiveRefreshScript,
-  HeadElements,
-  getHeadElementProps,
-};
+export { ClientScripts, CssImports, DevLiveRefreshScript, HeadElements };
 
 /////////////////////////////////////////////////////////////////////
 ///////////////////// EXISTING HEAD ELEMENTS ///////////////////////
 /////////////////////////////////////////////////////////////////////
 
-function HeadElements(routeData: RouteData) {
+function HeadElements(baseProps: GetRouteDataOutput) {
   return (
     <>
-      <title>{routeData.title}</title>
-      {getMetaElementsProps(routeData).map((props, i) => (
+      <title>{baseProps.title}</title>
+      {getMetaElementsProps(baseProps).map((props, i) => (
         <meta {...props} key={i} />
       ))}
-      {getRestHeadElementsProps(routeData).map((props, i) => (
+      {getRestHeadElementsProps(baseProps).map((props, i) => (
         <props.tag {...props.attributes} key={i} />
       ))}
     </>
@@ -132,19 +103,14 @@ function CssImports() {
   );
 }
 
-function ClientScripts(routeData: RouteData) {
+function ClientScripts(baseProps: GetRouteDataOutput) {
   return (
     <>
-      {hwyGlobal.get("hwyConfig").useClientSideReact && (
-        <script {...getServerRenderingProps(routeData)} />
-      )}
+      <script {...getServerRenderingProps(baseProps)} />
       {getInjectedScriptsProps().map((props, i) => (
         <script {...props} key={i} />
       ))}
       <script {...getClientEntryModuleProps()} />
-      {getPageSiblingsProps(routeData).map((props, i) => (
-        <script {...props} key={i} />
-      ))}
     </>
   );
 }

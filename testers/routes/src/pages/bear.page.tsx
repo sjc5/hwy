@@ -4,7 +4,8 @@ import { TesterComp } from "~/src/components/tester-comp.js";
 export const head: HeadFunction = () => {
   return [
     {
-      title: "bear",
+      tag: "title",
+      value: "bear",
     },
     {
       tag: "meta",

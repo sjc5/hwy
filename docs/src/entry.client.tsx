@@ -1,10 +1,10 @@
-import { initReactClient } from "@hwy-js/client";
+import { initClient } from "@hwy-js/client";
 import { RootOutlet } from "hwy";
 import React from "react";
 import { hydrateRoot } from "react-dom/client";
 import { RootLayout } from "./pages/layout.js";
 
-await initReactClient(() => {
+await initClient(() => {
   hydrateRoot(
     document.getElementById("root") as HTMLElement,
     <React.StrictMode>

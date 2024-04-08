@@ -6,31 +6,20 @@ import {
   RootLayoutProps,
   getHwyClientGlobal,
 } from "../../../common/index.mjs";
-import { GetRouteDataOutput } from "../router/router.js";
 
 type ErrorBoundaryComp = () => ReactElement;
-type ServerKey = keyof GetRouteDataOutput;
-type BaseProps = Partial<GetRouteDataOutput> & {
+type BaseProps = {
   index?: number;
   fallbackErrorBoundary?: ErrorBoundaryComp;
   adHocData?: AdHocData;
   layout?: RootLayoutComponent;
 };
 
-export function RootOutlet(props: BaseProps): ReactElement {
-  const isServer = typeof document === "undefined";
-  const ctx: {
-    get: (sk: ServerKey) => GetRouteDataOutput[ServerKey];
-  } = isServer
-    ? {
-        get: (sk: ServerKey) => props[sk],
-      }
-    : (getHwyClientGlobal() as any);
+export function ClientRootOutlet(props: BaseProps): ReactElement {
+  const ctx = getHwyClientGlobal();
   const idx = props.index ?? 0;
   const CurrentComponent = (ctx.get("activeComponents") as any)?.[idx];
-  const adHocData = isServer
-    ? props.adHocData
-    : getHwyClientGlobal().get("adHocData");
+  const adHocData = ctx.get("adHocData");
   const [params, setParams] = useState(ctx.get("params") ?? {});
   const [splatSegments, setSplatSegments] = useState(
     ctx.get("splatSegments") ?? [],
@@ -92,7 +81,7 @@ export function RootOutlet(props: BaseProps): ReactElement {
       let Outlet;
       if (!nextOutletIsAnErrorBoundary) {
         Outlet = (localProps: Record<string, any> | undefined) => {
-          return <RootOutlet {...localProps} {...props} index={idx + 1} />;
+          return <ClientRootOutlet {...localProps} index={idx + 1} />;
         };
       } else {
         Outlet =
@@ -169,9 +158,4 @@ function MaybeWithLayout(
     );
   }
   return props.children;
-}
-
-export function getAdHocData(): AdHocData | undefined {
-  if (typeof document === "undefined") return;
-  return getHwyClientGlobal().get("adHocData");
 }
