@@ -2,8 +2,8 @@ import {
   CRITICAL_CSS_ELEMENT_ID,
   getHwyGlobal,
 } from "../../../common/index.mjs";
+import { getExportedHeadBlocks } from "../router/router.js";
 import { getRefreshScript } from "./dev-live-refresh-script.js";
-import { getExportedHeadBlocks } from "./get-head-blocks.js";
 import { getSsrInnerHtml } from "./get-ssr-inner-html.js";
 import { getPublicUrl } from "./hashed-public-url.js";
 

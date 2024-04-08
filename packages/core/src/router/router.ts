@@ -23,19 +23,12 @@ export type Path = {
   isServerFile: boolean;
 };
 
-export type HeadBlock = {
-  tag:
-    | "title"
-    | "meta"
-    | "base"
-    | "link"
-    | "style"
-    | "script"
-    | "noscript"
-    | string;
-  attributes?: Record<string, string | undefined>;
-  value?: string;
+export type TitleHeadBlock = { title: string };
+export type OtherHeadBlock = {
+  tag: "meta" | "base" | "link" | "style" | "script" | "noscript" | string;
+  attributes: Record<string, string | undefined>;
 };
+export type HeadBlock = TitleHeadBlock | OtherHeadBlock;
 
 type DataProps = {
   request: Request;
@@ -117,8 +110,8 @@ type gmpdItem = {
 
 export type GetRouteDataOutput = {
   title: string;
-  metaHeadBlocks: Array<HeadBlock>;
-  restHeadBlocks: Array<HeadBlock>;
+  metaHeadBlocks: Array<OtherHeadBlock>;
+  restHeadBlocks: Array<OtherHeadBlock>;
   activeData: Array<any>;
   activePaths: Array<string>;
   outermostErrorBoundaryIndex: number;
@@ -133,16 +126,10 @@ export type GetRouteDataOutput = {
   activeComponents: Array<any> | null;
 };
 
-export type SortHeadBlocksOutput = {
-  title: string;
-  metaHeadBlocks: Array<HeadBlock>;
-  restHeadBlocks: Array<HeadBlock>;
-};
-
 function getInitialMatchingPaths(pathToUse: string): Array<MatchingPath> {
   let initialMatchingPaths: Array<MatchingPath> = [];
-  const instancePaths = getHwyGlobal().get("paths");
-  for (const path of instancePaths) {
+
+  for (const path of getHwyGlobal().get("paths")) {
     let pathType = path.pathType;
     if (path.pattern === "/" + SPLAT_SEGMENT) {
       pathType = "ultimate-catch";
@@ -162,6 +149,7 @@ function getInitialMatchingPaths(pathToUse: string): Array<MatchingPath> {
       });
     }
   }
+
   return initialMatchingPaths;
 }
 
@@ -671,11 +659,11 @@ function getBaseSplatSegments(realPath: string): Array<string> {
 
 const gmpdCache = new LRUCache<gmpdItem>(500_000);
 
-export async function getMatchingPathData(r: Request): Promise<{
+export async function getMatchingPathData(request: Request): Promise<{
   activePathData: ActivePathData | null;
   response: Response | null;
 }> {
-  let realPath = new URL(r.url).pathname;
+  let realPath = new URL(request.url).pathname;
   if (realPath !== "/" && realPath.endsWith("/")) {
     realPath = realPath.slice(0, realPath.length - 1);
   }
@@ -712,7 +700,7 @@ export async function getMatchingPathData(r: Request): Promise<{
   }
 
   const { data: actionData, error: actionDataError } = await getActionData(
-    r,
+    request,
     lastPath?.action,
     item.params,
     item.splatSegments,
@@ -756,7 +744,7 @@ export async function getMatchingPathData(r: Request): Promise<{
       }
       try {
         const data = await path.loader({
-          request: r,
+          request,
           params: item.params,
           splatSegments: item.splatSegments,
         });
@@ -873,7 +861,7 @@ export async function getMatchingPathData(r: Request): Promise<{
 const acceptedMethods = ["POST", "PUT", "PATCH", "DELETE"];
 
 async function getActionData(
-  r: Request,
+  request: Request,
   action: Action | undefined,
   params: Record<string, string>,
   splatSegments: Array<string>,
@@ -881,12 +869,12 @@ async function getActionData(
   data: any;
   error: Error | null;
 }> {
-  if (!action || !acceptedMethods.includes(r.method)) {
+  if (!action || !acceptedMethods.includes(request.method)) {
     return { data: null, error: null };
   }
   try {
     const data = await action({
-      request: r,
+      request,
       params: params,
       splatSegments: splatSegments,
     });
@@ -978,3 +966,87 @@ function matcher(pattern: string, path: string): MatcherOutput {
     realSegmentLeangth: strength.realSegmentsLength,
   };
 }
+
+function stableHash(obj: Record<string, any>): string {
+  return JSON.stringify(
+    Object.keys(obj)
+      .sort()
+      .reduce(
+        (result, key) => {
+          result[key] = obj[key];
+          return result;
+        },
+        {} as Record<string, any>,
+      ),
+  );
+}
+
+export type SortedHeadBlocks = {
+  title: string;
+  metaHeadBlocks: Array<OtherHeadBlock>;
+  restHeadBlocks: Array<OtherHeadBlock>;
+};
+
+function sortAndDedupeHeadBlocks(headBlocks: HeadBlock[]): SortedHeadBlocks {
+  let title = "";
+  const metaHeadBlocks = new Map<any, OtherHeadBlock>();
+  const restHeadBlocks = new Map<any, OtherHeadBlock>();
+
+  for (let i = 0; i < headBlocks.length; i++) {
+    const block = headBlocks[i];
+
+    if ("title" in block) {
+      title = block.title;
+    } else if (block.tag === "meta") {
+      const name = block.attributes?.name;
+      if (name === "description") {
+        metaHeadBlocks.set("description", block);
+      } else {
+        metaHeadBlocks.set(stableHash(block), block);
+      }
+    } else {
+      restHeadBlocks.set(stableHash(block), block);
+    }
+  }
+
+  return {
+    title,
+    metaHeadBlocks: Array.from(metaHeadBlocks.values()),
+    restHeadBlocks: Array.from(restHeadBlocks.values()),
+  };
+}
+
+type GetExportedHeadBlocksProps = {
+  request: Request;
+  activePathData: ActivePathData;
+  defaultHeadBlocks: Array<HeadBlock>;
+};
+
+function getExportedHeadBlocks({
+  request,
+  activePathData,
+  defaultHeadBlocks,
+}: GetExportedHeadBlocksProps): SortedHeadBlocks {
+  const nonDeduped =
+    activePathData?.activeHeads?.flatMap((head, i) => {
+      if (!head || !activePathData?.activePaths?.[i]) {
+        return [];
+      }
+      return head({
+        loaderData: activePathData?.activeData?.[i],
+        actionData: activePathData.actionData,
+        dataProps: {
+          request,
+          params: activePathData.params,
+          splatSegments: activePathData.splatSegments,
+        },
+      });
+    }) ?? [];
+
+  return sortAndDedupeHeadBlocks([
+    ...(defaultHeadBlocks ?? []),
+    ...nonDeduped.flat(),
+  ]);
+}
+
+export { getExportedHeadBlocks };

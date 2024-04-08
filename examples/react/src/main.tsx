@@ -10,6 +10,7 @@ import {
 } from "hwy";
 import { AddressInfo } from "net";
 import { createServer } from "node:http";
+import { renderToPipeableStream } from "react-dom/server";
 
 const { app } = await hwyInit({
   app: createApp(),
@@ -17,7 +18,7 @@ const { app } = await hwyInit({
 });
 
 const defaultHeadBlocks = [
-  { tag: "title", value: "hwy-example-react" },
+  { title: "hwy-example-react" },
   {
     tag: "meta",
     attributes: {
@@ -33,8 +34,8 @@ app.use(
     return await renderRoot({
       request: toWebRequest(event),
       defaultHeadBlocks,
-      root: (routeData) => {
-        return (
+      renderCallback: (routeData) => {
+        return renderToPipeableStream(
           <html lang="en">
             <head>
               <meta charSet="UTF-8" />
@@ -77,7 +78,7 @@ app.use(
                 />
               </main>
             </body>
-          </html>
+          </html>,
         );
       },
     });

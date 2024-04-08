@@ -3,31 +3,12 @@ import {
   getMatchingPathData,
   GetRouteDataOutput,
   HeadBlock,
-  SortHeadBlocksOutput,
 } from "../router/router.js";
 import { utils } from "./hwy-utils.js";
 
 export function getIsJSONRequest(request: Request): boolean {
   const url = new URL(request.url);
   return Boolean(url.searchParams.get(`${HWY_PREFIX}json`));
-}
-
-function sortHeadBlocks(blocks: Array<HeadBlock>): SortHeadBlocksOutput {
-  const result: SortHeadBlocksOutput = {
-    title: "",
-    metaHeadBlocks: [],
-    restHeadBlocks: [],
-  };
-  for (const block of blocks) {
-    if (block.tag === "title" && block.value) {
-      result.title = block.value;
-    } else if (block.tag === "meta") {
-      result.metaHeadBlocks.push(block);
-    } else {
-      result.restHeadBlocks.push(block);
-    }
-  }
-  return result;
 }
 
 export async function getRouteData({
@@ -54,13 +35,10 @@ export async function getRouteData({
 
   const hwyGlobal = getHwyGlobal();
 
-  const { title, metaHeadBlocks, restHeadBlocks } = sortHeadBlocks(
-    utils.getExportedHeadBlocks({
-      r: request,
-      activePathData,
-      defaultHeadBlocks,
-    }),
+  const { title, metaHeadBlocks, restHeadBlocks } = utils.getExportedHeadBlocks(
+    { request, activePathData, defaultHeadBlocks },
   );
+
   const isJSON = getIsJSONRequest(request);
 
   return {

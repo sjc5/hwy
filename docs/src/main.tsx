@@ -10,6 +10,7 @@ import {
 } from "hwy";
 import { AddressInfo } from "net";
 import { createServer } from "node:http";
+import { renderToPipeableStream } from "react-dom/server";
 import { RootLayout } from "./pages/layout.js";
 
 declare module "hwy" {
@@ -30,7 +31,7 @@ app.use(
     return await renderRoot({
       request: toWebRequest(event),
       defaultHeadBlocks: [
-        { tag: "title", value: "hwy-example-minimal-mpa" },
+        { title: "hwy-example-minimal-mpa" },
         {
           tag: "meta",
           attributes: {
@@ -40,8 +41,8 @@ app.use(
         },
       ],
       adHocData: { test2: "bob" },
-      root: (routeData) => {
-        return (
+      renderCallback: (routeData) => {
+        return renderToPipeableStream(
           <html lang="en">
             <head>
               <meta charSet="UTF-8" />
@@ -63,7 +64,7 @@ app.use(
                 />
               </div>
             </body>
-          </html>
+          </html>,
         );
       },
     });
