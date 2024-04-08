@@ -1,17 +1,19 @@
 import { initClient } from "@hwy-js/client";
-import { RootOutlet } from "hwy";
-import React from "react";
+import { ClientRootOutlet } from "@hwy-js/client/react";
+import React, { startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { RootLayout } from "./pages/layout.js";
 
 await initClient(() => {
-  hydrateRoot(
-    document.getElementById("root") as HTMLElement,
-    <React.StrictMode>
-      <RootOutlet
-        fallbackErrorBoundary={() => <div>Something went wrong.</div>}
-        layout={RootLayout}
-      />
-    </React.StrictMode>,
-  );
+  startTransition(() => {
+    hydrateRoot(
+      document.getElementById("root") as HTMLElement,
+      <React.StrictMode>
+        <ClientRootOutlet
+          fallbackErrorBoundary={() => <div>Something went wrong.</div>}
+          layout={RootLayout}
+        />
+      </React.StrictMode>,
+    );
+  });
 });

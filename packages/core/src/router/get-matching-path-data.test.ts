@@ -21,7 +21,9 @@ type ExpectedOutput = {
   splatSegments: Array<string>;
   matchingPaths: Array<{
     pathType: NonNullable<
-      Awaited<ReturnType<typeof getMatchingPathData>>["matchingPaths"]
+      NonNullable<
+        Awaited<ReturnType<typeof getMatchingPathData>>["activePathData"]
+      >["matchingPaths"]
     >[number]["pathType"];
     // filePath: string;
   }>;
@@ -42,7 +44,12 @@ function gmpdTester({
         host: "localhost",
       },
     } as any;
-    const raw = await getMatchingPathData(req);
+    const { activePathData: raw, response } = await getMatchingPathData(req);
+
+    if (!raw) {
+      expect(response instanceof Response).toBe(true);
+      return;
+    }
 
     const simplified = {
       params: raw.params || {},

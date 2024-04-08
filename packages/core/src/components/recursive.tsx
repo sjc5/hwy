@@ -170,8 +170,3 @@ function MaybeWithLayout(
   }
   return props.children;
 }
-
-export function getAdHocData(): AdHocData | undefined {
-  if (typeof document === "undefined") return;
-  return getHwyClientGlobal().get("adHocData");
-}

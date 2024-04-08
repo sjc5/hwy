@@ -50,25 +50,18 @@ function getExportedHeadBlocks({
 }: GetExportedHeadBlocksProps): Array<HeadBlock> {
   const nonDeduped =
     activePathData?.activeHeads?.flatMap((head, i) => {
-      const currentActivePath = activePathData?.activePaths?.[i];
-
-      if (!currentActivePath) {
+      if (!head || !activePathData?.activePaths?.[i]) {
         return [];
       }
-
-      const currentData = activePathData?.activeData?.[i];
-
-      return (
-        head?.({
-          loaderData: currentData,
-          actionData: activePathData.actionData,
-          dataProps: {
-            request: r,
-            params: activePathData.params,
-            splatSegments: activePathData.splatSegments,
-          },
-        }) ?? []
-      );
+      return head({
+        loaderData: activePathData?.activeData?.[i],
+        actionData: activePathData.actionData,
+        dataProps: {
+          request: r,
+          params: activePathData.params,
+          splatSegments: activePathData.splatSegments,
+        },
+      });
     }) ?? [];
 
   const defaults = defaultHeadBlocks ?? [];

@@ -38,48 +38,49 @@ export async function getRouteData({
   request: Request;
   defaultHeadBlocks: HeadBlock[];
   adHocData: AdHocData | undefined;
-}): Promise<GetRouteDataOutput | null> {
-  const activePathData = await getMatchingPathData(request);
+}): Promise<{
+  response: Response | null;
+  routeData: GetRouteDataOutput | null;
+}> {
+  const { activePathData, response } = await getMatchingPathData(request);
 
-  if (!activePathData.matchingPaths?.length) {
-    return null;
+  if (response) {
+    return { response, routeData: null };
+  }
+
+  if (!activePathData || !activePathData.matchingPaths?.length) {
+    return { response: null, routeData: null };
   }
 
   const hwyGlobal = getHwyGlobal();
 
-  const headBlocks = utils.getExportedHeadBlocks({
-    r: request,
-    activePathData,
-    defaultHeadBlocks,
-  });
-
-  const { title, metaHeadBlocks, restHeadBlocks } = sortHeadBlocks(headBlocks);
-
-  const buildID = hwyGlobal.get("buildID");
-
+  const { title, metaHeadBlocks, restHeadBlocks } = sortHeadBlocks(
+    utils.getExportedHeadBlocks({
+      r: request,
+      activePathData,
+      defaultHeadBlocks,
+    }),
+  );
   const isJSON = getIsJSONRequest(request);
 
   return {
-    title: title,
-    metaHeadBlocks: metaHeadBlocks,
-    restHeadBlocks: restHeadBlocks,
-    activeData: activePathData.activeData,
-    activePaths: activePathData.activePaths,
-    outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
-    splatSegments: activePathData.splatSegments,
-    params: activePathData.params,
-    actionData: activePathData.actionData,
-    adHocData: adHocData ?? {},
-    buildID,
-    activeComponents: isJSON ? null : activePathData.activeComponents,
-    activeErrorBoundaries: isJSON ? null : activePathData.activeErrorBoundaries,
-  } satisfies GetRouteDataOutput;
+    response: null,
+    routeData: {
+      title: title,
+      metaHeadBlocks: metaHeadBlocks,
+      restHeadBlocks: restHeadBlocks,
+      activeData: activePathData.activeData,
+      activePaths: activePathData.activePaths,
+      outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
+      splatSegments: activePathData.splatSegments,
+      params: activePathData.params,
+      actionData: activePathData.actionData,
+      adHocData: adHocData ?? {},
+      buildID: hwyGlobal.get("buildID"),
+      activeComponents: isJSON ? null : activePathData.activeComponents,
+      activeErrorBoundaries: isJSON
+        ? null
+        : activePathData.activeErrorBoundaries,
+    },
+  };
 }
-
-// activePaths: activePathData.matchingPaths
-// ?.filter((x) => {
-// 	return !x.isServerFile;
-// })
-// .map((x) => {
-// 	return utils.getPublicUrl("dist/" + x.importPath);
-// }),

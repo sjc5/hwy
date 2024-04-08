@@ -20,8 +20,6 @@ export type HwyConfig = {
     | "lazy-once-then-cache";
 };
 
-// export const SPLAT_SEGMENT = ":catch*";
-
 export type RefreshFilePayload = {
   changeType: "critical-css" | "css-bundle" | "standard";
   criticalCss?: string;

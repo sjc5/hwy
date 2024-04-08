@@ -67,7 +67,7 @@ export type ActivePathData = {
   activeErrorBoundaries: Array<any>;
 };
 
-type matcherOutput = {
+type MatcherOutput = {
   path: string;
   pattern: string;
   matches: boolean;
@@ -213,8 +213,6 @@ function decoratePaths(
       const noServerFns =
         !localPath.hasSiblingServerFile && !localPath.isServerFile;
 
-      const noClientFns = localPath.isServerFile;
-
       // public
       return {
         hasSiblingServerFile: localPath.hasSiblingServerFile,
@@ -225,7 +223,7 @@ function decoratePaths(
 
         // ON CLIENT
         componentImporter: async () => {
-          if (noClientFns) return;
+          if (localPath.isServerFile) return;
 
           try {
             const imported = await getPath(localPath.importPath);
@@ -237,7 +235,7 @@ function decoratePaths(
         },
 
         errorBoundaryImporter: async () => {
-          if (noClientFns) return;
+          if (localPath.isServerFile) return;
 
           try {
             const imported = await getPath(localPath.importPath);
@@ -673,7 +671,10 @@ function getBaseSplatSegments(realPath: string): Array<string> {
 
 const gmpdCache = new LRUCache<gmpdItem>(500_000);
 
-export async function getMatchingPathData(r: Request): Promise<ActivePathData> {
+export async function getMatchingPathData(r: Request): Promise<{
+  activePathData: ActivePathData | null;
+  response: Response | null;
+}> {
   let realPath = new URL(r.url).pathname;
   if (realPath !== "/" && realPath.endsWith("/")) {
     realPath = realPath.slice(0, realPath.length - 1);
@@ -690,7 +691,7 @@ export async function getMatchingPathData(r: Request): Promise<ActivePathData> {
       getMatchingPathsInternal(initialMatchingPaths, realPath);
     const activePaths: Array<string> = [];
     for (const path of matchingPaths) {
-      activePaths.push(getPublicUrl("./dist/" + path.importPath)); // __TODO This is weird
+      activePaths.push(getPublicUrl("./dist/" + path.importPath));
     }
     const lastPath =
       matchingPaths.length > 0 ? matchingPaths[matchingPaths.length - 1] : null;
@@ -716,6 +717,11 @@ export async function getMatchingPathData(r: Request): Promise<ActivePathData> {
     item.params,
     item.splatSegments,
   );
+
+  // __TODO test this
+  if (actionData instanceof Response && lastPath?.isServerFile) {
+    return { response: actionData, activePathData: null };
+  }
 
   let [activeComponents, activeHeads, activeErrorBoundaries] =
     await Promise.all([
@@ -762,6 +768,13 @@ export async function getMatchingPathData(r: Request): Promise<ActivePathData> {
       }
     }),
   );
+
+  // __TODO test this
+  for (let i = activeData.length - 1; i >= 0; i--) {
+    if (activeData[i] instanceof Response) {
+      return { response: activeData[i], activePathData: null };
+    }
+  }
 
   let thereAreErrors = false;
   let outermostErrorIndex = -1;
@@ -837,7 +850,7 @@ export async function getMatchingPathData(r: Request): Promise<ActivePathData> {
       0,
       outermostErrorIndex + 1,
     );
-    return activePathData;
+    return { response: null, activePathData };
   }
 
   activePathData.matchingPaths = item.decoratedMatchingPaths;
@@ -854,7 +867,7 @@ export async function getMatchingPathData(r: Request): Promise<ActivePathData> {
   activePathData.params = item.params;
   activePathData.activeComponents = activeComponents;
   activePathData.activeErrorBoundaries = activeErrorBoundaries;
-  return activePathData;
+  return { response: null, activePathData };
 }
 
 const acceptedMethods = ["POST", "PUT", "PATCH", "DELETE"];
@@ -901,7 +914,7 @@ function findClosestParentErrorBoundaryIndex(
   return -1;
 }
 
-const emptyMatcherOutput: matcherOutput = {
+const emptyMatcherOutput: MatcherOutput = {
   path: "",
   pattern: "",
   matches: false,
@@ -910,7 +923,7 @@ const emptyMatcherOutput: matcherOutput = {
   realSegmentLeangth: 0,
 };
 
-function matcher(pattern: string, path: string): matcherOutput {
+function matcher(pattern: string, path: string): MatcherOutput {
   pattern = pattern.startsWith("/") ? pattern.slice(1) : pattern;
   path = path.startsWith("/") ? path.slice(1) : path;
   const patternSegments = pattern.split("/");

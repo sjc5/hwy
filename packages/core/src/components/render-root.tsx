@@ -15,20 +15,19 @@ export async function renderRoot({
   root: (props: GetRouteDataOutput) => ReactElement;
   adHocData?: AdHocData;
 }) {
-  const a = performance.now();
-  const maybeRootData = await getRouteData({
+  const { response, routeData } = await getRouteData({
     request,
     defaultHeadBlocks,
     adHocData,
   });
-  const b = performance.now();
-  console.log(new URL(request.url).pathname);
-  console.log(`getRouteData took ${b - a} ms`);
-  if (!maybeRootData) {
+  if (response) {
+    return response;
+  }
+  if (!routeData) {
     return;
   }
   if (getIsJSONRequest(request)) {
-    return maybeRootData;
+    return routeData;
   }
-  return renderToPipeableStream(<Root {...maybeRootData} />);
+  return renderToPipeableStream(<Root {...routeData} />);
 }
