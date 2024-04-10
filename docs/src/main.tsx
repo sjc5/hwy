@@ -1,7 +1,12 @@
 import { initH3 } from "@hwy-js/h3";
 import { Head, RootOutlet } from "@hwy-js/react";
-import { eventHandler, toNodeListener, toWebRequest } from "h3";
-import { initHwy, renderRoot } from "hwy";
+import {
+  eventHandler,
+  setResponseHeader,
+  toNodeListener,
+  toWebRequest,
+} from "h3";
+import { getPublicURL, initHwy, renderRoot } from "hwy";
 import { createServer } from "node:http";
 import { AddressInfo } from "node:net";
 import { renderToPipeableStream } from "react-dom/server";
@@ -17,12 +22,19 @@ declare module "h3" {
 await initHwy({
   importMetaURL: import.meta.url,
   defaultHeadBlocks: [
-    { title: "hwy-example-minimal-mpa" },
+    { title: "Hwy Framework" },
     {
       tag: "meta",
       attributes: {
         name: "description",
-        content: "Take the Hwy!",
+        content: "Hwy is a simple, lightweight, and flexible web framework.",
+      },
+    },
+    {
+      tag: "meta",
+      attributes: {
+        name: "og:image",
+        content: getPublicURL("create-hwy-snippet.webp"),
       },
     },
   ],
@@ -33,6 +45,12 @@ const app = initH3();
 app.use(
   "*",
   eventHandler(async (event) => {
+    setResponseHeader(
+      event,
+      "Cache-Control",
+      "public, max-age=31536000, immutable",
+    );
+
     return await renderRoot({
       request: toWebRequest(event),
       adHocData: { test2: "bob" },

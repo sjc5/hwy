@@ -12,6 +12,7 @@ import {
   PageComponent,
   PageProps,
 } from "../common/index.mjs";
+
 import { HeadBlock } from "./src/router.js";
 
 export type {
@@ -26,3 +27,5 @@ export type {
   PageComponent,
   PageProps,
 };
+
+export { getPublicURL } from "./src/hashed_public_url.js";
