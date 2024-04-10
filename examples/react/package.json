@@ -10,6 +10,7 @@
     "update-latest": "pnpm update --latest"
   },
   "dependencies": {
+    "@hwy-js/react": "workspace:*",
     "h3": "^1.11.1",
     "hwy": "workspace:*",
     "react": "^18.2.0",
@@ -19,7 +20,6 @@
     "@hwy-js/build": "workspace:*",
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@hwy-js/utils": "workspace:*",
     "@types/node": "^20.11.28",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",

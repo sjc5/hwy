@@ -1,6 +1,18 @@
-export { getMatchingPathData } from "./src/router/router.js";
+export { renderRoot } from "./src/router.js";
 export { hwyInit } from "./src/setup.js";
-export { utils } from "./src/utils/hwy-utils.js";
+
+import {
+  Action,
+  ActivePathData,
+  AdHocData,
+  DataProps,
+  HeadFunction,
+  HeadProps,
+  Loader,
+  PageComponent,
+  PageProps,
+} from "../common/index.mjs";
+import { HeadBlock } from "./src/router.js";
 
 export type {
   Action,
@@ -13,17 +25,4 @@ export type {
   Loader,
   PageComponent,
   PageProps,
-} from "./src/types.js";
-
-export { renderRoot } from "./src/components/render-root.js";
-
-export { getRouteData } from "./src/utils/get-route-data.js";
-
-export {
-  ClientScripts,
-  CssImports,
-  DevLiveRefreshScript,
-  HeadElements,
-} from "./src/components/head-elements-comp.js";
-
-export { RootOutlet } from "./src/components/recursive.js";
+};

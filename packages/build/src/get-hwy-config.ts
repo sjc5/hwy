@@ -48,7 +48,6 @@ async function getHwyConfig() {
         internalHwyConfig?.dev?.hotReloadStyles === false ? false : true,
     },
     routeStrategy: internalHwyConfig?.routeStrategy || "always-lazy",
-    scriptsToInject: internalHwyConfig?.scriptsToInject || [],
   } satisfies HwyConfig;
 
   // delete the file now that we're done with it

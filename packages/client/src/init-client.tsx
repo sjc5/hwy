@@ -4,7 +4,7 @@ import {
   CLIENT_GLOBAL_KEYS,
   HWY_PREFIX,
   getHwyClientGlobal,
-} from "../../../common/index.mjs";
+} from "../../common/index.mjs";
 
 let isNavigating = false;
 let isSubmitting = false;
@@ -540,7 +540,7 @@ async function reRenderApp({
 
   const identicalKeysToSet = [
     "activeErrorBoundaries",
-    "activeData",
+    "loadersData",
     "activePaths",
     "outermostErrorBoundaryIndex",
     "splatSegments",

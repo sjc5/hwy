@@ -15,7 +15,6 @@ import { getIsHotReloadOnly } from "./dev-serve.js";
 import { getHwyConfig } from "./get-hwy-config.js";
 import {
   genPublicFileMap,
-  sha1Short,
   writePathsToDisk,
   type Paths,
 } from "./walk-pages.js";
@@ -130,20 +129,7 @@ async function runBuildTasks({
    * BUNDLE CSS FILES AND CLIENT ENTRY
    */
 
-  await Promise.all([
-    bundleCSSFiles(),
-
-    ...(hwyConfig.scriptsToInject ?? []).map(async (item) => {
-      return fs.promises.copyFile(
-        path.join(process.cwd(), item),
-        path.join(process.cwd(), "public/dist", sha1Short(item) + ".js"),
-      );
-    }),
-  ]);
-
-  const injectedScripts = (hwyConfig.scriptsToInject ?? []).map(
-    (item) => "dist/" + sha1Short(item) + ".js",
-  );
+  await bundleCSSFiles();
 
   /********************* STEP 3 *********************
    * BUILD SERVER ENTRY AND WRITE PATHS TO DISK
@@ -258,10 +244,6 @@ const ${HWY_PREFIX}arbitraryGlobal = globalThis[Symbol.for("${HWY_PREFIX}")];
     HWY_GLOBAL_KEYS.hwyConfig
   } = ${JSON.stringify(hwyConfig)};\n\n`;
 
-  const injectedScriptsLine = `${HWY_PREFIX}arbitraryGlobal.${
-    HWY_GLOBAL_KEYS.injectedScripts
-  } = ${JSON.stringify(injectedScripts)};\n\n`;
-
   const buildIDLine = `${HWY_PREFIX}arbitraryGlobal.${HWY_GLOBAL_KEYS.buildID} = ${Date.now().toString()};\n\n`;
 
   /*
@@ -272,7 +254,6 @@ const ${HWY_PREFIX}arbitraryGlobal = globalThis[Symbol.for("${HWY_PREFIX}")];
     warmupLine +
       devLine +
       hwyConfigLine +
-      injectedScriptsLine +
       buildIDLine +
       toBeAppended +
       mainCode,

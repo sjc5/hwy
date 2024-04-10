@@ -1,4 +1,4 @@
-export type { GetRouteDataOutput } from "../core/src/router/router.js";
+export type { GetRouteDataOutput } from "../core/src/router.js";
 export {
   getAdHocData,
   getCustomHistory,
@@ -10,4 +10,4 @@ export {
   initClient,
   navigate,
   submit,
-} from "./src/base/init-client.js";
+} from "./src/init-client.js";

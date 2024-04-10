@@ -1,18 +1,11 @@
+import { Head, RootOutlet } from "@hwy-js/react";
 import {
   createApp,
   defineEventHandler,
   toNodeListener,
   toWebRequest,
 } from "h3";
-import {
-  ClientScripts,
-  CssImports,
-  DevLiveRefreshScript,
-  HeadElements,
-  RootOutlet,
-  hwyInit,
-  renderRoot,
-} from "hwy";
+import { hwyInit, renderRoot } from "hwy";
 import { createServer } from "node:http";
 import { AddressInfo } from "node:net";
 import { renderToPipeableStream } from "react-dom/server";
@@ -21,6 +14,7 @@ import { Sidebar } from "./components/sidebar.js";
 const { app } = await hwyInit({
   app: createApp(),
   importMetaUrl: import.meta.url,
+  defaultHeadBlocks: [],
 });
 
 app.use(
@@ -28,7 +22,6 @@ app.use(
   defineEventHandler(async (event) => {
     return await renderRoot({
       request: toWebRequest(event),
-      defaultHeadBlocks: [],
       renderCallback: (routeData) => {
         return renderToPipeableStream(
           <html lang="en">
@@ -38,17 +31,14 @@ app.use(
                 name="viewport"
                 content="width=device-width,initial-scale=1"
               />
-              <HeadElements {...routeData} />
-              <CssImports />
-              <ClientScripts {...routeData} />
-              <DevLiveRefreshScript />
+              <Head routeData={routeData} />
             </head>
 
             <body>
               <Sidebar />
               <main>
                 <RootOutlet
-                  {...routeData}
+                  routeData={routeData}
                   fallbackErrorBoundary={function ErrorBoundary() {
                     return <div>Error Boundary in Root</div>;
                   }}

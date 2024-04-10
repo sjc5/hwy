@@ -1,5 +1,5 @@
-import { getHwyGlobal } from "../../../common/index.mjs";
-import { PUBLIC_URL_PREFIX } from "../setup.js";
+import { getHwyGlobal } from "../../common/index.mjs";
+import { PUBLIC_URL_PREFIX } from "./setup.js";
 import { dynamicNodePath } from "./url-polyfills.js";
 
 const hwyGlobal = getHwyGlobal();
@@ -10,7 +10,7 @@ export const DEV_BUNDLED_CSS_QUERY_PARAM =
 export const DEV_BUNDLED_CSS_LINK =
   "/public/dist/standard-bundled.css" + DEV_BUNDLED_CSS_QUERY_PARAM;
 
-function getPublicUrl(url: string): string {
+export function getPublicUrl(url: string): string {
   let hashedURL: string | undefined;
 
   if (url.startsWith("/")) url = url.slice(1);
@@ -46,7 +46,7 @@ function getPublicUrl(url: string): string {
   return "/" + hashedURL;
 }
 
-function getOrigPublicURL({ hashedURL }: { hashedURL: string }): string {
+export function getOrigPublicURL({ hashedURL }: { hashedURL: string }): string {
   if (!dynamicNodePath) {
     throw new Error("dynamicNodePath is not defined");
   }
@@ -75,5 +75,3 @@ function getOrigPublicURL({ hashedURL }: { hashedURL: string }): string {
 
   return "./" + PUBLIC_URL_PREFIX + origURL;
 }
-
-export { getOrigPublicURL, getPublicUrl };

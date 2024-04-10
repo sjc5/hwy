@@ -3,12 +3,12 @@ import path from "node:path";
 import readline from "node:readline";
 
 const dirsInSlashPackages = [
-  "core",
   "build",
-  "dev",
   "client",
-  "utils",
+  "core",
   "create-hwy",
+  "dev",
+  "react",
 ];
 
 function getCurrentPkgJSONs() {

@@ -4,17 +4,18 @@ test("testsAreWorking", async () => {
   expect(0).toBe(0);
 });
 
-import { HWY_PREFIX, getHwyGlobal } from "../../../common/index.mjs";
+import { HWY_PREFIX, getHwyGlobal } from "../../common/index.mjs";
 import { getMatchingPathData } from "./router.js";
 
 const hwyGlobal = getHwyGlobal();
 
 const testPaths = await import(
-  "../../../../testers/routes/dist/paths.js" as any
+  "../../../testers/routes/dist/paths.js" as any
 ).then((m) => m[HWY_PREFIX + "paths"]);
 
 hwyGlobal.set("paths", testPaths);
 hwyGlobal.set("testDirname", "testers/routes/dist");
+hwyGlobal.set("hwyConfig", { routeStrategy: "always-lazy" });
 
 type ExpectedOutput = {
   params: Record<string, string>;

@@ -15,8 +15,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsup-node index.ts react.ts --format esm --dts",
-    "dev": "rm -rf dist && tsup-node index.ts react.ts --format esm --dts --watch",
+    "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
     "publish-beta": "npm publish --tag beta",
     "publish-non-beta": "npm publish",
     "update-latest": "pnpm update --latest",

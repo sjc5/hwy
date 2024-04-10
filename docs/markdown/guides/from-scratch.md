@@ -89,6 +89,16 @@ import { createServer } from "node:http";
 const { app } = await hwyInit({
   app: createApp(),
   importMetaUrl: import.meta.url,
+	defaultHeadBlocks: [
+		{ title: "your-project-name" },
+		{
+			tag: "meta",
+			attributes: {
+				name: "description",
+				content: "your-project-description",
+			},
+		},
+	],
 });
 
 app.use(
@@ -96,16 +106,6 @@ app.use(
   eventHandler(async (event) => {
     return await renderRoot({
       event,
-      defaultHeadBlocks: [
-        { title: "your-project-name" },
-        {
-          tag: "meta",
-          attributes: {
-            name: "description",
-            content: "your-project-description",
-          },
-        },
-      ],
       root: (routeData) => {
         return (
           <html lang="en">

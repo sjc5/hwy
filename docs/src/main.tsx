@@ -1,13 +1,6 @@
+import { Head, RootOutlet } from "@hwy-js/react";
 import { createApp, eventHandler, toNodeListener, toWebRequest } from "h3";
-import {
-  ClientScripts,
-  CssImports,
-  DevLiveRefreshScript,
-  HeadElements,
-  RootOutlet,
-  hwyInit,
-  renderRoot,
-} from "hwy";
+import { hwyInit, renderRoot } from "hwy";
 import { AddressInfo } from "net";
 import { createServer } from "node:http";
 import { renderToPipeableStream } from "react-dom/server";
@@ -23,6 +16,16 @@ declare module "h3" {
 const { app } = await hwyInit({
   app: createApp(),
   importMetaUrl: import.meta.url,
+  defaultHeadBlocks: [
+    { title: "hwy-example-minimal-mpa" },
+    {
+      tag: "meta",
+      attributes: {
+        name: "description",
+        content: "Take the Hwy!",
+      },
+    },
+  ],
 });
 
 app.use(
@@ -30,16 +33,6 @@ app.use(
   eventHandler(async (event) => {
     return await renderRoot({
       request: toWebRequest(event),
-      defaultHeadBlocks: [
-        { title: "hwy-example-minimal-mpa" },
-        {
-          tag: "meta",
-          attributes: {
-            name: "description",
-            content: "Take the Hwy!",
-          },
-        },
-      ],
       adHocData: { test2: "bob" },
       renderCallback: (routeData) => {
         return renderToPipeableStream(
@@ -50,15 +43,12 @@ app.use(
                 name="viewport"
                 content="width=device-width,initial-scale=1"
               />
-              <HeadElements {...routeData} />
-              <CssImports />
-              <ClientScripts {...routeData} />
-              <DevLiveRefreshScript />
+              <Head routeData={routeData} />
             </head>
             <body>
               <div id="root">
                 <RootOutlet
-                  {...routeData}
+                  routeData={routeData}
                   fallbackErrorBoundary={() => <div>Something went wrong.</div>}
                   layout={RootLayout}
                 />

@@ -12,6 +12,7 @@
     "nuke": "rm -rf dist && rm -rf public/dist"
   },
   "dependencies": {
+    "@hwy-js/react": "workspace:*",
     "@shikijs/markdown-it": "^1.2.0",
     "gray-matter": "^4.0.3",
     "h3": "^1.11.1",

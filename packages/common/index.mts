@@ -1,5 +1,5 @@
 import type { FunctionComponent, ReactElement } from "react";
-import type { HeadBlock, Path } from "../core/src/router/router.js";
+import type { HeadBlock, Path } from "../core/src/router.js";
 
 export const HWY_PREFIX = "__hwy_internal__";
 export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
@@ -7,7 +7,6 @@ export const LIVE_REFRESH_SSE_PATH = `/${HWY_PREFIX}live_refresh_sse`;
 export const LIVE_REFRESH_RPC_PATH = `/${HWY_PREFIX}live_refresh_rpc`;
 
 export type HwyConfig = {
-  scriptsToInject?: Array<string>;
   dev?: {
     watchExclusions?: Array<string>;
     watchInclusions?: Array<string>;
@@ -33,7 +32,7 @@ export const CRITICAL_CSS_ELEMENT_ID = "data-hwy-critical-css";
  **************************************/
 
 export const CLIENT_GLOBAL_KEYS = [
-  "activeData",
+  "loadersData",
   "activePaths",
   "outermostErrorBoundaryIndex",
   "splatSegments",
@@ -61,7 +60,7 @@ export type ActivePathData = {
   activeHeads: any[];
 
   // needed in recursive component
-  activeData: any[];
+  loadersData: any[];
   activePaths: string[];
   outermostErrorBoundaryIndex: number | undefined;
   splatSegments: string[];
@@ -85,8 +84,8 @@ export type HwyGlobal = {
   publicMap: Record<string, string>;
   publicReverseMap: Record<string, string>;
   testDirname?: string;
-  injectedScripts: Array<string>;
   buildID: string;
+  defaultHeadBlocks: Array<HeadBlock>;
 };
 
 export type HwyGlobalKey = keyof HwyGlobal;
@@ -98,8 +97,8 @@ export const HWY_GLOBAL_KEYS: { [K in keyof HwyGlobal]: any } = {
   paths: "",
   publicMap: "",
   publicReverseMap: "",
-  injectedScripts: "",
   buildID: "",
+  defaultHeadBlocks: "",
 } as const;
 
 for (const key in HWY_GLOBAL_KEYS) {

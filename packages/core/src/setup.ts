@@ -12,11 +12,9 @@ import {
 import type { readFile, stat } from "node:fs/promises";
 import { getHwyGlobal } from "../../common/index.mjs";
 import { getMimeType } from "./get-mimes.js";
-import { getOrigPublicURL, getPublicUrl } from "./utils/hashed-public-url.js";
-import {
-  dynamicFileURLToPath,
-  dynamicNodePath,
-} from "./utils/url-polyfills.js";
+import { getOrigPublicURL, getPublicUrl } from "./hashed-public-url.js";
+import { HeadBlock } from "./router.js";
+import { dynamicFileURLToPath, dynamicNodePath } from "./url-polyfills.js";
 
 let dynamicReadFile: typeof readFile;
 let dynamicStat: typeof stat;
@@ -46,11 +44,15 @@ const hwyGlobal = getHwyGlobal();
 async function hwyInit({
   app,
   importMetaUrl,
+  defaultHeadBlocks,
 }: {
   app: App;
   importMetaUrl?: string;
+  defaultHeadBlocks?: Array<HeadBlock>;
 }) {
   console.log("Initializing Hwy app");
+
+  hwyGlobal.set("defaultHeadBlocks", defaultHeadBlocks ?? []);
 
   if (hwyGlobal.get("isDev")) {
     const { setupLiveRefreshEndpoints } = await import("@hwy-js/dev");

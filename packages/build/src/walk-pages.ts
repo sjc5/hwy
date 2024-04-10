@@ -3,7 +3,7 @@ import fs from "node:fs";
 import nodePath from "node:path";
 import readdirp from "readdirp";
 import { HWY_GLOBAL_KEYS } from "../../common/index.mjs";
-import { Path, PathType, SPLAT_SEGMENT } from "../../core/src/router/router.js";
+import { Path, PathType, SPLAT_SEGMENT } from "../../core/src/router.js";
 import { getHwyConfig } from "./get-hwy-config.js";
 
 const permittedExts = ["js", "jsx", "ts", "tsx", "mjs", "cjs", "mts", "cts"];

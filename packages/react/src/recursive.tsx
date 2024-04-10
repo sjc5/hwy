@@ -1,31 +1,48 @@
-import type { ReactElement } from "react";
-import { startTransition, useEffect, useMemo, useState } from "react";
+import {
+  startTransition,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactElement,
+} from "react";
 import {
   AdHocData,
   RootLayoutComponent,
   RootLayoutProps,
   getHwyClientGlobal,
-} from "../../../common/index.mjs";
+} from "../../common/index.mjs";
+import type { GetRouteDataOutput, RouteData } from "../../core/src/router.js";
 
 type ErrorBoundaryComp = () => ReactElement;
+type ServerKey = keyof GetRouteDataOutput;
 type BaseProps = {
+  routeData?: RouteData;
   index?: number;
   fallbackErrorBoundary?: ErrorBoundaryComp;
   adHocData?: AdHocData;
   layout?: RootLayoutComponent;
 };
 
-export function ClientRootOutlet(props: BaseProps): ReactElement {
-  const ctx = getHwyClientGlobal();
+export function RootOutlet(props: BaseProps): ReactElement {
+  const isServer = typeof document === "undefined";
+  const ctx: {
+    get: (sk: ServerKey) => GetRouteDataOutput[ServerKey];
+  } = isServer
+    ? {
+        get: (sk: ServerKey) => props.routeData?.data?.[sk],
+      }
+    : (getHwyClientGlobal() as any);
   const idx = props.index ?? 0;
   const CurrentComponent = (ctx.get("activeComponents") as any)?.[idx];
-  const adHocData = ctx.get("adHocData");
+  const adHocData = isServer
+    ? props.adHocData
+    : getHwyClientGlobal().get("adHocData");
   const [params, setParams] = useState(ctx.get("params") ?? {});
   const [splatSegments, setSplatSegments] = useState(
     ctx.get("splatSegments") ?? [],
   );
   const [loaderData, setLoaderData] = useState(
-    (ctx.get("activeData") as any)?.[idx],
+    (ctx.get("loadersData") as any)?.[idx],
   );
   const [actionData, setActionData] = useState(
     (ctx.get("actionData") as any)?.[idx],
@@ -35,7 +52,7 @@ export function ClientRootOutlet(props: BaseProps): ReactElement {
       startTransition(() => {
         setParams(ctx.get("params") ?? {});
         setSplatSegments(ctx.get("splatSegments") ?? []);
-        setLoaderData((ctx.get("activeData") as any)?.[idx]);
+        setLoaderData((ctx.get("loadersData") as any)?.[idx]);
         setActionData((ctx.get("actionData") as any)?.[idx]);
       });
     });
@@ -81,7 +98,7 @@ export function ClientRootOutlet(props: BaseProps): ReactElement {
       let Outlet;
       if (!nextOutletIsAnErrorBoundary) {
         Outlet = (localProps: Record<string, any> | undefined) => {
-          return <ClientRootOutlet {...localProps} index={idx + 1} />;
+          return <RootOutlet {...localProps} {...props} index={idx + 1} />;
         };
       } else {
         Outlet =

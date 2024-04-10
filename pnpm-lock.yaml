@@ -41,6 +41,9 @@ importers:
 
   docs:
     dependencies:
+      '@hwy-js/react':
+        specifier: workspace:*
+        version: link:../packages/react
       '@shikijs/markdown-it':
         specifier: ^1.2.0
         version: 1.2.0
@@ -94,45 +97,11 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1(react@18.2.0)
 
-  examples/minimal-mpa:
-    dependencies:
-      h3:
-        specifier: ^1.11.1
-        version: 1.11.1
-      hwy:
-        specifier: workspace:*
-        version: link:../../packages/core
-      react:
-        specifier: ^18.2.0
-        version: 18.2.0
-      react-dom:
-        specifier: ^18.2.0
-        version: 18.2.0(react@18.2.0)
-    devDependencies:
-      '@hwy-js/build':
-        specifier: workspace:*
-        version: link:../../packages/build
-      '@hwy-js/dev':
-        specifier: workspace:*
-        version: link:../../packages/dev
-      '@hwy-js/utils':
-        specifier: workspace:*
-        version: link:../../packages/utils
-      '@types/node':
-        specifier: ^20.11.28
-        version: 20.11.28
-      '@types/react':
-        specifier: ^18.2.66
-        version: 18.2.66
-      '@types/react-dom':
-        specifier: ^18.2.22
-        version: 18.2.22
-      typescript:
-        specifier: ^5.4.2
-        version: 5.4.2
-
   examples/react:
     dependencies:
+      '@hwy-js/react':
+        specifier: workspace:*
+        version: link:../../packages/react
       h3:
         specifier: ^1.11.1
         version: 1.11.1
@@ -155,9 +124,6 @@ importers:
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
-      '@hwy-js/utils':
-        specifier: workspace:*
-        version: link:../../packages/utils
       '@types/node':
         specifier: ^20.11.28
         version: 20.11.28
@@ -285,11 +251,20 @@ importers:
         specifier: ^5.4.2
         version: 5.4.2
 
-  packages/utils:
+  packages/react:
     devDependencies:
-      h3:
-        specifier: ^1.11.1
-        version: 1.11.1
+      '@types/react':
+        specifier: ^18.2.66
+        version: 18.2.66
+      '@types/react-dom':
+        specifier: ^18.2.22
+        version: 18.2.22
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.2.0(react@18.2.0)
       tsup:
         specifier: ^8.0.2
         version: 8.0.2(typescript@5.4.2)
@@ -318,6 +293,9 @@ importers:
       '@hwy-js/dev':
         specifier: workspace:*
         version: link:../../packages/dev
+      '@hwy-js/react':
+        specifier: workspace:*
+        version: link:../../packages/react
       '@types/node':
         specifier: ^20.11.28
         version: 20.11.28

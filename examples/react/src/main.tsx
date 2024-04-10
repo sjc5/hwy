@@ -1,13 +1,6 @@
+import { Head, RootOutlet } from "@hwy-js/react";
 import { createApp, eventHandler, toNodeListener, toWebRequest } from "h3";
-import {
-  ClientScripts,
-  CssImports,
-  DevLiveRefreshScript,
-  HeadElements,
-  RootOutlet,
-  hwyInit,
-  renderRoot,
-} from "hwy";
+import { hwyInit, renderRoot } from "hwy";
 import { AddressInfo } from "net";
 import { createServer } from "node:http";
 import { renderToPipeableStream } from "react-dom/server";
@@ -15,25 +8,23 @@ import { renderToPipeableStream } from "react-dom/server";
 const { app } = await hwyInit({
   app: createApp(),
   importMetaUrl: import.meta.url,
-});
-
-const defaultHeadBlocks = [
-  { title: "hwy-example-react" },
-  {
-    tag: "meta",
-    attributes: {
-      name: "description",
-      content: "Take the Hwy!",
+  defaultHeadBlocks: [
+    { title: "hwy-example-react" },
+    {
+      tag: "meta",
+      attributes: {
+        name: "description",
+        content: "Take the Hwy!",
+      },
     },
-  },
-];
+  ],
+});
 
 app.use(
   "*",
   eventHandler(async (event) => {
     return await renderRoot({
       request: toWebRequest(event),
-      defaultHeadBlocks,
       renderCallback: (routeData) => {
         return renderToPipeableStream(
           <html lang="en">
@@ -43,10 +34,7 @@ app.use(
                 name="viewport"
                 content="width=device-width,initial-scale=1"
               />
-              <HeadElements {...routeData} />
-              <CssImports />
-              <ClientScripts {...routeData} />
-              <DevLiveRefreshScript />
+              <Head routeData={routeData} />
             </head>
 
             <body>
@@ -71,7 +59,7 @@ app.use(
 
               <main>
                 <RootOutlet
-                  {...routeData}
+                  routeData={routeData}
                   fallbackErrorBoundary={() => {
                     return <div>Something went wrong.</div>;
                   }}

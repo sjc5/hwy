@@ -1,8 +1,17 @@
-import { HWY_PREFIX, getHwyGlobal } from "../../../common/index.mjs";
-import { ROOT_DIRNAME } from "../setup.js";
-import { getPublicUrl } from "../utils/hashed-public-url.js";
-import { dynamicNodePath, pathToFileURLStr } from "../utils/url-polyfills.js";
+import {
+  AdHocData,
+  CLIENT_GLOBAL_KEYS,
+  CRITICAL_CSS_ELEMENT_ID,
+  HWY_PREFIX,
+  LIVE_REFRESH_SSE_PATH,
+  getHwyGlobal,
+} from "../../common/index.mjs";
+import { DEV_BUNDLED_CSS_LINK, getPublicUrl } from "./hashed-public-url.js";
 import { LRUCache } from "./lru_cache.js";
+import { ROOT_DIRNAME } from "./setup.js";
+import { dynamicNodePath, pathToFileURLStr } from "./url-polyfills.js";
+
+const hwyGlobal = getHwyGlobal();
 
 export const SPLAT_SEGMENT = ":catch*";
 
@@ -43,13 +52,12 @@ type HeadProps = {
 };
 
 // __TODO
-type Loader = (DataProps: DataProps) => Promise<any>;
 type Action = (DataProps: DataProps) => Promise<any>;
 type Head = (HeadProps: HeadProps) => Array<HeadBlock>;
 
 export type ActivePathData = {
   matchingPaths: Array<DecoratedPath>;
-  activeData: Array<any>;
+  loadersData: Array<any>;
   activePaths: Array<string>;
   outermostErrorBoundaryIndex: number;
   actionData: Array<any>;
@@ -112,7 +120,7 @@ export type GetRouteDataOutput = {
   title: string;
   metaHeadBlocks: Array<OtherHeadBlock>;
   restHeadBlocks: Array<OtherHeadBlock>;
-  activeData: Array<any>;
+  loadersData: Array<any>;
   activePaths: Array<string>;
   outermostErrorBoundaryIndex: number;
   splatSegments: Array<string>;
@@ -153,10 +161,6 @@ function getInitialMatchingPaths(pathToUse: string): Array<MatchingPath> {
   return initialMatchingPaths;
 }
 
-const hwyGlobal = getHwyGlobal();
-// __TODO figure out why the optional chaining is needed here
-const routeStrategy = hwyGlobal.get("hwyConfig")?.routeStrategy;
-
 async function getPath(importPath: string) {
   const arbitraryGlobal = (globalThis as any)[Symbol.for(HWY_PREFIX)];
 
@@ -178,7 +182,7 @@ async function getPath(importPath: string) {
     importPath,
   );
 
-  if (routeStrategy === "always-lazy") {
+  if (hwyGlobal.get("hwyConfig").routeStrategy === "always-lazy") {
     return import(pathToFileURLStr(inner));
   }
 
@@ -706,7 +710,7 @@ export async function getMatchingPathData(request: Request): Promise<{
     item.splatSegments,
   );
 
-  // __TODO test this
+  // __TODO test this (returning a redirect response from an action)
   if (actionData instanceof Response && lastPath?.isServerFile) {
     return { response: actionData, activePathData: null };
   }
@@ -732,14 +736,14 @@ export async function getMatchingPathData(request: Request): Promise<{
       ),
     ]);
 
-  const activeData: Array<any> = [];
-  const errors: Array<Error | null> = [];
+  const loadersData: Array<any> = [];
+  const loadersErrors: Array<Error | null> = [];
 
   await Promise.all(
     item.decoratedMatchingPaths.map(async (path, i) => {
       if (!path.loader) {
-        activeData[i] = null;
-        errors[i] = null;
+        loadersData[i] = null;
+        loadersData[i] = null;
         return;
       }
       try {
@@ -748,26 +752,26 @@ export async function getMatchingPathData(request: Request): Promise<{
           params: item.params,
           splatSegments: item.splatSegments,
         });
-        activeData[i] = data;
-        errors[i] = null;
+        loadersData[i] = data;
+        loadersErrors[i] = null;
       } catch (e) {
-        activeData[i] = null;
-        errors[i] = e instanceof Error ? e : new Error("Unknown");
+        loadersData[i] = null;
+        loadersErrors[i] = e instanceof Error ? e : new Error("Unknown");
       }
     }),
   );
 
-  // __TODO test this
-  for (let i = activeData.length - 1; i >= 0; i--) {
-    if (activeData[i] instanceof Response) {
-      return { response: activeData[i], activePathData: null };
+  // __TODO test this (returning a redirect response from a loader)
+  for (let i = loadersData.length - 1; i >= 0; i--) {
+    if (loadersData[i] instanceof Response) {
+      return { response: loadersData[i], activePathData: null };
     }
   }
 
   let thereAreErrors = false;
   let outermostErrorIndex = -1;
-  for (let i = 0; i < errors.length; i++) {
-    if (errors[i] !== null) {
+  for (let i = 0; i < loadersErrors.length; i++) {
+    if (loadersErrors[i] !== null) {
       thereAreErrors = true;
       outermostErrorIndex = i;
       break;
@@ -775,7 +779,8 @@ export async function getMatchingPathData(request: Request): Promise<{
   }
 
   if (actionDataError) {
-    const actionDataErrorIndex = activeData.length - 1;
+    thereAreErrors = true; // __TODO test this
+    const actionDataErrorIndex = loadersData.length - 1;
     if (thereAreErrors && actionDataErrorIndex < outermostErrorIndex) {
       outermostErrorIndex = actionDataErrorIndex;
     }
@@ -785,7 +790,7 @@ export async function getMatchingPathData(request: Request): Promise<{
 
   if (thereAreErrors && outermostErrorIndex !== -1) {
     closestParentErrorBoundaryIndex = findClosestParentErrorBoundaryIndex(
-      activeData,
+      loadersData,
       outermostErrorIndex,
     );
 
@@ -803,7 +808,7 @@ export async function getMatchingPathData(request: Request): Promise<{
   const activePathData: ActivePathData = {
     matchingPaths: [],
     activeHeads: [],
-    activeData: [],
+    loadersData: [],
     activePaths: [],
     outermostErrorBoundaryIndex: -1,
     actionData: [],
@@ -821,8 +826,8 @@ export async function getMatchingPathData(request: Request): Promise<{
     activePathData.matchingPaths = locMatchingPaths;
     const locActiveHeads = activeHeads.slice(0, outermostErrorIndex + 1);
     activePathData.activeHeads = locActiveHeads;
-    const locActiveData = activeData.slice(0, outermostErrorIndex + 1);
-    activePathData.activeData = locActiveData;
+    const locLoadersData = loadersData.slice(0, outermostErrorIndex + 1);
+    activePathData.loadersData = locLoadersData;
     const locActivePaths = item.activePaths.slice(0, outermostErrorIndex + 1);
     activePathData.activePaths = locActivePaths;
     activePathData.outermostErrorBoundaryIndex =
@@ -843,7 +848,7 @@ export async function getMatchingPathData(request: Request): Promise<{
 
   activePathData.matchingPaths = item.decoratedMatchingPaths;
   activePathData.activeHeads = activeHeads;
-  activePathData.activeData = activeData;
+  activePathData.loadersData = loadersData;
   activePathData.activePaths = item.activePaths;
   activePathData.outermostErrorBoundaryIndex = closestParentErrorBoundaryIndex;
   const locActionData = new Array(activePathData.activePaths?.length).fill(
@@ -1019,13 +1024,11 @@ function sortAndDedupeHeadBlocks(headBlocks: HeadBlock[]): SortedHeadBlocks {
 type GetExportedHeadBlocksProps = {
   request: Request;
   activePathData: ActivePathData;
-  defaultHeadBlocks: Array<HeadBlock>;
 };
 
 function getExportedHeadBlocks({
   request,
   activePathData,
-  defaultHeadBlocks,
 }: GetExportedHeadBlocksProps): SortedHeadBlocks {
   const nonDeduped =
     activePathData?.activeHeads?.flatMap((head, i) => {
@@ -1033,7 +1036,7 @@ function getExportedHeadBlocks({
         return [];
       }
       return head({
-        loaderData: activePathData?.activeData?.[i],
+        loaderData: activePathData?.loadersData?.[i],
         actionData: activePathData.actionData,
         dataProps: {
           request,
@@ -1044,9 +1047,191 @@ function getExportedHeadBlocks({
     }) ?? [];
 
   return sortAndDedupeHeadBlocks([
-    ...(defaultHeadBlocks ?? []),
+    ...hwyGlobal.get("defaultHeadBlocks"),
     ...nonDeduped.flat(),
   ]);
 }
 
-export { getExportedHeadBlocks };
+export function getIsJSONRequest(request: Request): boolean {
+  const url = new URL(request.url);
+  return Boolean(url.searchParams.get(`${HWY_PREFIX}json`));
+}
+
+export type RouteData = {
+  response: Response | null;
+  data: GetRouteDataOutput | null;
+  ssrData?: {
+    ssrInnerHtml: string;
+    clientEntryURL: string;
+    devRefreshScript: string;
+    criticalCSSElementID: string;
+    criticalCSS: string;
+    bundledCSSURL: string;
+  };
+};
+
+export async function getRouteData({
+  request,
+  adHocData,
+}: {
+  request: Request;
+  adHocData: AdHocData | undefined;
+}): Promise<RouteData> {
+  const { activePathData, response } = await getMatchingPathData(request);
+
+  if (response) {
+    return { response, data: null };
+  }
+
+  if (!activePathData || !activePathData.matchingPaths?.length) {
+    return { response: null, data: null };
+  }
+
+  const hwyGlobal = getHwyGlobal();
+
+  const { title, metaHeadBlocks, restHeadBlocks } = getExportedHeadBlocks({
+    request,
+    activePathData,
+  });
+
+  const isJSON = getIsJSONRequest(request);
+
+  const data: GetRouteDataOutput = {
+    title: title,
+    metaHeadBlocks: metaHeadBlocks,
+    restHeadBlocks: restHeadBlocks,
+    loadersData: activePathData.loadersData,
+    activePaths: activePathData.activePaths,
+    outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
+    splatSegments: activePathData.splatSegments,
+    params: activePathData.params,
+    actionData: activePathData.actionData,
+    adHocData: adHocData ?? {},
+    buildID: hwyGlobal.get("buildID"),
+    activeComponents: isJSON ? null : activePathData.activeComponents,
+    activeErrorBoundaries: isJSON ? null : activePathData.activeErrorBoundaries,
+  };
+
+  return {
+    response: null,
+    data,
+    ssrData: isJSON
+      ? undefined
+      : {
+          ssrInnerHtml: getSsrInnerHtml(data),
+          clientEntryURL: getPublicUrl("dist/entry.client.js"),
+          devRefreshScript: getDevRefreshScript(),
+          criticalCSSElementID: CRITICAL_CSS_ELEMENT_ID,
+          criticalCSS: hwyGlobal.get("criticalBundledCSS") || "",
+          bundledCSSURL: getPublicUrl("dist/standard-bundled.css"),
+        },
+  };
+}
+
+type Uneval = (
+  value: any,
+  replacer?: ((value: any) => string | void) | undefined,
+) => string;
+let uneval: Uneval | null = null;
+
+try {
+  const unevalImport = await import("devalue");
+  uneval = unevalImport.uneval;
+} catch {}
+
+export function getSsrInnerHtml(baseProps: GetRouteDataOutput) {
+  if (!uneval) {
+    throw new Error("devalue is not available");
+  }
+  let html = `
+globalThis[Symbol.for("${HWY_PREFIX}")] = {};
+const x = globalThis[Symbol.for("${HWY_PREFIX}")];
+x.isDev = ${uneval(hwyGlobal.get("isDev"))};
+${mkSetterStr("buildID", baseProps.buildID)}
+${mkSetterStr("loadersData", baseProps.loadersData)}
+${mkSetterStr("activePaths", baseProps.activePaths)}
+${mkSetterStr(
+  "outermostErrorBoundaryIndex",
+  baseProps.outermostErrorBoundaryIndex,
+)}
+${mkSetterStr("splatSegments", baseProps.splatSegments)}
+${mkSetterStr("params", baseProps.params)}
+${mkSetterStr("actionData", baseProps.actionData)}
+${mkSetterStr("adHocData", baseProps.adHocData)}
+`.trim();
+  return html;
+}
+
+function mkSetterStr(key: (typeof CLIENT_GLOBAL_KEYS)[number], value: any) {
+  if (!uneval) {
+    throw new Error("devalue is not available");
+  }
+  return `x.${key}=${uneval(value)};`;
+}
+
+// __TODO timeout should be in dev config
+function getDevRefreshScript(timeoutInMs = 150) {
+  if (!hwyGlobal.get("isDev")) {
+    return "";
+  }
+  return `
+  const es = new EventSource("${LIVE_REFRESH_SSE_PATH}");
+	es.addEventListener("message", (e) => {
+    const { changeType, criticalCss } = JSON.parse(e.data);
+    function refresh() {
+      if (changeType === "css-bundle") {
+        for (const link of document.querySelectorAll('link[rel="stylesheet"]')) {
+          const url = new URL(link.href);
+          if (
+            url.host === location.host &&
+            url.pathname.startsWith("/public/dist/standard-bundled.")
+          ) {
+            const next = link.cloneNode();
+            next.href = "${DEV_BUNDLED_CSS_LINK}";
+            next.onload = () => link.remove();
+            link.parentNode?.insertBefore(next, link.nextSibling);
+          }
+        }
+      } else if (changeType === "critical-css") {
+        const inlineStyleEl = document.getElementById("${CRITICAL_CSS_ELEMENT_ID}");
+        if (inlineStyleEl) {
+          inlineStyleEl.innerHTML = criticalCss;
+        }
+      } else {
+        setTimeout(() => window.location.reload(), ${timeoutInMs});
+      }
+    }
+    refresh();
+  });
+	es.addEventListener("error", (e) => {
+		console.log("SSE error", e);
+		es.close();
+		setTimeout(() => window.location.reload(), ${timeoutInMs});
+	});
+	window.addEventListener("beforeunload", () => {
+		es.close();
+	});
+  `.trim();
+}
+
+export async function renderRoot({
+  request,
+  adHocData,
+  renderCallback,
+}: {
+  request: Request;
+  adHocData?: AdHocData;
+  renderCallback: (routeData: RouteData) => any;
+}) {
+  const routeData = await getRouteData({ request, adHocData });
+  if (routeData.response) {
+    return routeData.response;
+  }
+  if (!routeData.data) {
+    return;
+  }
+  if (getIsJSONRequest(request)) {
+    return routeData.data;
+  }
+  return renderCallback(routeData);
+}
