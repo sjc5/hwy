@@ -23,10 +23,6 @@ const sidebarNavItems: SidebarNavItem[] = [
     name: "Goals",
     url: "/goals",
   },
-  {
-    name: "From Scratch",
-    url: "/guides/from-scratch",
-  },
 ];
 
 export function RootLayout({
