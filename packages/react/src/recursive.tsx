@@ -109,7 +109,7 @@ export function RootOutlet(props: BaseProps): ReactElement {
         }
       }
       return Outlet;
-    }, [(ctx.get("activePaths") as any)?.[idx + 1]]);
+    }, [(ctx.get("importURLs") as any)?.[idx + 1]]);
 
     const extendedProps = useMemo(() => {
       return {

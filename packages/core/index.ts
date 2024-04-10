@@ -1,5 +1,5 @@
 export { renderRoot } from "./src/router.js";
-export { hwyInit } from "./src/setup.js";
+export { initHwy } from "./src/setup.js";
 
 import {
   Action,

@@ -10,4 +10,4 @@ export {
   initClient,
   navigate,
   submit,
-} from "./src/init-client.js";
+} from "./src/init_client.js";

@@ -1,4 +1,7 @@
+// __TODO DECOUPLE!
 import type { FunctionComponent, ReactElement } from "react";
+// __TODO DECOUPLE!
+
 import type { HeadBlock, Path } from "../core/src/router.js";
 
 export const HWY_PREFIX = "__hwy_internal__";
@@ -10,7 +13,6 @@ export type HwyConfig = {
   dev?: {
     watchExclusions?: Array<string>;
     watchInclusions?: Array<string>;
-    hotReloadStyles?: boolean;
   };
   routeStrategy?:
     | "bundle"
@@ -33,7 +35,7 @@ export const CRITICAL_CSS_ELEMENT_ID = "data-hwy-critical-css";
 
 export const CLIENT_GLOBAL_KEYS = [
   "loadersData",
-  "activePaths",
+  "importURLs",
   "outermostErrorBoundaryIndex",
   "splatSegments",
   "params",
@@ -61,7 +63,7 @@ export type ActivePathData = {
 
   // needed in recursive component
   loadersData: any[];
-  activePaths: string[];
+  importURLs: string[];
   outermostErrorBoundaryIndex: number | undefined;
   splatSegments: string[];
   params: Record<string, string>;
@@ -83,9 +85,12 @@ export type HwyGlobal = {
   paths: Array<Path>;
   publicMap: Record<string, string>;
   publicReverseMap: Record<string, string>;
-  testDirname?: string;
   buildID: string;
   defaultHeadBlocks: Array<HeadBlock>;
+  devRefreshPort: string;
+  rootDirname: string;
+  getPublicURL: (url: string) => string;
+  getOrigPublicURL: (hashedURL: string) => string;
 };
 
 export type HwyGlobalKey = keyof HwyGlobal;
@@ -99,6 +104,10 @@ export const HWY_GLOBAL_KEYS: { [K in keyof HwyGlobal]: any } = {
   publicReverseMap: "",
   buildID: "",
   defaultHeadBlocks: "",
+  devRefreshPort: "",
+  rootDirname: "",
+  getPublicURL: "",
+  getOrigPublicURL: "",
 } as const;
 
 for (const key in HWY_GLOBAL_KEYS) {

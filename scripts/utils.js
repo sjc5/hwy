@@ -6,8 +6,9 @@ const dirsInSlashPackages = [
   "build",
   "client",
   "core",
-  "create-hwy",
+  "create",
   "dev",
+  "h3",
   "react",
 ];
 
@@ -95,51 +96,51 @@ function bumpToNewMajor() {
   saveNewPkgJSONs(newVersion);
 }
 
-function throwIfAlreadyBeta() {
+function throwIfAlreadyPre() {
   const currentVersion = confirmAndGetCurrentVersion();
 
   if (currentVersion.includes("-")) {
-    throw new Error("Current version already has a beta suffix.");
+    throw new Error("Current version already has a pre suffix.");
   }
 }
 
-function addBeta() {
-  throwIfAlreadyBeta();
+function addPre() {
+  throwIfAlreadyPre();
 
   const currentVersion = confirmAndGetCurrentVersion();
 
   const [major, minor, patch] = currentVersion.split(".").map(Number);
 
-  const newVersion = `${major}.${minor}.${patch}-beta.0`;
+  const newVersion = `${major}.${minor}.${patch}-pre.0`;
 
   saveNewPkgJSONs(newVersion);
 }
 
-function throwIfNotBeta() {
+function throwIfNotPre() {
   const currentVersion = confirmAndGetCurrentVersion();
 
   if (!currentVersion.includes("-")) {
-    throw new Error("Current version does not have a beta suffix.");
+    throw new Error("Current version does not have a pre suffix.");
   }
 }
 
-function bumpBeta() {
-  throwIfNotBeta();
+function bumpPre() {
+  throwIfNotPre();
 
   const currentVersion = confirmAndGetCurrentVersion();
 
-  const [major, minor, patch, beta] = currentVersion
+  const [major, minor, patch, pre] = currentVersion
     .split(".")
     .map((v) => (v.includes("-") ? v.split("-")[0] : v))
     .map(Number);
 
-  const newVersion = `${major}.${minor}.${patch}-beta.${beta + 1}`;
+  const newVersion = `${major}.${minor}.${patch}-pre.${pre + 1}`;
 
   saveNewPkgJSONs(newVersion);
 }
 
-function removeBeta() {
-  throwIfNotBeta();
+function removePre() {
+  throwIfNotPre();
 
   const currentVersion = confirmAndGetCurrentVersion();
 
@@ -171,12 +172,12 @@ function setVersion() {
 }
 
 export {
-  addBeta,
-  bumpBeta,
+  addPre,
+  bumpPre,
   bumpToNewMajor,
   bumpToNewMinor,
   bumpToNewPatch,
   confirmAndGetCurrentVersion,
-  removeBeta,
+  removePre,
   setVersion,
 };

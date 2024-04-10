@@ -6,31 +6,33 @@
     "build": "tsc && hwy-build",
     "start": "node dist/main.js",
     "dev": "hwy-dev-serve",
-    "to-latest": "node ./scripts/to-latest.js && pnpm i && npm i",
-    "to-workspace": "node ./scripts/to-workspace.js && pnpm i",
+    "to-latest": "node ./scripts/to_latest.js && pnpm i && npm i",
+    "to-workspace": "node ./scripts/to_workspace.js && pnpm i",
     "update-latest": "pnpm update --latest",
     "nuke": "rm -rf dist && rm -rf public/dist"
   },
   "dependencies": {
+    "@hwy-js/h3": "workspace:*",
     "@hwy-js/react": "workspace:*",
-    "@shikijs/markdown-it": "^1.2.0",
+    "@shikijs/markdown-it": "^1.3.0",
+    "hwy": "workspace:*",
     "gray-matter": "^4.0.3",
     "h3": "^1.11.1",
-    "hwy": "workspace:*",
-    "markdown-it": "^14.0.0",
+    "markdown-it": "^14.1.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "shiki": "^1.3.0"
   },
   "devDependencies": {
     "@hwy-js/build": "workspace:*",
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@types/markdown-it": "^13.0.7",
-    "@types/node": "^20.11.28",
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "typescript": "^5.4.2",
+    "@types/markdown-it": "^14.0.0",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.75",
+    "@types/react-dom": "^18.2.24",
+    "typescript": "^5.4.4",
     "use-html-dialog": "^0.2.1",
-    "usehooks-ts": "^3.0.1"
+    "usehooks-ts": "^3.1.0"
   }
 }

@@ -4,5 +4,5 @@ export {
   DevLiveRefreshScript,
   Head,
   HeadElements,
-} from "./src/head-elements-comp.js";
+} from "./src/head_elements_comp.js";
 export { RootOutlet } from "./src/recursive.js";

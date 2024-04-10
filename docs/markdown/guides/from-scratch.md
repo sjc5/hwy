@@ -23,7 +23,6 @@ echo '{
     "noEmit": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "preact",
     "types": ["node"]
   },
   "exclude": ["node_modules", "dist"]
@@ -80,15 +79,15 @@ import {
   DevLiveRefreshScript,
   HeadElements,
   RootOutlet,
-  hwyInit,
+  initHwy,
   renderRoot,
 } from "hwy";
 import { AddressInfo } from "net";
 import { createServer } from "node:http";
 
-const { app } = await hwyInit({
+const { app } = await initHwy({
   app: createApp(),
-  importMetaUrl: import.meta.url,
+  importMetaURL: import.meta.url,
 	defaultHeadBlocks: [
 		{ title: "your-project-name" },
 		{
@@ -139,9 +138,9 @@ const addrInfo = server.address() as AddressInfo;
 console.log(`Listening on http://localhost:${addrInfo.port}`);' > src/main.tsx
 
 #########################################################################
-### Create a pages directory & _index.page.tsx file
+### Create a pages directory & _index.view.tsx file
 #########################################################################
 mkdir src/pages && echo 'export default function () {
   return <p>This is the home page.</p>;
-}' > src/pages/_index.page.tsx
+}' > src/pages/_index.view.tsx
 ```

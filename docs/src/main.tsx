@@ -1,8 +1,9 @@
+import { initH3 } from "@hwy-js/h3";
 import { Head, RootOutlet } from "@hwy-js/react";
-import { createApp, eventHandler, toNodeListener, toWebRequest } from "h3";
-import { hwyInit, renderRoot } from "hwy";
-import { AddressInfo } from "net";
+import { eventHandler, toNodeListener, toWebRequest } from "h3";
+import { initHwy, renderRoot } from "hwy";
 import { createServer } from "node:http";
+import { AddressInfo } from "node:net";
 import { renderToPipeableStream } from "react-dom/server";
 import { RootLayout } from "./pages/layout.js";
 
@@ -13,9 +14,8 @@ declare module "h3" {
   interface H3EventContext {}
 }
 
-const { app } = await hwyInit({
-  app: createApp(),
-  importMetaUrl: import.meta.url,
+await initHwy({
+  importMetaURL: import.meta.url,
   defaultHeadBlocks: [
     { title: "hwy-example-minimal-mpa" },
     {
@@ -27,6 +27,8 @@ const { app } = await hwyInit({
     },
   ],
 });
+
+const app = initH3();
 
 app.use(
   "*",

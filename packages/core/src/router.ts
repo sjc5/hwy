@@ -6,9 +6,8 @@ import {
   LIVE_REFRESH_SSE_PATH,
   getHwyGlobal,
 } from "../../common/index.mjs";
-import { DEV_BUNDLED_CSS_LINK, getPublicUrl } from "./hashed-public-url.js";
+import { DEV_BUNDLED_CSS_LINK, getPublicURL } from "./hashed_public_url.js";
 import { LRUCache } from "./lru_cache.js";
-import { ROOT_DIRNAME } from "./setup.js";
 import { dynamicNodePath, pathToFileURLStr } from "./url-polyfills.js";
 
 const hwyGlobal = getHwyGlobal();
@@ -58,7 +57,7 @@ type Head = (HeadProps: HeadProps) => Array<HeadBlock>;
 export type ActivePathData = {
   matchingPaths: Array<DecoratedPath>;
   loadersData: Array<any>;
-  activePaths: Array<string>;
+  importURLs: Array<string>;
   outermostErrorBoundaryIndex: number;
   actionData: Array<any>;
   activeHeads: Array<Head | null>;
@@ -113,7 +112,7 @@ type gmpdItem = {
   splatSegments: Array<string>;
   params: Record<string, string>;
   decoratedMatchingPaths: Array<DecoratedPath>;
-  activePaths: Array<string>;
+  importURLs: Array<string>;
 };
 
 export type GetRouteDataOutput = {
@@ -121,7 +120,7 @@ export type GetRouteDataOutput = {
   metaHeadBlocks: Array<OtherHeadBlock>;
   restHeadBlocks: Array<OtherHeadBlock>;
   loadersData: Array<any>;
-  activePaths: Array<string>;
+  importURLs: Array<string>;
   outermostErrorBoundaryIndex: number;
   splatSegments: Array<string>;
   params: Record<string, string>;
@@ -178,7 +177,7 @@ async function getPath(importPath: string) {
   }
 
   const inner = dynamicNodePath?.join(
-    hwyGlobal.get("testDirname") || ROOT_DIRNAME || "./",
+    hwyGlobal.get("rootDirname") || "./",
     importPath,
   );
 
@@ -199,7 +198,7 @@ function decoratePaths(
   return (
     matchingPaths?.map((localPath) => {
       const serverImportPath = !localPath.isServerFile
-        ? localPath.importPath.replace(".page.js", ".server.js")
+        ? localPath.importPath.replace(".view.js", ".data.js")
         : localPath.importPath;
 
       const noServerFns =
@@ -681,16 +680,16 @@ export async function getMatchingPathData(request: Request): Promise<{
     const initialMatchingPaths = getInitialMatchingPaths(realPath);
     const { splatSegments, maybeFinalPaths: matchingPaths } =
       getMatchingPathsInternal(initialMatchingPaths, realPath);
-    const activePaths: Array<string> = [];
+    const importURLs: Array<string> = [];
     for (const path of matchingPaths) {
-      activePaths.push(getPublicUrl("./dist/" + path.importPath));
+      importURLs.push(getPublicURL("./dist/" + path.importPath));
     }
     const lastPath =
       matchingPaths.length > 0 ? matchingPaths[matchingPaths.length - 1] : null;
     item = {
-      activePaths: activePaths,
+      importURLs,
       decoratedMatchingPaths: decoratePaths(matchingPaths),
-      splatSegments: splatSegments,
+      splatSegments,
       params: lastPath ? lastPath.params : {},
     };
     const isSpam = matchingPaths.length === 0;
@@ -809,7 +808,7 @@ export async function getMatchingPathData(request: Request): Promise<{
     matchingPaths: [],
     activeHeads: [],
     loadersData: [],
-    activePaths: [],
+    importURLs: [],
     outermostErrorBoundaryIndex: -1,
     actionData: [],
     splatSegments: [],
@@ -828,8 +827,8 @@ export async function getMatchingPathData(request: Request): Promise<{
     activePathData.activeHeads = locActiveHeads;
     const locLoadersData = loadersData.slice(0, outermostErrorIndex + 1);
     activePathData.loadersData = locLoadersData;
-    const locActivePaths = item.activePaths.slice(0, outermostErrorIndex + 1);
-    activePathData.activePaths = locActivePaths;
+    const locImportURLs = item.importURLs.slice(0, outermostErrorIndex + 1);
+    activePathData.importURLs = locImportURLs;
     activePathData.outermostErrorBoundaryIndex =
       closestParentErrorBoundaryIndex;
     activePathData.actionData = new Array(outermostErrorIndex + 1);
@@ -849,11 +848,9 @@ export async function getMatchingPathData(request: Request): Promise<{
   activePathData.matchingPaths = item.decoratedMatchingPaths;
   activePathData.activeHeads = activeHeads;
   activePathData.loadersData = loadersData;
-  activePathData.activePaths = item.activePaths;
+  activePathData.importURLs = item.importURLs;
   activePathData.outermostErrorBoundaryIndex = closestParentErrorBoundaryIndex;
-  const locActionData = new Array(activePathData.activePaths?.length).fill(
-    null,
-  );
+  const locActionData = new Array(activePathData.importURLs?.length).fill(null);
   locActionData[locActionData.length - 1] = actionData;
   activePathData.actionData = locActionData;
   activePathData.splatSegments = item.splatSegments;
@@ -1021,18 +1018,16 @@ function sortAndDedupeHeadBlocks(headBlocks: HeadBlock[]): SortedHeadBlocks {
   };
 }
 
-type GetExportedHeadBlocksProps = {
-  request: Request;
-  activePathData: ActivePathData;
-};
-
 function getExportedHeadBlocks({
   request,
   activePathData,
-}: GetExportedHeadBlocksProps): SortedHeadBlocks {
+}: {
+  request: Request;
+  activePathData: ActivePathData;
+}): SortedHeadBlocks {
   const nonDeduped =
     activePathData?.activeHeads?.flatMap((head, i) => {
-      if (!head || !activePathData?.activePaths?.[i]) {
+      if (!head || !activePathData?.importURLs?.[i]) {
         return [];
       }
       return head({
@@ -1061,7 +1056,7 @@ export type RouteData = {
   response: Response | null;
   data: GetRouteDataOutput | null;
   ssrData?: {
-    ssrInnerHtml: string;
+    ssrInnerHTML: string;
     clientEntryURL: string;
     devRefreshScript: string;
     criticalCSSElementID: string;
@@ -1101,7 +1096,7 @@ export async function getRouteData({
     metaHeadBlocks: metaHeadBlocks,
     restHeadBlocks: restHeadBlocks,
     loadersData: activePathData.loadersData,
-    activePaths: activePathData.activePaths,
+    importURLs: activePathData.importURLs,
     outermostErrorBoundaryIndex: activePathData.outermostErrorBoundaryIndex,
     splatSegments: activePathData.splatSegments,
     params: activePathData.params,
@@ -1118,12 +1113,12 @@ export async function getRouteData({
     ssrData: isJSON
       ? undefined
       : {
-          ssrInnerHtml: getSsrInnerHtml(data),
-          clientEntryURL: getPublicUrl("dist/entry.client.js"),
+          ssrInnerHTML: getSsrInnerHTML(data),
+          clientEntryURL: getPublicURL("dist/entry.client.js"),
           devRefreshScript: getDevRefreshScript(),
           criticalCSSElementID: CRITICAL_CSS_ELEMENT_ID,
           criticalCSS: hwyGlobal.get("criticalBundledCSS") || "",
-          bundledCSSURL: getPublicUrl("dist/standard-bundled.css"),
+          bundledCSSURL: getPublicURL("dist/standard-bundled.css"),
         },
   };
 }
@@ -1139,7 +1134,7 @@ try {
   uneval = unevalImport.uneval;
 } catch {}
 
-export function getSsrInnerHtml(baseProps: GetRouteDataOutput) {
+export function getSsrInnerHTML(baseProps: GetRouteDataOutput) {
   if (!uneval) {
     throw new Error("devalue is not available");
   }
@@ -1149,7 +1144,7 @@ const x = globalThis[Symbol.for("${HWY_PREFIX}")];
 x.isDev = ${uneval(hwyGlobal.get("isDev"))};
 ${mkSetterStr("buildID", baseProps.buildID)}
 ${mkSetterStr("loadersData", baseProps.loadersData)}
-${mkSetterStr("activePaths", baseProps.activePaths)}
+${mkSetterStr("importURLs", baseProps.importURLs)}
 ${mkSetterStr(
   "outermostErrorBoundaryIndex",
   baseProps.outermostErrorBoundaryIndex,
@@ -1175,7 +1170,7 @@ function getDevRefreshScript(timeoutInMs = 150) {
     return "";
   }
   return `
-  const es = new EventSource("${LIVE_REFRESH_SSE_PATH}");
+  const es = new EventSource("http://localhost:${hwyGlobal.get("devRefreshPort")}${LIVE_REFRESH_SSE_PATH}");
 	es.addEventListener("message", (e) => {
     const { changeType, criticalCss } = JSON.parse(e.data);
     function refresh() {

@@ -1,13 +1,13 @@
 import { Head, RootOutlet } from "@hwy-js/react";
 import { createApp, eventHandler, toNodeListener, toWebRequest } from "h3";
-import { hwyInit, renderRoot } from "hwy";
+import { initHwy, renderRoot } from "hwy";
 import { AddressInfo } from "net";
 import { createServer } from "node:http";
 import { renderToPipeableStream } from "react-dom/server";
 
-const { app } = await hwyInit({
+const { app } = await initHwy({
   app: createApp(),
-  importMetaUrl: import.meta.url,
+  importMetaURL: import.meta.url,
   defaultHeadBlocks: [
     { title: "hwy-example-react" },
     {
