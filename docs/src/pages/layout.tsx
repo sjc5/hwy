@@ -1,7 +1,7 @@
+import { RootLayoutProps } from "hwy";
 import { startTransition, useEffect } from "react";
 import { useHtmlDialog } from "use-html-dialog";
 import { useMediaQuery } from "usehooks-ts";
-import { RootLayoutProps } from "../../../packages/common/index.mjs";
 import { CloseIcon, HamburgerIcon } from "../components/icons.js";
 import { ClientOnly } from "../components/utilities.js";
 
