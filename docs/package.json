@@ -12,10 +12,10 @@
     "nuke": "rm -rf dist && rm -rf public/dist"
   },
   "dependencies": {
-    "@hwy-js/h3": "0.8.1",
-    "@hwy-js/react": "0.8.1",
+    "@hwy-js/h3": "0.8.2",
+    "@hwy-js/react": "0.8.2",
     "@shikijs/markdown-it": "^1.3.0",
-    "hwy": "0.8.1",
+    "hwy": "0.8.2",
     "gray-matter": "^4.0.3",
     "h3": "^1.11.1",
     "markdown-it": "^14.1.0",
@@ -24,9 +24,9 @@
     "shiki": "^1.3.0"
   },
   "devDependencies": {
-    "@hwy-js/build": "0.8.1",
-    "@hwy-js/client": "0.8.1",
-    "@hwy-js/dev": "0.8.1",
+    "@hwy-js/build": "0.8.2",
+    "@hwy-js/client": "0.8.2",
+    "@hwy-js/dev": "0.8.2",
     "@types/markdown-it": "^14.0.0",
     "@types/node": "^20.12.7",
     "@types/react": "^18.2.75",
