@@ -1,47 +1,47 @@
 {
   "name": "@hwy-js/build",
-  "version": "0.7.2",
+  "version": "0.0.0-pre.0",
   "author": {
     "name": "Samuel J. Cook"
   },
-  "license": "MIT",
   "description": "Build tools for Hwy framework",
   "type": "module",
-  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
-    "lint": "tsc",
-    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
-    "publish-beta": "npm publish --tag beta",
-    "publish-non-beta": "npm publish",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
+    "publish-pre": "npm publish --tag pre",
+    "publish-non-pre": "npm publish",
     "update-latest": "pnpm update --latest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc"
   },
   "bin": {
-    "hwy-dev-serve": "./scripts/dev-serve.js",
-    "hwy-build": "./scripts/run-build-tasks.js"
+    "hwy-dev-serve": "./scripts/dev_serve.js",
+    "hwy-build": "./scripts/run_build_tasks.js"
   },
   "dependencies": {
-    "chokidar": "^3.5.3",
-    "dotenv": "^16.3.1",
-    "esbuild": "^0.19.5",
-    "picocolors": "^1.0.0",
+    "chokidar": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "esbuild": "^0.20.2",
+    "get-port-please": "^3.1.2",
+    "jsonc-parser": "^3.2.1",
     "readdirp": "^3.6.0"
   },
   "devDependencies": {
-    "@types/node": "^20.9.0",
-    "hono": "^3.10.1",
-    "tsup": "^7.2.0",
-    "typescript": "^5.2.2"
+    "@types/node": "^20.12.7",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hwy-js/hwy",
+    "url": "https://github.com/sjc5/hwy",
     "directory": "packages/build"
   },
   "homepage": "https://hwy.dev",
-  "bugs": "https://github.com/hwy-js/hwy/issues"
+  "bugs": "https://github.com/sjc5/hwy/issues"
 }

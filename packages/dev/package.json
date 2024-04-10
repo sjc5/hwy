@@ -1,39 +1,40 @@
 {
   "name": "@hwy-js/dev",
-  "version": "0.7.2",
+  "version": "0.0.0-pre.0",
   "author": {
     "name": "Samuel J. Cook"
   },
-  "license": "MIT",
   "description": "Development tools for Hwy framework",
   "type": "module",
-  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
-    "lint": "tsc",
-    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
-    "publish-beta": "npm publish --tag beta",
-    "publish-non-beta": "npm publish",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
+    "publish-pre": "npm publish --tag pre",
+    "publish-non-pre": "npm publish",
     "update-latest": "pnpm update --latest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc"
   },
   "dependencies": {
-    "picocolors": "^1.0.0"
+    "get-port-please": "^3.1.2",
+    "h3": "^1.11.1"
   },
   "devDependencies": {
-    "@types/node": "^20.9.0",
-    "hono": "^3.10.1",
-    "tsup": "^7.2.0",
-    "typescript": "^5.2.2"
+    "@types/node": "^20.12.7",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hwy-js/hwy",
+    "url": "https://github.com/sjc5/hwy",
     "directory": "packages/dev"
   },
   "homepage": "https://hwy.dev",
-  "bugs": "https://github.com/hwy-js/hwy/issues"
+  "bugs": "https://github.com/sjc5/hwy/issues",
+  "sideEffects": false
 }

@@ -1,0 +1,28 @@
+{
+  "name": "hwy-example-react",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && hwy-build",
+    "start": "node dist/main.js",
+    "dev": "hwy-dev-serve",
+    "update-latest": "pnpm update --latest"
+  },
+  "dependencies": {
+    "@hwy-js/react": "workspace:*",
+    "hwy": "workspace:*",
+    "h3": "^1.11.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@hwy-js/build": "workspace:*",
+    "@hwy-js/client": "workspace:*",
+    "@hwy-js/dev": "workspace:*",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.75",
+    "@types/react-dom": "^18.2.24",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.4"
+  }
+}

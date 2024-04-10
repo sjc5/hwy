@@ -1,55 +1,38 @@
 {
   "name": "@hwy-js/client",
-  "version": "0.7.2",
+  "version": "0.0.0-pre.0",
   "author": {
     "name": "Samuel J. Cook"
   },
-  "license": "MIT",
   "description": "Browser-targeted utilities for Hwy framework",
   "type": "module",
-  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
-    "lint": "tsc",
-    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
-    "publish-beta": "npm publish --tag beta",
-    "publish-non-beta": "npm publish",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
+    "publish-pre": "npm publish --tag pre",
+    "publish-non-pre": "npm publish",
     "update-latest": "pnpm update --latest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "history": "^5.3.0"
   },
   "devDependencies": {
-    "@types/nprogress": "^0.2.3",
-    "htmx.org": "^1.9.8",
-    "idiomorph": "^0.0.9",
-    "nprogress": "^0.2.0",
-    "tsup": "^7.2.0",
-    "typescript": "^5.2.2"
-  },
-  "peerDependencies": {
-    "htmx.org": ">=1.9.6",
-    "idiomorph": ">=0.0.9",
-    "nprogress": ">=0.2.0"
-  },
-  "peerDependenciesMeta": {
-    "htmx.org": {
-      "optional": true
-    },
-    "idiomorph": {
-      "optional": true
-    },
-    "nprogress": {
-      "optional": true
-    }
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hwy-js/hwy",
+    "url": "https://github.com/sjc5/hwy",
     "directory": "packages/client"
   },
   "homepage": "https://hwy.dev",
-  "bugs": "https://github.com/hwy-js/hwy/issues",
+  "bugs": "https://github.com/sjc5/hwy/issues",
   "sideEffects": false
 }
