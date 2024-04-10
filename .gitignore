@@ -4,3 +4,4 @@ dist
 .env
 .env.local
 __local-*
+examples/*/package-lock.json
