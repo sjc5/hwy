@@ -48,7 +48,7 @@ app.use(
     setResponseHeader(
       event,
       "Cache-Control",
-      "s-maxage=31536000, max-age=60, immutable",
+      "public, s-maxage=31536000, max-age=60",
     );
 
     return await renderRoot({
