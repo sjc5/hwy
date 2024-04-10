@@ -5,24 +5,23 @@
   "scripts": {
     "build": "tsc && hwy-build",
     "start": "node dist/main.js",
-    "dev": "hwy-dev-serve",
-    "update-latest": "pnpm update --latest"
+    "dev": "hwy-dev-serve"
   },
   "dependencies": {
-    "@hwy-js/react": "workspace:*",
-    "hwy": "workspace:*",
+    "@hwy-js/h3": "^0.8.2",
+    "@hwy-js/react": "^0.8.2",
+    "hwy": "^0.8.2",
     "h3": "^1.11.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@hwy-js/build": "workspace:*",
-    "@hwy-js/client": "workspace:*",
-    "@hwy-js/dev": "workspace:*",
+    "@hwy-js/build": "^0.8.2",
+    "@hwy-js/client": "^0.8.2",
+    "@hwy-js/dev": "^0.8.2",
     "@types/node": "^20.12.7",
     "@types/react": "^18.2.75",
     "@types/react-dom": "^18.2.24",
-    "tailwindcss": "^3.4.3",
     "typescript": "^5.4.4"
   }
 }
