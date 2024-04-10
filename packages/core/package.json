@@ -1,59 +1,60 @@
 {
   "name": "hwy",
-  "version": "0.7.2",
+  "version": "0.0.0-pre.0",
   "author": {
     "name": "Samuel J. Cook"
   },
-  "license": "MIT",
-  "description": "Simple, lightweight, and flexible web framework, built on Hono and HTMX.",
+  "description": "A highly flexible fullstack web framework",
   "type": "module",
-  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
-    "lint": "tsc",
-    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch --sourcemap",
-    "publish-beta": "npm publish --tag beta",
-    "publish-non-beta": "npm publish",
+    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
+    "publish-pre": "npm publish --tag pre",
+    "publish-non-pre": "npm publish",
     "update-latest": "pnpm update --latest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "devalue": "^4.3.2"
   },
   "devDependencies": {
-    "@hono/node-server": "^1.2.3",
     "@hwy-js/build": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@types/node": "^20.9.0",
-    "hono": "^3.10.1",
-    "tsup": "^7.2.0"
-  },
-  "peerDependencies": {
-    "hono": "^3.10.0"
+    "@types/node": "^20.12.7",
+    "tsup": "^8.0.2"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hwy-js/hwy",
+    "url": "https://github.com/sjc5/hwy",
     "directory": "packages/core"
   },
   "homepage": "https://hwy.dev",
-  "bugs": "https://github.com/hwy-js/hwy/issues",
+  "bugs": "https://github.com/sjc5/hwy/issues",
   "keywords": [
     "simple",
     "lightweight",
     "flexible",
     "framework",
     "metaframework",
+    "fullstack",
     "web",
     "typescript",
-    "htmx",
-    "hono",
+    "unjs",
+    "h3",
     "router",
     "nested",
     "routing",
     "jsx",
     "tsx",
     "nextjs",
-    "remix"
-  ]
+    "remix",
+    "react"
+  ],
+  "sideEffects": false
 }

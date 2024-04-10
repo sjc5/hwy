@@ -1,11 +1,11 @@
 # Release Directions
 
-From release branch, and assuming there have been beta releases, do the following from monorepo root:
+From release branch, and assuming there have been pre releases, do the following from monorepo root:
 
 ```sh
-pnpm remove-beta
+pnpm remove-pre
 
-pnpm publish-non-beta
+pnpm publish-non-pre
 
 cd docs
 pnpm to-latest

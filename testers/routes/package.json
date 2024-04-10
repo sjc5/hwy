@@ -10,21 +10,20 @@
     "update-latest": "pnpm update --latest"
   },
   "dependencies": {
-    "@css-hooks/core": "^1.2.1",
-    "@hono/node-server": "^1.2.3",
-    "hono": "^3.10.1",
-    "hwy": "workspace:*"
+    "@hwy-js/h3": "workspace:*",
+    "hwy": "workspace:*",
+    "h3": "^1.11.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@hwy-js/build": "workspace:*",
     "@hwy-js/client": "workspace:*",
     "@hwy-js/dev": "workspace:*",
-    "@types/node": "^20.9.0",
-    "htmx.org": "^1.9.8",
-    "idiomorph": "^0.0.9",
-    "typescript": "^5.2.2"
-  },
-  "engines": {
-    "node": ">=18.14.1"
+    "@hwy-js/react": "workspace:*",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.75",
+    "@types/react-dom": "^18.2.24",
+    "typescript": "^5.4.4"
   }
 }

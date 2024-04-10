@@ -1,17 +1,11 @@
 # standard exclusions
 node_modules
 
-# system artifacts
-.DS_Store
-
 # build artifacts
 dist
 public/dist
 
 # environment files
 .env
-.env.local
-
-# vercel
-api/**/*
-!api/main.js
+.env.*
+!env.example

@@ -1,33 +1,38 @@
 {
   "name": "docs",
-  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "vercel-build": "tsc --noEmit && hwy-build",
+    "build": "tsc && hwy-build",
     "start": "node dist/main.js",
     "dev": "hwy-dev-serve",
-    "to-latest": "node ./scripts/to-latest.js && pnpm i && npm i",
-    "to-workspace": "node ./scripts/to-workspace.js && pnpm i",
-    "update-latest": "pnpm update --latest"
+    "to-latest": "node ./scripts/to_latest.js && pnpm i && npm i",
+    "to-workspace": "node ./scripts/to_workspace.js && pnpm i",
+    "update-latest": "pnpm update --latest",
+    "nuke": "rm -rf dist && rm -rf public/dist"
   },
   "dependencies": {
-    "@hono/node-server": "^1.2.3",
-    "hono": "^3.10.1",
-    "hwy": "0.7.2"
+    "@hwy-js/h3": "workspace:*",
+    "@hwy-js/react": "workspace:*",
+    "@shikijs/markdown-it": "^1.3.0",
+    "hwy": "workspace:*",
+    "gray-matter": "^4.0.3",
+    "h3": "^1.11.1",
+    "markdown-it": "^14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "shiki": "^1.3.0"
   },
   "devDependencies": {
-    "@hwy-js/build": "0.7.2",
-    "@hwy-js/client": "0.7.2",
-    "@hwy-js/dev": "0.7.2",
-    "@types/node": "^20.9.0",
-    "@types/nprogress": "^0.2.3",
-    "htmx.org": "^1.9.8",
-    "idiomorph": "^0.0.9",
-    "nprogress": "^0.2.0",
-    "typescript": "^5.2.2"
-  },
-  "engines": {
-    "node": ">=18.14.1"
+    "@hwy-js/build": "workspace:*",
+    "@hwy-js/client": "workspace:*",
+    "@hwy-js/dev": "workspace:*",
+    "@types/markdown-it": "^14.0.0",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.75",
+    "@types/react-dom": "^18.2.24",
+    "typescript": "^5.4.4",
+    "use-html-dialog": "^0.2.1",
+    "usehooks-ts": "^3.1.0"
   }
 }
