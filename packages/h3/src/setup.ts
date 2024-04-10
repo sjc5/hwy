@@ -40,12 +40,9 @@ export function initH3(app?: App): App {
 }
 
 const defaultFaviconHandler = defineEventHandler(async (event) => {
-  const publicURL = hwyGlobal.get("getOrigPublicURL")("favicon.ico");
+  const publicURL = hwyGlobal.get("getPublicURL")("favicon.ico");
   if (publicURL) {
-    return sendRedirect(
-      event,
-      hwyGlobal.get("getOrigPublicURL")("favicon.ico"),
-    );
+    return sendRedirect(event, hwyGlobal.get("getPublicURL")("favicon.ico"));
   }
   setResponseStatus(event, 404);
   return "Not found";
