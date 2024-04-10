@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 nav {
   padding: 1rem 1.5rem;
   display: flex;
