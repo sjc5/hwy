@@ -1,18 +1,18 @@
 # Install and Build Stage
-FROM oven/bun:alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package.json bun.lockb ./
-RUN bun install
+COPY package*.json ./
+RUN npm install
 COPY . .
-RUN bun run build
+RUN npm run build
+RUN npm prune --production
 
 # Production stage
-FROM oven/bun:alpine AS production
+FROM node:20-alpine AS production
 WORKDIR /app
-COPY package.json bun.lockb ./
-RUN bun install --production
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public/dist ./public/dist
 COPY --from=builder /app/markdown ./markdown
 COPY --from=builder /app/package.json ./package.json
-CMD ["bun", "start"]
+CMD ["node", "dist/main.js"]
