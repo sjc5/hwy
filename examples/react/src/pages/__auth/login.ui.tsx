@@ -1,9 +1,9 @@
-import { PageProps } from "hwy";
+import { UIProps } from "@hwy-js/react";
 import { ActionType } from "./login.data.js";
 
 const thisRoute = "/login";
 
-export default function ({ actionData }: PageProps<never, ActionType>) {
+export default function ({ actionData }: UIProps<never, ActionType>) {
   const colStyles = {
     display: "flex",
     flexDirection: "column",
@@ -29,7 +29,7 @@ export default function ({ actionData }: PageProps<never, ActionType>) {
       </p>
 
       <p>
-        This is coming from <code>src/pages/__auth/login.view.tsx</code>. The{" "}
+        This is coming from <code>src/pages/__auth/login.ui.tsx</code>. The{" "}
         "__auth" part is a folder that is ignored because it is preceded by two
         underscores (i.e., "__"). This can help you to add arbitrary
         organization to your pages if you'd like.

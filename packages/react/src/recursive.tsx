@@ -5,13 +5,9 @@ import {
   useState,
   type ReactElement,
 } from "react";
-import {
-  AdHocData,
-  RootLayoutComponent,
-  RootLayoutProps,
-  getHwyClientGlobal,
-} from "../../common/index.mjs";
+import { AdHocData, getHwyClientGlobal } from "../../common/index.mjs";
 import type { GetRouteDataOutput, RouteData } from "../../core/src/router.js";
+import { RootLayoutComponent, RootLayoutProps } from "./types.js";
 
 type ErrorBoundaryComp = () => ReactElement;
 type ServerKey = keyof GetRouteDataOutput;

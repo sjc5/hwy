@@ -198,7 +198,7 @@ function decoratePaths(
   return (
     matchingPaths?.map((localPath) => {
       const serverImportPath = !localPath.isServerFile
-        ? localPath.importPath.replace(".view.js", ".data.js")
+        ? localPath.importPath.replace(".ui.js", ".data.js")
         : localPath.importPath;
 
       const noServerFns =

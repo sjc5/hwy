@@ -381,7 +381,7 @@ async function getPathImportSnippet() {
   const pathFromDist = "./" + x.importPath;
   import(pathFromDist).then((x) => ${HWY_PREFIX}arbitraryGlobal[pathFromDist] = x);
 	if (x.hasSiblingServerFile) {
-    const serverPathFromDist = pathFromDist.replace(".view.js", ".data.js");
+    const serverPathFromDist = pathFromDist.replace(".ui.js", ".data.js");
     import(serverPathFromDist).then((x) => ${HWY_PREFIX}arbitraryGlobal[serverPathFromDist] = x);
   }
 });
@@ -408,7 +408,7 @@ async function getPathImportSnippet() {
         const line2 = `${HWY_PREFIX}arbitraryGlobal["./${x.importPath}"] = ${asVar};`;
 
         if (x.hasSiblingServerFile) {
-          const importPathServer = x.importPath.replace(".view.js", ".data.js");
+          const importPathServer = x.importPath.replace(".ui.js", ".data.js");
           const asVarServer = toVarName(importPathServer);
           const line3 = `import * as ${asVarServer} from "./${importPathServer}";\n`;
           const line4 = `${HWY_PREFIX}arbitraryGlobal["./${importPathServer}"] = ${asVarServer};`;
