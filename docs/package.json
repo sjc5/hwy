@@ -6,8 +6,8 @@
     "build": "tsc && hwy-build",
     "start": "bun dist/main.js",
     "dev": "bun run --bun hwy-dev-serve",
-    "to-latest": "node ./scripts/to_latest.js && pnpm i",
-    "to-workspace": "node ./scripts/to_workspace.js && pnpm i",
+    "to-latest": "bun ./scripts/to_latest.js && bun i",
+    "to-workspace": "bun ./scripts/to_workspace.js && pnpm i",
     "update-latest": "pnpm update --latest",
     "nuke": "rm -rf dist && rm -rf public/dist"
   },
