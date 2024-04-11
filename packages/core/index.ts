@@ -9,9 +9,6 @@ import {
   HeadFunction,
   HeadProps,
   Loader,
-  PageComponent,
-  PageProps,
-  RootLayoutProps,
 } from "../common/index.mjs";
 
 import { HeadBlock } from "./src/router.js";
@@ -25,9 +22,6 @@ export type {
   HeadFunction,
   HeadProps,
   Loader,
-  PageComponent,
-  PageProps,
-  RootLayoutProps,
 };
 
 export { getPublicURL } from "./src/hashed_public_url.js";

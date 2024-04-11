@@ -72,7 +72,7 @@ type IndividualMatch = ExpectedOutput["matchingPaths"][number];
 
 const ultimateCatch = {
   pathType: "ultimate-catch",
-  // filePath: "pages/$.view.tsx",
+  // filePath: "pages/$.ui.tsx",
 } as const satisfies IndividualMatch;
 
 /******************
@@ -90,7 +90,7 @@ gmpdTester({
   },
 });
 
-// ".view." not in file name, otherwise a valid component
+// ".ui." not in file name, otherwise a valid component
 
 gmpdTester({
   path: "/this-should-be-ignored",
@@ -111,7 +111,7 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "index",
-        // filePath: "pages/_index.view.tsx",
+        // filePath: "pages/_index.ui.tsx",
       },
     ],
     params: {},
@@ -124,8 +124,8 @@ LIONS
 ******************/
 
 // "/lion"
-// should render "lion.view.tsx" (LAYOUT)
-// and "lion/_index.view.tsx" (INDEX)
+// should render "lion.ui.tsx" (LAYOUT)
+// and "lion/_index.ui.tsx" (INDEX)
 
 gmpdTester({
   path: "/lion",
@@ -133,11 +133,11 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/lion.view.tsx", // LAYOUT
+        // filePath: "pages/lion.ui.tsx", // LAYOUT
       },
       {
         pathType: "index",
-        // filePath: "pages/lion/_index.view.tsx", // INDEX
+        // filePath: "pages/lion/_index.ui.tsx", // INDEX
       },
     ],
     params: {},
@@ -146,8 +146,8 @@ gmpdTester({
 });
 
 // "/lion/123"
-// should render "lion.view.tsx" (LAYOUT)
-// and "lion/$.view.tsx" (SPLAT)
+// should render "lion.ui.tsx" (LAYOUT)
+// and "lion/$.ui.tsx" (SPLAT)
 
 gmpdTester({
   path: "/lion/123",
@@ -155,11 +155,11 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/lion.view.tsx", // LAYOUT
+        // filePath: "pages/lion.ui.tsx", // LAYOUT
       },
       {
         pathType: "non-ultimate-splat",
-        // filePath: "pages/lion/$.view.tsx", // SPLAT
+        // filePath: "pages/lion/$.ui.tsx", // SPLAT
       },
     ],
     params: {},
@@ -176,11 +176,11 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/lion.view.tsx", // LAYOUT
+        // filePath: "pages/lion.ui.tsx", // LAYOUT
       },
       {
         pathType: "non-ultimate-splat",
-        // filePath: "pages/lion/$.view.tsx", // SPLAT
+        // filePath: "pages/lion/$.ui.tsx", // SPLAT
       },
     ],
     params: {},
@@ -197,11 +197,11 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/lion.view.tsx", // LAYOUT
+        // filePath: "pages/lion.ui.tsx", // LAYOUT
       },
       {
         pathType: "non-ultimate-splat",
-        // filePath: "pages/lion/$.view.tsx", // SPLAT
+        // filePath: "pages/lion/$.ui.tsx", // SPLAT
       },
     ],
     params: {},
@@ -214,8 +214,8 @@ AND TIGERS
 ******************/
 
 // "/tiger"
-// should render "tiger.view.tsx" (LAYOUT)
-// and "tiger/_index.view.tsx" (INDEX)
+// should render "tiger.ui.tsx" (LAYOUT)
+// and "tiger/_index.ui.tsx" (INDEX)
 
 gmpdTester({
   path: "/tiger",
@@ -223,11 +223,11 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/tiger.view.tsx", // LAYOUT
+        // filePath: "pages/tiger.ui.tsx", // LAYOUT
       },
       {
         pathType: "index",
-        // filePath: "pages/tiger/_index.view.tsx", // INDEX
+        // filePath: "pages/tiger/_index.ui.tsx", // INDEX
       },
     ],
     params: {},
@@ -236,9 +236,9 @@ gmpdTester({
 });
 
 // "/tiger/123"
-// should render "tiger.view.tsx" (LAYOUT)
-// and "tiger/$tiger_id.view.tsx" ($tiger_id LAYOUT)
-// and "tiger/$tiger_id/_index.view.tsx" ($tiger_id INDEX)
+// should render "tiger.ui.tsx" (LAYOUT)
+// and "tiger/$tiger_id.ui.tsx" ($tiger_id LAYOUT)
+// and "tiger/$tiger_id/_index.ui.tsx" ($tiger_id INDEX)
 
 gmpdTester({
   path: "/tiger/123",
@@ -246,15 +246,15 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/tiger.view.tsx", // LAYOUT
+        // filePath: "pages/tiger.ui.tsx", // LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/tiger/$tiger_id.view.tsx", // $tiger_id LAYOUT
+        // filePath: "pages/tiger/$tiger_id.ui.tsx", // $tiger_id LAYOUT
       },
       {
         pathType: "index",
-        // filePath: "pages/tiger/$tiger_id/_index.view.tsx", // $tiger_id INDEX
+        // filePath: "pages/tiger/$tiger_id/_index.ui.tsx", // $tiger_id INDEX
       },
     ],
     params: { tiger_id: "123" },
@@ -263,9 +263,9 @@ gmpdTester({
 });
 
 // "/tiger/123/456"
-// should render "tiger.view.tsx" (LAYOUT)
-// and "tiger/$tiger_id.view.tsx" ($tiger_id LAYOUT)
-// and "tiger/$tiger_id/$tiger_cub_id.view.tsx" ($tiger_cub_id LAYOUT)
+// should render "tiger.ui.tsx" (LAYOUT)
+// and "tiger/$tiger_id.ui.tsx" ($tiger_id LAYOUT)
+// and "tiger/$tiger_id/$tiger_cub_id.ui.tsx" ($tiger_cub_id LAYOUT)
 
 gmpdTester({
   path: "/tiger/123/456",
@@ -273,15 +273,15 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/tiger.view.tsx", // LAYOUT
+        // filePath: "pages/tiger.ui.tsx", // LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/tiger/$tiger_id.view.tsx", // $tiger_id LAYOUT
+        // filePath: "pages/tiger/$tiger_id.ui.tsx", // $tiger_id LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/tiger/$tiger_id/$tiger_cub_id.view.tsx", // $tiger_id LAYOUT
+        // filePath: "pages/tiger/$tiger_id/$tiger_cub_id.ui.tsx", // $tiger_id LAYOUT
       },
     ],
     params: { tiger_id: "123", tiger_cub_id: "456" },
@@ -290,9 +290,9 @@ gmpdTester({
 });
 
 // "/tiger/123/456/789"
-// should render "tiger.view.tsx" (LAYOUT)
-// and "tiger/$tiger_id.view.tsx" ($tiger_id LAYOUT)
-// and "tiger/$tiger_id/$.view.tsx" (CATCH)
+// should render "tiger.ui.tsx" (LAYOUT)
+// and "tiger/$tiger_id.ui.tsx" ($tiger_id LAYOUT)
+// and "tiger/$tiger_id/$.ui.tsx" (CATCH)
 
 gmpdTester({
   path: "/tiger/123/456/789",
@@ -300,15 +300,15 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/tiger.view.tsx", // LAYOUT
+        // filePath: "pages/tiger.ui.tsx", // LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/tiger/$tiger_id.view.tsx", // $tiger_id LAYOUT
+        // filePath: "pages/tiger/$tiger_id.ui.tsx", // $tiger_id LAYOUT
       },
       {
         pathType: "non-ultimate-splat",
-        // filePath: "pages/tiger/$tiger_id/$.view.tsx", // CATCH
+        // filePath: "pages/tiger/$tiger_id/$.ui.tsx", // CATCH
       },
     ],
     params: { tiger_id: "123" },
@@ -326,12 +326,12 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/bear.view.tsx", // LAYOUT
+        // filePath: "pages/bear.ui.tsx", // LAYOUT
       },
 
       {
         pathType: "index",
-        // filePath: "pages/bear/_index.view.tsx", // INDEX
+        // filePath: "pages/bear/_index.ui.tsx", // INDEX
       },
     ],
     params: {},
@@ -347,11 +347,11 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/bear.view.tsx", // LAYOUT ("bear")
+        // filePath: "pages/bear.ui.tsx", // LAYOUT ("bear")
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/bear/$bear_id.view.tsx", // LAYOUT ("$bear_id")
+        // filePath: "pages/bear/$bear_id.ui.tsx", // LAYOUT ("$bear_id")
       },
     ],
     params: { bear_id: "123" },
@@ -360,7 +360,7 @@ gmpdTester({
 });
 
 // "/bear/123/456"
-// should render bear.view.tsx (bear layout), and bear/$bear_id.view.tsx (123 layout), and bear/$bear_id/$.view.tsx (456 catch)
+// should render bear.ui.tsx (bear layout), and bear/$bear_id.ui.tsx (123 layout), and bear/$bear_id/$.ui.tsx (456 catch)
 // params should be { bear_id: "123" } and splatSegments should be ["456"]
 
 gmpdTester({
@@ -369,15 +369,15 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/bear.view.tsx", // LAYOUT ("bear")
+        // filePath: "pages/bear.ui.tsx", // LAYOUT ("bear")
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/bear/$bear_id.view.tsx", // LAYOUT ("$bear_id")
+        // filePath: "pages/bear/$bear_id.ui.tsx", // LAYOUT ("$bear_id")
       },
       {
         pathType: "non-ultimate-splat",
-        // filePath: "pages/bear/$bear_id/$.view.tsx", // CATCH ("456")
+        // filePath: "pages/bear/$bear_id/$.ui.tsx", // CATCH ("456")
       },
     ],
     params: { bear_id: "123" },
@@ -394,15 +394,15 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/bear.view.tsx", // LAYOUT ("bear")
+        // filePath: "pages/bear.ui.tsx", // LAYOUT ("bear")
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/bear/$bear_id.view.tsx", // LAYOUT ("$bear_id")
+        // filePath: "pages/bear/$bear_id.ui.tsx", // LAYOUT ("$bear_id")
       },
       {
         pathType: "non-ultimate-splat",
-        // filePath: "pages/bear/$bear_id/$.view.tsx", // CATCH ("456" & "789")
+        // filePath: "pages/bear/$bear_id/$.ui.tsx", // CATCH ("456" & "789")
       },
     ],
     params: { bear_id: "123" },
@@ -419,8 +419,8 @@ DASHBOARD
 ******************/
 
 // "/dashboard"
-// should render "/dashboard.view.tsx" (LAYOUT)
-// and "/dashboard/_index.view.tsx" (INDEX)
+// should render "/dashboard.ui.tsx" (LAYOUT)
+// and "/dashboard/_index.ui.tsx" (INDEX)
 
 gmpdTester({
   path: "/dashboard",
@@ -428,11 +428,11 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard.view.tsx", // LAYOUT
+        // filePath: "pages/dashboard.ui.tsx", // LAYOUT
       },
       {
         pathType: "index",
-        // filePath: "pages/dashboard/_index.view.tsx", // INDEX
+        // filePath: "pages/dashboard/_index.ui.tsx", // INDEX
       },
     ],
     params: {},
@@ -441,8 +441,8 @@ gmpdTester({
 });
 
 // "/dashboard/asdf"
-// should render "/dashboard.view.tsx" (LAYOUT)
-// and "/dashboard/$.view.tsx" (CATCH)
+// should render "/dashboard.ui.tsx" (LAYOUT)
+// and "/dashboard/$.ui.tsx" (CATCH)
 
 gmpdTester({
   path: "/dashboard/asdf",
@@ -450,11 +450,11 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard.view.tsx", // LAYOUT
+        // filePath: "pages/dashboard.ui.tsx", // LAYOUT
       },
       {
         pathType: "non-ultimate-splat",
-        // filePath: "pages/dashboard/$.view.tsx", // CATCH
+        // filePath: "pages/dashboard/$.ui.tsx", // CATCH
       },
     ],
     params: {},
@@ -463,9 +463,9 @@ gmpdTester({
 });
 
 // "/dashboard/customers"
-// should render "/dashboard.view.tsx" (LAYOUT)
-// and "/dashboard/customers.view.tsx" (customers LAYOUT)
-// and "/dashboard/customers/_index.view.tsx" (customers INDEX)
+// should render "/dashboard.ui.tsx" (LAYOUT)
+// and "/dashboard/customers.ui.tsx" (customers LAYOUT)
+// and "/dashboard/customers/_index.ui.tsx" (customers INDEX)
 
 gmpdTester({
   path: "/dashboard/customers",
@@ -473,15 +473,15 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard.view.tsx", // LAYOUT
+        // filePath: "pages/dashboard.ui.tsx", // LAYOUT
       },
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard/customers.view.tsx", // customers LAYOUT
+        // filePath: "pages/dashboard/customers.ui.tsx", // customers LAYOUT
       },
       {
         pathType: "index",
-        // filePath: "pages/dashboard/customers/_index.view.tsx", // customers INDEX
+        // filePath: "pages/dashboard/customers/_index.ui.tsx", // customers INDEX
       },
     ],
     params: {},
@@ -490,10 +490,10 @@ gmpdTester({
 });
 
 // "/dashboard/customers/123"
-// should render "/dashboard.view.tsx" (LAYOUT)
-// and "/dashboard/customers.view.tsx" (customers LAYOUT)
-// and "/dashboard/customers/$customer_id.view.tsx" ($customer_id LAYOUT)
-// and "/dashboard/customers/$customer_id/_index.view.tsx" ($customer_id INDEX)
+// should render "/dashboard.ui.tsx" (LAYOUT)
+// and "/dashboard/customers.ui.tsx" (customers LAYOUT)
+// and "/dashboard/customers/$customer_id.ui.tsx" ($customer_id LAYOUT)
+// and "/dashboard/customers/$customer_id/_index.ui.tsx" ($customer_id INDEX)
 
 gmpdTester({
   path: "/dashboard/customers/123",
@@ -501,19 +501,19 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard.view.tsx", // LAYOUT
+        // filePath: "pages/dashboard.ui.tsx", // LAYOUT
       },
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard/customers.view.tsx", // customers LAYOUT
+        // filePath: "pages/dashboard/customers.ui.tsx", // customers LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/dashboard/customers/$customer_id.view.tsx", // $customer_id LAYOUT
+        // filePath: "pages/dashboard/customers/$customer_id.ui.tsx", // $customer_id LAYOUT
       },
       {
         pathType: "index",
-        // filePath: "pages/dashboard/customers/$customer_id/_index.view.tsx", // $customer_id INDEX
+        // filePath: "pages/dashboard/customers/$customer_id/_index.ui.tsx", // $customer_id INDEX
       },
     ],
     params: {
@@ -524,11 +524,11 @@ gmpdTester({
 });
 
 // "/dashboard/customers/123/orders"
-// should render "/dashboard.view.tsx" (LAYOUT)
-// and "/dashboard/customers.view.tsx" (customers LAYOUT)
-// and "/dashboard/customers/$customer_id.view.tsx" ($customer_id LAYOUT)
-// and "/dashboard/customers/$customer_id/orders.view.tsx" (orders LAYOUT)
-// and "/dashboard/customers/$customer_id/orders/_index.view.tsx" (orders INDEX)
+// should render "/dashboard.ui.tsx" (LAYOUT)
+// and "/dashboard/customers.ui.tsx" (customers LAYOUT)
+// and "/dashboard/customers/$customer_id.ui.tsx" ($customer_id LAYOUT)
+// and "/dashboard/customers/$customer_id/orders.ui.tsx" (orders LAYOUT)
+// and "/dashboard/customers/$customer_id/orders/_index.ui.tsx" (orders INDEX)
 
 gmpdTester({
   path: "/dashboard/customers/123/orders",
@@ -536,23 +536,23 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard.view.tsx", // LAYOUT
+        // filePath: "pages/dashboard.ui.tsx", // LAYOUT
       },
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard/customers.view.tsx", // customers LAYOUT
+        // filePath: "pages/dashboard/customers.ui.tsx", // customers LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/dashboard/customers/$customer_id.view.tsx", // $customer_id LAYOUT
+        // filePath: "pages/dashboard/customers/$customer_id.ui.tsx", // $customer_id LAYOUT
       },
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard/customers/$customer_id/orders.view.tsx", // orders LAYOUT
+        // filePath: "pages/dashboard/customers/$customer_id/orders.ui.tsx", // orders LAYOUT
       },
       {
         pathType: "index",
-        // filePath: "pages/dashboard/customers/$customer_id/orders/_index.view.tsx", // orders INDEX
+        // filePath: "pages/dashboard/customers/$customer_id/orders/_index.ui.tsx", // orders INDEX
       },
     ],
     params: {
@@ -563,11 +563,11 @@ gmpdTester({
 });
 
 // "/dashboard/customers/123/orders/456"
-// should render "/dashboard.view.tsx" (LAYOUT)
-// and "/dashboard/customers.view.tsx" (customers LAYOUT)
-// and "/dashboard/customers/$customer_id.view.tsx" ($customer_id LAYOUT)
-// and "/dashboard/customers/$customer_id/orders.view.tsx" (orders LAYOUT)
-// and "/dashboard/customers/$customer_id/orders/$order_id.view.tsx" ($order_id LAYOUT)
+// should render "/dashboard.ui.tsx" (LAYOUT)
+// and "/dashboard/customers.ui.tsx" (customers LAYOUT)
+// and "/dashboard/customers/$customer_id.ui.tsx" ($customer_id LAYOUT)
+// and "/dashboard/customers/$customer_id/orders.ui.tsx" (orders LAYOUT)
+// and "/dashboard/customers/$customer_id/orders/$order_id.ui.tsx" ($order_id LAYOUT)
 
 gmpdTester({
   path: "/dashboard/customers/123/orders/456",
@@ -575,23 +575,23 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard.view.tsx", // LAYOUT
+        // filePath: "pages/dashboard.ui.tsx", // LAYOUT
       },
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard/customers.view.tsx", // customers LAYOUT
+        // filePath: "pages/dashboard/customers.ui.tsx", // customers LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/dashboard/customers/$customer_id.view.tsx", // $customer_id LAYOUT
+        // filePath: "pages/dashboard/customers/$customer_id.ui.tsx", // $customer_id LAYOUT
       },
       {
         pathType: "static-layout",
-        // filePath: "pages/dashboard/customers/$customer_id/orders.view.tsx", // orders LAYOUT
+        // filePath: "pages/dashboard/customers/$customer_id/orders.ui.tsx", // orders LAYOUT
       },
       {
         pathType: "dynamic-layout",
-        // filePath: "pages/dashboard/customers/$customer_id/orders/$order_id.view.tsx", // $order_id LAYOUT
+        // filePath: "pages/dashboard/customers/$customer_id/orders/$order_id.ui.tsx", // $order_id LAYOUT
       },
     ],
     params: {
@@ -603,7 +603,7 @@ gmpdTester({
 });
 
 // "/articles"
-// should render "/articles/_index.view.tsx" (INDEX)
+// should render "/articles/_index.ui.tsx" (INDEX)
 
 gmpdTester({
   path: "/articles",
@@ -611,7 +611,7 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "index",
-        // filePath: "pages/articles/_index.view.tsx", // INDEX
+        // filePath: "pages/articles/_index.ui.tsx", // INDEX
       },
     ],
     params: {},
@@ -643,7 +643,7 @@ gmpdTester({
 });
 
 // "/articles/test/articles"
-// should render "/articles/test/articles/_index.view.tsx" (articles-test-articles INDEX)
+// should render "/articles/test/articles/_index.ui.tsx" (articles-test-articles INDEX)
 
 gmpdTester({
   path: "/articles/test/articles",
@@ -651,7 +651,7 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "index",
-        // filePath: "pages/articles/test/articles/_index.view.tsx", // INDEX
+        // filePath: "pages/articles/test/articles/_index.ui.tsx", // INDEX
       },
     ],
     params: {},
@@ -660,7 +660,7 @@ gmpdTester({
 });
 
 // "/dynamic-index/index"
-// should render "/dynamic-index/__site_index/index.view.tsx"
+// should render "/dynamic-index/__site_index/index.ui.tsx"
 
 gmpdTester({
   path: "/dynamic-index/index",
@@ -668,7 +668,7 @@ gmpdTester({
     matchingPaths: [
       {
         pathType: "static-layout",
-        // filePath: "pages/dynamic-index/__site_index/index.view.tsx",
+        // filePath: "pages/dynamic-index/__site_index/index.ui.tsx",
       },
     ],
     params: {},

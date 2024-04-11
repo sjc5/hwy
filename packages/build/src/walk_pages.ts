@@ -23,7 +23,7 @@ async function walkPages(): Promise<{
   const paths: Paths = [];
 
   for await (const entry of readdirp(nodePath.resolve("./src/pages"))) {
-    const isPageFile = entry.path.includes(".view.");
+    const isPageFile = entry.path.includes(".ui.");
     const isServerFile = entry.path.includes(".data.");
 
     if (!isPageFile && !isServerFile) {
@@ -36,7 +36,7 @@ async function walkPages(): Promise<{
       continue;
     }
 
-    const preExtDelineator = isServerFile ? ".data" : ".view";
+    const preExtDelineator = isServerFile ? ".data" : ".ui";
 
     const path = entry.path
       .replace("." + ext, "")
@@ -48,7 +48,7 @@ async function walkPages(): Promise<{
 
     const segments = segmentsInit
       .filter((segment) => {
-        if (segment.startsWith("__") && !segment.includes(".view.")) {
+        if (segment.startsWith("__") && !segment.includes(".ui.")) {
           return false;
         }
         return true;
@@ -112,7 +112,7 @@ async function walkPages(): Promise<{
           break;
         }
 
-        if (isServerFile && sibling.includes(filename + ".view.")) {
+        if (isServerFile && sibling.includes(filename + ".ui.")) {
           hasSiblingPageFile = true;
 
           break;
@@ -142,7 +142,7 @@ async function walkPages(): Promise<{
 
       if (isPageFile) {
         paths.push({
-          importPath: "pages/" + path + ".view.js",
+          importPath: "pages/" + path + ".ui.js",
           pattern: pathToUse,
           segments: segments.map((x) => x.segment || ""),
           pathType: pathType,

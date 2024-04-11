@@ -1,7 +1,3 @@
-// __TODO DECOUPLE!
-import type { FunctionComponent, ReactElement } from "react";
-// __TODO DECOUPLE!
-
 import type { HeadBlock, Path } from "../core/src/router.js";
 
 export const HWY_PREFIX = "__hwy_internal__";
@@ -169,27 +165,23 @@ export type Action = (args: DataProps) => Promise<any> | any;
 
 type NotResponse<T> = T extends Response ? never : T;
 
-export type PageProps<
+export type UIProps<
   LoaderType extends Loader = Loader,
   ActionType extends Action = Action,
+  Outlet = any,
 > = {
   loaderData: NotResponse<Awaited<ReturnType<LoaderType>>>;
   actionData: NotResponse<Awaited<ReturnType<ActionType>>> | undefined;
-  Outlet: FunctionComponent;
+  Outlet: Outlet;
   params: Record<string, string>;
   splatSegments: string[];
   adHocData: AdHocData | undefined;
 };
 
-export type PageComponent<
-  LoaderType extends Loader = Loader,
-  ActionType extends Action = Action,
-> = (props: PageProps<LoaderType, ActionType>) => ReactElement;
-
 export type HeadProps<
   LoaderType extends Loader = Loader,
   ActionType extends Action = Action,
-> = Omit<PageProps<LoaderType, ActionType>, "Outlet" | "adHocData"> & {
+> = Omit<UIProps<LoaderType, ActionType>, "Outlet" | "adHocData"> & {
   request: Request;
 };
 
@@ -197,9 +189,3 @@ export type HeadFunction<
   LoaderType extends Loader = Loader,
   ActionType extends Action = Action,
 > = (props: HeadProps<LoaderType, ActionType>) => Array<HeadBlock>;
-
-export type RootLayoutProps = { children: ReactElement } & Pick<
-  PageProps,
-  "params" | "splatSegments" | "adHocData"
->;
-export type RootLayoutComponent = FunctionComponent<RootLayoutProps>;

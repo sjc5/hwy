@@ -3,7 +3,7 @@ export default function () {
     <>
       <p>
         This is a nested route! It is coming from{" "}
-        <code>src/pages/about/learn-more.view.tsx</code>.
+        <code>src/pages/about/learn-more.ui.tsx</code>.
       </p>
 
       <a href="/about" data-boost="true">

@@ -1,4 +1,4 @@
-import { RootLayoutProps } from "hwy";
+import { RootLayoutProps } from "@hwy-js/react";
 import { startTransition, useEffect } from "react";
 import { useHtmlDialog } from "use-html-dialog";
 import { useMediaQuery } from "usehooks-ts";

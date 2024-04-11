@@ -1,14 +1,14 @@
-import { PageProps } from "hwy";
-import Clicker from "./_index.view.js";
+import { UIProps } from "@hwy-js/react";
+import Clicker from "./_index.ui.js";
 
-export default function ({ Outlet, loaderData }: PageProps) {
+export default function ({ Outlet, loaderData }: UIProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <Clicker />
       Random number from loader: {loaderData}
       <p>
         This is the about page. This is coming from{" "}
-        <code>src/pages/about.view.tsx</code> This is functioning as a "layout
+        <code>src/pages/about.ui.tsx</code> This is functioning as a "layout
         route" because it is rendering an <code>{`<Outlet />`}</code> (see
         below).
       </p>

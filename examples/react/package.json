@@ -8,17 +8,17 @@
     "dev": "hwy-dev-serve"
   },
   "dependencies": {
-    "@hwy-js/h3": "^0.8.4",
-    "@hwy-js/react": "^0.8.4",
-    "hwy": "^0.8.4",
+    "@hwy-js/h3": "^0.9.0",
+    "@hwy-js/react": "^0.9.0",
+    "hwy": "^0.9.0",
     "h3": "^1.11.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@hwy-js/build": "^0.8.4",
-    "@hwy-js/client": "^0.8.4",
-    "@hwy-js/dev": "^0.8.4",
+    "@hwy-js/build": "^0.9.0",
+    "@hwy-js/client": "^0.9.0",
+    "@hwy-js/dev": "^0.9.0",
     "@types/node": "^20.12.7",
     "@types/react": "^18.2.75",
     "@types/react-dom": "^18.2.24",
