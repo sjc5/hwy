@@ -31,3 +31,5 @@ export type {
 };
 
 export { getPublicURL } from "./src/hashed_public_url.js";
+
+export { LRUCache } from "./src/lru_cache.js";

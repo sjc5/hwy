@@ -19,13 +19,17 @@ const hwyPkgRegex = /"hwy": "([^"]+)"/;
 const buildPkgRegex = /"@hwy-js\/build": "([^"]+)"/;
 const clientPkgRegex = /"@hwy-js\/client": "([^"]+)"/;
 const devPkgRegex = /"@hwy-js\/dev": "([^"]+)"/;
+const h3PkgRegex = /"@hwy-js\/h3": "([^"]+)"/;
+const reactPkgRegex = /"@hwy-js\/react": "([^"]+)"/;
 
 function replaceVersions(pkgJSONStr, version) {
   return pkgJSONStr
     .replace(hwyPkgRegex, `"hwy": "${version}"`)
     .replace(buildPkgRegex, `"@hwy-js/build": "${version}"`)
     .replace(clientPkgRegex, `"@hwy-js/client": "${version}"`)
-    .replace(devPkgRegex, `"@hwy-js/dev": "${version}"`);
+    .replace(devPkgRegex, `"@hwy-js/dev": "${version}"`)
+    .replace(h3PkgRegex, `"@hwy-js/h3": "${version}"`)
+    .replace(reactPkgRegex, `"@hwy-js/react": "${version}"`);
 }
 
 function toWorkspace() {

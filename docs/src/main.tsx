@@ -3,13 +3,11 @@ import { Head, RootOutlet } from "@hwy-js/react";
 import {
   eventHandler,
   setResponseHeader,
-  toNodeListener,
+  toWebHandler,
   toWebRequest,
 } from "h3";
 import { getPublicURL, initHwy, renderRoot } from "hwy";
-import { createServer } from "node:http";
-import { AddressInfo } from "node:net";
-import { renderToPipeableStream } from "react-dom/server";
+import { renderToReadableStream } from "react-dom/server";
 import { RootLayout } from "./pages/layout.js";
 
 declare module "hwy" {
@@ -55,7 +53,7 @@ app.use(
       request: toWebRequest(event),
       adHocData: { test2: "bob" },
       renderCallback: (routeData) => {
-        return renderToPipeableStream(
+        return renderToReadableStream(
           <html lang="en">
             <head>
               <meta charSet="UTF-8" />
@@ -81,10 +79,13 @@ app.use(
   }),
 );
 
-const server = createServer(toNodeListener(app)).listen(
-  process.env.PORT || 3000,
-);
+const webHandler = toWebHandler(app);
 
-const addrInfo = server.address() as AddressInfo;
+const server = Bun.serve({
+  port: process.env.PORT || 3000,
+  fetch(request: Request) {
+    return webHandler(request);
+  },
+});
 
-console.log(`Listening on http://localhost:${addrInfo.port}`);
+console.log(`Listening on http://${server.hostname}:${server.port}`);

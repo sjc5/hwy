@@ -5,7 +5,7 @@ try {
 
   await runBuildTasks({
     isDev: false,
-    log: "triggered from run-build-tasks.js",
+    log: "run_build_tasks.js",
   });
 } catch (e) {
   console.error("ERROR: Build tasks failed:", e);

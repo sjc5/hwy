@@ -19,6 +19,7 @@
   --sidebar-width: 200px;
   --sidebar-height: calc(100dvh - var(--topnav-height) - 1px);
   --std-border: 1px solid #777;
+  font-size: 17px;
 }
 
 @media screen and (prefers-color-scheme: dark) {
@@ -71,6 +72,7 @@ pre code {
   min-width: var(--sidebar-width);
   max-width: var(--sidebar-width);
   border-right: var(--std-border);
+  background: #272727;
 }
 
 @media screen and (max-width: 800px) {
@@ -102,15 +104,22 @@ pre code {
   height: var(--sidebar-height);
   min-height: var(--sidebar-height);
   max-height: var(--sidebar-height);
-  border-top: var(--std-border);
 }
 
 #root > main {
   margin: 0 auto;
-  padding: 1rem;
+  padding-top: 2.5rem;
   padding-right: 2rem;
   padding-left: calc(var(--sidebar-width) + 2rem);
-  max-width: 1280px;
+  padding-bottom: 4rem;
+  max-width: 1080px;
+}
+
+@media screen and (max-width: 1280px) {
+  #root > main {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+  }
 }
 
 @media screen and (max-width: 800px) {
@@ -157,12 +166,14 @@ a {
   color: white;
   text-decoration: none;
   height: var(--topnav-height);
+  border-bottom: var(--std-border);
 }
 @media screen and (max-width: 800px) {
   #logo {
     width: unset;
     padding: 0 1.25rem;
     border-right: var(--std-border);
+    border-bottom: none;
   }
 }
 
@@ -179,7 +190,8 @@ h6 {
   font-family: var(--serif-font-stack);
 }
 
-p {
+p,
+ul {
   line-height: 1.5;
 }
 
@@ -221,11 +233,11 @@ p {
 .unmounted {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.1s ease-in-out;
 }
 
 .mounted {
   opacity: 1;
   pointer-events: unset;
-  transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.1s ease-in-out;
 }

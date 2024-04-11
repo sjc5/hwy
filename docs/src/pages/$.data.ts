@@ -1,5 +1,5 @@
 import matter from "gray-matter";
-import type { DataProps, HeadProps } from "hwy";
+import { LRUCache, type DataProps, type HeadProps } from "hwy";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { MdObj } from "../components/rendered_markdown.js";
@@ -12,17 +12,25 @@ export function head(props: HeadProps<CatchallLoader>) {
   return { title };
 }
 
+const c = new LRUCache<MdObj>(500);
+
 export async function loader(ctx: DataProps): Promise<MdObj> {
   try {
     const providedPath = ctx.splatSegments.join("/");
+    let item: MdObj | undefined;
+    item = c.get(providedPath);
+    if (item) {
+      return item;
+    }
     let normalizedPath = path.normalize(providedPath);
     if (normalizedPath == ".") {
       normalizedPath = "README";
     }
     const filePath = `./markdown/${normalizedPath}.md`;
     const str = await fs.readFile(filePath, "utf-8");
-    const gmObj = matter(str);
-    return { data: gmObj.data, content: gmObj.content };
+    item = matter(str);
+    c.set(providedPath, item);
+    return item;
   } catch (e) {
     return { data: { title: "Error" }, content: `# 404\n\nNothing found.` };
   }

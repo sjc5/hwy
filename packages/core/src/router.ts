@@ -1170,6 +1170,12 @@ function getDevRefreshScript(timeoutInMs = 150) {
     return "";
   }
   return `
+	const scrollKey = "${HWY_PREFIX}devScrollY";
+	const scrollY = localStorage.getItem(scrollKey);
+	if (scrollY) {
+		localStorage.removeItem(scrollKey);
+		setTimeout(() => window.scrollTo({ top: scrollY, behavior: "smooth" }), 0);
+	}
   const es = new EventSource("http://localhost:${hwyGlobal.get("devRefreshPort")}${LIVE_REFRESH_SSE_PATH}");
 	es.addEventListener("message", (e) => {
     const { changeType, criticalCss } = JSON.parse(e.data);
@@ -1193,6 +1199,10 @@ function getDevRefreshScript(timeoutInMs = 150) {
           inlineStyleEl.innerHTML = criticalCss;
         }
       } else {
+				const scrollY = window.scrollY;
+				if (scrollY !== 0) {
+					localStorage.setItem(scrollKey, scrollY);
+				}
         setTimeout(() => window.location.reload(), ${timeoutInMs});
       }
     }
