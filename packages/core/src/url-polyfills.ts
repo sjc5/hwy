@@ -11,36 +11,29 @@ try {
   }
 } catch {}
 
-function dynamicFileURLToPath(url: string | URL | undefined): string {
+export function dynamicFileURLToPath(url: string | URL | undefined): string {
   if (!url) {
     return "";
   }
-
   if (!fileURLToPath) {
     return typeof url === "string" ? url : url.href;
   }
-
   return fileURLToPath(url);
 }
 
-function pathToFileURLStr(path: string | undefined): string {
+export function pathToFileURLStr(path: string | undefined): string {
   if (!path) {
     return "";
   }
-
   if (!pathToFileURL) {
     return path || "";
   }
-
   return pathToFileURL(path).href;
 }
 
-let dynamicNodePath: typeof import("node:path") | undefined;
-
+export let dynamicNodePath: typeof import("node:path") | undefined;
 try {
   if (isServer) {
     dynamicNodePath = await import("node:path");
   }
 } catch {}
-
-export { dynamicFileURLToPath, dynamicNodePath, pathToFileURLStr };

@@ -9,7 +9,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "types": ["node"]
+    "types": ["bun-types"]
   },
   "exclude": ["node_modules", "dist"]
 }

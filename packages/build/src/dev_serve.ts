@@ -39,6 +39,10 @@ async function devServe() {
     (env as any).PORT = port;
   }
 
+  const devRefreshPort = String(await getPort({ random: true }));
+  process.env.DEV_REFRESH_PORT = devRefreshPort;
+  (env as any).DEV_REFRESH_PORT = devRefreshPort;
+
   const refreshWatcher = chokidar.watch(
     path.join(process.cwd(), "dist", "refresh.txt"),
     { ignoreInitial: true },
@@ -58,7 +62,7 @@ async function devServe() {
     if (hasRunOneTime) {
       try {
         await fetch(
-          `http://127.0.0.1:${process.env.PORT}${LIVE_REFRESH_RPC_PATH}`,
+          `http://127.0.0.1:${devRefreshPort}${LIVE_REFRESH_RPC_PATH}`,
           {
             method: "POST",
             headers: {
@@ -122,7 +126,7 @@ async function devServe() {
     try {
       await runBuildTasks({
         isDev: true,
-        log: "triggered from chokidar watcher: " + path,
+        log: "changed: " + path.replace(process.cwd(), ""),
         changeType: isCSSChangeToCritical
           ? "critical-css"
           : isCSSChangeToBundle
@@ -190,7 +194,7 @@ async function devServe() {
   }
 
   try {
-    await runBuildTasks({ isDev: true, log: "triggered from dev-serve.js" });
+    await runBuildTasks({ isDev: true, log: "dev_serve.js" });
   } catch (e) {
     console.error("ERROR: Build tasks failed:", e);
   }

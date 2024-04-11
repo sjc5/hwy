@@ -4,6 +4,7 @@ import {
   createEventStream,
   eventHandler,
   readBody,
+  setHeader,
   toNodeListener,
 } from "h3";
 import { createServer } from "node:http";
@@ -22,14 +23,18 @@ type ServerSentEventSink = {
 
 export const sinks = new Set<ServerSentEventSink>();
 
-const devRefreshPort = String(await getPort({ random: true }));
-
 const devRefreshApp = createApp();
 
-const hwyGlobal = getHwyGlobal();
-
 export function setupLiveRefreshEndpoints() {
+  const devRefreshPort = process.env.DEV_REFRESH_PORT || "";
+  const hwyGlobal = getHwyGlobal();
   hwyGlobal.set("devRefreshPort", devRefreshPort);
+
+  devRefreshApp.use(
+    eventHandler((event) => {
+      setHeader(event, "Access-Control-Allow-Origin", "*");
+    }),
+  );
 
   devRefreshApp.use(
     LIVE_REFRESH_SSE_PATH,

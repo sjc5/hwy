@@ -5,7 +5,7 @@ export function ClientOnly({ children }: { children: React.ReactNode }) {
   const [isVisible, setIsVisible] = useState(false);
   useEffect(() => setIsMounted(true), []);
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
     if (!isVisible) {
       timeout = setTimeout(() => setIsVisible(true), 1);
     }

@@ -12,16 +12,12 @@ type SidebarNavItem = {
 
 const sidebarNavItems: SidebarNavItem[] = [
   {
-    name: "Getting Started",
-    url: "/getting-started",
+    name: "Manifesto",
+    url: "/manifesto",
   },
   {
     name: "Using Bun",
     url: "/guides/node-to-bun",
-  },
-  {
-    name: "Goals",
-    url: "/goals",
   },
 ];
 
