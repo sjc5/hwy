@@ -11,8 +11,8 @@ FROM oven/bun:alpine AS production
 WORKDIR /app
 COPY package.json bun.lockb ./
 RUN bun install --production
-COPY --from=builder /app/dist ./
-COPY --from=builder /app/public/dist ./
-COPY --from=builder /app/markdown ./
-COPY --from=builder /app/package.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/public/dist ./public/dist
+COPY --from=builder /app/markdown ./markdown
+COPY --from=builder /app/package.json ./package.json
 CMD ["bun", "start"]
