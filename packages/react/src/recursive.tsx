@@ -1,15 +1,9 @@
-import {
-  startTransition,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactElement,
-} from "react";
+import { startTransition, useEffect, useMemo, useState } from "react";
 import { AdHocData, getHwyClientGlobal } from "../../common/index.mjs";
 import type { GetRouteDataOutput, RouteData } from "../../core/src/router.js";
 import { RootLayoutComponent, RootLayoutProps } from "./types.js";
 
-type ErrorBoundaryComp = () => ReactElement;
+type ErrorBoundaryComp = () => JSX.Element;
 type ServerKey = keyof GetRouteDataOutput;
 type BaseProps = {
   routeData?: RouteData;
@@ -19,7 +13,7 @@ type BaseProps = {
   layout?: RootLayoutComponent;
 };
 
-export function RootOutlet(props: BaseProps): ReactElement {
+export function RootOutlet(props: BaseProps): JSX.Element {
   const isServer = typeof document === "undefined";
   const ctx: {
     get: (sk: ServerKey) => GetRouteDataOutput[ServerKey];
@@ -157,8 +151,8 @@ export function RootOutlet(props: BaseProps): ReactElement {
 }
 
 function MaybeWithLayout(
-  props: BaseProps & RootLayoutProps & { children: ReactElement },
-): ReactElement {
+  props: BaseProps & RootLayoutProps & { children: JSX.Element },
+): JSX.Element {
   if (props.layout && !props.index) {
     return (
       <props.layout

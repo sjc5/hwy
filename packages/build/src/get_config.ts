@@ -46,6 +46,7 @@ async function getHwyConfig() {
       watchInclusions: internalHwyConfig?.dev?.watchInclusions || [],
     },
     routeStrategy: internalHwyConfig?.routeStrategy || "always-lazy",
+    usePreactCompat: internalHwyConfig?.usePreactCompat || false,
   } satisfies HwyConfig;
 
   // delete the file now that we're done with it

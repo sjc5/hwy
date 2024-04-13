@@ -1,0 +1,27 @@
+{
+  "name": "hwy-example-preact",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && hwy-build",
+    "start": "node dist/main.js",
+    "dev": "hwy-dev-serve"
+  },
+  "dependencies": {
+    "@hwy-js/h3": "0.10.0",
+    "@hwy-js/react": "0.10.0",
+    "h3": "^1.11.1",
+    "hwy": "0.10.0",
+    "preact": "^10.20.2",
+    "preact-render-to-string": "^6.4.2",
+    "react": "npm:@preact/compat",
+    "react-dom": "npm:@preact/compat"
+  },
+  "devDependencies": {
+    "@hwy-js/build": "0.10.0",
+    "@hwy-js/client": "0.10.0",
+    "@hwy-js/dev": "0.10.0",
+    "@types/node": "^20.12.7",
+    "typescript": "^5.4.4"
+  }
+}

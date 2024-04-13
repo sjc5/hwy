@@ -15,6 +15,7 @@ export type HwyConfig = {
     | "warm-cache-at-startup"
     | "always-lazy"
     | "lazy-once-then-cache";
+  usePreactCompat?: boolean;
 };
 
 export type RefreshFilePayload = {
