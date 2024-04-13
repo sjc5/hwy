@@ -25,7 +25,13 @@ let tsconfig = jsonCParse(fs.readFileSync(tsconfigPath, "utf8")) as Record<
   unknown
 >;
 
-function getEsbuildBuildArgsBase(isDev: boolean | undefined) {
+function getEsbuildBuildArgsBase({
+  isDev,
+  usePreactCompat,
+}: {
+  isDev: boolean | undefined;
+  usePreactCompat: boolean | undefined;
+}) {
   return {
     format: "esm",
     bundle: true,
@@ -33,9 +39,19 @@ function getEsbuildBuildArgsBase(isDev: boolean | undefined) {
     define: {
       "process.env.NODE_ENV": isDev ? '"development"' : '"production"',
     },
-    sourcemap: isDev ? "inline" : false,
+    sourcemap: isDev ? "linked" : false,
     minify: !isDev,
     tsconfigRaw: tsconfig,
+    ...(usePreactCompat
+      ? {
+          alias: {
+            react: "preact/compat",
+            "react-dom/test-utils": "preact/test-utils",
+            "react-dom": "preact/compat", // Must be below test-utils
+            "react/jsx-runtime": "preact/jsx-runtime",
+          },
+        }
+      : {}),
   } as const satisfies esbuild.BuildOptions;
 }
 
@@ -54,6 +70,7 @@ const filenames = [
 const exec = promisify(execCallback);
 const hwyConfig = await getHwyConfig();
 const shouldBundlePaths = hwyConfig.routeStrategy === "bundle";
+
 async function runBuildTasks({
   isDev,
   log,
@@ -138,7 +155,10 @@ async function runBuildTasks({
   const { pageFilesList, serverFilesList } = await writePathsToDisk();
 
   await esbuild.build({
-    ...getEsbuildBuildArgsBase(isDev),
+    ...getEsbuildBuildArgsBase({
+      isDev,
+      usePreactCompat: hwyConfig.usePreactCompat,
+    }),
     entryPoints: [
       path.resolve("src/main.*"),
       ...pageFilesList.map((x) => x.importPathWithOrigExt),
@@ -159,7 +179,10 @@ async function runBuildTasks({
   const isUsingClientEntry = !!clientEntryExt;
 
   await esbuild.build({
-    ...getEsbuildBuildArgsBase(isDev),
+    ...getEsbuildBuildArgsBase({
+      isDev,
+      usePreactCompat: hwyConfig.usePreactCompat,
+    }),
     entryPoints: [
       ...(isUsingClientEntry
         ? [path.join(process.cwd(), "src/entry.client" + clientEntryExt)]
@@ -440,7 +463,10 @@ async function handleCustomRouteLoadingCode(isDev?: boolean) {
    */
   if (shouldBundlePaths) {
     await esbuild.build({
-      ...getEsbuildBuildArgsBase(isDev),
+      ...getEsbuildBuildArgsBase({
+        isDev,
+        usePreactCompat: hwyConfig.usePreactCompat,
+      }),
       entryPoints: [path.resolve("dist/main.js")],
       outfile: path.resolve("dist/main.js"),
       platform: "node",

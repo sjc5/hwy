@@ -1,0 +1,8 @@
+body {
+  font-family: system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background-color: darkslateblue;
+  color: white;
+}
