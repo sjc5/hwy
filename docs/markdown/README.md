@@ -64,7 +64,7 @@ Hwy's isomorphic UI files live inside the `pages` folder and contain `.ui.` befo
 ```tsx
 // src/pages/user/$user_id.ui.tsx
 
-import type { UIProps } from "hwy";
+import type { UIProps } from "@hwy-js/react";
 import type { loader } from "./$user_id.data.ts";
 import { UserProfile } from "./some-ui-code.js";
 
