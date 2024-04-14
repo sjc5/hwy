@@ -8,17 +8,17 @@ import { Path, PathType, SPLAT_SEGMENT } from "../../core/src/router.js";
 const permittedExts = ["js", "jsx", "ts", "tsx", "mjs", "cjs", "mts", "cts"];
 
 type FilesList = Array<{
-  path: string;
-  importPathWithOrigExt: string;
+  pattern: string;
+  srcPath: string;
 }>;
 
 async function walkPages(): Promise<{
   paths: Array<Path>;
-  pageFilesList: FilesList;
-  serverFilesList: FilesList;
+  uiFilesList: FilesList;
+  dataFilesList: FilesList;
 }> {
-  let pageFilesList: FilesList = [];
-  let serverFilesList: FilesList = [];
+  let uiFilesList: FilesList = [];
+  let dataFilesList: FilesList = [];
 
   const paths: Paths = [];
 
@@ -38,11 +38,11 @@ async function walkPages(): Promise<{
 
     const preExtDelineator = isServerFile ? ".data" : ".ui";
 
-    const path = entry.path
+    const pattern = entry.path
       .replace("." + ext, "")
       .replace(preExtDelineator, "");
 
-    const segmentsInit = path.split(nodePath.sep);
+    const segmentsInit = pattern.split(nodePath.sep);
 
     let isIndex = false;
 
@@ -86,8 +86,8 @@ async function walkPages(): Promise<{
         };
       });
 
-    const importPathWithOrigExt =
-      nodePath.join(process.cwd(), "src/pages/" + path) +
+    const srcPath =
+      nodePath.join(process.cwd(), "src/pages/" + pattern) +
       preExtDelineator +
       ("." + ext);
 
@@ -102,9 +102,9 @@ async function walkPages(): Promise<{
       let hasSiblingServerFile = false;
 
       for (const sibling of await fs.promises.readdir(
-        nodePath.dirname(importPathWithOrigExt),
+        nodePath.dirname(srcPath),
       )) {
-        const filename = nodePath.basename(path);
+        const filename = nodePath.basename(pattern);
 
         if (isPageFile && sibling.includes(filename + ".data.")) {
           hasSiblingServerFile = true;
@@ -129,25 +129,31 @@ async function walkPages(): Promise<{
         pathType = "dynamic-layout";
       }
 
-      if (isServerFile && !hasSiblingPageFile) {
+      if (isServerFile) {
         paths.push({
-          importPath: "pages/" + path + ".data.js",
+          srcPath: "pages/" + pattern + ".data.js",
           pattern: pathToUse,
           segments: segments.map((x) => x.segment || ""),
           pathType: pathType,
           hasSiblingServerFile: false,
           isServerFile: true,
+          serverDataOutPath: "",
+          serverOutPath: "",
+          hasSiblingPageFile,
         });
       }
 
       if (isPageFile) {
         paths.push({
-          importPath: "pages/" + path + ".ui.js",
+          srcPath: "pages/" + pattern + ".ui.js",
           pattern: pathToUse,
           segments: segments.map((x) => x.segment || ""),
           pathType: pathType,
-          hasSiblingServerFile: hasSiblingServerFile,
+          hasSiblingServerFile,
           isServerFile: false,
+          serverDataOutPath: "",
+          serverOutPath: "",
+          hasSiblingPageFile,
         });
       }
     }
@@ -158,11 +164,11 @@ async function walkPages(): Promise<{
 
     try {
       if (isServerFile) {
-        serverFilesList.push({ path, importPathWithOrigExt });
+        dataFilesList.push({ pattern, srcPath });
       }
 
       if (isPageFile) {
-        pageFilesList.push({ path, importPathWithOrigExt });
+        uiFilesList.push({ pattern, srcPath });
       }
     } catch (e) {
       console.error(e);
@@ -171,20 +177,20 @@ async function walkPages(): Promise<{
 
   return {
     paths,
-    pageFilesList,
-    serverFilesList,
+    uiFilesList,
+    dataFilesList,
   };
 }
 
 async function writePathsToDisk() {
-  const { paths, pageFilesList, serverFilesList } = await walkPages();
+  const { paths, uiFilesList, dataFilesList } = await walkPages();
 
   await fs.promises.writeFile(
     nodePath.join(process.cwd(), "dist", "paths.js"),
     `export const ${HWY_GLOBAL_KEYS.paths} = ${JSON.stringify(paths)}`,
   );
 
-  return { pageFilesList, serverFilesList };
+  return { uiFilesList, dataFilesList };
 }
 
 function sha1Short(content: crypto.BinaryLike) {
@@ -255,4 +261,4 @@ async function genPublicFileMap() {
 }
 
 export { genPublicFileMap, sha1Short, writePathsToDisk };
-export type Paths = Awaited<ReturnType<typeof walkPages>>["paths"];
+export type Paths = Array<Path>;

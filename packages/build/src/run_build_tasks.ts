@@ -1,8 +1,8 @@
 import { exec as execCallback } from "child_process";
-import esbuild from "esbuild";
+import esbuild, { type Metafile } from "esbuild";
 import { parse as jsonCParse } from "jsonc-parser";
 import fs from "node:fs";
-import path from "node:path";
+import nodePath from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { hwyLog, logPerf } from "../../common/dev.mjs";
@@ -11,6 +11,7 @@ import {
   HWY_PREFIX,
   type RefreshFilePayload,
 } from "../../common/index.mjs";
+import { dynamicNodePath as _dnp } from "../../core/src/url-polyfills.js";
 import { getIsHotReloadOnly } from "./dev_serve.js";
 import { getHwyConfig } from "./get_config.js";
 import {
@@ -19,7 +20,12 @@ import {
   type Paths,
 } from "./walk_pages.js";
 
-const tsconfigPath = path.resolve("tsconfig.json");
+if (!_dnp) {
+  throw new Error("dynamicNodePath is not defined");
+}
+const dynamicNodePath = _dnp as NonNullable<typeof _dnp>;
+
+const tsconfigPath = nodePath.resolve("tsconfig.json");
 let tsconfig = jsonCParse(fs.readFileSync(tsconfigPath, "utf8")) as Record<
   string,
   unknown
@@ -108,9 +114,9 @@ async function runBuildTasks({
   hwyLog.info(`running standard build tasks`);
   const stdTasksP0 = performance.now();
 
-  const distDir = path.join(process.cwd(), "dist");
+  const distDir = nodePath.join(process.cwd(), "dist");
   const distExists = fs.existsSync(distDir);
-  const publicDistDir = path.join(process.cwd(), "public/dist");
+  const publicDistDir = nodePath.join(process.cwd(), "public/dist");
   const publicDistExists = fs.existsSync(publicDistDir);
 
   // delete dist and public/dist folders
@@ -152,48 +158,71 @@ async function runBuildTasks({
    * BUILD SERVER ENTRY AND WRITE PATHS TO DISK
    */
 
-  const { pageFilesList, serverFilesList } = await writePathsToDisk();
+  const { uiFilesList, dataFilesList } = await writePathsToDisk();
 
-  await esbuild.build({
+  const mainEntryExt = getExtension("src/main");
+  const mainEntry = nodePath.resolve("src/main" + mainEntryExt);
+
+  const { metafile: serverMetafile } = await esbuild.build({
     ...getEsbuildBuildArgsBase({
       isDev,
       usePreactCompat: hwyConfig.usePreactCompat,
     }),
     entryPoints: [
-      path.resolve("src/main.*"),
-      ...pageFilesList.map((x) => x.importPathWithOrigExt),
-      ...serverFilesList.map((x) => x.importPathWithOrigExt),
+      mainEntry,
+      ...uiFilesList.map((x) => x.srcPath),
+      ...dataFilesList.map((x) => x.srcPath),
     ],
-    outdir: path.resolve("dist"),
+    outdir: nodePath.resolve("dist"),
     platform: "node",
     write: true,
     packages: "external",
     splitting: true,
+    chunkNames: "hwy_chunk__[hash]",
+    entryNames: "hwy_entry__[hash]",
+    metafile: true,
   });
+
+  let serverMainEntry = "";
+  for (const [key, output] of Object.entries(serverMetafile.outputs)) {
+    const a = mainEntry.replace(process.cwd() + "/", "");
+    if (output.entryPoint === a) {
+      serverMainEntry = key;
+    }
+  }
+
+  // rewrite the serverMainEntry back to "dist/main.js"
+  await fs.promises.rename(
+    serverMainEntry,
+    nodePath.join(process.cwd(), "dist", "main.js"),
+  );
 
   ///////////////////////////////////////////////////////////////////////////
   ///////////////////////////////// STEP 3.5 -- AND NOW THE CLIENT FILES
   ///////////////////////////////////////////////////////////////////////////
 
-  const clientEntryExt = getClientEntryExtension();
+  const clientEntryExt = getExtension("src/entry.client");
   const isUsingClientEntry = !!clientEntryExt;
+  const clientEntry = nodePath.join(
+    process.cwd(),
+    "src/entry.client" + clientEntryExt,
+  );
 
-  await esbuild.build({
+  const { metafile } = await esbuild.build({
     ...getEsbuildBuildArgsBase({
       isDev,
       usePreactCompat: hwyConfig.usePreactCompat,
     }),
     entryPoints: [
-      ...(isUsingClientEntry
-        ? [path.join(process.cwd(), "src/entry.client" + clientEntryExt)]
-        : []),
-      ...pageFilesList.map((x) => x.importPathWithOrigExt),
+      ...(isUsingClientEntry ? [clientEntry] : []),
+      ...uiFilesList.map((x) => x.srcPath),
     ],
     outdir: publicDistDir,
     platform: "browser",
     splitting: true,
     chunkNames: "hwy_chunk__[hash]",
-    outbase: path.join(process.cwd(), "src"),
+    entryNames: "hwy_entry__[hash]",
+    metafile: true,
   });
 
   /////////////////////////////////////////////////////////////////////////////
@@ -207,6 +236,74 @@ async function runBuildTasks({
    */
   await genPublicFileMap();
 
+  //////////////////////// 4-b -- metafile stuff
+
+  const pathsVarName = HWY_GLOBAL_KEYS.paths;
+  const currentPaths = (
+    await import(nodePath.join(process.cwd(), "dist", "paths.js"))
+  )[pathsVarName] as Paths;
+
+  let clientEntryDeps: Array<string> = [];
+  let hashedClientEntryURL = "";
+  for (const [key, output] of Object.entries(metafile.outputs)) {
+    const entryPoint = output.entryPoint;
+    if (!entryPoint) {
+      continue;
+    }
+    const deps = await findAllDependencies(metafile, key);
+    const cwdWithSlash = process.cwd() + "/";
+
+    if (clientEntry.replace(cwdWithSlash, "") === entryPoint) {
+      hashedClientEntryURL = dynamicNodePath.basename(key);
+      clientEntryDeps = deps;
+    } else {
+      const path = currentPaths.find((x) => {
+        let ep = entryPoint.replace("src/", "");
+        ep = ep.replace(nodePath.extname(ep), "");
+        const ip = x.srcPath?.replace(nodePath.extname(x.srcPath), "");
+        return ep === ip;
+      });
+      if (path) {
+        path.outPath = dynamicNodePath.basename(key);
+        path.deps = deps;
+      }
+    }
+  }
+
+  for (const [key, output] of Object.entries(serverMetafile.outputs)) {
+    let ep = output.entryPoint;
+    ep = ep?.replace("src/", "") || "";
+    ep = ep?.replace(nodePath.extname(ep), "") || "";
+
+    const path = currentPaths.find((x) => {
+      const ip = x.srcPath?.replace(nodePath.extname(x.srcPath), "");
+      return ep === ip;
+    });
+
+    if (path) {
+      path.serverOutPath = dynamicNodePath.basename(key);
+      if (path.isServerFile) {
+        const siblingEp = ep.replace(/\.data$/, ".ui");
+        const siblingPath = currentPaths.find((x) => {
+          const ip = x.srcPath?.replace(nodePath.extname(x.srcPath), "");
+          return siblingEp === ip;
+        });
+        if (siblingPath) {
+          siblingPath.serverDataOutPath = dynamicNodePath.basename(key);
+        }
+      }
+    }
+  }
+
+  await fs.promises.writeFile(
+    nodePath.join(process.cwd(), "dist", "paths.js"),
+    `export const ${HWY_GLOBAL_KEYS.paths} = ${JSON.stringify(currentPaths)};
+		export const ${HWY_GLOBAL_KEYS.clientEntryDeps} = ${JSON.stringify(clientEntryDeps)};
+		export const ${HWY_GLOBAL_KEYS.hashedClientEntryURL} = "${hashedClientEntryURL}";`,
+  );
+
+  /////////////////////////////////////////////////////////////////////////////
+
   /********************* STEP 5 *********************
    * PREPARE AND WRITE SERVER ENTRY CODE TO DISK
    *
@@ -216,7 +313,7 @@ async function runBuildTasks({
 
   // Grab the specific build output we need -- server entry code
   let mainCode = await fs.promises.readFile(
-    path.join(process.cwd(), "dist/main.js"),
+    nodePath.join(process.cwd(), "dist/main.js"),
     "utf8",
   );
 
@@ -227,7 +324,7 @@ async function runBuildTasks({
   let filesText = await Promise.all(
     filenames.map((filename) => {
       return fs.promises.readFile(
-        path.join(process.cwd(), `dist/${filename}`),
+        nodePath.join(process.cwd(), `dist/${filename}`),
         "utf-8",
       );
     }),
@@ -269,15 +366,21 @@ const ${HWY_PREFIX}arbitraryGlobal = globalThis[Symbol.for("${HWY_PREFIX}")];
 
   const buildIDLine = `${HWY_PREFIX}arbitraryGlobal.${HWY_GLOBAL_KEYS.buildID} = ${Date.now().toString()};\n\n`;
 
+  const clientEntryDepsLine = `${HWY_PREFIX}arbitraryGlobal.${HWY_GLOBAL_KEYS.clientEntryDeps} = ${JSON.stringify(clientEntryDeps)};\n\n`;
+
+  const hashedClientEntryURLLine = `${HWY_PREFIX}arbitraryGlobal.${HWY_GLOBAL_KEYS.hashedClientEntryURL} = "${hashedClientEntryURL}";\n\n`;
+
   /*
    * Now put it all together and write main.js to disk
    */
   await fs.promises.writeFile(
-    path.join(process.cwd(), "dist/main.js"),
+    nodePath.join(process.cwd(), "dist/main.js"),
     warmupLine +
       devLine +
       hwyConfigLine +
       buildIDLine +
+      clientEntryDepsLine +
+      hashedClientEntryURLLine +
       toBeAppended +
       mainCode,
   );
@@ -315,7 +418,7 @@ async function handlePreBuild({ isDev }: { isDev?: boolean }) {
   try {
     const pkgJSON = JSON.parse(
       await fs.promises.readFile(
-        path.join(process.cwd(), "package.json"),
+        nodePath.join(process.cwd(), "package.json"),
         "utf-8",
       ),
     );
@@ -362,7 +465,7 @@ async function writeRefreshTxt({
   criticalCss?: string;
 }) {
   await fs.promises.writeFile(
-    path.join(process.cwd(), "dist", "refresh.txt"),
+    nodePath.join(process.cwd(), "dist", "refresh.txt"),
     JSON.stringify({
       changeType,
       criticalCss,
@@ -386,10 +489,10 @@ function toVarName(filename: string) {
 
 /* -------------------------------------------------------------------------- */
 
-function getClientEntryExtension() {
+function getExtension(path: string) {
   const extsWithDot = [".js", ".ts", ".jsx", ".tsx"] as const;
   for (const ending of extsWithDot) {
-    if (fs.existsSync(path.join(process.cwd(), `src/entry.client${ending}`))) {
+    if (fs.existsSync(nodePath.join(process.cwd(), `${path}${ending}`))) {
       return ending;
     }
   }
@@ -397,6 +500,7 @@ function getClientEntryExtension() {
 
 /* -------------------------------------------------------------------------- */
 
+// COME BACK
 async function getPathImportSnippet() {
   if (hwyConfig.routeStrategy === "warm-cache-at-startup") {
     return `
@@ -415,7 +519,7 @@ async function getPathImportSnippet() {
     // Read the paths from disk. Results in an array of path objects.
     const pathsImportList = (
       await import(
-        pathToFileURL(path.join(process.cwd(), "dist/paths.js")).href
+        pathToFileURL(nodePath.join(process.cwd(), "dist/paths.js")).href
       )
     )[HWY_GLOBAL_KEYS.paths] as Paths;
 
@@ -426,12 +530,13 @@ async function getPathImportSnippet() {
      */
     return pathsImportList
       .map((x) => {
-        const asVar = toVarName(x.importPath);
-        const line1 = `import * as ${asVar} from "./${x.importPath}";\n`;
-        const line2 = `${HWY_PREFIX}arbitraryGlobal["./${x.importPath}"] = ${asVar};`;
+        const asVar = toVarName(x.outPath || "");
+        const line1 = `import * as ${asVar} from "./${x.outPath}";\n`;
+        const line2 = `${HWY_PREFIX}arbitraryGlobal["./${x.outPath}"] = ${asVar};`;
 
         if (x.hasSiblingServerFile) {
-          const importPathServer = x.importPath.replace(".ui.js", ".data.js");
+          const importPathServer =
+            x.outPath?.replace(".ui.js", ".data.js") || "";
           const asVarServer = toVarName(importPathServer);
           const line3 = `import * as ${asVarServer} from "./${importPathServer}";\n`;
           const line4 = `${HWY_PREFIX}arbitraryGlobal["./${importPathServer}"] = ${asVarServer};`;
@@ -467,8 +572,8 @@ async function handleCustomRouteLoadingCode(isDev?: boolean) {
         isDev,
         usePreactCompat: hwyConfig.usePreactCompat,
       }),
-      entryPoints: [path.resolve("dist/main.js")],
-      outfile: path.resolve("dist/main.js"),
+      entryPoints: [nodePath.resolve("dist/main.js")],
+      outfile: nodePath.resolve("dist/main.js"),
       platform: "node",
       write: true,
       packages: "external",
@@ -476,7 +581,7 @@ async function handleCustomRouteLoadingCode(isDev?: boolean) {
     });
 
     // rmv dist/pages folder -- no longer needed if bundling routes
-    await fs.promises.rm(path.join(process.cwd(), "dist/pages"), {
+    await fs.promises.rm(nodePath.join(process.cwd(), "dist/pages"), {
       recursive: true,
     });
   }
@@ -484,7 +589,59 @@ async function handleCustomRouteLoadingCode(isDev?: boolean) {
   // rmv the rest
   await Promise.all(
     filenames.map((x) => {
-      return fs.promises.rm(path.join(process.cwd(), `dist/${x}`));
+      return fs.promises.rm(nodePath.join(process.cwd(), `dist/${x}`));
     }),
   );
+}
+
+let allDepsPubMap: Record<string, string> | undefined;
+
+async function findAllDependencies(
+  metafile: Metafile,
+  entry: string,
+): Promise<Array<string>> {
+  if (!allDepsPubMap) {
+    // NOTE: Something messed up with the module if you import it
+    // It's becoming an empty obj for some reason from bundle_css_files.ts
+    // So just doing this stupid hack for now because I don't have time
+    // to fix it properly
+    let publicMapStr = await fs.promises.readFile(
+      nodePath.join(process.cwd(), "dist", "public-map.js"),
+      "utf8",
+    );
+    // turn into JSON <cryemoji>
+    publicMapStr = publicMapStr
+      .replace(`export const ${HWY_GLOBAL_KEYS.publicMap} = `, "")
+      .slice(0, -1); // rmv trailing semicolon
+
+    const publicMap = JSON.parse(publicMapStr) as Record<string, string>;
+
+    allDepsPubMap = publicMap;
+  }
+
+  const seen = new Set<string>();
+  const result: Array<string> = [];
+
+  function recurse(path: string) {
+    if (seen.has(path)) {
+      return;
+    }
+    seen.add(path);
+
+    let res = path;
+    if (!path.startsWith("public/dist/hwy_chunk__")) {
+      res = allDepsPubMap?.[path] ?? "";
+    }
+    result.push(res);
+
+    if (metafile.outputs[path]) {
+      for (const imp of metafile.outputs[path].imports) {
+        recurse(imp.path);
+      }
+    }
+  }
+
+  recurse(entry);
+
+  return result.map((x) => dynamicNodePath.basename(x));
 }
