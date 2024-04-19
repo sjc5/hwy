@@ -98,12 +98,13 @@ pre code {
   gap: 0.5rem;
   background: #272727;
   color: white;
-  a {
-    color: white;
-  }
   height: var(--sidebar-height);
   min-height: var(--sidebar-height);
   max-height: var(--sidebar-height);
+}
+
+#sidebar a {
+  color: white;
 }
 
 #root > main {
@@ -240,4 +241,8 @@ ul {
   opacity: 1;
   pointer-events: unset;
   transition: opacity 0.1s ease-in-out;
+}
+
+p code {
+  word-wrap: break-word;
 }

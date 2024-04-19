@@ -8,9 +8,15 @@ import { ClientOnly } from "../components/utilities.js";
 type SidebarNavItem = {
   name: string;
   url: string;
+  external?: boolean;
 };
 
 const sidebarNavItems: SidebarNavItem[] = [
+  {
+    name: "GitHub",
+    url: "https://github.com/sjc5/hwy",
+    external: true,
+  },
   {
     name: "Manifesto",
     url: "/manifesto",
@@ -76,7 +82,12 @@ function Sidebar() {
     <ul id="sidebar">
       {sidebarNavItems.map((item) => (
         <li key={item.url}>
-          <a href={item.url} data-boost>
+          <a
+            href={item.url}
+            data-boost={!item.external}
+            target={item.external ? "_blank" : undefined}
+            rel={item.external ? "noopener noreferrer" : undefined}
+          >
             {item.name}
           </a>
         </li>
