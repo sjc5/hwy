@@ -776,13 +776,17 @@ export async function getMatchingPathData(request: Request): Promise<{
         loadersData[i] = data;
         loadersErrors[i] = null;
       } catch (e) {
+        if (e instanceof Response) {
+          loadersData[i] = e;
+          loadersErrors[i] = null;
+          return;
+        }
         loadersData[i] = null;
         loadersErrors[i] = e instanceof Error ? e : new Error("Unknown");
       }
     }),
   );
 
-  // __TODO test this (returning a redirect response from a loader)
   for (let i = loadersData.length - 1; i >= 0; i--) {
     if (loadersData[i] instanceof Response) {
       return { response: loadersData[i], activePathData: null };

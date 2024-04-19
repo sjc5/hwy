@@ -500,19 +500,15 @@ function getExtension(path: string) {
 
 /* -------------------------------------------------------------------------- */
 
-// COME BACK
 async function getPathImportSnippet() {
   if (hwyConfig.routeStrategy === "warm-cache-at-startup") {
     return `
 		${HWY_PREFIX}arbitraryGlobal.${HWY_GLOBAL_KEYS.paths}.forEach(function (x) {
-  const pathFromDist = "./" + x.importPath;
-  import(pathFromDist).then((x) => ${HWY_PREFIX}arbitraryGlobal[pathFromDist] = x);
-	if (x.hasSiblingServerFile) {
-    const serverPathFromDist = pathFromDist.replace(".ui.js", ".data.js");
-    import(serverPathFromDist).then((x) => ${HWY_PREFIX}arbitraryGlobal[serverPathFromDist] = x);
-  }
-});
-        `.trim();
+  const pathFromDist = "./" + x.serverOutPath;
+  import(pathFromDist).then((x) => {
+		${HWY_PREFIX}arbitraryGlobal[pathFromDist] = x;
+	});
+});`.trim();
   }
 
   if (shouldBundlePaths) {
@@ -530,19 +526,9 @@ async function getPathImportSnippet() {
      */
     return pathsImportList
       .map((x) => {
-        const asVar = toVarName(x.outPath || "");
-        const line1 = `import * as ${asVar} from "./${x.outPath}";\n`;
-        const line2 = `${HWY_PREFIX}arbitraryGlobal["./${x.outPath}"] = ${asVar};`;
-
-        if (x.hasSiblingServerFile) {
-          const importPathServer =
-            x.outPath?.replace(".ui.js", ".data.js") || "";
-          const asVarServer = toVarName(importPathServer);
-          const line3 = `import * as ${asVarServer} from "./${importPathServer}";\n`;
-          const line4 = `${HWY_PREFIX}arbitraryGlobal["./${importPathServer}"] = ${asVarServer};`;
-          return line1 + line2 + "\n" + line3 + line4;
-        }
-
+        const asVar = toVarName(x.serverOutPath);
+        const line1 = `import * as ${asVar} from "./${x.serverOutPath}";\n`;
+        const line2 = `${HWY_PREFIX}arbitraryGlobal["./${x.serverOutPath}"] = ${asVar};`;
         return line1 + line2;
       })
       .join("\n");
@@ -579,19 +565,7 @@ async function handleCustomRouteLoadingCode(isDev?: boolean) {
       packages: "external",
       allowOverwrite: true,
     });
-
-    // rmv dist/pages folder -- no longer needed if bundling routes
-    await fs.promises.rm(nodePath.join(process.cwd(), "dist/pages"), {
-      recursive: true,
-    });
   }
-
-  // rmv the rest
-  await Promise.all(
-    filenames.map((x) => {
-      return fs.promises.rm(nodePath.join(process.cwd(), `dist/${x}`));
-    }),
-  );
 }
 
 let allDepsPubMap: Record<string, string> | undefined;
