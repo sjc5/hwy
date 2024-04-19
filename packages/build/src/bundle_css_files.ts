@@ -12,30 +12,15 @@ should import it lazily and only after the public-map.js file has been
 generated.
 */
 
+const publicMapPath = path.resolve("dist", "public-map.js");
+
+const publicMap: Record<string, string> | undefined = (
+  await import(pathToFileURL(publicMapPath).href)
+)[HWY_GLOBAL_KEYS.publicMap];
+
+const URL_REGEX = /url\(\s*(?:(['"]?)(.*?)\1)\s*\)/gi;
+
 export async function bundleCSSFiles() {
-  const publicMapPath = path.resolve("dist", "public-map.js");
-
-  const publicMap: Record<string, string> | undefined = (
-    await import(pathToFileURL(publicMapPath).href)
-  )[HWY_GLOBAL_KEYS.publicMap];
-
-  const URL_REGEX = /url\(\s*(?:(['"]?)(.*?)\1)\s*\)/gi;
-
-  function replacer(_: string, __: string, p2: string) {
-    if (!publicMap) {
-      throw new Error("No public map found");
-    }
-    const hashed = getHashedPublicURLLowLevel({ publicMap, url: p2 });
-    return `url("${hashed}")`;
-  }
-
-  async function writeCriticalBundledCSSIsUndefined() {
-    return fs.promises.writeFile(
-      path.join(process.cwd(), "dist/critical-bundled-css.js"),
-      `export const ${HWY_GLOBAL_KEYS.criticalBundledCSS} = undefined;`,
-    );
-  }
-
   const usingStylesDir = fs.existsSync(path.resolve("./src/styles"));
   if (!usingStylesDir) {
     await Promise.all([writeCriticalBundledCSSIsUndefined()]);
@@ -128,4 +113,19 @@ export async function bundleCSSFiles() {
   ]);
 
   return { criticalCSS };
+}
+
+function replacer(_: string, __: string, p2: string) {
+  if (!publicMap) {
+    throw new Error("No public map found");
+  }
+  const hashed = getHashedPublicURLLowLevel({ publicMap, url: p2 });
+  return `url("${hashed}")`;
+}
+
+async function writeCriticalBundledCSSIsUndefined() {
+  return fs.promises.writeFile(
+    path.join(process.cwd(), "dist/critical-bundled-css.js"),
+    `export const ${HWY_GLOBAL_KEYS.criticalBundledCSS} = undefined;`,
+  );
 }
