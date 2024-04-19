@@ -1,9 +1,8 @@
-export { renderRoot } from "./src/router.js";
+export { ActivePathData, renderRoot } from "./src/router.js";
 export { initHwy } from "./src/setup.js";
 
 import {
   Action,
-  ActivePathData,
   AdHocData,
   DataProps,
   HeadFunction,
@@ -15,7 +14,6 @@ import { HeadBlock } from "./src/router.js";
 
 export type {
   Action,
-  ActivePathData,
   AdHocData,
   DataProps,
   HeadBlock,

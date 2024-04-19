@@ -53,22 +53,6 @@ export type HwyClientGlobalKey = keyof HwyClientGlobal;
  * Hwy Types
  * ************************************/
 
-export type ActivePathData = {
-  // not needed in recursive component
-  matchingPaths?: any[];
-  activeHeads: any[];
-
-  // needed in recursive component
-  loadersData: any[];
-  importURLs: string[];
-  outermostErrorBoundaryIndex: number | undefined;
-  splatSegments: string[];
-  params: Record<string, string>;
-  actionData: any[];
-  activeComponents: any[];
-  activeErrorBoundaries: any[];
-};
-
 export interface AdHocData extends Record<string, any> {}
 
 // PATHS
@@ -88,6 +72,8 @@ export type HwyGlobal = {
   rootDirname: string;
   getPublicURL: (url: string) => string;
   getOrigPublicURL: (hashedURL: string) => string;
+  clientEntryDeps: Array<string>;
+  hashedClientEntryURL: string;
 };
 
 export type HwyGlobalKey = keyof HwyGlobal;
@@ -105,6 +91,8 @@ export const HWY_GLOBAL_KEYS: { [K in keyof HwyGlobal]: any } = {
   rootDirname: "",
   getPublicURL: "",
   getOrigPublicURL: "",
+  clientEntryDeps: "",
+  hashedClientEntryURL: "",
 } as const;
 
 for (const key in HWY_GLOBAL_KEYS) {
@@ -158,7 +146,7 @@ export function getHwyClientGlobal() {
 export type DataProps = {
   request: Request;
   params: Record<string, string>;
-  splatSegments: string[];
+  splatSegments: Array<string>;
 };
 
 export type Loader = (args: DataProps) => Promise<any> | any;
@@ -175,7 +163,7 @@ export type UIProps<
   actionData: NotResponse<Awaited<ReturnType<ActionType>>> | undefined;
   Outlet: Outlet;
   params: Record<string, string>;
-  splatSegments: string[];
+  splatSegments: Array<string>;
   adHocData: AdHocData | undefined;
 };
 

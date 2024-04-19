@@ -1,3 +1,5 @@
 import type { HwyConfig } from "@hwy-js/build";
 
-export default {} satisfies HwyConfig;
+export default {
+  routeStrategy: "warm-cache-at-startup",
+} satisfies HwyConfig;

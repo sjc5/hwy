@@ -4,6 +4,7 @@ import React, { startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 
 await initClient(() => {
+  console.log("Client initialized");
   startTransition(() => {
     hydrateRoot(
       document.querySelector("main") as HTMLElement,

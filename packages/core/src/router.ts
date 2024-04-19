@@ -26,9 +26,14 @@ export type Path = {
   pattern: string;
   segments: Array<string>;
   pathType: PathType;
-  importPath: string;
+  srcPath: string;
+  serverOutPath: string;
+  serverDataOutPath: string;
+  outPath?: string;
   hasSiblingServerFile: boolean;
+  hasSiblingPageFile: boolean;
   isServerFile: boolean;
+  deps?: Array<string>;
 };
 
 export type TitleHeadBlock = { title: string };
@@ -65,6 +70,8 @@ export type ActivePathData = {
   params: Record<string, string>;
   activeComponents: Array<any>;
   activeErrorBoundaries: Array<any>;
+  deps: Array<string>;
+  hashedClientEntryURL: string;
 };
 
 type MatcherOutput = {
@@ -90,15 +97,19 @@ type MatchingPath = {
   pathType: PathType;
   params: Record<string, string>;
   pattern: string;
-  importPath: string;
+  srcPath: string;
+  serverOutPath: string;
+  serverDataOutPath: string;
+  outPath: string;
   hasSiblingServerFile: boolean;
   isServerFile: boolean;
+  deps: Array<string>;
 };
 
 type DecoratedPath = {
   hasSiblingServerFile: boolean;
   isServerFile: boolean;
-  importPath: string;
+  outPath: string;
   params: Record<string, string>;
   pathType: PathType;
   componentImporter: () => Promise<any>;
@@ -113,6 +124,7 @@ type gmpdItem = {
   params: Record<string, string>;
   decoratedMatchingPaths: Array<DecoratedPath>;
   importURLs: Array<string>;
+  deps: Array<string>;
 };
 
 export type GetRouteDataOutput = {
@@ -127,6 +139,7 @@ export type GetRouteDataOutput = {
   actionData: Array<any>;
   adHocData: Record<string, any>;
   buildID: string;
+  deps: Array<string>;
 
   // SSR Only
   activeErrorBoundaries: Array<any> | null;
@@ -137,6 +150,9 @@ function getInitialMatchingPaths(pathToUse: string): Array<MatchingPath> {
   let initialMatchingPaths: Array<MatchingPath> = [];
 
   for (const path of getHwyGlobal().get("paths")) {
+    if (path.isServerFile) {
+      continue;
+    }
     let pathType = path.pathType;
     if (path.pattern === "/" + SPLAT_SEGMENT) {
       pathType = "ultimate-catch";
@@ -147,12 +163,16 @@ function getInitialMatchingPaths(pathToUse: string): Array<MatchingPath> {
         score: matcherOutput.score,
         realSegmentsLength: matcherOutput.realSegmentLeangth,
         pathType,
-        importPath: path.importPath,
+        srcPath: path.srcPath,
+        serverOutPath: path.serverOutPath ?? "",
+        serverDataOutPath: path.serverDataOutPath ?? "",
+        outPath: path.outPath ?? "",
         hasSiblingServerFile: path.hasSiblingServerFile,
         isServerFile: path.isServerFile,
         pattern: path.pattern,
         segments: path.segments,
         params: matcherOutput.params,
+        deps: path.deps ?? [],
       });
     }
   }
@@ -197,18 +217,17 @@ function decoratePaths(
 ): Array<DecoratedPath> {
   return (
     matchingPaths?.map((localPath) => {
-      const serverImportPath = !localPath.isServerFile
-        ? localPath.importPath.replace(".ui.js", ".data.js")
-        : localPath.importPath;
+      const serverImportPath = localPath.isServerFile
+        ? localPath.serverOutPath
+        : localPath.serverDataOutPath;
 
-      const noServerFns =
-        !localPath.hasSiblingServerFile && !localPath.isServerFile;
+      const noServerFns = !serverImportPath;
 
       // public
       return {
         hasSiblingServerFile: localPath.hasSiblingServerFile,
         isServerFile: localPath.isServerFile,
-        importPath: localPath.importPath,
+        outPath: localPath.outPath,
         params: localPath.params,
         pathType: localPath.pathType,
 
@@ -217,7 +236,7 @@ function decoratePaths(
           if (localPath.isServerFile) return;
 
           try {
-            const imported = await getPath(localPath.importPath);
+            const imported = await getPath(localPath.serverOutPath);
             return imported.default;
           } catch (e) {
             console.error(e);
@@ -229,7 +248,7 @@ function decoratePaths(
           if (localPath.isServerFile) return;
 
           try {
-            const imported = await getPath(localPath.importPath);
+            const imported = await getPath(localPath.serverOutPath);
             return imported.errorBoundary ? imported.errorBoundary : undefined;
           } catch (e) {
             console.error(e);
@@ -682,7 +701,9 @@ export async function getMatchingPathData(request: Request): Promise<{
       getMatchingPathsInternal(initialMatchingPaths, realPath);
     const importURLs: Array<string> = [];
     for (const path of matchingPaths) {
-      importURLs.push(getPublicURL("./dist/" + path.importPath));
+      if (path.outPath) {
+        importURLs.push(getPublicURL("dist/" + path.outPath));
+      }
     }
     const lastPath =
       matchingPaths.length > 0 ? matchingPaths[matchingPaths.length - 1] : null;
@@ -691,6 +712,7 @@ export async function getMatchingPathData(request: Request): Promise<{
       decoratedMatchingPaths: decoratePaths(matchingPaths),
       splatSegments,
       params: lastPath ? lastPath.params : {},
+      deps: getDeps(matchingPaths),
     };
     const isSpam = matchingPaths.length === 0;
     gmpdCache.set(realPath, item, isSpam);
@@ -754,13 +776,17 @@ export async function getMatchingPathData(request: Request): Promise<{
         loadersData[i] = data;
         loadersErrors[i] = null;
       } catch (e) {
+        if (e instanceof Response) {
+          loadersData[i] = e;
+          loadersErrors[i] = null;
+          return;
+        }
         loadersData[i] = null;
         loadersErrors[i] = e instanceof Error ? e : new Error("Unknown");
       }
     }),
   );
 
-  // __TODO test this (returning a redirect response from a loader)
   for (let i = loadersData.length - 1; i >= 0; i--) {
     if (loadersData[i] instanceof Response) {
       return { response: loadersData[i], activePathData: null };
@@ -815,6 +841,8 @@ export async function getMatchingPathData(request: Request): Promise<{
     params: {},
     activeComponents: [],
     activeErrorBoundaries: [],
+    deps: [],
+    hashedClientEntryURL: "",
   };
 
   if (thereAreErrors) {
@@ -857,6 +885,7 @@ export async function getMatchingPathData(request: Request): Promise<{
   activePathData.params = item.params;
   activePathData.activeComponents = activeComponents;
   activePathData.activeErrorBoundaries = activeErrorBoundaries;
+  activePathData.deps = item.deps;
   return { response: null, activePathData };
 }
 
@@ -1105,6 +1134,7 @@ export async function getRouteData({
     buildID: hwyGlobal.get("buildID"),
     activeComponents: isJSON ? null : activePathData.activeComponents,
     activeErrorBoundaries: isJSON ? null : activePathData.activeErrorBoundaries,
+    deps: activePathData.deps,
   };
 
   return {
@@ -1114,7 +1144,9 @@ export async function getRouteData({
       ? undefined
       : {
           ssrInnerHTML: getSsrInnerHTML(data),
-          clientEntryURL: getPublicURL("dist/entry.client.js"),
+          clientEntryURL: getPublicURL(
+            "dist/" + hwyGlobal.get("hashedClientEntryURL"),
+          ),
           devRefreshScript: getDevRefreshScript(),
           criticalCSSElementID: CRITICAL_CSS_ELEMENT_ID,
           criticalCSS: hwyGlobal.get("criticalBundledCSS") || "",
@@ -1153,6 +1185,14 @@ ${mkSetterStr("splatSegments", baseProps.splatSegments)}
 ${mkSetterStr("params", baseProps.params)}
 ${mkSetterStr("actionData", baseProps.actionData)}
 ${mkSetterStr("adHocData", baseProps.adHocData)}
+const deps = ${JSON.stringify(baseProps.deps)};
+function cb(module) {
+	const link = document.createElement('link');
+	link.rel = 'modulepreload';
+	link.href = module;
+	document.head.appendChild(link);
+}
+deps.forEach(cb);
 `.trim();
   return html;
 }
@@ -1239,4 +1279,21 @@ export async function renderRoot({
     return routeData.data;
   }
   return renderCallback(routeData);
+}
+
+function getDeps(matchingPaths: Array<MatchingPath>) {
+  const deps = new Set<string>();
+  for (const path of matchingPaths) {
+    for (const dep of path.deps) {
+      deps.add("/public/dist/" + dep);
+    }
+  }
+  const hwyGlobal = getHwyGlobal();
+  if (!hwyGlobal.get("clientEntryDeps")) {
+    return Array.from(deps);
+  }
+  for (const dep of hwyGlobal.get("clientEntryDeps")) {
+    deps.add("/public/dist/" + dep);
+  }
+  return Array.from(deps);
 }
