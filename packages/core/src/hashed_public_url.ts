@@ -24,11 +24,7 @@ export function getPublicURL(url: string): string {
   hashedURL = publicMap?.[dynamicNodePath.join("public", url)];
 
   if (!hashedURL) {
-    const noNeedToLogList = [
-      "dist/standard-bundled.css",
-      "dist/entry.client.js",
-      "favicon.ico",
-    ];
+    const noNeedToLogList = ["dist/standard-bundled.css", "favicon.ico"];
     if (!noNeedToLogList.includes(url)) {
       console.log("No hashed URL found for", url);
     }
@@ -60,7 +56,7 @@ export function getOrigPublicURL(hashedURL: string): string {
     }
   }
 
-  if (slicedURL.includes("hwy_chunk__")) {
+  if (slicedURL.includes("hwy_chunk__") || slicedURL.includes("hwy_entry__")) {
     return "./" + slicedURL;
   }
 

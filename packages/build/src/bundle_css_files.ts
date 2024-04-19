@@ -119,12 +119,7 @@ function replacer(_: string, __: string, p2: string) {
   if (!publicMap) {
     throw new Error("No public map found");
   }
-
-  const hashed = getHashedPublicURLLowLevel({
-    publicMap,
-    url: p2,
-  });
-
+  const hashed = getHashedPublicURLLowLevel({ publicMap, url: p2 });
   return `url("${hashed}")`;
 }
 
