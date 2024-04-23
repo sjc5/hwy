@@ -24,7 +24,6 @@ func init() {
 
 var Hwy = hwy.Hwy{}
 
-// var faviconURL = root.Kiruna.GetPublicURL("favicon.webp")
 var clientEntryURL = root.Kiruna.GetPublicURL("hwy_client_entry.js")
 var ogImageURL = root.Kiruna.GetPublicURL("create-hwy-snippet.webp")
 var defaultHeadBlocks = []hwy.HeadBlock{
@@ -121,14 +120,12 @@ func Init() *chi.Mux {
 		}
 
 		err = tmpl.Execute(w, struct {
-			Kiruna *kiruna.Kiruna
-			// FaviconURL     string
+			Kiruna         *kiruna.Kiruna
 			ClientEntryURL string
 			HeadElements   *template.HTML
 			SSRInnerHTML   *template.HTML
 		}{
-			Kiruna: root.Kiruna,
-			// FaviconURL:     faviconURL,
+			Kiruna:         root.Kiruna,
 			ClientEntryURL: clientEntryURL,
 			HeadElements:   headElements,
 			SSRInnerHTML:   ssrInnerHTML,
