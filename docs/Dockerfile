@@ -1,18 +1,24 @@
-# Install and Build Stage
-FROM node:20-alpine AS builder
+# --- Frontend Base Stage ---
+FROM node:20-alpine as frontend
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-RUN npm prune --production
+RUN npm i -g pnpm
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
 
-# Production stage
-FROM node:20-alpine AS production
+# --- Backend Build Stage ---
+FROM golang:1.22-alpine as backend-builder
 WORKDIR /app
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/public/dist ./public/dist
-COPY --from=builder /app/markdown ./markdown
-COPY --from=builder /app/package.json ./package.json
-CMD ["node", "dist/main.js"]
+COPY . .
+RUN mkdir -p dist/kiruna && touch dist/kiruna/x
+COPY --from=frontend /app/node_modules ./node_modules
+RUN go run ./cmd/build
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -v -o /app/server ./cmd/app
+
+# --- Final Stage ---
+FROM alpine:latest
+WORKDIR /app
+RUN apk --no-cache add ca-certificates
+COPY --from=backend-builder /app/server /app
+RUN adduser -D myuser
+USER myuser
+ENTRYPOINT ["/app/server"]

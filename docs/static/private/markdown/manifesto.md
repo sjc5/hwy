@@ -1,6 +1,5 @@
 ---
 title: Manifesto
-slug: manifesto
 ---
 
 ## Hwy is just a protocol
