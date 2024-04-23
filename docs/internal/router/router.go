@@ -23,7 +23,8 @@ func init() {
 }
 
 var Hwy = hwy.Hwy{}
-var faviconURL = root.Kiruna.GetPublicURL("favicon.webp")
+
+// var faviconURL = root.Kiruna.GetPublicURL("favicon.webp")
 var clientEntryURL = root.Kiruna.GetPublicURL("hwy_client_entry.js")
 var ogImageURL = root.Kiruna.GetPublicURL("create-hwy-snippet.webp")
 var defaultHeadBlocks = []hwy.HeadBlock{
@@ -79,7 +80,7 @@ func Init() *chi.Mux {
 			return
 		}
 
-		w.Header().Set("Cache-Control", "max-age=5, s-maxage=30, stale-while-revalidate=3600")
+		w.Header().Set("Cache-Control", "public, max-age=60, stale-while-revalidate=3600")
 
 		if hwy.GetIsJSONRequest(r) {
 			w.Header().Set("Content-Type", "application/json")
@@ -120,14 +121,14 @@ func Init() *chi.Mux {
 		}
 
 		err = tmpl.Execute(w, struct {
-			Kiruna         *kiruna.Kiruna
-			FaviconURL     string
+			Kiruna *kiruna.Kiruna
+			// FaviconURL     string
 			ClientEntryURL string
 			HeadElements   *template.HTML
 			SSRInnerHTML   *template.HTML
 		}{
-			Kiruna:         root.Kiruna,
-			FaviconURL:     faviconURL,
+			Kiruna: root.Kiruna,
+			// FaviconURL:     faviconURL,
 			ClientEntryURL: clientEntryURL,
 			HeadElements:   headElements,
 			SSRInnerHTML:   ssrInnerHTML,
