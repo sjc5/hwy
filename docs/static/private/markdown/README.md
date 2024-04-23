@@ -53,7 +53,7 @@ import type { DataProps } from "hwy";
 import { getUser } from "./some-server-side-code.js";
 
 export async function loader({ params }: DataProps) {
-  return await getUser(params.user_id);
+	return await getUser(params.user_id);
 }
 ```
 
@@ -69,7 +69,7 @@ import type { loader } from "./$user_id.data.ts";
 import { UserProfile } from "./some-ui-code.js";
 
 export default function ({ loaderData }: UIProps<typeof loader>) {
-  return <UserProfile user={loaderData} />;
+	return <UserProfile user={loaderData} />;
 }
 ```
 
