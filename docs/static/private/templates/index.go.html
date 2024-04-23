@@ -3,9 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    {{.HeadElements}} {{.SSRInnerHTML}}
-    <!-- <link rel="icon" type="image/png" href="{{.FaviconURL}}" /> -->
-    {{.Kiruna.GetCriticalCSSStyleElement}} {{.Kiruna.GetStyleSheetLinkElement}}
+    {{.HeadElements}} {{.SSRInnerHTML}} {{.Kiruna.GetCriticalCSSStyleElement}}
+    {{.Kiruna.GetStyleSheetLinkElement}}
   </head>
   <body>
     <div id="root"></div>
