@@ -1,25 +1,18 @@
-import { fromHighlighter } from "@shikijs/markdown-it/core";
-import MarkdownIt from "markdown-it";
-import { getHighlighterCore } from "shiki/core";
+import hljs from "highlight.js/lib/core";
+import bash from "highlight.js/lib/languages/bash";
+import json from "highlight.js/lib/languages/json";
+import typescript from "highlight.js/lib/languages/typescript";
+import { useEffect } from "preact/hooks";
 
-const highlighter = await getHighlighterCore({
-	themes: [import("shiki/themes/vitesse-dark.mjs")],
-	langs: [
-		import("shiki/langs/tsx.mjs"),
-		import("shiki/langs/bash.mjs"),
-		import("shiki/langs/jsonc.mjs"),
-	],
-	loadWasm: import("shiki/wasm"),
-});
-
-const md = MarkdownIt({ html: true });
-
-md.use(fromHighlighter(highlighter as any, { theme: "vitesse-dark" }));
-
-export type MdObj = { title: string; content: string };
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("bash", bash);
+hljs.registerLanguage("json", json);
 
 export function RenderedMarkdown({ grayMatterObj }: { grayMatterObj: MdObj }) {
-	let html = grayMatterObj.title ? `<h1>${grayMatterObj.title}</h1>` : "";
-	html += grayMatterObj.content ? md.render(grayMatterObj.content) : "";
-	return <div dangerouslySetInnerHTML={{ __html: html }} />;
+  const title = grayMatterObj.title ? `<h1>${grayMatterObj.title}</h1>` : "";
+  const html = title + grayMatterObj.content;
+  useEffect(hljs.highlightAll, [grayMatterObj]);
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }
+
+export type MdObj = { title: string; content: string };
