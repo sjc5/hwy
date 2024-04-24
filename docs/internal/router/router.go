@@ -12,6 +12,7 @@ import (
 	"github.com/adrg/frontmatter"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
+	"github.com/russross/blackfriday/v2"
 	hwy "github.com/sjc5/hwy-go"
 	root "github.com/sjc5/hwy-go-tester"
 	"github.com/sjc5/hwy-go-tester/internal/middleware"
@@ -177,7 +178,7 @@ var catchAllLoader = func(props hwy.DataProps) (interface{}, error) {
 	}
 	item = &matter{
 		Title:   fm.Title,
-		Content: string(rest),
+		Content: string(blackfriday.Run(rest)),
 	}
 	c.Set(normalizedPath, item, false)
 	return item, nil

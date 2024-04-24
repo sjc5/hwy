@@ -78,7 +78,3 @@ export default function ({ loaderData }: UIProps<typeof loader>) {
 Hwy is in alpha stage and is not recommended for use in production unless you know what you're doing. All APIs are subject to change without notice, so if you do decide to use Hwy, pin your versions, and be prepared to update your code frequently.
 
 Additionally, Hwy is not currently open for contributions. If you have a feature request or bug report, please open an issue on GitHub.
-
----
-
-Copyright (c) 2023–Present Samuel J. Cook.

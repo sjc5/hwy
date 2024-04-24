@@ -21,12 +21,12 @@ In your `tsconfig.json` file, change `"types": ["node"]` to `"types": ["bun-type
 
 In your `package.json` file, change your `start` and `dev` scripts to the following:
 
-```jsonc
+```json
 {
-	"scripts": {
-		"start": "bun dist/main.js",
-		"dev": "bun run --bun hwy-dev-serve"
-	}
+  "scripts": {
+    "start": "bun dist/main.js",
+    "dev": "bun run --bun hwy-dev-serve"
+  }
 }
 ```
 
@@ -40,10 +40,10 @@ import { toWebHandler } from "h3";
 const webHandler = toWebHandler(app);
 
 const server = Bun.serve({
-	port: process.env.PORT || 3000,
-	fetch(request: Request) {
-		return webHandler(request);
-	},
+  port: process.env.PORT || 3000,
+  fetch(request: Request) {
+    return webHandler(request);
+  },
 });
 
 console.log(`Listening on http://${server.hostname}:${server.port}`);
