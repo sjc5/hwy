@@ -24,30 +24,6 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0(@types/node@20.12.7)
 
-  docs:
-    devDependencies:
-      '@hwy-js/client':
-        specifier: ^0.11.0
-        version: link:../packages/client
-      '@hwy-js/react':
-        specifier: ^0.11.0
-        version: link:../packages/react
-      highlight.js:
-        specifier: ^11.9.0
-        version: 11.9.0
-      preact:
-        specifier: ^10.20.2
-        version: 10.20.2
-      typescript:
-        specifier: ^5.4.3
-        version: 5.4.4
-      use-html-dialog:
-        specifier: ^0.2.1
-        version: 0.2.1(react@18.2.0)
-      usehooks-ts:
-        specifier: ^3.1.0
-        version: 3.1.0(react@18.2.0)
-
   packages/build:
     dependencies:
       chokidar:
@@ -1703,11 +1679,6 @@ packages:
       function-bind: 1.1.2
     dev: true
 
-  /highlight.js@11.9.0:
-    resolution: {integrity: sha512-fJ7cW7fQGCYAkgv4CPfwFHrfd/cLS4Hau96JuJ+ZTOWhjnhoeN1ub1tFmALm/+lW5z4WCAuAV9bm05AP0mS6Gw==}
-    engines: {node: '>=12.0.0'}
-    dev: true
-
   /history@5.3.0:
     resolution: {integrity: sha512-ZqaKwjjrAYUYfLG+htGaIIZ4nioX2L70ZUMIFysS3xvBsSG4x/n1V6TXV3N8ZYNuFGlDirFg32T7B6WOUPDYcQ==}
     dependencies:
@@ -1948,10 +1919,6 @@ packages:
     dependencies:
       mlly: 1.6.1
       pkg-types: 1.0.3
-    dev: true
-
-  /lodash.debounce@4.0.8:
-    resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
     dev: true
 
   /lodash.sortby@4.7.0:
@@ -2307,10 +2274,6 @@ packages:
       nanoid: 3.3.7
       picocolors: 1.0.0
       source-map-js: 1.2.0
-    dev: true
-
-  /preact@10.20.2:
-    resolution: {integrity: sha512-S1d1ernz3KQ+Y2awUxKakpfOg2CEmJmwOP+6igPx6dgr6pgDvenqYviyokWso2rhHvGtTlWWnJDa7RaPbQerTg==}
     dev: true
 
   /prettier@3.2.5:
@@ -2884,24 +2847,6 @@ packages:
       mime: 3.0.0
       node-fetch-native: 1.6.4
       pathe: 1.1.2
-
-  /use-html-dialog@0.2.1(react@18.2.0):
-    resolution: {integrity: sha512-onN065TdroLRMtXmUTHkyIq3ZW31ph0AezmG2VZge49fCWDZMi/vBO8juTDV4MSg+2+1dvHRBR+TpULn7XoECQ==}
-    peerDependencies:
-      react: '>=16.8.0'
-    dependencies:
-      react: 18.2.0
-    dev: true
-
-  /usehooks-ts@3.1.0(react@18.2.0):
-    resolution: {integrity: sha512-bBIa7yUyPhE1BCc0GmR96VU/15l/9gP1Ch5mYdLcFBaFGQsdmXkvjV0TtOqW1yUd6VjIwDunm+flSciCQXujiw==}
-    engines: {node: '>=16.15.0'}
-    peerDependencies:
-      react: ^16.8.0  || ^17 || ^18
-    dependencies:
-      lodash.debounce: 4.0.8
-      react: 18.2.0
-    dev: true
 
   /validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
