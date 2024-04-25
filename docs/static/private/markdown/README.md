@@ -2,7 +2,11 @@
 
 ## What is Hwy?
 
-On the surface, Hwy is a **simple**, **lightweight**, and **flexible** web framework, featuring **nested routing**, **concurrent data pre-fetching**, and optional **server-side rendering**. At a deeper level, Hwy is **just a protocol** for passing nested, prefetched route data between (theoretically) any backend server and any client UI library.
+On the surface, Hwy is a **simple**, **lightweight**, and **flexible** web
+framework, featuring **nested routing**, **concurrent data pre-fetching**, and
+optional **server-side rendering**. At a deeper level, Hwy is **just a
+protocol** for passing nested, prefetched route data between (theoretically) any
+backend server and any client UI library.
 
 ## Features
 
@@ -36,15 +40,22 @@ To create a new Hwy app using NodeJS, h3, and React, run the following command:
 npx create-hwy@latest
 ```
 
-This will simply copy the code contained at `https://github.com/sjc5/hwy/examples/react` into a new directory of your choosing. You can then run `npm install` and `npm run dev` to start the dev server.
+This will simply copy the code contained at
+`https://github.com/sjc5/hwy/examples/react` into a new directory of your
+choosing. You can then run `npm install` and `npm run dev` to start the dev
+server.
 
 ## Simple usage
 
-Below is an example of a simple Hwy page at route `your-domain.com/user/123`. You'll notice it looks a lot like Remix, and you're right!
+Below is an example of a simple Hwy page at route `your-domain.com/user/123`.
+You'll notice it looks a lot like Remix, and you're right!
 
 ### Server-side data files (for loaders, actions, and head tag definitions)
 
-Hwy's server-side data files live inside the `pages` folder and contain `.data.` before their file extensions. These files are primarily responsible for pre-fetching data that will ultimately be fed into your UI components. Loaders are run concurrently to avoid waterfalls.
+Hwy's server-side data files live inside the `pages` folder and contain `.data.`
+before their file extensions. These files are primarily responsible for
+pre-fetching data that will ultimately be fed into your UI components. Loaders
+are run concurrently to avoid waterfalls.
 
 ```tsx
 // src/pages/user/$user_id.data.ts
@@ -59,7 +70,9 @@ export async function loader({ params }: DataProps) {
 
 ### Isomorphic UI files
 
-Hwy's isomorphic UI files live inside the `pages` folder and contain `.ui.` before their file extensions. These files are responsible for rendering the UI. Any data prefetched by the loaders is passed into the UI component as a prop.
+Hwy's isomorphic UI files live inside the `pages` folder and contain `.ui.`
+before their file extensions. These files are responsible for rendering the UI.
+Any data prefetched by the loaders is passed into the UI component as a prop.
 
 ```tsx
 // src/pages/user/$user_id.ui.tsx
@@ -75,6 +88,10 @@ export default function ({ loaderData }: UIProps<typeof loader>) {
 
 ## Project Status
 
-Hwy is in alpha stage and is not recommended for use in production unless you know what you're doing. All APIs are subject to change without notice, so if you do decide to use Hwy, pin your versions, and be prepared to update your code frequently.
+Hwy is in alpha stage and is not recommended for use in production unless you
+know what you're doing. All APIs are subject to change without notice, so if you
+do decide to use Hwy, pin your versions, and be prepared to update your code
+frequently.
 
-Additionally, Hwy is not currently open for contributions. If you have a feature request or bug report, please open an issue on GitHub.
+Additionally, Hwy is not currently open for contributions. If you have a feature
+request or bug report, please open an issue on GitHub.
