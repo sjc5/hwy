@@ -43,7 +43,8 @@
     "pre-publish": "pnpm typecheck && pnpm test",
     "publish-pre": "pnpm pre-publish && pnpm -r publish-pre",
     "publish-non-pre": "pnpm pre-publish && pnpm -r publish-non-pre",
-    "update-latest": "pnpm update --latest && pnpm -r update-latest && pnpm i"
+    "update-latest": "pnpm update --latest && pnpm -r update-latest && pnpm i",
+    "format": "npx prettier --write ."
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
@@ -52,8 +53,5 @@
     "typescript": "^5.4.4",
     "vitest": "^1.4.0"
   },
-  "prettier": {
-    "useTabs": false,
-    "proseWrap": "never"
-  }
+  "prettier": {}
 }

@@ -2,7 +2,8 @@
 title: Using Bun
 ---
 
-Assuming you are starting with a Node.js-based project, you can convert it to use Bun with the following steps.
+Assuming you are starting with a Node.js-based project, you can convert it to
+use Bun with the following steps.
 
 ## Step 1
 
@@ -15,11 +16,13 @@ npm i -D bun-types
 
 ## Step 2
 
-In your `tsconfig.json` file, change `"types": ["node"]` to `"types": ["bun-types"]`.
+In your `tsconfig.json` file, change `"types": ["node"]` to
+`"types": ["bun-types"]`.
 
 ## Step 3
 
-In your `package.json` file, change your `start` and `dev` scripts to the following:
+In your `package.json` file, change your `start` and `dev` scripts to the
+following:
 
 ```json
 {
