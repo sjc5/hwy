@@ -38,7 +38,7 @@ export function RootOutlet(props: BaseProps): JSX.Element {
     (ctx.get("actionData") as any)?.[idx],
   );
   useEffect(() => {
-    window.addEventListener("hwy:route-change", (evt) => {
+    window.addEventListener("hwy:route-change", () => {
       startTransition(() => {
         setParams(ctx.get("params") ?? {});
         setSplatSegments(ctx.get("splatSegments") ?? []);

@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@hwy-js/h3": "workspace:*",
-    "hwy": "workspace:*",
     "h3": "^1.11.1",
+    "hwy": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -22,8 +22,10 @@
     "@hwy-js/dev": "workspace:*",
     "@hwy-js/react": "workspace:*",
     "@types/node": "^20.12.7",
+    "@types/nprogress": "^0.2.3",
     "@types/react": "^18.2.75",
     "@types/react-dom": "^18.2.24",
+    "nprogress": "^0.2.0",
     "typescript": "^5.4.4"
   }
 }
