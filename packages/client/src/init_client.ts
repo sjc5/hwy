@@ -10,6 +10,8 @@ let isNavigating = false;
 let isSubmitting = false;
 let isRevalidating = false;
 
+const STATUS_EVENT_KEY = "hwy:status";
+
 const abortControllers = new Map<string, AbortController>();
 
 function handleAbortController(key: string) {
@@ -280,6 +282,15 @@ function setStatus({
   } else if (type !== "buildIDCheck") {
     isNavigating = value;
   }
+  window.dispatchEvent(
+    new CustomEvent(STATUS_EVENT_KEY, {
+      detail: {
+        isRevalidating,
+        isSubmitting,
+        isNavigating,
+      } satisfies StatusEvent,
+    }),
+  );
 }
 
 async function internalNavigate(props: {
@@ -618,7 +629,7 @@ function addBlocksToHead(type: "meta" | "rest", blocks: Array<any>) {
     return;
   }
 
-  blocks.forEach((block) => {
+  for (const block of blocks) {
     let newElement: HTMLElement | null = null;
 
     if (block.title) {
@@ -627,17 +638,19 @@ function addBlocksToHead(type: "meta" | "rest", blocks: Array<any>) {
     } else if (block.tag) {
       newElement = document.createElement(block.tag);
       if (block.attributes) {
-        Object.keys(block.attributes).forEach((key) => {
-          newElement?.setAttribute(key, block.attributes[key]);
-        });
+        for (const key of Object.keys(block.attributes)) {
+          (newElement as HTMLElement).setAttribute(key, block.attributes[key]);
+        }
       }
     }
 
     if (newElement) {
       document.head.insertBefore(newElement, endElement);
     }
-  });
+  }
 }
+
+//////////// end head stuff
 
 async function navigate(href: string, options?: { replace?: boolean }) {
   await internalNavigate({
@@ -663,7 +676,20 @@ function getAdHocData(): AdHocData | undefined {
   return getHwyClientGlobal().get("adHocData");
 }
 
+type StatusEvent = {
+  isNavigating: boolean;
+  isSubmitting: boolean;
+  isRevalidating: boolean;
+};
+
+function addStatusListener(
+  listener: (event: CustomEvent<StatusEvent>) => void,
+) {
+  window.addEventListener(STATUS_EVENT_KEY, listener as any);
+}
+
 export {
+  addStatusListener,
   getAdHocData,
   getCustomHistory,
   getIsInternalLink,

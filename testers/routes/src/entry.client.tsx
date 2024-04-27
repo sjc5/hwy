@@ -1,4 +1,4 @@
-import { initClient } from "@hwy-js/client";
+import { addStatusListener, initClient } from "@hwy-js/client";
 import { RootOutlet } from "@hwy-js/react";
 import React, { startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
@@ -17,4 +17,14 @@ await initClient(() => {
       </React.StrictMode>,
     );
   });
+});
+
+import NProgress from "nprogress";
+
+addStatusListener(function (evt) {
+  if (evt.detail.isNavigating && !NProgress.isStarted()) {
+    NProgress.start();
+  } else {
+    NProgress.done();
+  }
 });

@@ -1,7 +1,7 @@
 if (process.env.NODE_ENV === "development") {
   await import("preact/debug");
 }
-import { initClient } from "@hwy-js/client";
+import { addStatusListener, initClient } from "@hwy-js/client";
 import { RootOutlet } from "@hwy-js/react";
 import { StrictMode, hydrate, startTransition } from "preact/compat";
 import { RootLayout } from "./pages/layout.js";
@@ -23,3 +23,13 @@ await initClient(() => {
 declare global {
   var process: { env: { NODE_ENV: string } };
 }
+
+import NProgress from "nprogress";
+
+addStatusListener(function (evt) {
+  if (evt.detail.isNavigating && !NProgress.isStarted()) {
+    NProgress.start();
+  } else {
+    NProgress.done();
+  }
+});
