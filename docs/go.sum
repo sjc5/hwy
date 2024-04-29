@@ -19,8 +19,8 @@ github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sjc5/hwy-go v0.0.5 h1:x+FqScP7CScqdhBaIHaQPFRd+v3Y0zR1befkMBe2KHc=
 github.com/sjc5/hwy-go v0.0.5/go.mod h1:P8vrizasEpUbBJFNtTFehHcPPkhMej+A5RjukBK374I=
-github.com/sjc5/kiruna v0.0.17 h1:xH4LfOQGeIW6lhjb+fq3CN0O0SL9Yei425PHWRLHR9E=
-github.com/sjc5/kiruna v0.0.17/go.mod h1:1BJPQ9IQuiOxTq0Ef1vDHX1Vnqhf8RqpYzv/ZClxM9k=
+github.com/sjc5/kiruna v0.0.18 h1:nSTyiFH7tWwXuP8f9b1vQ4nIkYSh/rMGxzJ89FfcpJY=
+github.com/sjc5/kiruna v0.0.18/go.mod h1:1BJPQ9IQuiOxTq0Ef1vDHX1Vnqhf8RqpYzv/ZClxM9k=
 github.com/sjc5/kit v0.0.11 h1:8qLk47KV5Cceg4M/GzwLy1QuZaTnJPFGLz0Pk4FAoNM=
 github.com/sjc5/kit v0.0.11/go.mod h1:IIPMNnWVR+Q2yeWSyYes2c5I9964vCQlo9BlPc872OU=
 golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

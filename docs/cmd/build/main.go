@@ -7,5 +7,5 @@ import (
 
 func main() {
 	build.RunHwyBuild(false)
-	root.Kiruna.MustBuildWithoutCompilingGo()
+	root.Kiruna.BuildWithoutCompilingGo()
 }
