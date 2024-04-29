@@ -22,7 +22,7 @@ func main() {
 			".md":      {RestartApp: true},
 		},
 	}
-	root.Kiruna.Dev(&DevConfig)
+	root.Kiruna.MustStartDev(&DevConfig)
 }
 
 var tsWatchedFile = kiruna.WatchedFile{
