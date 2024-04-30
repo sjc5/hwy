@@ -12,7 +12,7 @@ require (
 	github.com/go-chi/httprate v0.9.0
 	github.com/joho/godotenv v1.5.1
 	github.com/russross/blackfriday/v2 v2.1.0
-	github.com/sjc5/hwy-go v0.0.5
+	github.com/sjc5/hwy-go v0.0.6
 	github.com/sjc5/kiruna v0.0.18
 	github.com/sjc5/kit v0.0.11
 )
