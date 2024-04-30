@@ -147,6 +147,7 @@ export type DataProps = {
   request: Request;
   params: Record<string, string>;
   splatSegments: Array<string>;
+  responseInit: ResponseInit;
 };
 
 export type Loader = (args: DataProps) => Promise<any> | any;

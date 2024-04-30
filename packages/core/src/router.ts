@@ -2,6 +2,7 @@ import {
   AdHocData,
   CLIENT_GLOBAL_KEYS,
   CRITICAL_CSS_ELEMENT_ID,
+  DataProps,
   HWY_PREFIX,
   LIVE_REFRESH_SSE_PATH,
   getHwyGlobal,
@@ -43,14 +44,8 @@ export type OtherHeadBlock = {
 };
 export type HeadBlock = TitleHeadBlock | OtherHeadBlock;
 
-type DataProps = {
-  request: Request;
-  params: Record<string, string>;
-  splatSegments: Array<string>;
-};
-
 type HeadProps = {
-  dataProps: DataProps;
+  dataProps: Omit<DataProps, "responseInit">;
   loaderData: any;
   actionData: any;
 };
@@ -679,11 +674,37 @@ function getBaseSplatSegments(realPath: string): Array<string> {
   return realPath.split("/").filter((x) => x !== "");
 }
 
+function mergeResponseInits(responseInits: ResponseInit[]): ResponseInit {
+  const mergedInit: ResponseInit = {};
+
+  for (const responseInit of responseInits) {
+    if (typeof responseInit.status !== undefined) {
+      mergedInit.status = responseInit.status;
+    }
+
+    if (typeof responseInit.statusText !== undefined) {
+      mergedInit.statusText = responseInit.statusText;
+    }
+
+    if (responseInit.headers) {
+      const existingHeaders = new Headers(mergedInit.headers);
+      const newHeaders = new Headers(responseInit.headers);
+      for (const [name, value] of newHeaders) {
+        existingHeaders.set(name, value);
+      }
+      mergedInit.headers = existingHeaders;
+    }
+  }
+
+  return mergedInit;
+}
+
 const gmpdCache = new LRUCache<gmpdItem>(500_000);
 
 export async function getMatchingPathData(request: Request): Promise<{
   activePathData: ActivePathData | null;
   response: Response | null;
+  mergedResponseInit: ResponseInit | null;
 }> {
   let realPath = new URL(request.url).pathname;
   if (realPath !== "/" && realPath.endsWith("/")) {
@@ -724,7 +745,11 @@ export async function getMatchingPathData(request: Request): Promise<{
       item.decoratedMatchingPaths[item.decoratedMatchingPaths.length - 1];
   }
 
-  const { data: actionData, error: actionDataError } = await getActionData(
+  const {
+    data: actionData,
+    error: actionDataError,
+    responseInit: actionResponseInit,
+  } = await getActionData(
     request,
     lastPath?.action,
     item.params,
@@ -733,7 +758,11 @@ export async function getMatchingPathData(request: Request): Promise<{
 
   // __TODO test this (returning a redirect response from an action)
   if (actionData instanceof Response && lastPath?.isServerFile) {
-    return { response: actionData, activePathData: null };
+    return {
+      response: actionData,
+      activePathData: null,
+      mergedResponseInit: null,
+    };
   }
 
   let [activeComponents, activeHeads, activeErrorBoundaries] =
@@ -759,12 +788,17 @@ export async function getMatchingPathData(request: Request): Promise<{
 
   const loadersData: Array<any> = [];
   const loadersErrors: Array<Error | null> = [];
+  const loadersResponseInits: Array<ResponseInit> = [];
+
+  item.decoratedMatchingPaths.forEach(() => {
+    loadersResponseInits.push({});
+  });
 
   await Promise.all(
     item.decoratedMatchingPaths.map(async (path, i) => {
       if (!path.loader) {
         loadersData[i] = null;
-        loadersData[i] = null;
+        loadersErrors[i] = null;
         return;
       }
       try {
@@ -772,6 +806,7 @@ export async function getMatchingPathData(request: Request): Promise<{
           request,
           params: item.params,
           splatSegments: item.splatSegments,
+          responseInit: loadersResponseInits[i],
         });
         loadersData[i] = data;
         loadersErrors[i] = null;
@@ -789,7 +824,11 @@ export async function getMatchingPathData(request: Request): Promise<{
 
   for (let i = loadersData.length - 1; i >= 0; i--) {
     if (loadersData[i] instanceof Response) {
-      return { response: loadersData[i], activePathData: null };
+      return {
+        response: loadersData[i],
+        activePathData: null,
+        mergedResponseInit: null,
+      };
     }
   }
 
@@ -845,6 +884,12 @@ export async function getMatchingPathData(request: Request): Promise<{
     hashedClientEntryURL: "",
   };
 
+  const mergedResponseInit = mergeResponseInits(
+    actionResponseInit
+      ? [...loadersResponseInits, actionResponseInit]
+      : loadersResponseInits,
+  );
+
   if (thereAreErrors) {
     const locMatchingPaths = item.decoratedMatchingPaths.slice(
       0,
@@ -870,7 +915,11 @@ export async function getMatchingPathData(request: Request): Promise<{
       0,
       outermostErrorIndex + 1,
     );
-    return { response: null, activePathData };
+    return {
+      response: null,
+      activePathData,
+      mergedResponseInit,
+    };
   }
 
   activePathData.matchingPaths = item.decoratedMatchingPaths;
@@ -886,7 +935,11 @@ export async function getMatchingPathData(request: Request): Promise<{
   activePathData.activeComponents = activeComponents;
   activePathData.activeErrorBoundaries = activeErrorBoundaries;
   activePathData.deps = item.deps;
-  return { response: null, activePathData };
+  return {
+    response: null,
+    activePathData,
+    mergedResponseInit,
+  };
 }
 
 const acceptedMethods = ["POST", "PUT", "PATCH", "DELETE"];
@@ -899,24 +952,30 @@ async function getActionData(
 ): Promise<{
   data: any;
   error: Error | null;
+  responseInit: ResponseInit | null;
 }> {
   if (!action || !acceptedMethods.includes(request.method)) {
-    return { data: null, error: null };
+    return { data: null, error: null, responseInit: null };
   }
+
+  const responseInit: ResponseInit = {};
+
   try {
     const data = await action({
       request,
       params: params,
       splatSegments: splatSegments,
+      responseInit,
     });
 
-    return { data, error: null };
+    return { data, error: null, responseInit };
   } catch (e) {
     console.error(e);
 
     return {
       data: null,
       error: e instanceof Error ? e : new Error("Unknown"),
+      responseInit: null,
     };
   }
 }
@@ -1084,6 +1143,7 @@ export function getIsJSONRequest(request: Request): boolean {
 export type RouteData = {
   response: Response | null;
   data: GetRouteDataOutput | null;
+  mergedResponseInit: ResponseInit | null;
   ssrData?: {
     ssrInnerHTML: string;
     clientEntryURL: string;
@@ -1101,14 +1161,23 @@ export async function getRouteData({
   request: Request;
   adHocData: AdHocData | undefined;
 }): Promise<RouteData> {
-  const { activePathData, response } = await getMatchingPathData(request);
+  const { activePathData, response, mergedResponseInit } =
+    await getMatchingPathData(request);
 
   if (response) {
-    return { response, data: null };
+    return {
+      response,
+      data: null,
+      mergedResponseInit,
+    };
   }
 
   if (!activePathData || !activePathData.matchingPaths?.length) {
-    return { response: null, data: null };
+    return {
+      response: null,
+      data: null,
+      mergedResponseInit,
+    };
   }
 
   const hwyGlobal = getHwyGlobal();
@@ -1140,6 +1209,7 @@ export async function getRouteData({
   return {
     response: null,
     data,
+    mergedResponseInit,
     ssrData: isJSON
       ? undefined
       : {
@@ -1267,18 +1337,27 @@ export async function renderRoot({
   request: Request;
   adHocData?: AdHocData;
   renderCallback: (routeData: RouteData) => any;
-}) {
+}): Promise<{
+  result: any;
+  responseInit: ResponseInit | null;
+}> {
   const routeData = await getRouteData({ request, adHocData });
   if (routeData.response) {
-    return routeData.response;
+    return { result: routeData.response, responseInit: null };
   }
   if (!routeData.data) {
-    return;
+    return { result: null, responseInit: null };
   }
   if (getIsJSONRequest(request)) {
-    return routeData.data;
+    return {
+      result: routeData.data,
+      responseInit: routeData.mergedResponseInit,
+    };
   }
-  return renderCallback(routeData);
+  return {
+    result: renderCallback(routeData),
+    responseInit: routeData.mergedResponseInit,
+  };
 }
 
 function getDeps(matchingPaths: Array<MatchingPath>) {

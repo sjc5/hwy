@@ -1,6 +1,12 @@
 import { initH3 } from "@hwy-js/h3";
 import { Head, RootOutlet } from "@hwy-js/react";
-import { eventHandler, toNodeListener, toWebRequest } from "h3";
+import {
+  eventHandler,
+  setResponseHeaders,
+  setResponseStatus,
+  toNodeListener,
+  toWebRequest,
+} from "h3";
 import { initHwy, renderRoot } from "hwy";
 import { AddressInfo } from "net";
 import { createServer } from "node:http";
@@ -25,7 +31,7 @@ const app = initH3();
 app.use(
   "*",
   eventHandler(async (event) => {
-    return await renderRoot({
+    const { result, responseInit } = await renderRoot({
       request: toWebRequest(event),
       renderCallback: (routeData) => {
         return renderToPipeableStream(
@@ -72,6 +78,19 @@ app.use(
         );
       },
     });
+
+    if (responseInit?.headers) {
+      setResponseHeaders(
+        event,
+        Object.fromEntries(new Headers(responseInit.headers).entries()),
+      );
+    }
+
+    if (responseInit?.status) {
+      setResponseStatus(event, responseInit.status);
+    }
+
+    return result;
   }),
 );
 
