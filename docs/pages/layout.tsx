@@ -1,5 +1,5 @@
 import { RootLayoutProps } from "@hwy-js/react";
-import { startTransition, useEffect, useLayoutEffect } from "preact/compat";
+import { useEffect, useLayoutEffect } from "preact/compat";
 import { useHtmlDialog } from "use-html-dialog";
 import { useMediaQuery } from "usehooks-ts";
 import { CloseIcon, HamburgerIcon } from "../components/icons.js";
@@ -37,7 +37,7 @@ export function RootLayout({ children, splatSegments }: RootLayoutProps) {
   const isMobile = useMediaQuery("(max-width: 800px)");
   const buttonLabel = `${open ? "Close" : "Open"} menu`;
 
-  useEffect(() => startTransition(close), [splatSegments]);
+  useEffect(close, [splatSegments]);
 
   useLockBodyScroll(open);
 
