@@ -1,6 +1,7 @@
 if (process.env.NODE_ENV === "development") {
   await import("preact/debug");
 }
+
 import { addStatusListener, initClient } from "@hwy-js/client";
 import { RootOutlet } from "@hwy-js/react";
 import { StrictMode, hydrate, startTransition } from "preact/compat";

@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 
-	root "github.com/sjc5/hwy-go-tester"
-	"github.com/sjc5/hwy-go-tester/internal/build"
-	"github.com/sjc5/hwy-go-tester/internal/platform"
+	root "hwy-docs"
+	"hwy-docs/internal/build"
+	"hwy-docs/internal/platform"
+
 	"github.com/sjc5/kiruna"
 )
 

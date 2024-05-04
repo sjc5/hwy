@@ -1,8 +1,8 @@
 package main
 
 import (
-	root "github.com/sjc5/hwy-go-tester"
-	"github.com/sjc5/hwy-go-tester/internal/build"
+	root "hwy-docs"
+	"hwy-docs/internal/build"
 )
 
 func main() {

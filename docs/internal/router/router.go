@@ -2,21 +2,19 @@ package router
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	root "hwy-docs"
+	"hwy-docs/internal/middleware"
 
 	"github.com/adrg/frontmatter"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 	"github.com/russross/blackfriday/v2"
 	hwy "github.com/sjc5/hwy-go"
-	root "github.com/sjc5/hwy-go-tester"
-	"github.com/sjc5/hwy-go-tester/internal/middleware"
-	"github.com/sjc5/kiruna"
 )
 
 func init() {
@@ -50,14 +48,33 @@ var defaultHeadBlocks = []hwy.HeadBlock{
 var c = hwy.NewLRUCache(1000)
 
 func init() {
+	privateFS, err := root.Kiruna.GetPrivateFS()
+	if err != nil {
+		panic(fmt.Sprintf("Error loading private FS: %v", err))
+	}
+
 	Hwy = hwy.Hwy{
-		DefaultHeadBlocks: defaultHeadBlocks,
-		GetBasePaths:      getBasePaths,
+		DefaultHeadBlocks:    defaultHeadBlocks,
+		FS:                   privateFS,
+		RootTemplateLocation: "templates/index.go.html",
+		RootTemplateData: map[string]any{
+			"Kiruna":         root.Kiruna,
+			"ClientEntryURL": clientEntryURL,
+		},
 		DataFuncsMap: hwy.DataFuncsMap{
-			"pages/$.ui.tsx": {Loader: catchAllLoader, Head: catchAllHead},
+			"pages/$.ui.tsx": {
+				Loader: catchAllLoader,
+				Head:   catchAllHead,
+				MutateResponse: func(w http.ResponseWriter) {
+					w.Header().Set(
+						"Cache-Control",
+						"public, max-age=60, stale-while-revalidate=3600",
+					)
+				},
+			},
 		},
 	}
-	err := Hwy.Initialize()
+	err = Hwy.Initialize()
 	if err != nil {
 		fmt.Println(err)
 		panic("Error initializing Hwy")
@@ -69,74 +86,8 @@ func init() {
 func Init() *chi.Mux {
 	r := chi.NewRouter()
 	middleware.ApplyGlobal(r)
-
 	r.Handle("/public/*", root.Kiruna.GetServeStaticHandler("/public/", true))
-
-	r.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
-		routeData, err := Hwy.GetRouteData(r)
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Error getting route data", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Set("Cache-Control", "public, max-age=60, stale-while-revalidate=3600")
-
-		if hwy.GetIsJSONRequest(r) {
-			w.Header().Set("Content-Type", "application/json")
-			err = json.NewEncoder(w).Encode(routeData)
-			if err != nil {
-				fmt.Println(err)
-				http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
-			}
-			return
-		}
-
-		FS, err := root.Kiruna.GetPrivateFS()
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Error loading private FS", http.StatusInternalServerError)
-			return
-		}
-
-		tmpl, err := template.ParseFS(FS, "templates/index.go.html")
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Error loading template", http.StatusInternalServerError)
-			return
-		}
-
-		headElements, err := hwy.GetHeadElements(routeData)
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Error getting head elements", http.StatusInternalServerError)
-			return
-		}
-
-		ssrInnerHTML, err := hwy.GetSSRInnerHTML(routeData, true)
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Error getting SSR inner HTML", http.StatusInternalServerError)
-			return
-		}
-
-		err = tmpl.Execute(w, struct {
-			Kiruna         *kiruna.Kiruna
-			ClientEntryURL string
-			HeadElements   *template.HTML
-			SSRInnerHTML   *template.HTML
-		}{
-			Kiruna:         root.Kiruna,
-			ClientEntryURL: clientEntryURL,
-			HeadElements:   headElements,
-			SSRInnerHTML:   ssrInnerHTML,
-		})
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "Error executing template", http.StatusInternalServerError)
-		}
-	})
-
+	r.Handle("/*", Hwy.GetRootHandler())
 	return r
 }
 
@@ -190,23 +141,4 @@ var catchAllHead = func(props hwy.HeadProps) (*[]hwy.HeadBlock, error) {
 		title = "Hwy | " + props.LoaderData.(*matter).Title
 	}
 	return &[]hwy.HeadBlock{{Title: title}}, nil
-}
-
-func getBasePaths() (*hwy.PathsFile, error) {
-	FS, err := root.Kiruna.GetPrivateFS()
-	if err != nil {
-		return nil, err
-	}
-	pathsFile := hwy.PathsFile{}
-	file, err := FS.Open("hwy_paths.json")
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&pathsFile)
-	if err != nil {
-		return nil, err
-	}
-	return &pathsFile, nil
 }

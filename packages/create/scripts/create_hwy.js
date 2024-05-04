@@ -5,7 +5,7 @@ import fs from "node:fs";
 
 const TARGET_REGISTRY = "github";
 const TARGET_REPO = "sjc5/hwy";
-const TARGET_SUBDIR = "examples/react";
+const TARGET_SUBDIR = "examples/react"; // __TODO give options here
 const TARGET_BRANCH = "main";
 const GIGET_TARGET = `${TARGET_REGISTRY}:${TARGET_REPO}/${TARGET_SUBDIR}#${TARGET_BRANCH}`;
 
