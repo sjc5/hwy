@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sjc5/hwy-go-tester/internal/platform"
-	"github.com/sjc5/hwy-go-tester/internal/router"
+	"hwy-docs/internal/platform"
+	"hwy-docs/internal/router"
 )
 
 func main() {
