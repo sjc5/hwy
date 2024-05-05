@@ -20,10 +20,6 @@ const sidebarNavItems: SidebarNavItem[] = [
     name: "Manifesto",
     url: "/manifesto",
   },
-  {
-    name: "Using Bun",
-    url: "/guides/node-to-bun",
-  },
 ];
 
 export function RootLayout({ children, splatSegments }: RootLayoutProps) {
