@@ -65,7 +65,7 @@ func init() {
 			"pages/$.ui.tsx": {
 				Loader: catchAllLoader,
 				Head:   catchAllHead,
-				MutateResponse: func(w http.ResponseWriter) {
+				HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
 					w.Header().Set(
 						"Cache-Control",
 						"public, max-age=60, stale-while-revalidate=3600",
@@ -101,7 +101,7 @@ var notFoundMatter = matter{
 	Content: "# 404\n\nNothing found.",
 }
 
-var catchAllLoader = func(props hwy.DataProps) (interface{}, error) {
+var catchAllLoader hwy.Loader = func(props *hwy.LoaderProps) (any, error) {
 	normalizedPath := filepath.Clean(strings.Join(*props.SplatSegments, "/"))
 	if normalizedPath == "." {
 		normalizedPath = "README"
@@ -135,7 +135,7 @@ var catchAllLoader = func(props hwy.DataProps) (interface{}, error) {
 	return item, nil
 }
 
-var catchAllHead = func(props hwy.HeadProps) (*[]hwy.HeadBlock, error) {
+var catchAllHead hwy.Head = func(props *hwy.HeadProps) (*[]hwy.HeadBlock, error) {
 	title := "Hwy"
 	if props.LoaderData.(*matter).Title != "" {
 		title = "Hwy | " + props.LoaderData.(*matter).Title
