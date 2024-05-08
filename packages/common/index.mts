@@ -1,9 +1,11 @@
 import type { HeadBlock, Path } from "../core/src/router.js";
 
 export const HWY_PREFIX = "__hwy_internal__";
+export const HWY_PREFIX_JSON = `${HWY_PREFIX}json`;
 export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
 export const LIVE_REFRESH_SSE_PATH = `/${HWY_PREFIX}live_refresh_sse`;
 export const LIVE_REFRESH_RPC_PATH = `/${HWY_PREFIX}live_refresh_rpc`;
+export const HWY_ROUTE_CHANGE_EVENT_KEY = "hwy:route-change";
 
 export type HwyConfig = {
   dev?: {
@@ -26,38 +28,47 @@ export type RefreshFilePayload = {
 
 export const CRITICAL_CSS_ELEMENT_ID = "data-hwy-critical-css";
 
-/***************************************
- * Client global
- **************************************/
+export interface AdHocData extends Record<string, any> {}
 
-export const CLIENT_GLOBAL_KEYS = [
-  "loadersData",
-  "importURLs",
-  "outermostErrorBoundaryIndex",
-  "splatSegments",
-  "params",
-  "actionData",
-  "activeComponents",
-  "activeErrorBoundaries",
-  "adHocData",
-  "buildID",
-] as const;
+///////////////////////////////////////////////////
+// GLOBALS
+///////////////////////////////////////////////////
 
-export type HwyClientGlobal = Partial<{
-  [K in (typeof CLIENT_GLOBAL_KEYS)[number]]: any;
-}>;
+// CLIENT GLOBAL
+
+type HwyClientGlobal = {
+  loadersData: Array<any>;
+  importURLs: Array<string>;
+  outermostErrorBoundaryIndex: number;
+  splatSegments: Array<string>;
+  params: Record<string, string>;
+  actionData: any;
+  activeComponents: Array<any>;
+  activeErrorBoundaries: Array<any>;
+  adHocData: AdHocData;
+  buildID: string;
+};
 
 export type HwyClientGlobalKey = keyof HwyClientGlobal;
 
-/***************************************
- * Hwy Types
- * ************************************/
+export function getHwyClientGlobal() {
+  const dangerousGlobalThis = globalThis as any;
 
-export interface AdHocData extends Record<string, any> {}
+  function get<K extends HwyClientGlobalKey>(key: K) {
+    return dangerousGlobalThis[HWY_SYMBOL][key] as HwyClientGlobal[K];
+  }
 
-// PATHS
+  function set<K extends HwyClientGlobalKey, V extends HwyClientGlobal[K]>(
+    key: K,
+    value: V,
+  ) {
+    dangerousGlobalThis[HWY_SYMBOL][key] = value;
+  }
 
-// HWY GLOBAL (SERVER)
+  return { get, set };
+}
+
+// SERVER GLOBAL
 
 export type HwyGlobal = {
   hwyConfig: HwyConfig;
@@ -115,27 +126,6 @@ export function getHwyGlobal() {
     value: V,
   ) {
     dangerousGlobalThis[HWY_SYMBOL][HWY_PREFIX + key] = value;
-  }
-
-  return { get, set };
-}
-
-///////////////////////////////////
-// CLIENT GLOBAL
-///////////////////////////////////
-
-export function getHwyClientGlobal() {
-  const dangerousGlobalThis = globalThis as any;
-
-  function get<K extends HwyClientGlobalKey>(key: K) {
-    return dangerousGlobalThis[HWY_SYMBOL][key] as HwyClientGlobal[K];
-  }
-
-  function set<K extends HwyClientGlobalKey, V extends HwyClientGlobal[K]>(
-    key: K,
-    value: V,
-  ) {
-    dangerousGlobalThis[HWY_SYMBOL][key] = value;
   }
 
   return { get, set };

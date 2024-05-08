@@ -1,5 +1,9 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
-import { AdHocData, getHwyClientGlobal } from "../../common/index.mjs";
+import {
+  AdHocData,
+  HWY_ROUTE_CHANGE_EVENT_KEY,
+  getHwyClientGlobal,
+} from "../../common/index.mjs";
 import type { GetRouteDataOutput, RouteData } from "../../core/src/router.js";
 import { RootLayoutComponent, RootLayoutProps } from "./types.js";
 
@@ -38,7 +42,7 @@ export function RootOutlet(props: BaseProps): JSX.Element {
     (ctx.get("actionData") as any)?.[idx],
   );
   useEffect(() => {
-    window.addEventListener("hwy:route-change", () => {
+    window.addEventListener(HWY_ROUTE_CHANGE_EVENT_KEY, () => {
       startTransition(() => {
         setParams(ctx.get("params") ?? {});
         setSplatSegments(ctx.get("splatSegments") ?? []);

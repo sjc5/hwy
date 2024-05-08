@@ -47,6 +47,8 @@ var defaultHeadBlocks = []hwy.HeadBlock{
 
 var c = hwy.NewLRUCache(1000)
 
+var count = 0
+
 func init() {
 	privateFS, err := root.Kiruna.GetPrivateFS()
 	if err != nil {
@@ -62,7 +64,16 @@ func init() {
 			"ClientEntryURL": clientEntryURL,
 		},
 		DataFuncsMap: hwy.DataFuncsMap{
-			"pages/$.ui.tsx": {
+			"/login": {
+				Loader: func(props *hwy.LoaderProps) (any, error) {
+					return count, nil
+				},
+				Action: func(props *hwy.ActionProps) (any, error) {
+					count++
+					return "bob", nil
+				},
+			},
+			"/$": {
 				Loader: catchAllLoader,
 				Head:   catchAllHead,
 				HandlerFunc: func(w http.ResponseWriter, r *http.Request) {

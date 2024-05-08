@@ -1,14 +1,10 @@
 export type { GetRouteDataOutput } from "../core/src/router.js";
+export { getCustomHistory } from "./src/custom_history.js";
 export {
-  addStatusListener,
-  getAdHocData,
-  getCustomHistory,
   getIsInternalLink,
-  getIsNavigating,
-  getIsRevalidating,
-  getIsSubmitting,
   getShouldPreventLinkDefault,
-  initClient,
-  navigate,
-  submit,
-} from "./src/init_client.js";
+} from "./src/helpers.js";
+export { getAdHocData, initClient } from "./src/init_client.js";
+export { navigate, revalidate } from "./src/navigate.js";
+export { addStatusListener, getStatus } from "./src/status.js";
+export { submit } from "./src/submit.js";
