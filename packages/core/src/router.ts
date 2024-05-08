@@ -1,9 +1,10 @@
 import {
   AdHocData,
-  CLIENT_GLOBAL_KEYS,
   CRITICAL_CSS_ELEMENT_ID,
   DataProps,
   HWY_PREFIX,
+  HWY_PREFIX_JSON,
+  HwyClientGlobalKey,
   LIVE_REFRESH_SSE_PATH,
   getHwyGlobal,
 } from "../../common/index.mjs";
@@ -1137,7 +1138,7 @@ function getExportedHeadBlocks({
 
 export function getIsJSONRequest(request: Request): boolean {
   const url = new URL(request.url);
-  return Boolean(url.searchParams.get(`${HWY_PREFIX}json`));
+  return Boolean(url.searchParams.get(HWY_PREFIX_JSON));
 }
 
 export type RouteData = {
@@ -1267,7 +1268,7 @@ deps.forEach(cb);
   return html;
 }
 
-function mkSetterStr(key: (typeof CLIENT_GLOBAL_KEYS)[number], value: any) {
+function mkSetterStr(key: HwyClientGlobalKey, value: any) {
   if (!uneval) {
     throw new Error("devalue is not available");
   }
