@@ -2,6 +2,7 @@ package router
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -70,7 +71,8 @@ func init() {
 				},
 				Action: func(props *hwy.ActionProps) (any, error) {
 					count++
-					return "bob", nil
+					return nil, errors.New("Redirect")
+					// return "bob", nil
 				},
 			},
 			"/$": {

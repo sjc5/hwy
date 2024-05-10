@@ -95,3 +95,7 @@ export default function ({ loaderData, actionData }: UIProps<never, any>) {
     </div>
   );
 }
+
+export function ErrorBoundary() {
+  return <div>ERROR2!</div>;
+}

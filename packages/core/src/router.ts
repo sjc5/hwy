@@ -245,7 +245,7 @@ function decoratePaths(
 
           try {
             const imported = await getPath(localPath.serverOutPath);
-            return imported.errorBoundary ? imported.errorBoundary : undefined;
+            return imported.ErrorBoundary ? imported.ErrorBoundary : undefined;
           } catch (e) {
             console.error(e);
             throw e;
