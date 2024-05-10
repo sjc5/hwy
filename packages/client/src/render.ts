@@ -71,7 +71,6 @@ export async function reRenderApp({
   hwyClientGlobal.set("activeComponents", newActiveComps);
 
   const identicalKeysToSet = [
-    "activeErrorBoundaries",
     "loadersData",
     "importURLs",
     "outermostErrorBoundaryIndex",

@@ -16,7 +16,7 @@ export async function initClient(renderFn: () => void) {
   );
   hwyClientGlobal.set(
     "activeErrorBoundaries",
-    components.map((x) => x.errorBoundary),
+    components.map((x) => x.ErrorBoundary),
   );
 
   // RUN THE RENDER FUNCTION

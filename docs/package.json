@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "@hwy-js/client": "^0.14.0-pre.0",
-    "@hwy-js/react": "^0.14.0-pre.0",
+    "@hwy-js/client": "^0.14.1",
+    "@hwy-js/react": "^0.14.1",
     "@types/nprogress": "^0.2.3",
     "highlight.js": "^11.9.0",
     "nprogress": "^0.2.0",
