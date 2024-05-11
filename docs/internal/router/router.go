@@ -1,20 +1,14 @@
 package router
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"net/http"
-	"path/filepath"
-	"strings"
 
 	root "hwy-docs"
+	"hwy-docs/internal/datafuncsmap"
 	"hwy-docs/internal/middleware"
 
-	"github.com/adrg/frontmatter"
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
-	"github.com/russross/blackfriday/v2"
 	hwy "github.com/sjc5/hwy-go"
 )
 
@@ -46,40 +40,6 @@ var defaultHeadBlocks = []hwy.HeadBlock{
 	},
 }
 
-var c = hwy.NewLRUCache(1000)
-
-var count = 0
-
-var DataFuncsMap = hwy.DataFuncsMap{
-	"/login": {
-		LoaderOutput: struct {
-			Bob int
-		}{},
-		Loader: func(props *hwy.LoaderProps) (any, error) {
-			return struct {
-				Bob int
-			}{
-				Bob: count,
-			}, nil
-		},
-		Action: func(props *hwy.ActionProps) (any, error) {
-			count++
-			return nil, errors.New("Redirect")
-			// return "bob", nil
-		},
-	},
-	"/$": {
-		Loader: catchAllLoader,
-		Head:   catchAllHead,
-		HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set(
-				"Cache-Control",
-				"public, max-age=60, stale-while-revalidate=3600",
-			)
-		},
-	},
-}
-
 func init() {
 	privateFS, err := root.Kiruna.GetPrivateFS()
 	if err != nil {
@@ -94,7 +54,7 @@ func init() {
 			"Kiruna":         root.Kiruna,
 			"ClientEntryURL": clientEntryURL,
 		},
-		DataFuncsMap: DataFuncsMap,
+		DataFuncsMap: datafuncsmap.DataFuncsMap,
 	}
 	err = Hwy.Initialize()
 	if err != nil {
@@ -109,56 +69,4 @@ func Init() *chi.Mux {
 	r.Handle("/public/*", root.Kiruna.GetServeStaticHandler("/public/", true))
 	r.Handle("/*", Hwy.GetRootHandler())
 	return r
-}
-
-type matter struct {
-	Title   string `yaml:"title" json:"title"`
-	Content string `json:"content"`
-}
-
-var notFoundMatter = matter{
-	Title:   "Error",
-	Content: "# 404\n\nNothing found.",
-}
-
-var catchAllLoader hwy.Loader = func(props *hwy.LoaderProps) (any, error) {
-	normalizedPath := filepath.Clean(strings.Join(*props.SplatSegments, "/"))
-	if normalizedPath == "." {
-		normalizedPath = "README"
-	}
-	var item *matter
-	if cached, ok := c.Get(normalizedPath); ok {
-		item = cached.(*matter)
-		return item, nil
-	}
-	filePath := "markdown/" + normalizedPath + ".md"
-	FS, err := root.Kiruna.GetPrivateFS()
-	if err != nil {
-		return nil, err
-	}
-	fileBytes, err := FS.ReadFile(filePath)
-	if err != nil {
-		c.Set(normalizedPath, &notFoundMatter, true)
-		return &notFoundMatter, nil
-	}
-	var fm matter
-	rest, err := frontmatter.Parse(bytes.NewReader(fileBytes), &fm)
-	if err != nil {
-		c.Set(normalizedPath, &notFoundMatter, true)
-		return &notFoundMatter, nil
-	}
-	item = &matter{
-		Title:   fm.Title,
-		Content: string(blackfriday.Run(rest)),
-	}
-	c.Set(normalizedPath, item, false)
-	return item, nil
-}
-
-var catchAllHead hwy.Head = func(props *hwy.HeadProps) (*[]hwy.HeadBlock, error) {
-	title := "Hwy"
-	if props.LoaderData.(*matter).Title != "" {
-		title = "Hwy | " + props.LoaderData.(*matter).Title
-	}
-	return &[]hwy.HeadBlock{{Title: title}}, nil
 }

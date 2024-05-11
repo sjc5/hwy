@@ -1,7 +1,7 @@
 package build
 
 import (
-	"hwy-docs/internal/router"
+	"hwy-docs/internal/datafuncsmap"
 
 	hwy "github.com/sjc5/hwy-go"
 )
@@ -16,7 +16,7 @@ func getHwyBuildOptions(isDev bool) hwy.BuildOptions {
 		ClientEntryOut:    "static/public",
 		UsePreactCompat:   true,
 		GeneratedTSOutDir: "__generated_ts_api",
-		DataFuncsMap:      router.DataFuncsMap,
+		DataFuncsMap:      datafuncsmap.DataFuncsMap,
 	}
 }
 
