@@ -9,11 +9,11 @@ importers:
   .:
     devDependencies:
       '@hwy-js/client':
-        specifier: ^0.14.1
-        version: 0.14.1
+        specifier: ^0.14.2
+        version: 0.14.2
       '@hwy-js/react':
-        specifier: ^0.14.1
-        version: 0.14.1
+        specifier: ^0.14.2
+        version: 0.14.2
       '@types/nprogress':
         specifier: ^0.2.3
         version: 0.2.3
@@ -42,11 +42,11 @@ packages:
     resolution: {integrity: sha512-Nms86NXrsaeU9vbBJKni6gXiEXZ4CVpYVzEjDH9Sb8vmZ3UljyA1GSOJl/6LGPO8EHLuSF9H+IxNXHPX8QHJ4g==}
     engines: {node: '>=6.9.0'}
 
-  '@hwy-js/client@0.14.1':
-    resolution: {integrity: sha512-1F2/ZC9DpzoBJ30ckijICHyU8Mt3dtZQalCBhBmgVH3dsj8ufs6yCOUcpT6YachvWefZTh1qow8v3VQlwNv0yw==}
+  '@hwy-js/client@0.14.2':
+    resolution: {integrity: sha512-FVIj4E9T0EA325j3rBB4jm7jbcMjlHyMhRFb0YBkt/bnKxELJp15uLWDvbmzD4vCt1R6vixZTxrBE3jFe+6EYw==}
 
-  '@hwy-js/react@0.14.1':
-    resolution: {integrity: sha512-EmgqBGMs3f/ZjlozoJcP6DuxHeGSgHwD3Ij8JEN8FW1/C8DMCYMpR0RPQVqUsBjsMBGtA8GOOvAGY/uBmOgfQQ==}
+  '@hwy-js/react@0.14.2':
+    resolution: {integrity: sha512-2pw3eikiD8D/pubNVlYYEYap87TziUh8tGcorPem/FOuVd6KhqzEobJ+qLPQpiysc7UBx24Gf+KlgZBNulnL4g==}
 
   '@types/nprogress@0.2.3':
     resolution: {integrity: sha512-k7kRA033QNtC+gLc4VPlfnue58CM1iQLgn1IMAU8VPHGOj7oIHPp9UlhedEnD/Gl8evoCjwkZjlBORtZ3JByUA==}
@@ -103,11 +103,11 @@ snapshots:
     dependencies:
       regenerator-runtime: 0.14.1
 
-  '@hwy-js/client@0.14.1':
+  '@hwy-js/client@0.14.2':
     dependencies:
       history: 5.3.0
 
-  '@hwy-js/react@0.14.1': {}
+  '@hwy-js/react@0.14.2': {}
 
   '@types/nprogress@0.2.3': {}
 

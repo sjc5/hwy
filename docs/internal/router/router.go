@@ -50,6 +50,36 @@ var c = hwy.NewLRUCache(1000)
 
 var count = 0
 
+var DataFuncsMap = hwy.DataFuncsMap{
+	"/login": {
+		LoaderOutput: struct {
+			Bob int
+		}{},
+		Loader: func(props *hwy.LoaderProps) (any, error) {
+			return struct {
+				Bob int
+			}{
+				Bob: count,
+			}, nil
+		},
+		Action: func(props *hwy.ActionProps) (any, error) {
+			count++
+			return nil, errors.New("Redirect")
+			// return "bob", nil
+		},
+	},
+	"/$": {
+		Loader: catchAllLoader,
+		Head:   catchAllHead,
+		HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set(
+				"Cache-Control",
+				"public, max-age=60, stale-while-revalidate=3600",
+			)
+		},
+	},
+}
+
 func init() {
 	privateFS, err := root.Kiruna.GetPrivateFS()
 	if err != nil {
@@ -64,35 +94,12 @@ func init() {
 			"Kiruna":         root.Kiruna,
 			"ClientEntryURL": clientEntryURL,
 		},
-		DataFuncsMap: hwy.DataFuncsMap{
-			"/login": {
-				Loader: func(props *hwy.LoaderProps) (any, error) {
-					return count, nil
-				},
-				Action: func(props *hwy.ActionProps) (any, error) {
-					count++
-					return nil, errors.New("Redirect")
-					// return "bob", nil
-				},
-			},
-			"/$": {
-				Loader: catchAllLoader,
-				Head:   catchAllHead,
-				HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
-					w.Header().Set(
-						"Cache-Control",
-						"public, max-age=60, stale-while-revalidate=3600",
-					)
-				},
-			},
-		},
+		DataFuncsMap: DataFuncsMap,
 	}
 	err = Hwy.Initialize()
 	if err != nil {
 		fmt.Println(err)
 		panic("Error initializing Hwy")
-	} else {
-		fmt.Println("Hwy initialized")
 	}
 }
 
