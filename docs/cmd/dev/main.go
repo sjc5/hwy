@@ -11,19 +11,41 @@ import (
 )
 
 func main() {
-	build.RunHwyBuild(true)
+	err := build.GenerateTS(true)
+	if err != nil {
+		panic(err)
+	}
 
-	DevConfig := kiruna.DevConfig{
+	err = build.RunHwyBuild(true)
+	if err != nil {
+		panic(err)
+	}
+
+	root.Kiruna.MustStartDev(&kiruna.DevConfig{
 		HealthcheckURL: fmt.Sprintf("http://localhost:%d/healthz", platform.GetEnv().Port),
-		IgnoreDirs:     []string{"node_modules", ".git"},
+		IgnoreDirs: []string{
+			"dist",
+			"node_modules",
+			".git",
+			"__generated_ts_api",
+		},
 		WatchedFiles: kiruna.WatchedFiles{
+			".go":      goWatchedFile,
 			".ts":      tsWatchedFile,
 			".tsx":     tsWatchedFile,
-			".go.html": {},
 			".md":      {RestartApp: true},
+			".go.html": {},
 		},
-	}
-	root.Kiruna.MustStartDev(&DevConfig)
+	})
+}
+
+var goWatchedFile = kiruna.WatchedFile{
+	OnChangeCallbacks: []kiruna.OnChange{{
+		Func: func(s string) error {
+			return build.GenerateTS(true)
+		},
+		Strategy: kiruna.OnChangeStrategyConcurrent,
+	}},
 }
 
 var tsWatchedFile = kiruna.WatchedFile{

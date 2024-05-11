@@ -1,9 +1,16 @@
 import { submit } from "@hwy-js/client";
 import { UIProps } from "@hwy-js/react";
+import { QueryAPIOutput } from "~/__generated_ts_api/api-types";
 
 const thisRoute = "/login";
 
-export default function ({ loaderData, actionData }: UIProps<never, any>) {
+export default function ({
+  loaderData,
+  actionData,
+}: {
+  loaderData: QueryAPIOutput<"/login">;
+  actionData: any;
+}) {
   const colStyles = {
     display: "flex",
     flexDirection: "column",
@@ -21,6 +28,7 @@ export default function ({ loaderData, actionData }: UIProps<never, any>) {
       <h1 style={{ fontSize: "1.5rem" }}>Login</h1>
 
       {JSON.stringify(loaderData)}
+      {loaderData?.Bob}
 
       <p>
         <b>NOTE:</b> This is a fake login form. It does not log you into

@@ -50,25 +50,35 @@ export async function reRenderApp({
     return undefined;
   });
   const awaitedComps = await Promise.all(components);
-  const awaitedDefaults = awaitedComps.map((x) => (x ? x.default : undefined));
+  const awaitedDefaults = awaitedComps.map((x) => x?.default);
+  const awaitedErrorBoundaries = awaitedComps.map((x) => x?.ErrorBoundary);
 
   // placeholder list based on old list
   let newActiveComps = hwyClientGlobal.get("activeComponents");
+  let newActiveErrorBoundaries = hwyClientGlobal.get("activeErrorBoundaries");
 
   // replace stale components with new ones where applicable
   for (let i = 0; i < awaitedDefaults.length; i++) {
     if (awaitedDefaults[i]) {
       newActiveComps[i] = awaitedDefaults[i];
     }
+    if (awaitedErrorBoundaries[i]) {
+      newActiveErrorBoundaries[i] = awaitedErrorBoundaries[i];
+    }
   }
 
   // delete any remaining stale components
   if (oldList.length > newList.length) {
     newActiveComps = newActiveComps.slice(0, newList.length);
+    newActiveErrorBoundaries = newActiveErrorBoundaries.slice(
+      0,
+      newList.length,
+    );
   }
 
   // NOW ACTUALLY SET EVERYTHING
   hwyClientGlobal.set("activeComponents", newActiveComps);
+  hwyClientGlobal.set("activeErrorBoundaries", newActiveErrorBoundaries);
 
   const identicalKeysToSet = [
     "loadersData",

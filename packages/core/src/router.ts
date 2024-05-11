@@ -1281,10 +1281,10 @@ function getDevRefreshScript(timeoutInMs = 150) {
     return "";
   }
   return `
-	const scrollKey = "${HWY_PREFIX}devScrollY";
-	const scrollY = localStorage.getItem(scrollKey);
+	const scrollYKey = "${HWY_PREFIX}devScrollY";
+	const scrollY = localStorage.getItem(scrollYKey);
 	if (scrollY) {
-		localStorage.removeItem(scrollKey);
+		localStorage.removeItem(scrollYKey);
 		setTimeout(() => window.scrollTo({ top: scrollY, behavior: "smooth" }), 0);
 	}
   const es = new EventSource("http://localhost:${hwyGlobal.get("devRefreshPort")}${LIVE_REFRESH_SSE_PATH}");

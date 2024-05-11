@@ -2,3 +2,4 @@
 static/private/hwy_paths.json
 static/public/__nohash
 static/public/hwy_client_entry.js
+__generated*
