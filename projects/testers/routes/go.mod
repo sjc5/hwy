@@ -4,12 +4,12 @@ go 1.22.0
 
 replace github.com/sjc5/hwy => ../../../
 
-replace github.com/sjc5/kiruna => ../../../../kiruna
+// replace github.com/sjc5/kiruna => ../../../../kiruna
 
 require (
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/sjc5/hwy v0.0.6
-	github.com/sjc5/kiruna v0.0.21
+	github.com/sjc5/kiruna v0.0.1
 )
 
 require (
