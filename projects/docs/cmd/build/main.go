@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"hwy-docs/internal/build"
 	"hwy-docs/internal/platform"
 )
 
 func main() {
+	fmt.Println("Building...")
+
 	// Generate TS
 	err := build.GenerateTypeScript(false)
 	if err != nil {
