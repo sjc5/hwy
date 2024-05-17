@@ -2,7 +2,7 @@ module hwy-docs
 
 go 1.22.0
 
-replace github.com/sjc5/hwy => ../../
+// replace github.com/sjc5/hwy => ../../
 
 // replace github.com/sjc5/kit => ../../go-kit
 

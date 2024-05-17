@@ -5,3 +5,4 @@ dist
 .env.local
 examples/*/package-lock.json
 tmp
+__logs
