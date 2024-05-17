@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "@hwy-js/client": "workspace:*",
+    "@hwy-js/react": "workspace:*",
+    "@types/react": "^18.2.69",
+    "@types/react-dom": "^18.2.22",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.4.3"
+  }
+}
