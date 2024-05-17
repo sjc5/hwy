@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
+	"hwy-go-tester/internal/platform"
 	"os"
-
-	root "hwy-go-tester"
 
 	"github.com/sjc5/hwy"
 	"github.com/sjc5/kiruna"
@@ -22,7 +21,7 @@ func main() {
 			{Pattern: "**/*.go.html"},
 		},
 	}
-	root.Kiruna.MustStartDev(&DevConfig)
+	platform.Kiruna.MustStartDev(&DevConfig)
 }
 
 var tsWatchedFile = kiruna.WatchedFile{

@@ -4,18 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"hwy-go-tester/internal/platform"
 	"net/http"
 	"time"
-
-	root "hwy-go-tester"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/sjc5/hwy"
 	"github.com/sjc5/kiruna"
 )
 
-var faviconURL = root.Kiruna.GetPublicURL("favicon.webp")
-var clientEntryURL = root.Kiruna.GetPublicURL("hwy_client_entry.js")
+var faviconURL = platform.Kiruna.GetPublicURL("favicon.webp")
+var clientEntryURL = platform.Kiruna.GetPublicURL("hwy_client_entry.js")
 
 var Hwy = hwy.Hwy{}
 
@@ -67,7 +66,7 @@ func init() {
 		},
 	}
 
-	privateFS, err := root.Kiruna.GetPrivateFS()
+	privateFS, err := platform.Kiruna.GetPrivateFS()
 	if err != nil {
 		panic(fmt.Sprintf("Error loading private FS: %v", err))
 	}
@@ -77,7 +76,7 @@ func init() {
 		FS:                   privateFS,
 		RootTemplateLocation: "templates/index.go.html",
 		RootTemplateData: map[string]any{
-			"Kiruna":         root.Kiruna,
+			"Kiruna":         platform.Kiruna,
 			"ClientEntryURL": clientEntryURL,
 		},
 		DataFuncsMap: dataFuncs,
@@ -99,7 +98,7 @@ func Init() *chi.Mux {
 
 	r := chi.NewRouter()
 
-	r.Handle("/public/*", root.Kiruna.GetServeStaticHandler("/public/", true))
+	r.Handle("/public/*", platform.Kiruna.GetServeStaticHandler("/public/", true))
 
 	r.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Handling request")
@@ -136,7 +135,7 @@ func Init() *chi.Mux {
 
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 
-		FS, err := root.Kiruna.GetPrivateFS()
+		FS, err := platform.Kiruna.GetPrivateFS()
 		if err != nil {
 			fmt.Println(err)
 			http.Error(w, "Error loading private FS", http.StatusInternalServerError)
@@ -176,7 +175,7 @@ func Init() *chi.Mux {
 			HeadElements   *template.HTML
 			SSRInnerHTML   *template.HTML
 		}{
-			Kiruna:         root.Kiruna,
+			Kiruna:         platform.Kiruna,
 			FaviconURL:     faviconURL,
 			ClientEntryURL: clientEntryURL,
 			HeadElements:   headElements,

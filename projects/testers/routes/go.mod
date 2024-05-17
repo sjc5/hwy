@@ -9,7 +9,7 @@ replace github.com/sjc5/hwy => ../../../
 require (
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/sjc5/hwy v0.0.6
-	github.com/sjc5/kiruna v0.0.1
+	github.com/sjc5/kiruna v0.0.25
 )
 
 require (

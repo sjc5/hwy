@@ -3,6 +3,6 @@ dist
 .DS_Store
 .env
 .env.local
-examples/*/package-lock.json
+projects/examples/**/package-lock.json
 tmp
 __logs
