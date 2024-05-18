@@ -1,0 +1,38 @@
+{
+  "name": "create-hwy",
+  "version": "0.15.0-pre.0",
+  "author": {
+    "name": "Samuel J. Cook"
+  },
+  "description": "New project generator for Hwy framework",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsup-node index.ts --format esm",
+    "lint": "tsc",
+    "create-hwy": "pnpm run build && node dist/index.js",
+    "publish-pre": "npm publish --tag pre",
+    "publish-non-pre": "npm publish",
+    "update-latest": "pnpm update --latest",
+    "typecheck": "tsc --noEmit"
+  },
+  "bin": {
+    "create-hwy": "./scripts/create_hwy.js"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "giget": "^1.2.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sjc5/hwy",
+    "directory": "packages/create-hwy"
+  },
+  "homepage": "https://hwy.dev",
+  "bugs": "https://github.com/sjc5/hwy/issues"
+}
