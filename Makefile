@@ -16,7 +16,7 @@ docs-dev:
 	&& touch dist/kiruna/x \
 	&& go run ./cmd/dev
 
-docs-install-js:
+docs-install:
 	@cd projects/docs \
 	&& pnpm i
 
