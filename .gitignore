@@ -4,5 +4,5 @@ dist
 .env
 .env.local
 projects/examples/**/package-lock.json
-tmp
+**/*/tmp
 __logs

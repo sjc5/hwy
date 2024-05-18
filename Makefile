@@ -1,11 +1,11 @@
 # --- TESTS ---
 
 test-go:
-	@go test -v ./internal/...
+	@cd packages/go/router && go test
 
 # --- PUBLISHING GO ---
 
-publish-go:
+publish-go: test-go
 	@./scripts/go/bumper.sh
 
 # --- PROJECTS ---

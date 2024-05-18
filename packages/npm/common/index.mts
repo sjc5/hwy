@@ -8,7 +8,7 @@ export interface AdHocData extends Record<string, any> {}
 type HwyClientGlobal = {
   loadersData: Array<any>;
   importURLs: Array<string>;
-  outermostErrorBoundaryIndex: number;
+  outermostErrorIndex: number;
   splatSegments: Array<string>;
   params: Record<string, string>;
   actionData: any;
@@ -50,7 +50,7 @@ export type GetRouteDataOutput = {
   restHeadBlocks: Array<OtherHeadBlock>;
   loadersData: Array<any>;
   importURLs: Array<string>;
-  outermostErrorBoundaryIndex: number;
+  outermostErrorIndex: number;
   splatSegments: Array<string>;
   params: Record<string, string>;
   actionData: Array<any>;
