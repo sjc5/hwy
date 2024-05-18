@@ -2,11 +2,18 @@ package router
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
+	"sync"
 	"testing"
+	"time"
 )
 
 type expectedOutput struct {
@@ -24,13 +31,13 @@ type testPath struct {
 	}
 }
 
+var testHwyInstance Hwy
+
 func init() {
 	setup()
 }
 
 func TestRouter(t *testing.T) {
-	defer clean()
-
 	// TEST "getMatchingPathData"
 	for _, path := range testPaths {
 		matchingPathData := testGetMatchingPathData(path.Path)
@@ -301,7 +308,7 @@ func testGetMatchingPathData(path string) *ActivePathData {
 	r.URL = &url.URL{}
 	r.URL.Path = path
 	r.Method = "GET"
-	return getMatchingPathData(nil, &r)
+	return testHwyInstance.getMatchingPathData(nil, &r)
 }
 
 func setup() {
@@ -319,8 +326,37 @@ func setup() {
 	}
 	Log.Infof("created temporary fixtures for testing")
 
+	// Write the root template to the temporary directory
+	templateDir := "../tmp/fixtures/templates"
+	err := os.MkdirAll(templateDir, 0755)
+	if err != nil {
+		panic(err)
+	}
+	templateContent := `
+		<!DOCTYPE html>
+		<html lang="en">
+			<head>
+				<meta charset="utf-8" />
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				{{.HeadElements}} {{.SSRInnerHTML}}
+			</head>
+			<body>
+				<div id="root"></div>
+			</body>
+		</html>
+	`
+	err = os.WriteFile(filepath.Join(templateDir, "root.html"), []byte(templateContent), 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	testHwyInstance = Hwy{
+		FS:                   os.DirFS("../tmp/fixtures"),
+		RootTemplateLocation: "templates/root.html",
+	}
+
 	// Run the Hwy build
-	err := Build(BuildOptions{
+	err = Build(BuildOptions{
 		PagesSrcDir:    "../tmp/fixtures/pages",
 		HashedOutDir:   "../tmp/out",
 		UnhashedOutDir: "../tmp/out",
@@ -355,7 +391,304 @@ func setup() {
 			Deps:     jsonSafePath.Deps,
 		})
 	}
-	instancePaths = &paths
+	testHwyInstance.paths = paths
+}
 
-	// Off to the races!
+func TestGetMatchingPathDataConcurrency(t *testing.T) {
+	// Simulate long-running and error-prone loaders
+	loader1 := func(props *LoaderProps) (any, error) {
+		time.Sleep(100 * time.Millisecond)
+		return "loader1 result", nil
+	}
+
+	loader2 := func(props *LoaderProps) (any, error) {
+		time.Sleep(100 * time.Millisecond)
+		Log.Infof("Below say ERROR: loader2 error:")
+		return nil, errors.New("loader2 error")
+	}
+
+	// Define test paths with these loaders
+	testHwyInstance.paths = []Path{
+		{Pattern: "/test1", DataFuncs: &DataFuncs{Loader: loader1}, Segments: &[]string{""}},
+		{Pattern: "/test2", DataFuncs: &DataFuncs{Loader: loader2}, Segments: &[]string{""}},
+	}
+
+	// Create a WaitGroup to manage concurrency
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// Define test function to run in goroutines
+	testFunc := func(path string, expectedLoaderData any, expectedError bool) {
+		defer wg.Done()
+		r := http.Request{URL: &url.URL{Path: path}, Method: "GET"}
+		data := testHwyInstance.getMatchingPathData(nil, &r)
+
+		// Validate the output
+		if expectedError {
+			if len(*data.LoadersData) != 0 {
+				t.Errorf("Expected 0 loader data due to error, but got %d", len(*data.LoadersData))
+			}
+			if data.OutermostErrorIndex == -1 {
+				t.Error("Expected error boundary index to be set, but it was -1")
+			}
+		} else {
+			if len(*data.LoadersData) != 1 {
+				t.Errorf("Expected 1 loader data, but got %d", len(*data.LoadersData))
+			}
+			if (*data.LoadersData)[0] != expectedLoaderData {
+				t.Errorf("Expected loader data %v, but got %v", expectedLoaderData, (*data.LoadersData)[0])
+			}
+			if data.OutermostErrorIndex != -1 {
+				t.Errorf("Expected error boundary index to be -1, but got %d", data.OutermostErrorIndex)
+			}
+		}
+
+		if len(*data.MatchingPaths) != 1 {
+			t.Errorf("Expected 1 matching path, but got %d", len(*data.MatchingPaths))
+		}
+	}
+
+	// Run test functions concurrently
+	go testFunc("/test1", "loader1 result", false)
+	go testFunc("/test2", nil, true)
+
+	// Wait for all goroutines to finish
+	wg.Wait()
+}
+
+func TestGetHeadElements(t *testing.T) {
+	routeData := &GetRouteDataOutput{
+		Title: "Test Title",
+		MetaHeadBlocks: &[]*HeadBlock{
+			{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Test Description"}},
+		},
+		RestHeadBlocks: &[]*HeadBlock{
+			{Tag: "link", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+		},
+	}
+
+	headElements, err := GetHeadElements(routeData)
+	if err != nil {
+		t.Errorf("Expected no error, but got %v", err)
+	}
+	if !strings.Contains(string(*headElements), "<title>Test Title</title>") {
+		t.Errorf("Expected title tag, but it's missing")
+	}
+	if !strings.Contains(string(*headElements), `name="description"`) || !strings.Contains(string(*headElements), `content="Test Description"`) {
+		t.Errorf("Expected meta description tag, but it's missing")
+	}
+	if !strings.Contains(string(*headElements), `rel="stylesheet"`) || !strings.Contains(string(*headElements), `href="/style.css"`) {
+		t.Errorf("Expected link tag, but it's missing")
+	}
+}
+
+func TestGetSSRInnerHTML(t *testing.T) {
+	routeData := &GetRouteDataOutput{
+		BuildID: "test-build-id",
+	}
+
+	ssrInnerHTML, err := GetSSRInnerHTML(routeData, true)
+	if err != nil {
+		t.Errorf("Expected no error, but got %v", err)
+	}
+	if !strings.Contains(string(*ssrInnerHTML), "test-build-id") {
+		t.Errorf("Expected build ID in SSR inner HTML, but it's missing")
+	}
+}
+
+func TestGetRootHandler(t *testing.T) {
+	defer clean()
+
+	// Initialize the handler
+	handler := testHwyInstance.GetRootHandler()
+
+	// Create a response recorder and request
+	rr := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+
+	// Serve the request
+	handler.ServeHTTP(rr, req)
+
+	// Check the response status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Handler returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+
+	// Check the response body for expected content
+	expected := "<title>"
+	if !strings.Contains(rr.Body.String(), expected) {
+		t.Errorf("Handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
+	}
+}
+
+// Test cases for dedupeHeadBlocks
+func TestDedupeHeadBlocks(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []HeadBlock
+		expected []*HeadBlock
+	}{
+		{
+			name: "No duplicates, with title and description",
+			input: []HeadBlock{
+				{Tag: "", Title: "Hwy", Attributes: nil},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "og:image", "content": "create-hwy-snippet.webp"}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "", Title: "Hwy", Attributes: nil},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "og:image", "content": "create-hwy-snippet.webp"}},
+			},
+		},
+		{
+			name: "With duplicates",
+			input: []HeadBlock{
+				{Tag: "", Title: "Hwy", Attributes: nil},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "", Title: "Hwy", Attributes: nil},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+			},
+		},
+		{
+			name: "No title or description",
+			input: []HeadBlock{
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "keywords", "content": "go, test"}},
+				{Tag: "link", Title: "", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "keywords", "content": "go, test"}},
+				{Tag: "link", Title: "", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+			},
+		},
+		{
+			name: "Multiple titles and descriptions",
+			input: []HeadBlock{
+				{Tag: "", Title: "Hwy 1", Attributes: nil},
+				{Tag: "", Title: "Hwy 2", Attributes: nil},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Description 1"}},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Description 2"}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "", Title: "Hwy 2", Attributes: nil},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Description 2"}},
+			},
+		},
+		{
+			name: "Different tags with same attributes",
+			input: []HeadBlock{
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
+				{Tag: "link", Title: "", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
+				{Tag: "link", Title: "", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := dedupeHeadBlocks(&tt.input)
+			if !reflect.DeepEqual(*result, tt.expected) {
+				fmt.Println("Result:")
+				for _, block := range *result {
+					t.Logf("%+v", block)
+				}
+
+				fmt.Println("Expected:")
+				for _, block := range tt.expected {
+					t.Logf("%+v", block)
+				}
+
+				t.Errorf("dedupeHeadBlocks() = %v, expected %v", *result, tt.expected)
+			}
+		})
+	}
+}
+
+// Ensure stableHash function produces consistent hashes
+func TestStableHash(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    HeadBlock
+		expected string
+	}{
+		{
+			name:     "Simple meta tag",
+			input:    HeadBlock{Tag: "meta", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
+			expected: "meta|content=width=device-width, initial-scale=1&name=viewport",
+		},
+		{
+			name:     "Title tag",
+			input:    HeadBlock{Tag: "title", Title: "Test Title", Attributes: nil},
+			expected: "title|",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := stableHash(&tt.input)
+			if result != tt.expected {
+				t.Errorf("stableHash() = %v, expected %v", result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestDedupeHeadBlocksEdgeCases(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []HeadBlock
+		expected []*HeadBlock
+	}{
+		{
+			name: "Same tag different attributes",
+			input: []HeadBlock{
+				{Tag: "meta", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
+				{Tag: "meta", Attributes: map[string]string{"name": "charset", "content": "UTF-8"}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "meta", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
+				{Tag: "meta", Attributes: map[string]string{"name": "charset", "content": "UTF-8"}},
+			},
+		},
+		{
+			name: "Script and link tags",
+			input: []HeadBlock{
+				{Tag: "script", Attributes: map[string]string{"src": "/script.js"}},
+				{Tag: "link", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "script", Attributes: map[string]string{"src": "/script.js"}},
+				{Tag: "link", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := dedupeHeadBlocks(&tt.input)
+			if !reflect.DeepEqual(*result, tt.expected) {
+				fmt.Println("Result:")
+				for _, block := range *result {
+					t.Logf("%+v", block)
+				}
+
+				fmt.Println("Expected:")
+				for _, block := range tt.expected {
+					t.Logf("%+v", block)
+				}
+
+				t.Errorf("dedupeHeadBlocks() = %v, expected %v", *result, tt.expected)
+			}
+		})
+	}
 }

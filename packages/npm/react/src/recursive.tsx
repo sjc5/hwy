@@ -55,14 +55,8 @@ export function RootOutlet(props: BaseProps): JSX.Element {
     return <></>;
   }
 
-  const thisIsAnErrorBoundary = ctx.get("outermostErrorBoundaryIndex") === idx;
-  const nextOutletIsAnErrorBoundary =
-    ctx.get("outermostErrorBoundaryIndex") === idx + 1;
-  const shouldRenderEB =
-    thisIsAnErrorBoundary || ctx.get("outermostErrorBoundaryIndex") === -1;
-
   try {
-    if (shouldRenderEB) {
+    if (ctx.get("outermostErrorIndex") === idx) {
       const EB = useMemo(
         () =>
           (ctx.get("activeErrorBoundaries") as any)?.[idx] ??
@@ -84,8 +78,11 @@ export function RootOutlet(props: BaseProps): JSX.Element {
         );
       }
 
-      return EB;
+      return <EB />;
     }
+
+    const nextOutletIsAnErrorBoundary =
+      ctx.get("outermostErrorIndex") === idx + 1;
 
     const Outlet = useMemo(() => {
       let Outlet;

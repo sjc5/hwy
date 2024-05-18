@@ -1,43 +1,52 @@
+const markerCache: Record<
+  string,
+  { startComment: Comment | null; endComment: Comment | null }
+> = {};
+
 function removeAllBetween(type: "meta" | "rest") {
-  const { startElement, endElement } = getStartAndEndElements(type);
-  if (!startElement || !endElement) {
+  const { startComment, endComment } = getStartAndEndComments(type);
+  if (!startComment || !endComment) {
     return;
   }
 
-  let currentElement = startElement.nextSibling as HTMLElement | null;
+  let currentNode = startComment.nextSibling as Node | null;
 
-  while (currentElement && currentElement !== endElement) {
-    const nextElement = currentElement.nextSibling;
-    currentElement.remove();
-    currentElement = nextElement as HTMLElement | null;
+  while (currentNode && currentNode !== endComment) {
+    const nextNode = currentNode.nextSibling;
+    currentNode.parentNode?.removeChild(currentNode);
+    currentNode = nextNode;
   }
 }
 
 function addBlocks(type: "meta" | "rest", blocks: Array<any>) {
-  const { startElement, endElement } = getStartAndEndElements(type);
-  if (!startElement || !endElement) {
+  const { startComment, endComment } = getStartAndEndComments(type);
+  if (!startComment || !endComment) {
     return;
   }
 
+  const fragment = document.createDocumentFragment();
+
   for (const block of blocks) {
-    let newElement: HTMLElement | null = null;
+    let newEl: HTMLElement | null = null;
 
     if (block.title) {
-      newElement = document.createElement("title");
-      newElement.textContent = block.title;
+      newEl = document.createElement("title");
+      newEl.textContent = block.title;
     } else if (block.tag) {
-      newElement = document.createElement(block.tag);
-      if (block.attributes) {
+      newEl = document.createElement(block.tag);
+      if (newEl && block.attributes) {
         for (const key of Object.keys(block.attributes)) {
-          (newElement as HTMLElement).setAttribute(key, block.attributes[key]);
+          newEl.setAttribute(key, block.attributes[key]);
         }
       }
     }
 
-    if (newElement) {
-      document.head.insertBefore(newElement, endElement);
+    if (newEl) {
+      fragment.appendChild(newEl);
     }
   }
+
+  endComment.parentNode?.insertBefore(fragment, endComment);
 }
 
 export const head = {
@@ -45,10 +54,27 @@ export const head = {
   removeAllBetween,
 } as const;
 
-function getStartAndEndElements(type: "meta" | "rest") {
-  const startElement = document.head.querySelector(
-    `[data-hwy="${type}-start"]`,
+function getStartAndEndComments(type: "meta" | "rest") {
+  if (!markerCache[type]) {
+    markerCache[type] = {
+      startComment: findComment(`data-hwy="${type}-start"`),
+      endComment: findComment(`data-hwy="${type}-end"`),
+    };
+  }
+  return markerCache[type];
+}
+
+function findComment(matchingText: string) {
+  const iterator = document.createNodeIterator(
+    document.head,
+    NodeFilter.SHOW_COMMENT,
+    {
+      acceptNode(node: Comment) {
+        return node.nodeValue?.trim() === matchingText
+          ? NodeFilter.FILTER_ACCEPT
+          : NodeFilter.FILTER_REJECT;
+      },
+    },
   );
-  const endElement = document.head.querySelector(`[data-hwy="${type}-end"]`);
-  return { startElement, endElement };
+  return iterator.nextNode() as Comment | null;
 }

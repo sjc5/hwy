@@ -18,11 +18,13 @@ type SegmentObj struct {
 	Segment     string
 }
 
-var PathTypeUltimateCatch = "ultimate-catch"
-var PathTypeIndex = "index"
-var PathTypeStaticLayout = "static-layout"
-var PathTypeDynamicLayout = "dynamic-layout"
-var PathTypeNonUltimateSplat = "non-ultimate-splat"
+const (
+	PathTypeUltimateCatch    = "ultimate-catch"
+	PathTypeIndex            = "index"
+	PathTypeStaticLayout     = "static-layout"
+	PathTypeDynamicLayout    = "dynamic-layout"
+	PathTypeNonUltimateSplat = "non-ultimate-splat"
+)
 
 type Path struct {
 	Pattern   string     `json:"pattern"`
@@ -87,15 +89,15 @@ type DataFuncs struct {
 }
 
 type ActivePathData struct {
-	MatchingPaths               *[]*DecoratedPath
-	LoadersData                 *[]any
-	ImportURLs                  *[]string
-	OutermostErrorBoundaryIndex int
-	ActionData                  *[]any
-	ActiveHeads                 *[]Head
-	SplatSegments               *[]string
-	Params                      *map[string]string
-	Deps                        *[]string
+	MatchingPaths       *[]*DecoratedPath
+	LoadersData         *[]any
+	ImportURLs          *[]string
+	OutermostErrorIndex int
+	ActionData          *[]any
+	ActiveHeads         *[]Head
+	SplatSegments       *[]string
+	Params              *map[string]string
+	Deps                *[]string
 }
 
 type matcherOutput struct {
@@ -138,23 +140,19 @@ type gmpdItem struct {
 }
 
 type GetRouteDataOutput struct {
-	Title                       string             `json:"title"`
-	MetaHeadBlocks              *[]*HeadBlock      `json:"metaHeadBlocks"`
-	RestHeadBlocks              *[]*HeadBlock      `json:"restHeadBlocks"`
-	LoadersData                 *[]any             `json:"loadersData"`
-	ImportURLs                  *[]string          `json:"importURLs"`
-	OutermostErrorBoundaryIndex int                `json:"outermostErrorBoundaryIndex"`
-	SplatSegments               *[]string          `json:"splatSegments"`
-	Params                      *map[string]string `json:"params"`
-	ActionData                  *[]any             `json:"actionData"`
-	AdHocData                   *map[string]*any   `json:"adHocData"`
-	BuildID                     string             `json:"buildID"`
-	Deps                        *[]string          `json:"deps"`
+	Title               string             `json:"title"`
+	MetaHeadBlocks      *[]*HeadBlock      `json:"metaHeadBlocks"`
+	RestHeadBlocks      *[]*HeadBlock      `json:"restHeadBlocks"`
+	LoadersData         *[]any             `json:"loadersData"`
+	ImportURLs          *[]string          `json:"importURLs"`
+	OutermostErrorIndex int                `json:"outermostErrorIndex"`
+	SplatSegments       *[]string          `json:"splatSegments"`
+	Params              *map[string]string `json:"params"`
+	ActionData          *[]any             `json:"actionData"`
+	AdHocData           *map[string]*any   `json:"adHocData"`
+	BuildID             string             `json:"buildID"`
+	Deps                *[]string          `json:"deps"`
 }
-
-var instancePaths *[]Path
-var instanceClientEntryDeps *[]string
-var instanceBuildID string
 
 type Hwy struct {
 	DefaultHeadBlocks    []HeadBlock
@@ -162,6 +160,10 @@ type Hwy struct {
 	DataFuncsMap         DataFuncsMap
 	RootTemplateLocation string
 	RootTemplateData     map[string]any
+	paths                []Path
+	clientEntryDeps      []string
+	buildID              string
+	rootTemplate         *template.Template
 }
 
 type SortHeadBlocksOutput struct {
@@ -171,22 +173,22 @@ type SortHeadBlocksOutput struct {
 }
 
 type SSRInnerHTMLInput struct {
-	HwyPrefix                   string
-	IsDev                       bool
-	BuildID                     string
-	LoadersData                 *[]any
-	ImportURLs                  *[]string
-	OutermostErrorBoundaryIndex int
-	SplatSegments               *[]string
-	Params                      *map[string]string
-	ActionData                  *[]any
-	AdHocData                   any
-	Deps                        *[]string
+	HwyPrefix           string
+	IsDev               bool
+	BuildID             string
+	LoadersData         *[]any
+	ImportURLs          *[]string
+	OutermostErrorIndex int
+	SplatSegments       *[]string
+	Params              *map[string]string
+	ActionData          *[]any
+	AdHocData           any
+	Deps                *[]string
 }
 
-func getInitialMatchingPaths(pathToUse string) *[]MatchingPath {
+func (h *Hwy) getInitialMatchingPaths(pathToUse string) *[]MatchingPath {
 	var initialMatchingPaths []MatchingPath
-	for _, path := range *instancePaths {
+	for _, path := range h.paths {
 		matcherOutput := matcher(path.Pattern, pathToUse)
 		if matcherOutput.matches {
 			initialMatchingPaths = append(initialMatchingPaths, MatchingPath{
@@ -565,9 +567,13 @@ func getBaseSplatSegments(realPath string) *[]string {
 	return &splatSegments
 }
 
+var acceptedMethods = map[string]int{
+	"POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0,
+}
+
 var gmpdCache = NewLRUCache(500_000)
 
-func getMatchingPathData(w http.ResponseWriter, r *http.Request) *ActivePathData {
+func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *ActivePathData {
 	realPath := r.URL.Path
 	if realPath != "/" && realPath[len(realPath)-1] == '/' {
 		realPath = realPath[:len(realPath)-1]
@@ -578,7 +584,7 @@ func getMatchingPathData(w http.ResponseWriter, r *http.Request) *ActivePathData
 	if ok {
 		item = cached.(*gmpdItem)
 	} else {
-		initialMatchingPaths := getInitialMatchingPaths(realPath)
+		initialMatchingPaths := h.getInitialMatchingPaths(realPath)
 		splatSegments, matchingPaths := getMatchingPathsInternal(initialMatchingPaths, realPath)
 		importURLs := make([]string, 0, len(*matchingPaths))
 		item.ImportURLs = &importURLs
@@ -592,7 +598,7 @@ func getMatchingPathData(w http.ResponseWriter, r *http.Request) *ActivePathData
 		item.FullyDecoratedMatchingPaths = decoratePaths(matchingPaths)
 		item.SplatSegments = splatSegments
 		item.Params = lastPath.Params
-		deps := GetDeps(matchingPaths)
+		deps := h.getDeps(matchingPaths)
 		item.Deps = &deps
 		isSpam := len(*matchingPaths) == 0
 		gmpdCache.Set(realPath, item, isSpam)
@@ -665,16 +671,6 @@ func getMatchingPathData(w http.ResponseWriter, r *http.Request) *ActivePathData
 		}
 	}
 
-	closestParentErrorBoundaryIndex := -2
-
-	if thereAreErrors && outermostErrorIndex != -1 {
-		closestParentErrorBoundaryIndex = findClosestParentErrorBoundaryIndex(loadersData, outermostErrorIndex)
-
-		if closestParentErrorBoundaryIndex != -1 {
-			closestParentErrorBoundaryIndex = outermostErrorIndex - closestParentErrorBoundaryIndex
-		}
-	}
-
 	var activeHeads []Head
 	for _, path := range *item.FullyDecoratedMatchingPaths {
 		if path.DataFuncs == nil || path.DataFuncs.Head == nil {
@@ -695,7 +691,7 @@ func getMatchingPathData(w http.ResponseWriter, r *http.Request) *ActivePathData
 		activePathData.LoadersData = &locLoadersData
 		locImportURLs := (*item.ImportURLs)[:outermostErrorIndex+1]
 		activePathData.ImportURLs = &locImportURLs
-		activePathData.OutermostErrorBoundaryIndex = closestParentErrorBoundaryIndex
+		activePathData.OutermostErrorIndex = outermostErrorIndex
 		locActionData := make([]any, len(*activePathData.ImportURLs))
 		activePathData.ActionData = &locActionData
 		activePathData.SplatSegments = item.SplatSegments
@@ -707,7 +703,7 @@ func getMatchingPathData(w http.ResponseWriter, r *http.Request) *ActivePathData
 	activePathData.ActiveHeads = &activeHeads
 	activePathData.LoadersData = &loadersData
 	activePathData.ImportURLs = item.ImportURLs
-	activePathData.OutermostErrorBoundaryIndex = closestParentErrorBoundaryIndex
+	activePathData.OutermostErrorIndex = outermostErrorIndex
 	locActionData := make([]any, len(*activePathData.ImportURLs))
 	if len(locActionData) > 0 {
 		locActionData[len(locActionData)-1] = actionData
@@ -719,10 +715,6 @@ func getMatchingPathData(w http.ResponseWriter, r *http.Request) *ActivePathData
 	return &activePathData
 }
 
-var acceptedMethods = map[string]int{
-	"POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0,
-}
-
 func getActionData(action *Action, actionProps *ActionProps) (any, error) {
 	if action == nil {
 		return nil, nil
@@ -731,19 +723,19 @@ func getActionData(action *Action, actionProps *ActionProps) (any, error) {
 	return actionFunc(actionProps)
 }
 
-func findClosestParentErrorBoundaryIndex(activeErrorBoundaries []any, outermostErrorIndex int) int {
-	for i := outermostErrorIndex; i >= 0; i-- {
-		if activeErrorBoundaries[i] != nil {
-			return len(activeErrorBoundaries) - 1 - i
-		}
-	}
-	return -1
-}
+func (h *Hwy) addDataFuncsToPaths() {
+	listOfPatterns := make([]string, 0, len(h.paths))
 
-func (h Hwy) addDataFuncsToPaths() {
-	for i, path := range *instancePaths {
+	for i, path := range h.paths {
 		if dataFuncs, ok := (h.DataFuncsMap)[path.Pattern]; ok {
-			(*instancePaths)[i].DataFuncs = &dataFuncs
+			(h.paths)[i].DataFuncs = &dataFuncs
+		}
+		listOfPatterns = append(listOfPatterns, path.Pattern)
+	}
+
+	for pattern := range h.DataFuncsMap {
+		if !slices.Contains(listOfPatterns, pattern) {
+			Log.Errorf("Warning: no matching path found for pattern %v. Make sure you're writing your patterns correctly and that your client route exists.", pattern)
 		}
 	}
 }
@@ -767,7 +759,7 @@ func getBasePaths(FS fs.FS) (*PathsFile, error) {
 	return &pathsFile, nil
 }
 
-func (h Hwy) Initialize() error {
+func (h *Hwy) Initialize() error {
 	if h.FS == nil {
 		return errors.New("FS is nil")
 	}
@@ -778,14 +770,14 @@ func (h Hwy) Initialize() error {
 		Log.Errorf(errMsg)
 		return errors.New(errMsg)
 	}
-	instanceBuildID = pathsFile.BuildID
+	h.buildID = pathsFile.BuildID
 
-	if instancePaths == nil {
+	if h.paths == nil {
 		ip := make([]Path, 0, len(pathsFile.Paths))
-		instancePaths = &ip
+		h.paths = ip
 	}
 	for _, path := range pathsFile.Paths {
-		*instancePaths = append(*instancePaths, Path{
+		h.paths = append(h.paths, Path{
 			Pattern:  path.Pattern,
 			Segments: path.Segments,
 			PathType: path.PathType,
@@ -796,13 +788,13 @@ func (h Hwy) Initialize() error {
 	}
 
 	h.addDataFuncsToPaths()
-	instanceClientEntryDeps = &pathsFile.ClientEntryDeps
+	h.clientEntryDeps = pathsFile.ClientEntryDeps
 
 	return nil
 }
 
-func (h Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDataOutput, error) {
-	activePathData := getMatchingPathData(w, r)
+func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDataOutput, error) {
+	activePathData := h.getMatchingPathData(w, r)
 
 	headBlocks, err := getExportedHeadBlocks(r, activePathData, &h.DefaultHeadBlocks)
 	if err != nil {
@@ -818,18 +810,18 @@ func (h Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteData
 		sorted.restHeadBlocks = &[]*HeadBlock{}
 	}
 	return &GetRouteDataOutput{
-		Title:                       sorted.title,
-		MetaHeadBlocks:              sorted.metaHeadBlocks,
-		RestHeadBlocks:              sorted.restHeadBlocks,
-		LoadersData:                 activePathData.LoadersData,
-		ImportURLs:                  activePathData.ImportURLs,
-		OutermostErrorBoundaryIndex: activePathData.OutermostErrorBoundaryIndex,
-		SplatSegments:               activePathData.SplatSegments,
-		Params:                      activePathData.Params,
-		ActionData:                  activePathData.ActionData,
-		AdHocData:                   nil, // __TODO
-		BuildID:                     instanceBuildID,
-		Deps:                        activePathData.Deps,
+		Title:               sorted.title,
+		MetaHeadBlocks:      sorted.metaHeadBlocks,
+		RestHeadBlocks:      sorted.restHeadBlocks,
+		LoadersData:         activePathData.LoadersData,
+		ImportURLs:          activePathData.ImportURLs,
+		OutermostErrorIndex: activePathData.OutermostErrorIndex,
+		SplatSegments:       activePathData.SplatSegments,
+		Params:              activePathData.Params,
+		ActionData:          activePathData.ActionData,
+		AdHocData:           nil, // __TODO
+		BuildID:             h.buildID,
+		Deps:                activePathData.Deps,
 	}, nil
 }
 
@@ -861,7 +853,6 @@ func getExportedHeadBlocks(r *http.Request, activePathData *ActivePathData, defa
 // additionally, would make sense to also take an a defaultOverrideHeadBlocks arg at root as well, just like DefaultHeadBlocks
 // ALternatively, could build the concept into each Path level as a new opportunity to set a DefaultHeadBlocks slice, applicable to it and its children
 
-// __TODO test this
 func dedupeHeadBlocks(blocks *[]HeadBlock) *[]*HeadBlock {
 	uniqueBlocks := make(map[string]*HeadBlock)
 	var dedupedBlocks []*HeadBlock
@@ -870,14 +861,14 @@ func dedupeHeadBlocks(blocks *[]HeadBlock) *[]*HeadBlock {
 	descriptionIdx := -1
 
 	for _, block := range *blocks {
-		if title := (block.Title); len(title) > 0 {
+		if len(block.Title) > 0 {
 			if titleIdx == -1 {
 				titleIdx = len(dedupedBlocks)
 				dedupedBlocks = append(dedupedBlocks, &block)
 			} else {
 				dedupedBlocks[titleIdx] = &block
 			}
-		} else if block.Tag == "meta" && (block.Attributes)["name"] == "description" {
+		} else if block.Tag == "meta" && block.Attributes["name"] == "description" {
 			if descriptionIdx == -1 {
 				descriptionIdx = len(dedupedBlocks)
 				dedupedBlocks = append(dedupedBlocks, &block)
@@ -931,13 +922,17 @@ func sortHeadBlocks(blocks *[]*HeadBlock) SortHeadBlocksOutput {
 	return result
 }
 
-var metaStart = HeadBlock{Tag: "meta", Attributes: map[string]string{"data-hwy": "meta-start"}}
-var metaEnd = HeadBlock{Tag: "meta", Attributes: map[string]string{"data-hwy": "meta-end"}}
-var restStart = HeadBlock{Tag: "meta", Attributes: map[string]string{"data-hwy": "rest-start"}}
-var restEnd = HeadBlock{Tag: "meta", Attributes: map[string]string{"data-hwy": "rest-end"}}
+const (
+	metaStart = `<!-- data-hwy="meta-start" -->`
+	metaEnd   = `<!-- data-hwy="meta-end" -->`
+	restStart = `<!-- data-hwy="rest-start" -->`
+	restEnd   = `<!-- data-hwy="rest-end" -->`
+)
 
 func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 	var htmlBuilder strings.Builder
+
+	// Add title
 	titleTmpl, err := template.New("title").Parse(
 		`<title>{{.}}</title>` + "\n",
 	)
@@ -953,18 +948,47 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 		return nil, errors.New(errMsg)
 	}
 
-	var headBlocks = []*HeadBlock{&metaStart}
-	headBlocks = append(headBlocks, append(*routeData.MetaHeadBlocks, &metaEnd)...)
-	headBlocks = append(headBlocks, &restStart)
-	headBlocks = append(headBlocks, append(*routeData.RestHeadBlocks, &restEnd)...)
+	// Add head blocks
+	htmlBuilder.WriteString(metaStart + "\n")
+	for _, block := range *routeData.MetaHeadBlocks {
+		if !slices.Contains(permittedTags, block.Tag) {
+			continue
+		}
+		err := renderBlock(&htmlBuilder, block)
+		if err != nil {
+			errMsg := fmt.Sprintf("could not render meta head block: %v", err)
+			Log.Errorf(errMsg)
+			return nil, errors.New(errMsg)
+		}
+	}
+	htmlBuilder.WriteString(metaEnd + "\n")
 
+	htmlBuilder.WriteString(restStart + "\n")
+	for _, block := range *routeData.RestHeadBlocks {
+		if !slices.Contains(permittedTags, block.Tag) {
+			continue
+		}
+		err := renderBlock(&htmlBuilder, block)
+		if err != nil {
+			errMsg := fmt.Sprintf("could not render rest head block: %v", err)
+			Log.Errorf(errMsg)
+			return nil, errors.New(errMsg)
+		}
+	}
+	htmlBuilder.WriteString(restEnd + "\n")
+
+	final := template.HTML(htmlBuilder.String())
+	return &final, nil
+}
+
+func renderBlock(htmlBuilder *strings.Builder, block *HeadBlock) error {
 	headElsTmpl, err := template.New("headblock").Parse(
 		`{{range $key, $value := .Attributes}}{{$key}}="{{$value}}" {{end}}/>` + "\n",
 	)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not parse head block template: %v", err)
 		Log.Errorf(errMsg)
-		return nil, errors.New(errMsg)
+		return errors.New(errMsg)
 	}
 	scriptBlockTmpl, err := template.New("scriptblock").Parse(
 		`{{range $key, $value := .Attributes}}{{$key}}="{{$value}}" {{end}}></script>` + "\n",
@@ -972,26 +996,20 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 	if err != nil {
 		errMsg := fmt.Sprintf("could not parse script block template: %v", err)
 		Log.Errorf(errMsg)
-		return nil, errors.New(errMsg)
+		return errors.New(errMsg)
 	}
-	for _, block := range headBlocks {
-		if !slices.Contains(permittedTags, block.Tag) {
-			continue
-		}
-		htmlBuilder.WriteString("<" + block.Tag + " ")
-		if block.Tag == "script" {
-			err = scriptBlockTmpl.Execute(&htmlBuilder, block)
-		} else {
-			err = headElsTmpl.Execute(&htmlBuilder, block)
-		}
-		if err != nil {
-			errMsg := fmt.Sprintf("could not execute head block template: %v", err)
-			Log.Errorf(errMsg)
-			return nil, errors.New(errMsg)
-		}
+	htmlBuilder.WriteString("<" + block.Tag + " ")
+	if block.Tag == "script" {
+		err = scriptBlockTmpl.Execute(htmlBuilder, block)
+	} else {
+		err = headElsTmpl.Execute(htmlBuilder, block)
 	}
-	final := template.HTML(htmlBuilder.String())
-	return &final, nil
+	if err != nil {
+		errMsg := fmt.Sprintf("could not execute head block template: %v", err)
+		Log.Errorf(errMsg)
+		return errors.New(errMsg)
+	}
+	return nil
 }
 
 var permittedTags = []string{"meta", "base", "link", "style", "script", "noscript"}
@@ -1006,7 +1024,7 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML,
 	x.buildID = {{.BuildID}};
 	x.loadersData = {{.LoadersData}};
 	x.importURLs = {{.ImportURLs}};
-	x.outermostErrorBoundaryIndex = {{.OutermostErrorBoundaryIndex}};
+	x.outermostErrorIndex = {{.OutermostErrorIndex}};
 	x.splatSegments = {{.SplatSegments}};
 	x.params = {{.Params}};
 	x.actionData = {{.ActionData}};
@@ -1026,17 +1044,17 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML,
 	}
 	var htmlBuilder strings.Builder
 	var dto = SSRInnerHTMLInput{
-		HwyPrefix:                   HwyPrefix,
-		IsDev:                       isDev,
-		BuildID:                     routeData.BuildID,
-		LoadersData:                 routeData.LoadersData,
-		ImportURLs:                  routeData.ImportURLs,
-		OutermostErrorBoundaryIndex: routeData.OutermostErrorBoundaryIndex,
-		SplatSegments:               routeData.SplatSegments,
-		Params:                      routeData.Params,
-		ActionData:                  routeData.ActionData,
-		AdHocData:                   routeData.AdHocData,
-		Deps:                        routeData.Deps,
+		HwyPrefix:           HwyPrefix,
+		IsDev:               isDev,
+		BuildID:             routeData.BuildID,
+		LoadersData:         routeData.LoadersData,
+		ImportURLs:          routeData.ImportURLs,
+		OutermostErrorIndex: routeData.OutermostErrorIndex,
+		SplatSegments:       routeData.SplatSegments,
+		Params:              routeData.Params,
+		ActionData:          routeData.ActionData,
+		AdHocData:           routeData.AdHocData,
+		Deps:                routeData.Deps,
 	}
 	err = tmpl.Execute(&htmlBuilder, dto)
 	if err != nil {
@@ -1053,60 +1071,46 @@ func GetIsJSONRequest(r *http.Request) bool {
 	return len(r.URL.Query().Get(queryKey)) > 0
 }
 
-func matcher(pattern string, path string) matcherOutput {
+func matcher(pattern, path string) matcherOutput {
 	pattern = strings.TrimSuffix(pattern, "/_index") // needs to be first
 	pattern = strings.TrimPrefix(pattern, "/")       // needs to be second
 	path = strings.TrimPrefix(path, "/")
 	patternSegments := strings.Split(pattern, "/")
 	pathSegments := strings.Split(path, "/")
-	adjPatternSegmentsLength := len(patternSegments)
-	pathSegmentsLength := len(pathSegments)
-	isCatch := patternSegments[adjPatternSegmentsLength-1] == "$"
+	isCatch := patternSegments[len(patternSegments)-1] == "$"
 	if isCatch {
-		adjPatternSegmentsLength--
+		patternSegments = patternSegments[:len(patternSegments)-1]
 	}
-	if adjPatternSegmentsLength > pathSegmentsLength {
+	if len(patternSegments) > len(pathSegments) {
 		return matcherOutput{}
 	}
-	matches := false
 	params := make(map[string]string)
-	if pattern == path {
-		matches = true
-	} else {
-		for i, patternSegment := range patternSegments {
-			if i < pathSegmentsLength && patternSegment == pathSegments[i] {
-				matches = true
-				continue
-			}
-			if patternSegment == "$" {
-				matches = true
-				continue
-			}
-			if strings.HasPrefix(patternSegment, "$") {
-				matches = true
-				paramKey := patternSegment[1:]
-				if len(paramKey) > 0 {
-					params[paramKey] = pathSegments[i]
-				}
-				continue
-			}
-			matches = false
-			break
+	for i, ps := range patternSegments {
+		if i >= len(pathSegments) {
+			return matcherOutput{}
 		}
-	}
-	if !matches {
+		if ps == pathSegments[i] {
+			continue
+		}
+		if ps == "$" {
+			continue
+		}
+		if strings.HasPrefix(ps, "$") {
+			params[ps[1:]] = pathSegments[i]
+			continue
+		}
 		return matcherOutput{}
 	}
 	strength := getMatchStrength(pattern, path)
 	return matcherOutput{
-		matches:            matches,
+		matches:            true,
 		params:             &params,
 		score:              strength.Score,
 		realSegmentsLength: strength.RealSegmentsLength,
 	}
 }
 
-func GetDeps(matchingPaths *[]*MatchingPath) []string {
+func (h *Hwy) getDeps(matchingPaths *[]*MatchingPath) []string {
 	var deps []string
 	for _, path := range *matchingPaths {
 		if path.Deps == nil {
@@ -1118,10 +1122,10 @@ func GetDeps(matchingPaths *[]*MatchingPath) []string {
 			}
 		}
 	}
-	if instanceClientEntryDeps == nil {
+	if h.clientEntryDeps == nil {
 		return deps
 	}
-	for _, dep := range *instanceClientEntryDeps {
+	for _, dep := range h.clientEntryDeps {
 		if !slices.Contains(deps, dep) {
 			deps = append(deps, dep)
 		}
@@ -1129,7 +1133,7 @@ func GetDeps(matchingPaths *[]*MatchingPath) []string {
 	return deps
 }
 
-func (h Hwy) GetRootHandler() http.Handler {
+func (h *Hwy) GetRootHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		routeData, err := h.GetRouteData(w, r)
 		if err != nil {
@@ -1150,12 +1154,15 @@ func (h Hwy) GetRootHandler() http.Handler {
 			return
 		}
 
-		tmpl, err := template.ParseFS(h.FS, h.RootTemplateLocation)
-		if err != nil {
-			msg := "Error loading template"
-			Log.Errorf(msg+": %v\n", err)
-			http.Error(w, msg, http.StatusInternalServerError)
-			return
+		if h.rootTemplate == nil {
+			tmpl, err := template.ParseFS(h.FS, h.RootTemplateLocation)
+			if err != nil {
+				msg := "Error loading template"
+				Log.Errorf(msg+": %v\n", err)
+				http.Error(w, msg, http.StatusInternalServerError)
+				return
+			}
+			h.rootTemplate = tmpl
 		}
 
 		headElements, err := GetHeadElements(routeData)
@@ -1181,7 +1188,7 @@ func (h Hwy) GetRootHandler() http.Handler {
 			tmplData[key] = value
 		}
 
-		err = tmpl.Execute(w, tmplData)
+		err = h.rootTemplate.Execute(w, tmplData)
 		if err != nil {
 			msg := "Error executing template"
 			Log.Errorf(msg+": %v\n", err)

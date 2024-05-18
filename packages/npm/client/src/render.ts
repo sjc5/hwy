@@ -83,7 +83,7 @@ export async function reRenderApp({
   const identicalKeysToSet = [
     "loadersData",
     "importURLs",
-    "outermostErrorBoundaryIndex",
+    "outermostErrorIndex",
     "splatSegments",
     "params",
     "adHocData",
