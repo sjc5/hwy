@@ -1,4 +1,4 @@
-import { RootLayoutProps } from "@hwy-js/react";
+import { RootLayoutComponentProps } from "@hwy-js/react";
 import { useEffect, useLayoutEffect } from "preact/compat";
 import { useHtmlDialog } from "use-html-dialog";
 import { useMediaQuery } from "usehooks-ts";
@@ -22,7 +22,10 @@ const sidebarNavItems: SidebarNavItem[] = [
   },
 ];
 
-export function RootLayout({ children, splatSegments }: RootLayoutProps) {
+export function RootLayout({
+  children,
+  splatSegments,
+}: RootLayoutComponentProps) {
   const {
     showModal,
     props: htmlDialogProps,
