@@ -15,7 +15,7 @@ type AppRouteComponentProps<T extends QueryAPIKey | MutationAPIKey> =
 
 const thisRoute = "/login";
 
-export default function (props: AppRouteComponentProps<"/login">) {
+export default function (props: any) {
   const colStyles = {
     display: "flex",
     flexDirection: "column",
