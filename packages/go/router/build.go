@@ -51,12 +51,12 @@ func walkPages(pagesSrcDir string) []JSONSafePath {
 	var paths []JSONSafePath
 	filepath.WalkDir(pagesSrcDir, func(patternArg string, d fs.DirEntry, err error) error {
 		cleanPatternArg := filepath.Clean(strings.TrimPrefix(patternArg, pagesSrcDir))
-		isPageFile := strings.Contains(cleanPatternArg, ".ui.")
+		isPageFile := strings.Contains(cleanPatternArg, ".route.")
 		if !isPageFile {
 			return nil
 		}
 		ext := filepath.Ext(cleanPatternArg)
-		preExtDelineator := ".ui"
+		preExtDelineator := ".route"
 		pattern := strings.TrimSuffix(cleanPatternArg, preExtDelineator+ext)
 		isIndex := false
 		patternToSplit := strings.TrimPrefix(pattern, "/")
@@ -157,21 +157,17 @@ func GenerateTypeScript(opts BuildOptions) error {
 	var routeDefs []rpc.RouteDef
 
 	for k, v := range opts.DataFuncsMap {
-		if v.Loader != nil {
-			routeDefs = append(routeDefs, rpc.RouteDef{
-				Key:    k,
-				Type:   rpc.TypeQuery,
-				Output: v.LoaderOutput,
-			})
-		}
-		if v.Action != nil {
-			routeDefs = append(routeDefs, rpc.RouteDef{
-				Key:    k,
-				Type:   rpc.TypeMutation,
-				Input:  v.ActionInput,
-				Output: v.ActionOutput,
-			})
-		}
+		routeDefs = append(routeDefs, rpc.RouteDef{
+			Key:    k,
+			Type:   rpc.TypeQuery,
+			Output: v.LoaderOutput,
+		})
+		routeDefs = append(routeDefs, rpc.RouteDef{
+			Key:    k,
+			Type:   rpc.TypeMutation,
+			Input:  v.ActionInput,
+			Output: v.ActionOutput,
+		})
 	}
 
 	err := rpc.GenerateTypeScript(rpc.Opts{
@@ -179,7 +175,12 @@ func GenerateTypeScript(opts BuildOptions) error {
 		RouteDefs: routeDefs,
 	})
 
-	return err
+	if err != nil {
+		Log.Errorf("error generating typescript: %s", err)
+		return err
+	}
+
+	return nil
 }
 
 func Build(opts BuildOptions) error {
@@ -190,6 +191,7 @@ func Build(opts BuildOptions) error {
 	pathsJSONOut := filepath.Join(opts.UnhashedOutDir, "hwy_paths.json")
 	paths, err := writePathsToDisk(opts.PagesSrcDir, pathsJSONOut)
 	if err != nil {
+		Log.Errorf("error writing paths to disk: %s", err)
 		return err
 	}
 
@@ -198,6 +200,7 @@ func Build(opts BuildOptions) error {
 	// that it would be perceptibly faster.
 	err = cleanHashedOutDir(opts.HashedOutDir)
 	if err != nil {
+		Log.Errorf("error cleaning hashed out dir: %s", err)
 		return err
 	}
 
@@ -208,12 +211,15 @@ func Build(opts BuildOptions) error {
 		EntryPoints:     getEntrypoints(paths, opts),
 	})
 	if len(result.Errors) > 0 {
-		return errors.New(result.Errors[0].Text)
+		err = errors.New(result.Errors[0].Text)
+		Log.Errorf("error building: %s", err)
+		return err
 	}
 
 	metafileJSONMap := MetafileJSON{}
 	err = json.Unmarshal([]byte(result.Metafile), &metafileJSONMap)
 	if err != nil {
+		Log.Errorf("error unmarshalling metafile JSON: %s", err)
 		return err
 	}
 
@@ -223,6 +229,7 @@ func Build(opts BuildOptions) error {
 		entryPoint := output.EntryPoint
 		deps, err := findAllDependencies(&metafileJSONMap, key)
 		if err != nil {
+			Log.Errorf("error finding all dependencies: %s", err)
 			return err
 		}
 		if opts.ClientEntry == entryPoint {
@@ -250,11 +257,13 @@ func Build(opts BuildOptions) error {
 		BuildID:         buildID,
 	})
 	if err != nil {
+		Log.Errorf("error marshalling paths to JSON: %s", err)
 		return err
 	}
 
 	err = os.WriteFile(pathsJSONOut, pathsAsJSON, os.ModePerm)
 	if err != nil {
+		Log.Errorf("error writing paths to disk: %s", err)
 		return err
 	}
 
@@ -263,16 +272,19 @@ func Build(opts BuildOptions) error {
 	// Mv file at path stored in hwyClientEntry var to ../ in OutDir
 	clientEntryFileBytes, err := os.ReadFile(clientEntryPath)
 	if err != nil {
+		Log.Errorf("error reading client entry file: %s", err)
 		return err
 	}
 
 	err = os.WriteFile(filepath.Join(opts.ClientEntryOut, "hwy_client_entry.js"), clientEntryFileBytes, os.ModePerm)
 	if err != nil {
+		Log.Errorf("error writing client entry file: %s", err)
 		return err
 	}
 
 	err = os.Remove(clientEntryPath)
 	if err != nil {
+		Log.Errorf("error removing client entry file: %s", err)
 		return err
 	}
 

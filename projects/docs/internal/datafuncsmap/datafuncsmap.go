@@ -10,7 +10,7 @@ import (
 
 	"github.com/adrg/frontmatter"
 	"github.com/russross/blackfriday/v2"
-	"github.com/sjc5/hwy-go"
+	"github.com/sjc5/hwy"
 )
 
 var count = 0

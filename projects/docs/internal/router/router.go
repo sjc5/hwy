@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
-	"github.com/sjc5/hwy-go"
+	"github.com/sjc5/hwy"
 )
 
 func init() {

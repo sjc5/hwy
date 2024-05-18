@@ -1,1 +1,7 @@
-export { RootOutlet } from "./src/recursive.js";
+export {
+  RootLayoutComponent,
+  RootLayoutComponentProps,
+  RootOutlet,
+  RouteComponent,
+  RouteComponentProps,
+} from "./src/recursive.js";

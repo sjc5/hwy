@@ -64,6 +64,30 @@ importers:
         specifier: ^5.4.4
         version: 5.4.5
 
+  projects/testers/routes:
+    devDependencies:
+      '@hwy-js/client':
+        specifier: workspace:*
+        version: link:../../../packages/npm/client
+      '@hwy-js/react':
+        specifier: workspace:*
+        version: link:../../../packages/npm/react
+      '@types/react':
+        specifier: ^18.2.69
+        version: 18.3.2
+      '@types/react-dom':
+        specifier: ^18.2.22
+        version: 18.3.0
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.3.1(react@18.3.1)
+      typescript:
+        specifier: ^5.4.3
+        version: 5.4.5
+
 packages:
 
   '@babel/runtime@7.24.5':

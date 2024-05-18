@@ -3,7 +3,7 @@ package build
 import (
 	"hwy-docs/internal/datafuncsmap"
 
-	"github.com/sjc5/hwy-go"
+	"github.com/sjc5/hwy"
 )
 
 func getHwyBuildOptions(isDev bool) hwy.BuildOptions {

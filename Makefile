@@ -3,11 +3,12 @@
 test-go:
 	@go test -v ./internal/...
 
-# --- PROJECTS ---
+# --- PUBLISHING GO ---
 
-tidy-docs:
-	@cd projects/docs \
-	&& go mod tidy
+publish-go:
+	@./scripts/go/bumper.sh
+
+# --- PROJECTS ---
 
 docs-dev:
 	@cd projects/docs \
@@ -15,8 +16,12 @@ docs-dev:
 	&& touch dist/kiruna/x \
 	&& go run ./cmd/dev
 
-tidy-testers-routes:
-	@cd projects/testers/routes \
+docs-install-js:
+	@cd projects/docs \
+	&& pnpm i
+
+docs-tidy-go:
+	@cd projects/docs \
 	&& go mod tidy
 
 testers-routes-dev:
@@ -24,3 +29,7 @@ testers-routes-dev:
 	&& mkdir -p dist/kiruna \
 	&& touch dist/kiruna/x \
 	&& go run ./cmd/dev
+
+testers-routes-tidy-go:
+	@cd projects/testers/routes \
+	&& go mod tidy

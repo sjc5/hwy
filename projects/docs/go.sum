@@ -23,8 +23,6 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/sjc5/hwy-go v0.0.12 h1:LdfSrAn9xT/c2FhhMCl5NuRjHR4dkLDcaMr+KEsEg3w=
-github.com/sjc5/hwy-go v0.0.12/go.mod h1:x3kBUBzjiIm4xEJdUb3KSXeDx3mUpWPuwpORigk83Cs=
 github.com/sjc5/kiruna v0.0.25 h1:VZE8iWPN3r6eCdlZml78jTMyD3HRipe93rwXpfs30/k=
 github.com/sjc5/kiruna v0.0.25/go.mod h1:ywIVYnVLuQ+wrBc/21R4OS/L7a+m/5GVy2zT7Lx0jjk=
 github.com/sjc5/kit v0.0.15 h1:t6DX+uZNDEqJHxaV9KqBroWct3t85aQdeRM4Du2ePVE=

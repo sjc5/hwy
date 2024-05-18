@@ -154,7 +154,7 @@ export function RootOutlet(props: BaseProps): JSX.Element {
 }
 
 function MaybeWithLayout(
-  props: BaseProps & RootLayoutProps & { children: JSX.Element },
+  props: BaseProps & RootLayoutComponentProps & { children: JSX.Element },
 ): JSX.Element {
   if (props.layout && !props.index) {
     return (
@@ -170,21 +170,35 @@ function MaybeWithLayout(
   return props.children;
 }
 
-export type UIProps<LoaderOutput = any, ActionOutput = any> = {
-  loaderData: LoaderOutput;
-  actionData: ActionOutput | undefined;
+type RoutePropsTypeArg = {
+  loaderOutput?: any;
+  actionOutput?: any;
+};
+
+type DefaultRouteProps = {
+  loaderOutput: any;
+  actionOutput: any;
+};
+
+export type RouteComponentProps<
+  T extends RoutePropsTypeArg = DefaultRouteProps,
+> = {
+  loaderData: T["loaderOutput"];
+  actionData: T["actionOutput"] | undefined;
   Outlet: (...props: any) => JSX.Element;
   params: Record<string, string>;
   splatSegments: Array<string>;
   adHocData: AdHocData | undefined;
 };
 
-export type UIComponent<LoaderOutput = any, ActionOutput = any> = (
-  props: UIProps<LoaderOutput, ActionOutput>,
+export type RouteComponent<T extends RoutePropsTypeArg = DefaultRouteProps> = (
+  props: RouteComponentProps<T>,
 ) => JSX.Element;
 
-export type RootLayoutProps = {
+export type RootLayoutComponentProps = {
   children: JSX.Element;
-} & Pick<UIProps, "params" | "splatSegments" | "adHocData">;
+} & Pick<RouteComponentProps, "params" | "splatSegments" | "adHocData">;
 
-export type RootLayoutComponent = (props: RootLayoutProps) => JSX.Element;
+export type RootLayoutComponent = (
+  props: RootLayoutComponentProps,
+) => JSX.Element;

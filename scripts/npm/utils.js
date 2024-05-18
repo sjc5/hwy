@@ -6,12 +6,7 @@ const dirsInSlashPackages = ["client", "create", "react"];
 
 function getCurrentPkgJSONs() {
   return dirsInSlashPackages.map((pkgDirname) => {
-    return JSON.parse(
-      fs.readFileSync(
-        path.join(process.cwd(), "packages", pkgDirname, "package.json"),
-        "utf-8",
-      ),
-    );
+    return JSON.parse(fs.readFileSync(pkgDirnameToPath(pkgDirname), "utf-8"));
   });
 }
 
@@ -31,7 +26,7 @@ function saveNewPkgJSONs(newVersion) {
 
   dirsInSlashPackages.forEach((pkgDirname, i) => {
     fs.writeFileSync(
-      path.join(process.cwd(), "packages", pkgDirname, "package.json"),
+      pkgDirnameToPath(pkgDirname),
       newPkgJSONsStringified[i],
       "utf-8",
     );
@@ -161,6 +156,16 @@ function setVersion() {
   }).then((newVersion) => {
     saveNewPkgJSONs(newVersion);
   });
+}
+
+function pkgDirnameToPath(pkgDirname) {
+  return path.join(
+    process.cwd(),
+    "packages",
+    "npm",
+    pkgDirname,
+    "package.json",
+  );
 }
 
 export {

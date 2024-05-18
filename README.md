@@ -70,18 +70,18 @@ export async function loader({ params }: DataProps) {
 
 ### Isomorphic UI files
 
-Hwy's isomorphic UI files live inside the `pages` folder and contain `.ui.`
+Hwy's isomorphic UI files live inside the `pages` folder and contain `.route.`
 before their file extensions. These files are responsible for rendering the UI.
 Any data prefetched by the loaders is passed into the UI component as a prop.
 
 ```tsx
-// src/pages/user/$user_id.ui.tsx
+// src/pages/user/$user_id.route.tsx
 
-import type { UIProps } from "@hwy-js/react";
+import type { RouteComponentProps } from "@hwy-js/react";
 import type { loader } from "./$user_id.data.ts";
 import { UserProfile } from "./some-ui-code.js";
 
-export default function ({ loaderData }: UIProps<typeof loader>) {
+export default function ({ loaderData }: RouteComponentProps<typeof loader>) {
   return <UserProfile user={loaderData} />;
 }
 ```

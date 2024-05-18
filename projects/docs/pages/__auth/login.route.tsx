@@ -1,16 +1,21 @@
 import { submit } from "@hwy-js/client";
-import { UIProps } from "@hwy-js/react";
-import { QueryAPIOutput } from "~/__generated_ts_api/api-types";
+import { RouteComponentProps } from "@hwy-js/react";
+import {
+  MutationAPIKey,
+  MutationAPIOutput,
+  QueryAPIKey,
+  QueryAPIOutput,
+} from "~/__generated_ts_api/api-types";
+
+type AppRouteComponentProps<T extends QueryAPIKey | MutationAPIKey> =
+  RouteComponentProps<{
+    loaderOutput: QueryAPIOutput<T extends QueryAPIKey ? T : any>;
+    actionOutput: MutationAPIOutput<T extends MutationAPIKey ? T : any>;
+  }>;
 
 const thisRoute = "/login";
 
-export default function ({
-  loaderData,
-  actionData,
-}: {
-  loaderData: QueryAPIOutput<"/login">;
-  actionData: any;
-}) {
+export default function (props: AppRouteComponentProps<"/login">) {
   const colStyles = {
     display: "flex",
     flexDirection: "column",
@@ -27,8 +32,8 @@ export default function ({
     <div style={colStyles}>
       <h1 style={{ fontSize: "1.5rem" }}>Login</h1>
 
-      {JSON.stringify(loaderData)}
-      {loaderData?.Bob}
+      {JSON.stringify(props.loaderData)}
+      {props.loaderData?.Bob}
 
       <p>
         <b>NOTE:</b> This is a fake login form. It does not log you into
@@ -39,13 +44,13 @@ export default function ({
       </p>
 
       <p>
-        This is coming from <code>src/pages/__auth/login.ui.tsx</code>. The{" "}
+        This is coming from <code>src/pages/__auth/login.route.tsx</code>. The{" "}
         "__auth" part is a folder that is ignored because it is preceded by two
         underscores (i.e., "__"). This can help you to add arbitrary
         organization to your pages if you'd like.
       </p>
 
-      {!actionData?.success && (
+      {!props.actionData?.success && (
         <form
           action={thisRoute}
           method="POST"
@@ -85,10 +90,10 @@ export default function ({
         </form>
       )}
 
-      {actionData?.message && (
+      {props.actionData?.message && (
         <div
           style={
-            actionData.error
+            props.actionData.error
               ? { color: "lightcoral" }
               : {
                   color: "lightgreen",
@@ -97,7 +102,7 @@ export default function ({
                 }
           }
         >
-          {actionData.message}
+          {props.actionData.message}
         </div>
       )}
     </div>

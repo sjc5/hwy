@@ -3,6 +3,7 @@ package router
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"html/template"
 	"io/fs"
 	"net/http"
@@ -751,13 +752,17 @@ func getBasePaths(FS fs.FS) (*PathsFile, error) {
 	pathsFile := PathsFile{}
 	file, err := FS.Open("hwy_paths.json")
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("could not open hwy_paths.json: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
 	}
 	defer file.Close()
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&pathsFile)
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("could not decode hwy_paths.json: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
 	}
 	return &pathsFile, nil
 }
@@ -769,7 +774,9 @@ func (h Hwy) Initialize() error {
 
 	pathsFile, err := getBasePaths(h.FS)
 	if err != nil {
-		return err
+		errMsg := fmt.Sprintf("could not get base paths: %v", err)
+		Log.Errorf(errMsg)
+		return errors.New(errMsg)
 	}
 	instanceBuildID = pathsFile.BuildID
 
@@ -799,7 +806,9 @@ func (h Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteData
 
 	headBlocks, err := getExportedHeadBlocks(r, activePathData, &h.DefaultHeadBlocks)
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("could not get exported head blocks: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
 	}
 	sorted := sortHeadBlocks(headBlocks)
 	if sorted.metaHeadBlocks == nil {
@@ -838,7 +847,9 @@ func getExportedHeadBlocks(r *http.Request, activePathData *ActivePathData, defa
 			}
 			localHeadBlocks, err := (head)(&headProps)
 			if err != nil {
-				return nil, err
+				errMsg := fmt.Sprintf("could not get head blocks: %v", err)
+				Log.Errorf(errMsg)
+				return nil, errors.New(errMsg)
 			}
 			headBlocks = append(headBlocks, *localHeadBlocks...)
 		}
@@ -931,11 +942,15 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 		`<title>{{.}}</title>` + "\n",
 	)
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("could not parse title template: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
 	}
 	err = titleTmpl.Execute(&htmlBuilder, routeData.Title)
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("could not execute title template: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
 	}
 
 	var headBlocks = []*HeadBlock{&metaStart}
@@ -947,13 +962,17 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 		`{{range $key, $value := .Attributes}}{{$key}}="{{$value}}" {{end}}/>` + "\n",
 	)
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("could not parse head block template: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
 	}
 	scriptBlockTmpl, err := template.New("scriptblock").Parse(
 		`{{range $key, $value := .Attributes}}{{$key}}="{{$value}}" {{end}}></script>` + "\n",
 	)
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("could not parse script block template: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
 	}
 	for _, block := range headBlocks {
 		if !slices.Contains(permittedTags, block.Tag) {
@@ -966,7 +985,9 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 			err = headElsTmpl.Execute(&htmlBuilder, block)
 		}
 		if err != nil {
-			return nil, err
+			errMsg := fmt.Sprintf("could not execute head block template: %v", err)
+			Log.Errorf(errMsg)
+			return nil, errors.New(errMsg)
 		}
 	}
 	final := template.HTML(htmlBuilder.String())
@@ -999,7 +1020,9 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML,
 	 });
 </script>`)
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("could not parse SSR inner HTML template: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
 	}
 	var htmlBuilder strings.Builder
 	var dto = SSRInnerHTMLInput{
@@ -1017,7 +1040,9 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML,
 	}
 	err = tmpl.Execute(&htmlBuilder, dto)
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("could not execute SSR inner HTML template: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
 	}
 	final := template.HTML(htmlBuilder.String())
 	return &final, nil
