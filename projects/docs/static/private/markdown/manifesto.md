@@ -2,6 +2,8 @@
 title: Manifesto
 ---
 
+**DISCLAIMER:** _This is a bit out of date! Will update soon._
+
 ## Hwy is just a protocol
 
 Pragmatically speaking, you can think of Hwy as being a lot like NextJS or
