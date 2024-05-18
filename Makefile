@@ -20,9 +20,13 @@ docs-install-js:
 	@cd projects/docs \
 	&& pnpm i
 
-docs-tidy-go:
+docs-tidy:
 	@cd projects/docs \
 	&& go mod tidy
+
+docs-docker:
+	@cd projects/docs \
+	&& docker build --no-cache -t asdf . &> ../../__logs/build.log
 
 testers-routes-dev:
 	@cd projects/testers/routes \
@@ -30,6 +34,6 @@ testers-routes-dev:
 	&& touch dist/kiruna/x \
 	&& go run ./cmd/dev
 
-testers-routes-tidy-go:
+testers-routes-tidy:
 	@cd projects/testers/routes \
 	&& go mod tidy

@@ -407,7 +407,22 @@ func runEsbuild(opts RunEsbuildOpts) esbuild.BuildResult {
 }
 
 func cleanHashedOutDir(hashedOutDir string) error {
-	err := filepath.Walk(hashedOutDir, func(path string, info fs.FileInfo, err error) error {
+	fileInfo, err := os.Stat(hashedOutDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			Log.Warningf("hashed out dir does not exist: %s", hashedOutDir)
+			return nil
+		}
+		return err
+	}
+
+	if !fileInfo.IsDir() {
+		errMsg := fmt.Sprintf("%s is not a directory", hashedOutDir)
+		Log.Errorf(errMsg)
+		return errors.New(errMsg)
+	}
+
+	err = filepath.Walk(hashedOutDir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
