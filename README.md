@@ -4,7 +4,7 @@
 
 ## What is Hwy?
 
-Hwy is a minimalist Next.js alternative for Go and React, with nested routing.
+Hwy is a minimalist, Go-based Next.js alternative with nested routing.
 
 ## Project Goals
 
