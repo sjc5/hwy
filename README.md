@@ -1,3 +1,5 @@
+<img src="/banner.webp" alt="Hwy logo banner">
+
 # Hwy
 
 ## What is Hwy?
