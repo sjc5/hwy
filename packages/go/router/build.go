@@ -157,17 +157,22 @@ func GenerateTypeScript(opts BuildOptions) error {
 	var routeDefs []rpc.RouteDef
 
 	for k, v := range opts.DataFuncsMap {
-		routeDefs = append(routeDefs, rpc.RouteDef{
-			Key:    k,
-			Type:   rpc.TypeQuery,
-			Output: v.LoaderOutput,
-		})
-		routeDefs = append(routeDefs, rpc.RouteDef{
-			Key:    k,
-			Type:   rpc.TypeMutation,
-			Input:  v.ActionInput,
-			Output: v.ActionOutput,
-		})
+		loaderRouteDef := rpc.RouteDef{Key: k, Type: rpc.TypeQuery}
+
+		if v.Loader != nil {
+			loaderRouteDef.Output = v.Loader.GetOutputInstance()
+		}
+
+		routeDefs = append(routeDefs, loaderRouteDef)
+
+		actionRouteDef := rpc.RouteDef{Key: k, Type: rpc.TypeMutation}
+
+		if v.Action != nil {
+			actionRouteDef.Input = v.Action.GetInputInstance()
+			actionRouteDef.Output = v.Action.GetOutputInstance()
+		}
+
+		routeDefs = append(routeDefs, actionRouteDef)
 	}
 
 	err := rpc.GenerateTypeScript(rpc.Opts{

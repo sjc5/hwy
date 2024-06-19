@@ -11,13 +11,13 @@ import { setStatus } from "./status.js";
 
 const hwyClientGlobal = getHwyClientGlobal();
 
-export async function submit(
+export async function submit<T extends any = any>(
   url: string | URL,
   requestInit?: RequestInit,
 ): Promise<
   | {
       success: true;
-      data: any;
+      data: T;
     }
   | {
       success: false;
@@ -32,9 +32,20 @@ export async function submit(
   }
 
   const json = await submitRes.response.json();
+
+  const ok = "actionData" in json && Array.isArray(json.actionData);
+  if (!ok) {
+    console.error("Invalid response from server", json);
+    return { success: false, error: "Invalid response from server" };
+  }
+
   hwyClientGlobal.set("actionData", json.actionData);
   reRenderApp({ json, navigationType: "revalidation" });
-  return { success: true, data: json.actionData };
+
+  return {
+    success: true,
+    data: json.actionData[json.actionData.length - 1] as T,
+  };
 }
 
 async function submitInner(
