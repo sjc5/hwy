@@ -19,12 +19,12 @@ func init() {
 	}
 	dataFuncs := hwy.DataFuncsMap{
 		"/dashboard/customers/$customer_id/orders": {
-			Loader: bob.LoaderFunc[any](func(props hwy.LoaderProps) (any, error) {
+			Loader: bob.LoaderFunc[any](func(props *hwy.LoaderProps) (any, error) {
 				return map[string]string{
 					"message": "<script>alert('Hello, Bob!')</script>",
 				}, nil
 			}),
-			Head: bob.HeadFunc(func(props hwy.HeadProps) (*[]hwy.HeadBlock, error) {
+			Head: bob.HeadFunc(func(props *hwy.HeadProps) (*[]hwy.HeadBlock, error) {
 				return &[]hwy.HeadBlock{
 					{
 						Tag:        "meta",
@@ -35,12 +35,12 @@ func init() {
 			}),
 		},
 		"/dashboard/customers/$customer_id/orders/$order_id": {
-			Loader: bob.LoaderFunc[strMap](func(props hwy.LoaderProps) (strMap, error) {
+			Loader: bob.LoaderFunc[strMap](func(props *hwy.LoaderProps) (strMap, error) {
 				return strMap{
 					"message": "kjbkjbkjbkjbkjbk",
 				}, nil
 			}),
-			Head: bob.HeadFunc(func(props hwy.HeadProps) (*[]hwy.HeadBlock, error) {
+			Head: bob.HeadFunc(func(props *hwy.HeadProps) (*[]hwy.HeadBlock, error) {
 				return &[]hwy.HeadBlock{
 					{
 						Tag:        "meta",
