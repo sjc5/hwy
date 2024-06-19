@@ -3,6 +3,18 @@ import * as p from "@clack/prompts";
 import { downloadTemplate } from "giget";
 import fs from "node:fs";
 
+await main();
+
+async function main() {
+  const dir = await askForDirectoryName();
+  if (typeof dir === "string" && !!dir) {
+    await download(dir);
+  } else {
+    p.cancel("No directory name provided. Exiting.");
+    process.exit(1);
+  }
+}
+
 const TARGET_REGISTRY = "github";
 const TARGET_REPO = "sjc5/hwy";
 const TARGET_SUBDIR = "examples/react"; // __TODO give options here
@@ -46,12 +58,4 @@ async function askForDirectoryName() {
       }
     },
   });
-}
-
-const dir = await askForDirectoryName();
-if (typeof dir === "string" && !!dir) {
-  await download(dir);
-} else {
-  p.cancel("No directory name provided. Exiting.");
-  process.exit(1);
 }

@@ -256,11 +256,18 @@ func Build(opts BuildOptions) error {
 		}
 	}
 
-	pathsAsJSON, err := json.Marshal(PathsFile{
+	pf := PathsFile{
 		Paths:           *paths,
 		ClientEntryDeps: hwyClientEntryDeps,
 		BuildID:         buildID,
-	})
+	}
+	var pathsAsJSON []byte
+	if opts.IsDev {
+		pathsAsJSON, err = json.MarshalIndent(pf, "", "\t")
+	} else {
+		pathsAsJSON, err = json.Marshal(pf)
+	}
+
 	if err != nil {
 		Log.Errorf("error marshalling paths to JSON: %s", err)
 		return err
