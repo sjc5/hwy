@@ -13,6 +13,71 @@ import (
 	"sync"
 )
 
+type DataFunction interface {
+	Execute(props any) (any, error)
+	GetInputInstance() any
+	GetOutputInstance() any
+}
+
+// START -- NEEDS TO BE REPEATED IN hwy.go
+
+type LoaderFunc[O any] func(props LoaderProps) (O, error)
+
+func (f LoaderFunc[O]) Execute(props any) (any, error) {
+	return f(props.(LoaderProps))
+}
+func (f LoaderFunc[O]) GetInputInstance() any {
+	return nil
+}
+func (f LoaderFunc[O]) GetOutputInstance() any {
+	var x O
+	return x
+}
+
+type ActionFunc[I any, O any] func(props ActionProps) (O, error)
+
+func (f ActionFunc[I, O]) Execute(props any) (any, error) {
+	return f(props.(ActionProps))
+}
+func (f ActionFunc[I, O]) GetInputInstance() any {
+	var x I
+	return x
+}
+func (f ActionFunc[I, O]) GetOutputInstance() any {
+	var x O
+	return x
+}
+
+type HeadFunc func(props HeadProps) (*[]HeadBlock, error)
+
+func (f HeadFunc) Execute(props any) (any, error) {
+	return f(props.(HeadProps))
+}
+func (f HeadFunc) GetInputInstance() any {
+	return nil
+}
+func (f HeadFunc) GetOutputInstance() any {
+	return nil
+}
+
+// END -- NEEDS TO BE REPEATED IN hwy.go
+
+func NewRoute[
+	LO any, AI any, AO any,
+](
+	pattern, pathType string, loader LoaderFunc[LO], action ActionFunc[AI, AO], head HeadFunc,
+) Path {
+	return Path{
+		Pattern:  pattern,
+		PathType: pathType,
+		DataFuncs: &DataFuncs{
+			Loader: loader,
+			Action: action,
+			Head:   head,
+		},
+	}
+}
+
 type SegmentObj struct {
 	SegmentType string
 	Segment     string
@@ -51,10 +116,6 @@ type HeadBlock struct {
 	Title      string            `json:"title,omitempty"`
 }
 
-type Loader func(*LoaderProps) (any, error)
-type Action func(*ActionProps) (any, error)
-type Head func(*HeadProps) (*[]HeadBlock, error)
-
 type LoaderProps struct {
 	Request       *http.Request
 	Params        *map[string]string
@@ -77,15 +138,10 @@ type HeadProps struct {
 }
 
 type DataFuncs struct {
-	Loader      Loader
-	Action      Action
-	Head        Head
+	Loader      DataFunction
+	Action      DataFunction
+	Head        DataFunction
 	HandlerFunc http.HandlerFunc
-
-	// Used in TypeScript generation
-	LoaderOutput any
-	ActionInput  any
-	ActionOutput any
 }
 
 type ActivePathData struct {
@@ -94,7 +150,7 @@ type ActivePathData struct {
 	ImportURLs          *[]string
 	OutermostErrorIndex int
 	ActionData          *[]any
-	ActiveHeads         *[]Head
+	ActiveHeads         *[]DataFunction
 	SplatSegments       *[]string
 	Params              *map[string]string
 	Deps                *[]string
@@ -108,7 +164,7 @@ type matcherOutput struct {
 }
 
 type GroupedBySegmentLength map[int]*[]*MatchingPath
-type DataFuncsMap = map[string]DataFuncs
+type DataFuncsMap map[string]DataFuncs
 
 type MatchStrength struct {
 	Score              int
@@ -615,7 +671,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *Activ
 	_, shouldRunAction := acceptedMethods[r.Method]
 	if actionExists && shouldRunAction {
 		actionData, actionDataError = getActionData(
-			&lastPath.DataFuncs.Action,
+			lastPath.DataFuncs.Action,
 			&ActionProps{
 				Request:        r,
 				Params:         item.Params,
@@ -635,7 +691,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *Activ
 				loadersData[i], errors[i] = nil, nil
 				return
 			}
-			loadersData[i], errors[i] = (dataFuncs.Loader)(&LoaderProps{
+			loadersData[i], errors[i] = (dataFuncs.Loader).Execute(LoaderProps{
 				Request:       r,
 				Params:        item.Params,
 				SplatSegments: item.SplatSegments,
@@ -671,7 +727,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *Activ
 		}
 	}
 
-	var activeHeads []Head
+	var activeHeads []DataFunction
 	for _, path := range *item.FullyDecoratedMatchingPaths {
 		if path.DataFuncs == nil || path.DataFuncs.Head == nil {
 			activeHeads = append(activeHeads, nil)
@@ -715,12 +771,12 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *Activ
 	return &activePathData
 }
 
-func getActionData(action *Action, actionProps *ActionProps) (any, error) {
+func getActionData(action DataFunction, actionProps *ActionProps) (any, error) {
 	if action == nil {
 		return nil, nil
 	}
-	actionFunc := *action
-	return actionFunc(actionProps)
+	actionFunc := action
+	return actionFunc.Execute(*actionProps)
 }
 
 func (h *Hwy) addDataFuncsToPaths() {
@@ -837,13 +893,14 @@ func getExportedHeadBlocks(r *http.Request, activePathData *ActivePathData, defa
 				LoaderData:    (*activePathData.LoadersData)[i],
 				ActionData:    (*activePathData.ActionData)[i],
 			}
-			localHeadBlocks, err := (head)(&headProps)
+			localHeadBlocks, err := head.Execute(headProps)
 			if err != nil {
 				errMsg := fmt.Sprintf("could not get head blocks: %v", err)
 				Log.Errorf(errMsg)
 				return nil, errors.New(errMsg)
 			}
-			headBlocks = append(headBlocks, *localHeadBlocks...)
+			x := localHeadBlocks.(*[]HeadBlock)
+			headBlocks = append(headBlocks, *x...)
 		}
 	}
 	return dedupeHeadBlocks(&headBlocks), nil

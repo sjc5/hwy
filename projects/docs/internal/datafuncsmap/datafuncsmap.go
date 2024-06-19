@@ -15,23 +15,20 @@ import (
 
 var count = 0
 
+type LoginLoaderOutput struct {
+	Bob int
+}
+
 var DataFuncsMap = hwy.DataFuncsMap{
-	"/login": {
-		LoaderOutput: struct {
-			Bob int
-		}{},
-		Loader: func(props *hwy.LoaderProps) (any, error) {
-			return struct {
-				Bob int
-			}{
-				Bob: count,
-			}, nil
-		},
-		Action: func(props *hwy.ActionProps) (any, error) {
+	"/login": hwy.DataFuncs{
+		Loader: hwy.LoaderFunc[LoginLoaderOutput](func(props hwy.LoaderProps) (LoginLoaderOutput, error) {
+			return LoginLoaderOutput{Bob: count}, nil
+		}),
+		Action: hwy.ActionFunc[any, any](func(props hwy.ActionProps) (any, error) {
 			count++
 			return nil, errors.New("Redirect")
 			// return "bob", nil
-		},
+		}),
 	},
 	"/$": {
 		Loader: catchAllLoader,
@@ -57,7 +54,7 @@ var notFoundMatter = matter{
 
 var c = hwy.NewLRUCache(1000)
 
-var catchAllLoader hwy.Loader = func(props *hwy.LoaderProps) (any, error) {
+var catchAllLoader hwy.LoaderFunc[*matter] = func(props hwy.LoaderProps) (*matter, error) {
 	normalizedPath := filepath.Clean(strings.Join(*props.SplatSegments, "/"))
 	if normalizedPath == "." {
 		normalizedPath = "README"
@@ -97,7 +94,7 @@ var catchAllLoader hwy.Loader = func(props *hwy.LoaderProps) (any, error) {
 	return item, nil
 }
 
-var catchAllHead hwy.Head = func(props *hwy.HeadProps) (*[]hwy.HeadBlock, error) {
+var catchAllHead hwy.HeadFunc = func(props hwy.HeadProps) (*[]hwy.HeadBlock, error) {
 	title := "Hwy"
 	if props.LoaderData.(*matter).Title != "" {
 		title = "Hwy | " + props.LoaderData.(*matter).Title
