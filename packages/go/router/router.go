@@ -21,10 +21,10 @@ type DataFunction interface {
 
 // START -- NEEDS TO BE REPEATED IN hwy.go
 
-type LoaderFunc[O any] func(props LoaderProps) (O, error)
+type LoaderFunc[O any] func(props *LoaderProps) (O, error)
 
 func (f LoaderFunc[O]) Execute(props any) (any, error) {
-	return f(props.(LoaderProps))
+	return f(props.(*LoaderProps))
 }
 func (f LoaderFunc[O]) GetInputInstance() any {
 	return nil
@@ -34,10 +34,10 @@ func (f LoaderFunc[O]) GetOutputInstance() any {
 	return x
 }
 
-type ActionFunc[I any, O any] func(props ActionProps) (O, error)
+type ActionFunc[I any, O any] func(props *ActionProps) (O, error)
 
 func (f ActionFunc[I, O]) Execute(props any) (any, error) {
-	return f(props.(ActionProps))
+	return f(props.(*ActionProps))
 }
 func (f ActionFunc[I, O]) GetInputInstance() any {
 	var x I
@@ -48,10 +48,10 @@ func (f ActionFunc[I, O]) GetOutputInstance() any {
 	return x
 }
 
-type HeadFunc func(props HeadProps) (*[]HeadBlock, error)
+type HeadFunc func(props *HeadProps) (*[]HeadBlock, error)
 
 func (f HeadFunc) Execute(props any) (any, error) {
-	return f(props.(HeadProps))
+	return f(props.(*HeadProps))
 }
 func (f HeadFunc) GetInputInstance() any {
 	return nil
@@ -691,7 +691,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *Activ
 				loadersData[i], errors[i] = nil, nil
 				return
 			}
-			loadersData[i], errors[i] = (dataFuncs.Loader).Execute(LoaderProps{
+			loadersData[i], errors[i] = (dataFuncs.Loader).Execute(&LoaderProps{
 				Request:       r,
 				Params:        item.Params,
 				SplatSegments: item.SplatSegments,
