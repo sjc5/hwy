@@ -776,7 +776,7 @@ func getActionData(action DataFunction, actionProps *ActionProps) (any, error) {
 		return nil, nil
 	}
 	actionFunc := action
-	return actionFunc.Execute(*actionProps)
+	return actionFunc.Execute(actionProps)
 }
 
 func (h *Hwy) addDataFuncsToPaths() {
