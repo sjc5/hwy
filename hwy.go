@@ -15,7 +15,6 @@ type PathsFile = router.PathsFile
 
 var Build = router.Build
 var GenerateTypeScript = router.GenerateTypeScript
-var NewLRUCache = router.NewLRUCache
 var GetIsJSONRequest = router.GetIsJSONRequest
 var GetHeadElements = router.GetHeadElements
 var GetSSRInnerHTML = router.GetSSRInnerHTML

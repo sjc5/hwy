@@ -11,6 +11,8 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/sjc5/kit/pkg/lru"
 )
 
 type DataFunction interface {
@@ -205,7 +207,7 @@ type GetRouteDataOutput struct {
 	SplatSegments       *[]string          `json:"splatSegments"`
 	Params              *map[string]string `json:"params"`
 	ActionData          *[]any             `json:"actionData"`
-	AdHocData           *map[string]*any   `json:"adHocData"`
+	AdHocData           any                `json:"adHocData"`
 	BuildID             string             `json:"buildID"`
 	Deps                *[]string          `json:"deps"`
 }
@@ -216,6 +218,7 @@ type Hwy struct {
 	DataFuncsMap         DataFuncsMap
 	RootTemplateLocation string
 	RootTemplateData     map[string]any
+	getAdHocData         DataFunction
 	paths                []Path
 	clientEntryDeps      []string
 	buildID              string
@@ -627,9 +630,9 @@ var acceptedMethods = map[string]int{
 	"POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0,
 }
 
-var gmpdCache = NewLRUCache(500_000)
+var gmpdCache = lru.NewCache[string, *gmpdItem](500_000)
 
-func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *ActivePathData {
+func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*ActivePathData, *LoaderProps) {
 	realPath := r.URL.Path
 	if realPath != "/" && realPath[len(realPath)-1] == '/' {
 		realPath = realPath[:len(realPath)-1]
@@ -638,7 +641,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *Activ
 	cached, ok := gmpdCache.Get(realPath)
 	item := &gmpdItem{}
 	if ok {
-		item = cached.(*gmpdItem)
+		item = cached
 	} else {
 		initialMatchingPaths := h.getInitialMatchingPaths(realPath)
 		splatSegments, matchingPaths := getMatchingPathsInternal(initialMatchingPaths, realPath)
@@ -683,6 +686,11 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *Activ
 	loadersData := make([]any, len(*item.FullyDecoratedMatchingPaths))
 	errors := make([]error, len(*item.FullyDecoratedMatchingPaths))
 	var wg sync.WaitGroup
+	loaderProps := &LoaderProps{
+		Request:       r,
+		Params:        item.Params,
+		SplatSegments: item.SplatSegments,
+	}
 	for i, path := range *item.FullyDecoratedMatchingPaths {
 		wg.Add(1)
 		go func(i int, dataFuncs *DataFuncs) {
@@ -691,11 +699,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *Activ
 				loadersData[i], errors[i] = nil, nil
 				return
 			}
-			loadersData[i], errors[i] = (dataFuncs.Loader).Execute(&LoaderProps{
-				Request:       r,
-				Params:        item.Params,
-				SplatSegments: item.SplatSegments,
-			})
+			loadersData[i], errors[i] = (dataFuncs.Loader).Execute(loaderProps)
 		}(i, path.DataFuncs)
 	}
 	wg.Wait()
@@ -752,8 +756,10 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *Activ
 		activePathData.ActionData = &locActionData
 		activePathData.SplatSegments = item.SplatSegments
 		activePathData.Params = item.Params
-		return &activePathData
+
+		return &activePathData, loaderProps
 	}
+
 	var activePathData ActivePathData = ActivePathData{}
 	activePathData.MatchingPaths = item.FullyDecoratedMatchingPaths
 	activePathData.ActiveHeads = &activeHeads
@@ -768,7 +774,8 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) *Activ
 	activePathData.SplatSegments = item.SplatSegments
 	activePathData.Params = item.Params
 	activePathData.Deps = item.Deps
-	return &activePathData
+
+	return &activePathData, loaderProps
 }
 
 func getActionData(action DataFunction, actionProps *ActionProps) (any, error) {
@@ -790,8 +797,11 @@ func (h *Hwy) addDataFuncsToPaths() {
 	}
 
 	for pattern := range h.DataFuncsMap {
-		if !slices.Contains(listOfPatterns, pattern) {
+		if pattern != "AdHocData" && !slices.Contains(listOfPatterns, pattern) {
 			Log.Errorf("Warning: no matching path found for pattern %v. Make sure you're writing your patterns correctly and that your client route exists.", pattern)
+		}
+		if pattern == "AdHocData" {
+			h.getAdHocData = h.DataFuncsMap[pattern].Loader
 		}
 	}
 }
@@ -850,7 +860,7 @@ func (h *Hwy) Initialize() error {
 }
 
 func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDataOutput, error) {
-	activePathData := h.getMatchingPathData(w, r)
+	activePathData, loaderProps := h.getMatchingPathData(w, r)
 
 	headBlocks, err := getExportedHeadBlocks(r, activePathData, &h.DefaultHeadBlocks)
 	if err != nil {
@@ -858,6 +868,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDat
 		Log.Errorf(errMsg)
 		return nil, errors.New(errMsg)
 	}
+
 	sorted := sortHeadBlocks(headBlocks)
 	if sorted.metaHeadBlocks == nil {
 		sorted.metaHeadBlocks = &[]*HeadBlock{}
@@ -865,6 +876,14 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDat
 	if sorted.restHeadBlocks == nil {
 		sorted.restHeadBlocks = &[]*HeadBlock{}
 	}
+
+	adHocData, err := h.getAdHocData.Execute(loaderProps)
+	if err != nil {
+		errMsg := fmt.Sprintf("could not get ad hoc data: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
+	}
+
 	return &GetRouteDataOutput{
 		Title:               sorted.title,
 		MetaHeadBlocks:      sorted.metaHeadBlocks,
@@ -875,7 +894,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDat
 		SplatSegments:       activePathData.SplatSegments,
 		Params:              activePathData.Params,
 		ActionData:          activePathData.ActionData,
-		AdHocData:           nil, // __TODO
+		AdHocData:           adHocData,
 		BuildID:             h.buildID,
 		Deps:                activePathData.Deps,
 	}, nil

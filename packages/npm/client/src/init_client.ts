@@ -1,4 +1,4 @@
-import { AdHocData, getHwyClientGlobal } from "../../common/index.mjs";
+import { getHwyClientGlobal } from "../../common/index.mjs";
 import { initializeCustomHistory } from "./custom_history.js";
 import { addDataBoostListeners } from "./data_boost_listeners.js";
 
@@ -34,6 +34,6 @@ function importComponents() {
   );
 }
 
-export function getAdHocData(): AdHocData | undefined {
+export function getAdHocData<T extends any = any>(): T | undefined {
   return getHwyClientGlobal().get("adHocData");
 }

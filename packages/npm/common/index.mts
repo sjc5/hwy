@@ -3,8 +3,6 @@ export const HWY_PREFIX_JSON = `${HWY_PREFIX}json`;
 export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
 export const HWY_ROUTE_CHANGE_EVENT_KEY = "hwy:route-change";
 
-export interface AdHocData extends Record<string, any> {}
-
 type HwyClientGlobal = {
   loadersData: Array<any>;
   importURLs: Array<string>;
@@ -14,7 +12,7 @@ type HwyClientGlobal = {
   actionData: any;
   activeComponents: Array<any>;
   activeErrorBoundaries: Array<any>;
-  adHocData: AdHocData;
+  adHocData: any;
   buildID: string;
 };
 
@@ -44,7 +42,7 @@ export type OtherHeadBlock = {
 };
 export type HeadBlock = TitleHeadBlock | OtherHeadBlock;
 
-export type GetRouteDataOutput = {
+export type GetRouteDataOutput<AHD extends any = any> = {
   title: string;
   metaHeadBlocks: Array<OtherHeadBlock>;
   restHeadBlocks: Array<OtherHeadBlock>;
@@ -54,7 +52,7 @@ export type GetRouteDataOutput = {
   splatSegments: Array<string>;
   params: Record<string, string>;
   actionData: Array<any>;
-  adHocData: Record<string, any>;
+  adHocData: AHD;
   buildID: string;
   deps: Array<string>;
 
@@ -63,9 +61,9 @@ export type GetRouteDataOutput = {
   activeComponents: Array<any> | null;
 };
 
-export type RouteData = {
+export type RouteData<AHD extends any = any> = {
   response: Response | null;
-  data: GetRouteDataOutput | null;
+  data: GetRouteDataOutput<AHD> | null;
   mergedResponseInit: ResponseInit | null;
   ssrData?: {
     ssrInnerHTML: string;

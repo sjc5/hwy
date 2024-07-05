@@ -11,6 +11,7 @@ import (
 	"github.com/adrg/frontmatter"
 	"github.com/russross/blackfriday/v2"
 	"github.com/sjc5/hwy"
+	"github.com/sjc5/kit/pkg/lru"
 )
 
 var count = 0
@@ -52,7 +53,7 @@ var notFoundMatter = matter{
 	Content: "# 404\n\nNothing found.",
 }
 
-var c = hwy.NewLRUCache(1000)
+var c = lru.NewCache[string, *matter](1_000)
 
 var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps) (*matter, error) {
 	normalizedPath := filepath.Clean(strings.Join(*props.SplatSegments, "/"))
@@ -62,7 +63,7 @@ var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps) (*matt
 
 	var item *matter
 	if cached, ok := c.Get(normalizedPath); ok {
-		item = cached.(*matter)
+		item = cached
 		return item, nil
 	}
 
