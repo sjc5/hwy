@@ -877,7 +877,10 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDat
 		sorted.restHeadBlocks = &[]*HeadBlock{}
 	}
 
-	adHocData, err := h.getAdHocData.Execute(loaderProps)
+	var adHocData any
+	if h.getAdHocData != nil {
+		adHocData, err = h.getAdHocData.Execute(loaderProps)
+	}
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get ad hoc data: %v", err)
 		Log.Errorf(errMsg)
