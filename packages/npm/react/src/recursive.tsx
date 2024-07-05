@@ -1,22 +1,21 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
 import type { GetRouteDataOutput, RouteData } from "../../common/index.mjs";
 import {
-  AdHocData,
   HWY_ROUTE_CHANGE_EVENT_KEY,
   getHwyClientGlobal,
 } from "../../common/index.mjs";
 
 type ErrorBoundaryComp = () => JSX.Element;
 type ServerKey = keyof GetRouteDataOutput;
-type BaseProps = {
-  routeData?: RouteData;
+type BaseProps<AHD extends any = any> = {
+  routeData?: RouteData<AHD>;
   index?: number;
   fallbackErrorBoundary?: ErrorBoundaryComp;
-  adHocData?: AdHocData;
-  layout?: RootLayoutComponent;
+  adHocData?: AHD;
+  layout?: RootLayoutComponent<{ adHocData: AHD }>;
 };
 
-export function RootOutlet(props: BaseProps): JSX.Element {
+export function RootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
   const isServer = typeof document === "undefined";
   const ctx: {
     get: (sk: ServerKey) => GetRouteDataOutput[ServerKey];
@@ -170,11 +169,13 @@ function MaybeWithLayout(
 type RoutePropsTypeArg = {
   loaderOutput?: any;
   actionOutput?: any;
+  adHocData?: any;
 };
 
 type DefaultRouteProps = {
   loaderOutput: any;
   actionOutput: any;
+  adHocData: any;
 };
 
 export type RouteComponentProps<
@@ -185,17 +186,19 @@ export type RouteComponentProps<
   Outlet: (...props: any) => JSX.Element;
   params: Record<string, string>;
   splatSegments: Array<string>;
-  adHocData: AdHocData | undefined;
+  adHocData: T["adHocData"] | undefined;
 };
 
 export type RouteComponent<T extends RoutePropsTypeArg = DefaultRouteProps> = (
   props: RouteComponentProps<T>,
 ) => JSX.Element;
 
-export type RootLayoutComponentProps = {
+export type RootLayoutComponentProps<
+  T extends RoutePropsTypeArg = DefaultRouteProps,
+> = {
   children: JSX.Element;
-} & Pick<RouteComponentProps, "params" | "splatSegments" | "adHocData">;
+} & Pick<RouteComponentProps<T>, "params" | "splatSegments" | "adHocData">;
 
-export type RootLayoutComponent = (
-  props: RootLayoutComponentProps,
-) => JSX.Element;
+export type RootLayoutComponent<
+  T extends RoutePropsTypeArg = DefaultRouteProps,
+> = (props: RootLayoutComponentProps<T>) => JSX.Element;
