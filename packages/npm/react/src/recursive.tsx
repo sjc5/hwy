@@ -1,4 +1,10 @@
-import { startTransition, useEffect, useMemo, useState } from "react";
+import {
+  startTransition,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import type { GetRouteDataOutput, RouteData } from "../../common/index.mjs";
 import {
   HWY_ROUTE_CHANGE_EVENT_KEY,
@@ -16,19 +22,14 @@ type BaseProps<AHD extends any = any> = {
 };
 
 export function RootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
-  const isServer = typeof document === "undefined";
   const ctx: {
     get: (sk: ServerKey) => GetRouteDataOutput[ServerKey];
-  } = isServer
-    ? {
-        get: (sk: ServerKey) => props.routeData?.data?.[sk],
-      }
-    : (getHwyClientGlobal() as any);
+  } = getHwyClientGlobal() as any;
   const idx = props.index ?? 0;
   const CurrentComponent = (ctx.get("activeComponents") as any)?.[idx];
-  const adHocData = isServer
-    ? props.adHocData
-    : getHwyClientGlobal().get("adHocData");
+  const [adHocData, setAdHocData] = useState(
+    ctx.get("adHocData") ?? props.adHocData,
+  );
   const [params, setParams] = useState(ctx.get("params") ?? {});
   const [splatSegments, setSplatSegments] = useState(
     ctx.get("splatSegments") ?? [],
@@ -39,16 +40,24 @@ export function RootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
   const [actionData, setActionData] = useState(
     (ctx.get("actionData") as any)?.[idx],
   );
+
+  const [lastUpdate, setLastUpdate] = useState(Date.now());
+
   useEffect(() => {
     window.addEventListener(HWY_ROUTE_CHANGE_EVENT_KEY, () => {
-      startTransition(() => {
-        setParams(ctx.get("params") ?? {});
-        setSplatSegments(ctx.get("splatSegments") ?? []);
-        setLoaderData((ctx.get("loadersData") as any)?.[idx]);
-        setActionData((ctx.get("actionData") as any)?.[idx]);
-      });
+      setLastUpdate(Date.now());
     });
   }, []);
+
+  useLayoutEffect(() => {
+    startTransition(() => {
+      setAdHocData(ctx.get("adHocData") ?? props.adHocData);
+      setParams(ctx.get("params") ?? {});
+      setSplatSegments(ctx.get("splatSegments") ?? []);
+      setLoaderData((ctx.get("loadersData") as any)?.[idx]);
+      setActionData((ctx.get("actionData") as any)?.[idx]);
+    });
+  }, [lastUpdate]);
 
   if (!CurrentComponent) {
     return <></>;
