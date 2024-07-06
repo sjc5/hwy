@@ -1239,11 +1239,11 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			}
 
 			etag := fmt.Sprintf("%x", sha1.Sum(bytes))
+			w.Header().Set("ETag", etag)
 			if isNotModified(r, etag) {
 				w.WriteHeader(http.StatusNotModified)
 				return
 			}
-			w.Header().Set("ETag", etag)
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(bytes)
 			return
@@ -1293,11 +1293,11 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		}
 
 		etag := fmt.Sprintf("%x", sha1.Sum(buf.Bytes()))
+		w.Header().Set("ETag", etag)
 		if isNotModified(r, etag) {
 			w.WriteHeader(http.StatusNotModified)
 			return
 		}
-		w.Header().Set("ETag", etag)
 		w.Header().Set("Content-Type", "text/html")
 		w.Write(buf.Bytes())
 	})
