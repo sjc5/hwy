@@ -1,6 +1,8 @@
 package router
 
 import (
+	"bytes"
+	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -137,6 +139,7 @@ type HeadProps struct {
 	SplatSegments *[]string
 	LoaderData    any
 	ActionData    any
+	AdHocData     any
 }
 
 type DataFuncs struct {
@@ -862,7 +865,18 @@ func (h *Hwy) Initialize() error {
 func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDataOutput, error) {
 	activePathData, loaderProps := h.getMatchingPathData(w, r)
 
-	headBlocks, err := getExportedHeadBlocks(r, activePathData, &h.DefaultHeadBlocks)
+	var adHocData any
+	var err error
+	if h.getAdHocData != nil {
+		adHocData, err = h.getAdHocData.Execute(loaderProps)
+	}
+	if err != nil {
+		errMsg := fmt.Sprintf("could not get ad hoc data: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
+	}
+
+	headBlocks, err := getExportedHeadBlocks(r, activePathData, &h.DefaultHeadBlocks, adHocData)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get exported head blocks: %v", err)
 		Log.Errorf(errMsg)
@@ -875,16 +889,6 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDat
 	}
 	if sorted.restHeadBlocks == nil {
 		sorted.restHeadBlocks = &[]*HeadBlock{}
-	}
-
-	var adHocData any
-	if h.getAdHocData != nil {
-		adHocData, err = h.getAdHocData.Execute(loaderProps)
-	}
-	if err != nil {
-		errMsg := fmt.Sprintf("could not get ad hoc data: %v", err)
-		Log.Errorf(errMsg)
-		return nil, errors.New(errMsg)
 	}
 
 	return &GetRouteDataOutput{
@@ -903,17 +907,20 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDat
 	}, nil
 }
 
-func getExportedHeadBlocks(r *http.Request, activePathData *ActivePathData, defaultHeadBlocks *[]HeadBlock) (*[]*HeadBlock, error) {
+func getExportedHeadBlocks(
+	r *http.Request, activePathData *ActivePathData, defaultHeadBlocks *[]HeadBlock, adHocData any,
+) (*[]*HeadBlock, error) {
 	headBlocks := make([]HeadBlock, len(*defaultHeadBlocks))
 	copy(headBlocks, *defaultHeadBlocks)
 	for i, head := range *activePathData.ActiveHeads {
 		if head != nil {
-			headProps := HeadProps{
+			headProps := &HeadProps{
 				Request:       r,
 				Params:        activePathData.Params,
 				SplatSegments: activePathData.SplatSegments,
 				LoaderData:    (*activePathData.LoadersData)[i],
 				ActionData:    (*activePathData.ActionData)[i],
+				AdHocData:     adHocData,
 			}
 			localHeadBlocks, err := head.Execute(headProps)
 			if err != nil {
@@ -1223,13 +1230,22 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		}
 
 		if GetIsJSONRequest(r) {
-			w.Header().Set("Content-Type", "application/json")
-			err = json.NewEncoder(w).Encode(routeData)
+			bytes, err := json.Marshal(routeData)
 			if err != nil {
-				msg := "Error encoding JSON"
+				msg := "Error marshalling JSON"
 				Log.Errorf(msg+": %v\n", err)
 				http.Error(w, msg, http.StatusInternalServerError)
+				return
 			}
+
+			etag := fmt.Sprintf("%x", sha1.Sum(bytes))
+			if isNotModified(r, etag) {
+				w.WriteHeader(http.StatusNotModified)
+				return
+			}
+			w.Header().Set("ETag", etag)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(bytes)
 			return
 		}
 
@@ -1267,11 +1283,27 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			tmplData[key] = value
 		}
 
-		err = h.rootTemplate.Execute(w, tmplData)
+		var buf bytes.Buffer
+
+		err = h.rootTemplate.Execute(&buf, tmplData)
 		if err != nil {
 			msg := "Error executing template"
 			Log.Errorf(msg+": %v\n", err)
 			http.Error(w, msg, http.StatusInternalServerError)
 		}
+
+		etag := fmt.Sprintf("%x", sha1.Sum(buf.Bytes()))
+		if isNotModified(r, etag) {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+		w.Header().Set("ETag", etag)
+		w.Header().Set("Content-Type", "text/html")
+		w.Write(buf.Bytes())
 	})
+}
+
+func isNotModified(r *http.Request, etag string) bool {
+	match := r.Header.Get("If-None-Match")
+	return match != "" && match == etag
 }
