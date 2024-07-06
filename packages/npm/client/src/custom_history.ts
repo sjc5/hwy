@@ -19,6 +19,12 @@ function setNativeScrollRestorationToManual() {
 }
 
 async function customHistoryListener({ action, location }: Update) {
+  // save current scroll state to map
+  scrollStateMapSubKey.set(lastKnownCustomLocation.key, {
+    x: window.scrollX,
+    y: window.scrollY,
+  });
+
   if (action === "POP") {
     if (
       location.key !== lastKnownCustomLocation.key &&
@@ -28,18 +34,10 @@ async function customHistoryListener({ action, location }: Update) {
       await internalNavigate({
         href: window.location.href,
         navigationType: "browserHistory",
-        scrollStateToRestore: scrollStateMapSubKey.read(
-          customHistory.location.key,
-        ),
+        scrollStateToRestore: scrollStateMapSubKey.read(location.key),
       });
     }
   }
-
-  // save current scroll state to map
-  scrollStateMapSubKey.set(lastKnownCustomLocation.key, {
-    x: window.scrollX,
-    y: window.scrollY,
-  });
 
   // now set lastKnownCustomLocation to new location
   lastKnownCustomLocation = location;

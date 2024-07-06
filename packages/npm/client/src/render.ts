@@ -1,9 +1,12 @@
 import {
   HWY_ROUTE_CHANGE_EVENT_KEY,
   HwyClientGlobalKey,
+  RouteChangeEventDetail,
+  ScrollState,
   getHwyClientGlobal,
 } from "../../common/index.mjs";
 import { dispatchBuildIDEvent } from "./build_id.js";
+import { customHistory } from "./custom_history.js";
 import { head } from "./head.js";
 import { NavigationType } from "./navigate.js";
 
@@ -12,9 +15,15 @@ const hwyClientGlobal = getHwyClientGlobal();
 export async function reRenderApp({
   json,
   navigationType,
+  runHistoryOptions,
 }: {
   json: any;
   navigationType: NavigationType;
+  runHistoryOptions?: {
+    href: string;
+    scrollStateToRestore?: ScrollState;
+    replace?: boolean;
+  };
 }) {
   // Changing the title instantly makes it feel faster
   document.title = json.title;
@@ -121,8 +130,33 @@ export async function reRenderApp({
     }
   }
 
+  let scrollStateToDispatch: ScrollState | undefined;
+
+  if (runHistoryOptions) {
+    // __TODO scroll to top on link clicks, but provide an opt-out
+    // __TODO scroll to top on form responses, but provide an opt-out
+
+    const { href, scrollStateToRestore, replace } = runHistoryOptions;
+
+    if (navigationType === "userNavigation" || navigationType === "redirect") {
+      if (href !== location.href && navigationType !== "redirect" && !replace) {
+        customHistory.push(href);
+      } else {
+        customHistory.replace(href);
+      }
+      scrollStateToDispatch = { x: 0, y: 0 };
+    }
+
+    if (navigationType === "browserHistory" && scrollStateToRestore) {
+      scrollStateToDispatch = scrollStateToRestore;
+    }
+  }
+
   // dispatch event
-  const detail = { index: highestIndex ?? 0 };
+  const detail: RouteChangeEventDetail = {
+    index: highestIndex ?? 0,
+    scrollState: scrollStateToDispatch,
+  } as const;
   window.dispatchEvent(new CustomEvent(HWY_ROUTE_CHANGE_EVENT_KEY, { detail }));
 
   head.removeAllBetween("meta");

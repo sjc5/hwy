@@ -1,5 +1,7 @@
+import { ScrollState } from "../../common/index.mjs";
+
 const scrollStateMapKey = "__hwy__scrollStateMap";
-type ScrollStateMap = Map<string, { x: number; y: number }>;
+type ScrollStateMap = Map<string, ScrollState>;
 
 function getScrollStateMapFromLocalStorage() {
   const scrollStateMapString = localStorage.getItem(scrollStateMapKey);
@@ -19,7 +21,7 @@ function setScrollStateMapToLocalStorage(newScrollStateMap: ScrollStateMap) {
   );
 }
 
-function setScrollStateMapSubKey(key: string, value: { x: number; y: number }) {
+function setScrollStateMapSubKey(key: string, value: ScrollState) {
   const scrollStateMap = getScrollStateMapFromLocalStorage();
   scrollStateMap.set(key, value);
 

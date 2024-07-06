@@ -74,3 +74,10 @@ export type RouteData<AHD extends any = any> = {
     bundledCSSURL: string;
   };
 };
+
+export type ScrollState = { x: number; y: number };
+export type RouteChangeEventDetail = {
+  scrollState?: ScrollState;
+  index?: number;
+};
+export type RouteChangeEvent = CustomEvent<RouteChangeEventDetail>;
