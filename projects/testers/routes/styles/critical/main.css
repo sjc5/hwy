@@ -1,62 +1,60 @@
 *,
 *::before,
 *::after {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 #root {
-	font-family: monospace;
-	display: flex;
-	height: 100dvh;
-	max-height: 100dvh;
-	overflow: hidden;
+  font-family: monospace;
 }
 
 .sidebar {
-	padding: 1rem;
-	padding-left: 2rem;
-	background: black;
-	color: white;
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-	height: 100dvh;
-	max-height: 100dvh;
-	overflow: scroll;
-	min-width: 300px;
-	max-width: 300px;
+  position: fixed;
+  padding: 1rem;
+  padding-left: 2rem;
+  background: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: scroll;
+  min-width: 300px;
+  max-width: 300px;
 }
 
 main {
-	padding: 1rem;
-	background: darkgray;
-	color: white;
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-	height: 100dvh;
-	max-height: 100dvh;
-	width: 100%;
-	overflow: scroll;
+  padding: 1rem;
+  padding-left: 400px;
+  background: darkgray;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100dvh;
+  max-height: 100dvh;
+  width: 100%;
+  /* overflow: scroll; */
 }
 
 a {
-	color: lightblue;
+  color: lightblue;
 }
 
 .tester-comp-wrapper {
-	background: #7773;
-	padding: 1rem;
-	border-radius: 0.5rem;
-	color: black;
-	font-weight: bold;
-	font-size: 1rem;
+  background: #7773;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  color: black;
+  font-weight: bold;
+  font-size: 1rem;
 }
 
 .outlet-wrapper {
-	margin-top: 1rem;
-	padding-left: 2rem;
-	border-left: 3px solid maroon;
+  margin-top: 1rem;
+  padding-left: 2rem;
+  border-left: 3px solid maroon;
 }

@@ -1,6 +1,6 @@
 {
   "name": "@hwy-js/react",
-  "version": "0.15.0-pre.8",
+  "version": "0.15.0-pre.20",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -21,12 +21,16 @@
     "typecheck": "tsc"
   },
   "devDependencies": {
-    "@types/react": "^18.2.75",
-    "@types/react-dom": "^18.2.24",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc",
+    "react": "19.0.0-rc-f38c22b244-20240704",
+    "react-dom": "19.0.0-rc-f38c22b244-20240704",
     "tsup": "^8.0.2",
     "typescript": "^5.4.4"
+  },
+  "overrides": {
+    "@types/react": "npm:types-react@rc",
+    "@types/react-dom": "npm:types-react-dom@rc"
   },
   "repository": {
     "type": "git",

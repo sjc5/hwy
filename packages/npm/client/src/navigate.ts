@@ -1,9 +1,8 @@
-import { HWY_PREFIX_JSON, getHwyClientGlobal } from "../../common/index.mjs";
+import { HWY_PREFIX_JSON, ScrollState } from "../../common/index.mjs";
 import {
   abortControllers,
   handleAbortController,
 } from "./abort_controllers.js";
-import { customHistory } from "./custom_history.js";
 import { handleRedirects } from "./handle_redirects.js";
 import { reRenderApp } from "./render.js";
 import { setStatus } from "./status.js";
@@ -14,12 +13,10 @@ export type NavigationType =
   | "revalidation"
   | "redirect";
 
-const hwyClientGlobal = getHwyClientGlobal();
-
 export async function internalNavigate(props: {
   href: string;
   navigationType: NavigationType;
-  scrollStateToRestore?: { x: number; y: number };
+  scrollStateToRestore?: ScrollState;
   replace?: boolean;
 }) {
   setStatus({ type: props.navigationType, value: true });
@@ -56,36 +53,8 @@ export async function internalNavigate(props: {
     await reRenderApp({
       json,
       navigationType: props.navigationType,
+      runHistoryOptions: props,
     });
-
-    // __TODO scroll to top on link clicks, but provide an opt-out
-    // __TODO scroll to top on form responses, but provide an opt-out
-
-    if (
-      props.navigationType === "userNavigation" ||
-      props.navigationType === "redirect"
-    ) {
-      if (
-        props.href !== location.href &&
-        props.navigationType !== "redirect" &&
-        !props.replace
-      ) {
-        customHistory.push(props.href);
-      } else {
-        customHistory.replace(props.href);
-      }
-      window.scrollTo(0, 0);
-    }
-
-    if (
-      props.navigationType === "browserHistory" &&
-      props.scrollStateToRestore
-    ) {
-      window.scrollTo(
-        props.scrollStateToRestore.x,
-        props.scrollStateToRestore.y,
-      );
-    }
 
     setStatus({ type: props.navigationType, value: false });
   } catch (error) {
@@ -100,7 +69,7 @@ export async function internalNavigate(props: {
 
 export async function revalidate() {
   await internalNavigate({
-    href: location.href,
+    href: window.location.href,
     navigationType: "revalidation",
   });
 }
