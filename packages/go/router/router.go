@@ -2,19 +2,22 @@ package router
 
 import (
 	"bytes"
-	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
 	"net/http"
+	"os"
 	"slices"
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/sjc5/kit/pkg/lru"
+	"golang.org/x/sync/errgroup"
 )
 
 type DataFunction interface {
@@ -1015,19 +1018,15 @@ const (
 	restEnd   = `<!-- data-hwy="rest-end" -->`
 )
 
+const titleTmplStr = `<title>{{.}}</title>` + "\n"
+
+var titleTmpl = template.Must(template.New("title").Parse(titleTmplStr))
+
 func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 	var htmlBuilder strings.Builder
 
 	// Add title
-	titleTmpl, err := template.New("title").Parse(
-		`<title>{{.}}</title>` + "\n",
-	)
-	if err != nil {
-		errMsg := fmt.Sprintf("could not parse title template: %v", err)
-		Log.Errorf(errMsg)
-		return nil, errors.New(errMsg)
-	}
-	err = titleTmpl.Execute(&htmlBuilder, routeData.Title)
+	err := titleTmpl.Execute(&htmlBuilder, routeData.Title)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not execute title template: %v", err)
 		Log.Errorf(errMsg)
@@ -1067,24 +1066,17 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 	return &final, nil
 }
 
+const headElsTmplStr = `{{range $key, $value := .Attributes}}{{$key}}="{{$value}}" {{end}}/>` + "\n"
+
+var headElsTmpl = template.Must(template.New("headblock").Parse(headElsTmplStr))
+
+const scriptBlockTmplStr = `{{range $key, $value := .Attributes}}{{$key}}="{{$value}}" {{end}}></script>` + "\n"
+
+var scriptBlockTmpl = template.Must(template.New("scriptblock").Parse(scriptBlockTmplStr))
+
 func renderBlock(htmlBuilder *strings.Builder, block *HeadBlock) error {
-	headElsTmpl, err := template.New("headblock").Parse(
-		`{{range $key, $value := .Attributes}}{{$key}}="{{$value}}" {{end}}/>` + "\n",
-	)
-	if err != nil {
-		errMsg := fmt.Sprintf("could not parse head block template: %v", err)
-		Log.Errorf(errMsg)
-		return errors.New(errMsg)
-	}
-	scriptBlockTmpl, err := template.New("scriptblock").Parse(
-		`{{range $key, $value := .Attributes}}{{$key}}="{{$value}}" {{end}}></script>` + "\n",
-	)
-	if err != nil {
-		errMsg := fmt.Sprintf("could not parse script block template: %v", err)
-		Log.Errorf(errMsg)
-		return errors.New(errMsg)
-	}
 	htmlBuilder.WriteString("<" + block.Tag + " ")
+	var err error
 	if block.Tag == "script" {
 		err = scriptBlockTmpl.Execute(htmlBuilder, block)
 	} else {
@@ -1102,8 +1094,7 @@ var permittedTags = []string{"meta", "base", "link", "style", "script", "noscrip
 
 const HwyPrefix = "__hwy_internal__"
 
-func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML, error) {
-	tmpl, err := template.New("ssr").Parse(`<script>
+const ssrInnerTmplStr = `<script>
 	globalThis[Symbol.for("{{.HwyPrefix}}")] = {};
 	const x = globalThis[Symbol.for("{{.HwyPrefix}}")];
 	x.isDev = {{.IsDev}};
@@ -1122,12 +1113,11 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML,
 		link.href = "/public/" + module;
 		document.head.appendChild(link);
 	 });
-</script>`)
-	if err != nil {
-		errMsg := fmt.Sprintf("could not parse SSR inner HTML template: %v", err)
-		Log.Errorf(errMsg)
-		return nil, errors.New(errMsg)
-	}
+</script>`
+
+var ssrInnerTmpl = template.Must(template.New("ssr").Parse(ssrInnerTmplStr))
+
+func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML, error) {
 	var htmlBuilder strings.Builder
 	var dto = SSRInnerHTMLInput{
 		HwyPrefix:           HwyPrefix,
@@ -1142,7 +1132,7 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML,
 		AdHocData:           routeData.AdHocData,
 		Deps:                routeData.Deps,
 	}
-	err = tmpl.Execute(&htmlBuilder, dto)
+	err := ssrInnerTmpl.Execute(&htmlBuilder, dto)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not execute SSR inner HTML template: %v", err)
 		Log.Errorf(errMsg)
@@ -1221,6 +1211,10 @@ func (h *Hwy) getDeps(matchingPaths *[]*MatchingPath) []string {
 
 func (h *Hwy) GetRootHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		a := newMeasurement("GetRootHandler")
+		defer a.stop()
+
+		b := newMeasurement("GetRouteData")
 		routeData, err := h.GetRouteData(w, r)
 		if err != nil {
 			msg := "Error getting route data"
@@ -1228,8 +1222,10 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			http.Error(w, msg, http.StatusInternalServerError)
 			return
 		}
+		b.stop()
 
 		if GetIsJSONRequest(r) {
+			c := newMeasurement("JSON marshalling")
 			bytes, err := json.Marshal(routeData)
 			if err != nil {
 				msg := "Error marshalling JSON"
@@ -1237,8 +1233,12 @@ func (h *Hwy) GetRootHandler() http.Handler {
 				http.Error(w, msg, http.StatusInternalServerError)
 				return
 			}
+			c.stop()
 
-			etag := fmt.Sprintf("%x", sha1.Sum(bytes))
+			d := newMeasurement("ETAG")
+			etag := fmt.Sprintf("%x", sha256.Sum256(bytes))
+			d.stop()
+
 			w.Header().Set("ETag", etag)
 			if isNotModified(r, etag) {
 				w.WriteHeader(http.StatusNotModified)
@@ -1249,50 +1249,78 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			return
 		}
 
-		if h.rootTemplate == nil {
-			tmpl, err := template.ParseFS(h.FS, h.RootTemplateLocation)
-			if err != nil {
-				msg := "Error loading template"
-				Log.Errorf(msg+": %v\n", err)
-				http.Error(w, msg, http.StatusInternalServerError)
-				return
+		var eg errgroup.Group
+		var ssrInnerHTML *template.HTML
+		var headElements *template.HTML
+
+		errGroupMeasure := newMeasurement("errgroup")
+
+		eg.Go(func() error {
+			f := newMeasurement("template.ParseFS")
+			if h.rootTemplate == nil {
+				tmpl, err := template.ParseFS(h.FS, h.RootTemplateLocation)
+				if err != nil {
+					return fmt.Errorf("error parsing root template: %v", err)
+				}
+				h.rootTemplate = tmpl
 			}
-			h.rootTemplate = tmpl
-		}
+			f.stop()
+			return nil
+		})
 
-		headElements, err := GetHeadElements(routeData)
-		if err != nil {
-			msg := "Error getting head elements"
+		eg.Go(func() error {
+			g := newMeasurement("GetHeadElements")
+			he, err := GetHeadElements(routeData)
+			if err != nil {
+				return fmt.Errorf("error getting head elements: %v", err)
+			}
+			headElements = he
+			g.stop()
+			return nil
+		})
+
+		eg.Go(func() error {
+			h := newMeasurement("GetSSRInnerHTML")
+			sih, err := GetSSRInnerHTML(routeData, true)
+			if err != nil {
+				return fmt.Errorf("error getting SSR inner HTML: %v", err)
+			}
+			ssrInnerHTML = sih
+			h.stop()
+			return nil
+		})
+
+		if err := eg.Wait(); err != nil {
+			msg := "Error getting route data"
 			Log.Errorf(msg+": %v\n", err)
 			http.Error(w, msg, http.StatusInternalServerError)
 			return
 		}
 
-		ssrInnerHTML, err := GetSSRInnerHTML(routeData, true)
-		if err != nil {
-			msg := "Error getting SSR inner HTML"
-			Log.Errorf(msg+": %v\n", err)
-			http.Error(w, msg, http.StatusInternalServerError)
-			return
-		}
+		errGroupMeasure.stop()
 
 		tmplData := map[string]any{}
-		tmplData["HeadElements"] = headElements
-		tmplData["SSRInnerHTML"] = ssrInnerHTML
 		for key, value := range h.RootTemplateData {
 			tmplData[key] = value
 		}
+		tmplData["HeadElements"] = headElements
+		tmplData["SSRInnerHTML"] = ssrInnerHTML
 
 		var buf bytes.Buffer
 
+		i := newMeasurement("Template execution")
 		err = h.rootTemplate.Execute(&buf, tmplData)
 		if err != nil {
 			msg := "Error executing template"
 			Log.Errorf(msg+": %v\n", err)
 			http.Error(w, msg, http.StatusInternalServerError)
 		}
+		i.stop()
 
-		etag := fmt.Sprintf("%x", sha1.Sum(buf.Bytes()))
+		f := newMeasurement("ETAG")
+		etag := fmt.Sprintf("%x", sha256.Sum256(buf.Bytes()))
+		f.stop()
+
 		w.Header().Set("ETag", etag)
 		if isNotModified(r, etag) {
 			w.WriteHeader(http.StatusNotModified)
@@ -1306,4 +1334,26 @@ func (h *Hwy) GetRootHandler() http.Handler {
 func isNotModified(r *http.Request, etag string) bool {
 	match := r.Header.Get("If-None-Match")
 	return match != "" && match == etag
+}
+
+func getIsDebug() bool {
+	return os.Getenv("HWY_ENV") == "development"
+}
+
+type measure struct {
+	start time.Time
+	name  string
+}
+
+func (m *measure) stop() {
+	if getIsDebug() {
+		Log.Info("timing -- ", time.Since(m.start), " -- ", m.name)
+	}
+}
+
+func newMeasurement(name string) *measure {
+	return &measure{
+		start: time.Now(),
+		name:  name,
+	}
 }
