@@ -1,12 +1,15 @@
 #!/bin/bash
 
-# To run this script, make sure you have Git and Go installed, and that you've made it executable (`chmod +x ./path-to-this-script`)
+blue_start="\033[0;34m"
+red_start="\033[0;31m"
+green_start="\033[0;32m"
+color_end="\033[0m"
 
 # Ask for confirmation
-printf "\033[0;34mhave you pushed your code? \033[0m"
+printf "${blue_start}have you pushed your code? ${color_end}"
 read -p "(y/n) " -n 1 -r
 echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]
+if [[ ! ${REPLY} =~ ^[Yy]$ ]]
 then
     echo "aborted. go commit and push your changes, then come back"
     exit 1
@@ -14,54 +17,60 @@ fi
 
 current_tag=$(git describe --tags --abbrev=0)
 
-if [ -z "$current_tag" ]; then 
-    echo "no existing tags found. get started by running:"
-    printf "\`\`\`sh\n\033[0;34mgit tag v0.0.1\ngit push origin v0.0.1\nGOPROXY=proxy.golang.org go list -m all\n\033[0m\`\`\`\n"
-    echo "aborted"
+if [ -z "${current_tag}" ]; then 
+		cat <<EOF
+No existing tags found. Get started by running:
+\`\`\`sh
+${blue_start}git tag v0.0.1
+git push origin v0.0.1
+GOPROXY=proxy.golang.org go list -m all${color_end}
+\`\`\`
+Aborted
+EOF
     exit 1
 else
-    echo "current tag: $current_tag"
+    echo "current tag: ${current_tag}"
 fi
 
 # Ask for new tag
-printf "\033[0;34mwhat is the new version? \033[0m"
+printf "${blue_start}what is the new version? ${color_end}"
 read -p "v" -r
-bumped_version="v$REPLY"
+bumped_version="v${REPLY}"
 
 # Show new tag
-printf "Result: \033[0;31m$current_tag\033[0m"
+printf "Result: ${red_start}${current_tag}${color_end}"
 printf "  -->  "
-printf "\033[0;32m$bumped_version\033[0m\n"
+printf "${green_start}${bumped_version}${color_end}\n"
 
 # Ask for confirmation
-printf "\033[0;34mis this correct? \033[0m"
+printf "${blue_start}is this correct? ${color_end}"
 read -p "(y/n) " -n 1 -r
 echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]
+if [[ ! ${REPLY} =~ ^[Yy]$ ]]
 then
     echo "aborted"
     exit 1
 fi
 
 # Ask again if you want to push the tag to git
-printf "\033[0;34mapply tag \033[0;32m$bumped_version\033[0;34m and push to git? \033[0m"
+printf "${blue_start}apply tag ${green_start}${bumped_version}${blue_start} and push to git? ${color_end}"
 read -p "(y/n) " -n 1 -r
 echo
-if [[ ! $REPLY =~ ^[Yy]$ ]]
+if [[ ! ${REPLY} =~ ^[Yy]$ ]]
 then
     echo "aborted"
     exit 1
 fi
 
 echo "creating new tag"
-git tag $bumped_version
+git tag ${bumped_version}
 if [ $? -ne 0 ]; then
     echo "tag creation failed"
     exit 1
 fi
 
 echo "pushing new tag"
-git push origin $bumped_version
+git push origin ${bumped_version}
 if [ $? -ne 0 ]; then
     echo "push failed"
     exit 1
