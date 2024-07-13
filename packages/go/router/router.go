@@ -1333,7 +1333,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 
 func isNotModified(r *http.Request, etag string) bool {
 	match := r.Header.Get("If-None-Match")
-	return match != "" && match == etag
+	return match != "" && (match == etag || strings.Contains(match, etag))
 }
 
 func getIsDebug() bool {
