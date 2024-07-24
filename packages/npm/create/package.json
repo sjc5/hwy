@@ -1,6 +1,6 @@
 {
   "name": "create-hwy",
-  "version": "0.15.0-pre.20",
+  "version": "0.15.0-pre.22",
   "author": {
     "name": "Samuel J. Cook"
   },
@@ -16,8 +16,8 @@
     "build": "rm -rf dist && tsup-node index.ts --format esm",
     "lint": "tsc",
     "create-hwy": "pnpm run build && node dist/index.js",
-    "publish-pre": "npm publish --tag pre",
-    "publish-non-pre": "npm publish",
+    "publish-pre": "npm publish --access public --tag pre",
+    "publish-non-pre": "npm publish --access public",
     "update-latest": "pnpm update --latest",
     "typecheck": "tsc --noEmit"
   },
@@ -31,7 +31,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/sjc5/hwy",
-    "directory": "packages/create-hwy"
+    "directory": "packages/npm/create-hwy"
   },
   "homepage": "https://hwy.dev",
   "bugs": "https://github.com/sjc5/hwy/issues"

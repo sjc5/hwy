@@ -1,16 +1,9 @@
-import {
-  startTransition,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import type {
   GetRouteDataOutput,
   RouteChangeEvent,
   RouteData,
-  ScrollState,
 } from "../../common/index.mjs";
 import {
   HWY_ROUTE_CHANGE_EVENT_KEY,

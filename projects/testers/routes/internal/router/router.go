@@ -21,7 +21,7 @@ func init() {
 		"/dashboard/customers/$customer_id/orders": {
 			Loader: bob.LoaderFunc[any](func(props *hwy.LoaderProps) (any, error) {
 				return map[string]string{
-					"message": "<script>alert('Hello, Bob!')</script>",
+					"message": "</script><script>alert('Hello, Bob!')</script>",
 				}, nil
 			}),
 			Head: bob.HeadFunc(func(props *hwy.HeadProps) (*[]hwy.HeadBlock, error) {
