@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
 
-const dirsInSlashPackages = ["client", "create", "react"];
+const dirsInSlashPackages = ["client", "create", "react", "lit"];
 
 function getCurrentPkgJSONs() {
   return dirsInSlashPackages.map((pkgDirname) => {
