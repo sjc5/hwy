@@ -23,22 +23,22 @@ const noErrorBoundaryTmplFn = () => noErrorBoundaryTmpl;
 let shouldScroll = false;
 
 class HwyRootOutletShadowDef<AHD> extends LitElement {
-  @property({ type: Object })
+  @property()
   routeData?: RouteData<AHD>;
 
-  @property({ type: Number })
+  @property()
   index?: number = 0;
 
-  @property({ type: Function })
+  @property()
   fallbackErrorBoundary?: ErrorBoundaryComp;
 
-  @property({ type: Object })
+  @property()
   adHocData?: AHD;
 
-  @property({ type: Function })
+  @property()
   layout?: AsComp<typeof HwyRootLayout>;
 
-  @property({ type: Object })
+  @property()
   passedFromParent?: Record<string, any>;
 
   private _routeChangeCallback = (e: RouteChangeEvent) => {
@@ -141,7 +141,7 @@ class HwyRootOutletShadowDef<AHD> extends LitElement {
             adHocData: ctx.get("adHocData") ?? this.adHocData,
             params: ctx.get("params") ?? {},
             splatSegments: ctx.get("splatSegments") ?? [],
-            childTemplate: EB(),
+            Outlet: EB,
           });
         }
 
@@ -150,14 +150,18 @@ class HwyRootOutletShadowDef<AHD> extends LitElement {
 
       return MaybeWithLayout({
         ...extendedProps,
-        childTemplate: CurrentComponent(extendedProps),
+        Outlet: (localProps: Record<string, any> | undefined) =>
+          CurrentComponent({
+            ...extendedProps,
+            passedFromParent: localProps,
+          }),
       });
     } catch (error) {
       console.error(error);
 
       return MaybeWithLayout({
         ...extendedProps,
-        childTemplate: ebc(),
+        Outlet: ebc,
       });
     }
   }
@@ -177,12 +181,12 @@ class HwyRootOutletDef<AHD> extends HwyRootOutletShadowDef<AHD> {
 export const HwyRootOutlet = makeComp(HwyRootOutletDef, "hwy-root-outlet");
 
 function MaybeWithLayout(
-  props: BaseProps & HwyRootLayoutProps & { childTemplate: TemplateResult },
+  props: BaseProps & HwyRootLayoutProps & { Outlet: Outlet },
 ): TemplateResult {
   if (props.layout && !props.index) {
     return props.layout(props);
   }
-  return props.childTemplate;
+  return props.Outlet();
 }
 
 type RoutePropsTypeArg = {
@@ -197,12 +201,14 @@ type DefaultRouteProps = {
   adHocData: any;
 };
 
+type Outlet = (passToChild?: Record<string, any>) => TemplateResult;
+
 export type HwyRouteComponentProps<
   T extends RoutePropsTypeArg = DefaultRouteProps,
 > = {
   loaderData: T["loaderOutput"];
   actionData: T["actionOutput"] | undefined;
-  Outlet: (passToChild?: Record<string, any>) => TemplateResult;
+  Outlet: Outlet;
   params: Record<string, string>;
   splatSegments: Array<string>;
   adHocData: T["adHocData"] | undefined;
@@ -214,31 +220,31 @@ export type HwyRouteComponent<T extends RoutePropsTypeArg = DefaultRouteProps> =
 export type HwyRootLayoutProps<
   T extends RoutePropsTypeArg = DefaultRouteProps,
 > = {
-  childTemplate: TemplateResult;
+  Outlet: Outlet;
 } & Pick<HwyRouteComponentProps<T>, "params" | "splatSegments" | "adHocData">;
 
 export class HwyRouteShadow<
   T extends RoutePropsTypeArg = DefaultRouteProps,
 > extends LitElement {
-  @property({ type: Object })
+  @property()
   loaderData!: T["loaderOutput"];
 
-  @property({ type: Object })
+  @property()
   actionData?: T["actionOutput"];
 
-  @property({ type: Function })
+  @property()
   Outlet!: (...props: any) => TemplateResult;
 
-  @property({ type: Object })
+  @property()
   params!: Record<string, string>;
 
-  @property({ type: Array })
+  @property()
   splatSegments!: Array<string>;
 
-  @property({ type: Object })
+  @property()
   adHocData?: T["adHocData"];
 
-  @property({ type: Object })
+  @property()
   passedFromParent?: Record<string, any>;
 }
 
@@ -253,17 +259,17 @@ export class HwyRoute<
 export class HwyRootLayoutShadow<
   T extends RoutePropsTypeArg = DefaultRouteProps,
 > extends LitElement {
-  @property({ type: Object })
+  @property()
   params!: Record<string, string>;
 
-  @property({ type: Array })
+  @property()
   splatSegments!: Array<string>;
 
-  @property({ type: Object })
+  @property()
   adHocData?: T["adHocData"];
 
-  @property({ type: Function })
-  childTemplate!: TemplateResult;
+  @property()
+  Outlet!: Outlet;
 }
 
 export class HwyRootLayout<

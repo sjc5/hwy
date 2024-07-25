@@ -1,18 +1,24 @@
 import { initClient } from "@hwy-js/client";
-import { HwyRootOutlet } from "@hwy-js/lit";
+import { HwyRootLayout, HwyRootOutlet, makeComp } from "@hwy-js/lit";
 import { html, render } from "lit";
 import { Sidebar } from "./components/sidebar";
 
-await initClient(() => {
-  render(
-    html`
+class LayoutDef extends HwyRootLayout {
+  render() {
+    return html`
       ${Sidebar({})}
-      <main>
-        ${HwyRootOutlet({
-          fallbackErrorBoundary: () => html`<div>Error Boundary in Root</div>`,
-        })}
-      </main>
-    `,
-    document.getElementById("root") as HTMLElement,
-  );
+      <main>${this.Outlet({ test: "hi jeff" })}</main>
+    `;
+  }
+}
+
+const Layout = makeComp(LayoutDef, "layout");
+
+const App = HwyRootOutlet({
+  layout: Layout,
+  fallbackErrorBoundary: () => html`<div>Error Boundary in Root</div>`,
+});
+
+await initClient(() => {
+  render(App, document.getElementById("root") as HTMLElement);
 });

@@ -9,6 +9,8 @@ class TesterCompDef extends HwyRoute<{ loaderOutput: "bob" }> {
       () => "#" + Math.floor(Math.random() * 16777215).toString(16),
     );
 
+    console.log(this.passedFromParent);
+
     return html`
       <div class="outlet-wrapper" style="background-color: ${randomColor};">
         <div class="tester-comp-wrapper">
