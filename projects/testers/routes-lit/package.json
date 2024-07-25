@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "@hwy-js/client": "workspace:*",
+    "@hwy-js/lit": "workspace:*",
+    "lit": "^3.1.4",
+    "typescript": "^5.4.3"
+  }
+}
