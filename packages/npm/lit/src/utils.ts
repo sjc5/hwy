@@ -12,6 +12,8 @@ export type AsComp<T extends typeof LitElement> = ReturnType<
   typeof makeComp<T>
 >;
 
+type LitHTMLStrings = Array<string> & { raw: Array<string> };
+
 export function makeComp<T extends typeof LitElement>(
   litElement: T,
   name?: string,
@@ -26,8 +28,9 @@ export function makeComp<T extends typeof LitElement>(
   customElements.define(n, litElement);
 
   const keys = extractPropertyKeys(litElement);
+
   let openingStr = `<${n}`;
-  if (keys?.[0]) {
+  if (keys.length) {
     openingStr += ` .${keys[0]}=`;
   }
   const closingStr = `></${n}>`;
@@ -37,9 +40,13 @@ export function makeComp<T extends typeof LitElement>(
     innerStrs.push(` .${keys[i]}=`);
   }
 
-  const strings = [openingStr, ...innerStrs, closingStr] as Array<string> & {
-    raw: Array<string>;
-  };
+  let strings: LitHTMLStrings;
+
+  if (keys.length) {
+    strings = [openingStr, ...innerStrs, closingStr] as LitHTMLStrings;
+  } else {
+    strings = [openingStr + closingStr] as LitHTMLStrings;
+  }
   strings.raw = strings;
 
   return function fn(props: ExtractProps<T>) {

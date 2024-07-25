@@ -1,0 +1,11 @@
+{
+  "search.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/hwy_paths.json": true,
+    "**/__nohash": true,
+    "**/hwy_client_entry.js": true
+  }
+}

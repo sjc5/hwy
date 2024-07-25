@@ -76,7 +76,22 @@ importers:
         specifier: ^5.4.4
         version: 5.5.3
 
-  projects/testers/routes:
+  projects/testers/routes-lit:
+    devDependencies:
+      '@hwy-js/client':
+        specifier: workspace:*
+        version: link:../../../packages/npm/client
+      '@hwy-js/lit':
+        specifier: workspace:*
+        version: link:../../../packages/npm/lit
+      lit:
+        specifier: ^3.1.4
+        version: 3.1.4
+      typescript:
+        specifier: ^5.4.3
+        version: 5.5.3
+
+  projects/testers/routes-react:
     devDependencies:
       '@hwy-js/client':
         specifier: workspace:*

@@ -28,12 +28,30 @@ docs-docker:
 	@cd projects/docs \
 	&& docker build --no-cache -t asdf . &> ../../__logs/build.log
 
-testers-routes-dev:
-	@cd projects/testers/routes \
+testers-routes-react-dev:
+	@cd projects/testers/routes-react \
 	&& mkdir -p dist/kiruna \
 	&& touch dist/kiruna/x \
 	&& go run ./cmd/dev
 
-testers-routes-tidy:
+testers-routes-react-tidy:
 	@cd projects/testers/routes \
 	&& go mod tidy
+
+testers-routes-react-install:
+	@cd projects/testers/routes-react \
+	&& pnpm i
+
+testers-routes-lit-dev:
+	@cd projects/testers/routes-lit \
+	&& mkdir -p dist/kiruna \
+	&& touch dist/kiruna/x \
+	&& go run ./cmd/dev
+
+testers-routes-lit-tidy:
+	@cd projects/testers/routes-lit \
+	&& go mod tidy
+
+testers-routes-lit-install:
+	@cd projects/testers/routes-lit \
+	&& pnpm i
