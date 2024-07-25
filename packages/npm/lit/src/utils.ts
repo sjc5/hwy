@@ -1,4 +1,4 @@
-import { html, LitElement } from "lit";
+import { html, LitElement, TemplateResult } from "lit";
 
 export class LightElement extends LitElement {
   createRenderRoot() {
@@ -49,7 +49,7 @@ export function makeComp<T extends typeof LitElement>(
   }
   strings.raw = strings;
 
-  return function fn(props: ExtractProps<T>) {
+  return function (props: ExtractProps<T>): TemplateResult {
     const values = keys.map((key) => (props as any)[key]);
     return html(strings, ...values);
   };
