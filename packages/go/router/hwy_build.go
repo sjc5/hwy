@@ -42,13 +42,18 @@ type MetafileJSON struct {
 }
 
 type PathsFile struct {
-	Paths           []JSONSafePath `json:"paths"`
-	ClientEntryDeps []ImportPath   `json:"clientEntryDeps"`
-	BuildID         string         `json:"buildID"`
+	Paths           []PathBase   `json:"paths"`
+	ClientEntryDeps []ImportPath `json:"clientEntryDeps"`
+	BuildID         string       `json:"buildID"`
 }
 
-func walkPages(pagesSrcDir string) []JSONSafePath {
-	var paths []JSONSafePath
+type SegmentObj struct {
+	SegmentType string
+	Segment     string
+}
+
+func walkPages(pagesSrcDir string) []PathBase {
+	var paths []PathBase
 	filepath.WalkDir(pagesSrcDir, func(patternArg string, d fs.DirEntry, err error) error {
 		cleanPatternArg := filepath.Clean(strings.TrimPrefix(patternArg, pagesSrcDir))
 		isPageFile := strings.Contains(cleanPatternArg, ".route.")
@@ -125,7 +130,7 @@ func walkPages(pagesSrcDir string) []JSONSafePath {
 		if patternToUse == "/$" {
 			pathType = PathTypeUltimateCatch
 		}
-		paths = append(paths, JSONSafePath{
+		paths = append(paths, PathBase{
 			Pattern:  patternToUse,
 			Segments: &segmentStrs,
 			PathType: pathType,
@@ -136,7 +141,7 @@ func walkPages(pagesSrcDir string) []JSONSafePath {
 	return paths
 }
 
-func writePathsToDisk(pagesSrcDir string, pathsJSONOut string) (*[]JSONSafePath, error) {
+func writePathsToDisk(pagesSrcDir string, pathsJSONOut string) (*[]PathBase, error) {
 	paths := walkPages(pagesSrcDir)
 	err := os.MkdirAll(filepath.Dir(pathsJSONOut), os.ModePerm)
 	if err != nil {
@@ -452,7 +457,7 @@ func cleanHashedOutDir(hashedOutDir string) error {
 	return nil
 }
 
-func getEntrypoints(paths *[]JSONSafePath, opts BuildOptions) []string {
+func getEntrypoints(paths *[]PathBase, opts BuildOptions) []string {
 	entryPoints := make([]string, 0, len(*paths)+1)
 	entryPoints = append(entryPoints, opts.ClientEntry)
 	for _, path := range *paths {
