@@ -58,36 +58,72 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*Acti
 		realPath = realPath[:len(realPath)-1]
 	}
 
-	cached, ok := gmpdCache.Get(realPath)
-	item := &gmpdItem{}
-	if ok {
-		item = cached
+	cachedItem, cachedItemExists := gmpdCache.Get(realPath)
+
+	var item *gmpdItem
+
+	if cachedItemExists {
+		item = cachedItem
 	} else {
-		initialMatchingPaths := h.getInitialMatchingPaths(realPath)
-		splatSegments, matchingPaths := getMatchingPathsInternal(initialMatchingPaths, realPath)
+		// initialize
+		item = &gmpdItem{}
+
+		// matcher
+		var initialMatchingPaths []MatchingPath
+		for _, path := range h.paths {
+			matcherOutput := matcher(path.Pattern, realPath)
+			if matcherOutput.matches {
+				initialMatchingPaths = append(initialMatchingPaths, MatchingPath{
+					Score:              matcherOutput.score,
+					RealSegmentsLength: matcherOutput.realSegmentsLength,
+					PathType:           path.PathType,
+					OutPath:            path.OutPath,
+					Segments:           path.Segments,
+					DataFuncs:          path.DataFuncs,
+					Params:             matcherOutput.params,
+					Deps:               path.Deps,
+				})
+			}
+		}
+
+		// get matching paths internal
+		splatSegments, matchingPaths := getMatchingPathsInternal(&initialMatchingPaths, realPath)
+
+		// import URLs
 		importURLs := make([]string, 0, len(*matchingPaths))
 		item.ImportURLs = &importURLs
 		for _, path := range *matchingPaths {
 			importURLs = append(importURLs, "/"+path.OutPath)
 		}
+
+		// last path
 		var lastPath = &MatchingPath{}
 		if len(*matchingPaths) > 0 {
 			lastPath = (*matchingPaths)[len(*matchingPaths)-1]
 		}
+
+		// miscellanenous
 		item.FullyDecoratedMatchingPaths = decoratePaths(matchingPaths)
 		item.SplatSegments = splatSegments
 		item.Params = lastPath.Params
+
+		// deps
 		deps := h.getDeps(matchingPaths)
 		item.Deps = &deps
+
+		// cache
+		// isSpam if no matching paths --> avoids cache poisoning while still allowing for cache hits
 		isSpam := len(*matchingPaths) == 0
 		gmpdCache.Set(realPath, item, isSpam)
 	}
 
+	// last path
 	var lastPath = &DecoratedPath{}
 	if len(*item.FullyDecoratedMatchingPaths) > 0 {
 		lastPath = (*item.FullyDecoratedMatchingPaths)[len(*item.FullyDecoratedMatchingPaths)-1]
 	}
 
+	// action data
 	var actionData any
 	var actionDataError error
 	actionExists := lastPath.DataFuncs != nil && lastPath.DataFuncs.Action != nil
@@ -103,6 +139,8 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*Acti
 			},
 		)
 	}
+
+	// loaders data
 	loadersData := make([]any, len(*item.FullyDecoratedMatchingPaths))
 	errors := make([]error, len(*item.FullyDecoratedMatchingPaths))
 	var wg sync.WaitGroup
@@ -111,6 +149,8 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*Acti
 		Params:        item.Params,
 		SplatSegments: item.SplatSegments,
 	}
+
+	// run loaders in parallel
 	for i, path := range *item.FullyDecoratedMatchingPaths {
 		wg.Add(1)
 		go func(i int, dataFuncs *DataFuncs) {
@@ -124,7 +164,11 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*Acti
 	}
 	wg.Wait()
 
-	// Response mutation needs to be in sync, with the last path being the most important
+	// Run handler functions
+	// These are for response mutation such as setting headers or redirecting.
+	// Needs to be in sync, with the last path trumping all others.
+	// However, if you redirect in a handler function, the parent-most
+	// redirect will be the one that takes effect.
 	for _, path := range *item.FullyDecoratedMatchingPaths {
 		if path.DataFuncs != nil && path.DataFuncs.HandlerFunc != nil {
 			path.DataFuncs.HandlerFunc(w, r)
@@ -196,26 +240,6 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*Acti
 	activePathData.Deps = item.Deps
 
 	return &activePathData, loaderProps
-}
-
-func (h *Hwy) getInitialMatchingPaths(pathToUse string) *[]MatchingPath {
-	var initialMatchingPaths []MatchingPath
-	for _, path := range h.paths {
-		matcherOutput := matcher(path.Pattern, pathToUse)
-		if matcherOutput.matches {
-			initialMatchingPaths = append(initialMatchingPaths, MatchingPath{
-				Score:              matcherOutput.score,
-				RealSegmentsLength: matcherOutput.realSegmentsLength,
-				PathType:           path.PathType,
-				OutPath:            path.OutPath,
-				Segments:           path.Segments,
-				DataFuncs:          path.DataFuncs,
-				Params:             matcherOutput.params,
-				Deps:               path.Deps,
-			})
-		}
-	}
-	return &initialMatchingPaths
 }
 
 func decoratePaths(paths *[]*MatchingPath) *[]*DecoratedPath {
