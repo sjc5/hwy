@@ -42,18 +42,10 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDat
 		return nil, errors.New(errMsg)
 	}
 
-	sorted := sortHeadBlocks(headBlocks)
-	if sorted.metaHeadBlocks == nil {
-		sorted.metaHeadBlocks = &[]*HeadBlock{}
-	}
-	if sorted.restHeadBlocks == nil {
-		sorted.restHeadBlocks = &[]*HeadBlock{}
-	}
-
 	return &GetRouteDataOutput{
-		Title:               sorted.title,
-		MetaHeadBlocks:      sorted.metaHeadBlocks,
-		RestHeadBlocks:      sorted.restHeadBlocks,
+		Title:               headBlocks.title,
+		MetaHeadBlocks:      headBlocks.metaHeadBlocks,
+		RestHeadBlocks:      headBlocks.restHeadBlocks,
 		LoadersData:         activePathData.LoadersData,
 		ImportURLs:          activePathData.ImportURLs,
 		OutermostErrorIndex: activePathData.OutermostErrorIndex,
