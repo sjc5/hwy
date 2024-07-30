@@ -88,9 +88,11 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 
 func getExportedHeadBlocks(
 	r *http.Request, activePathData *ActivePathData, defaultHeadBlocks *[]HeadBlock, adHocData any,
-) (*[]*HeadBlock, error) {
+) (*sortHeadBlocksOutput, error) {
 	headBlocks := make([]HeadBlock, len(*defaultHeadBlocks))
+
 	copy(headBlocks, *defaultHeadBlocks)
+
 	for i, head := range *activePathData.ActiveHeads {
 		if head != nil {
 			headProps := &HeadProps{
@@ -101,17 +103,36 @@ func getExportedHeadBlocks(
 				ActionData:    (*activePathData.ActionData)[i],
 				AdHocData:     adHocData,
 			}
+
 			localHeadBlocks, err := head.Execute(headProps)
 			if err != nil {
 				errMsg := fmt.Sprintf("could not get head blocks: %v", err)
 				Log.Errorf(errMsg)
 				return nil, errors.New(errMsg)
 			}
+
 			x := localHeadBlocks.(*[]HeadBlock)
 			headBlocks = append(headBlocks, *x...)
 		}
 	}
-	return dedupeHeadBlocks(&headBlocks), nil
+
+	deduped := dedupeHeadBlocks(&headBlocks)
+
+	sorted := sortHeadBlocksOutput{}
+	sorted.metaHeadBlocks = &[]*HeadBlock{}
+	sorted.restHeadBlocks = &[]*HeadBlock{}
+
+	for _, block := range *deduped {
+		if len(block.Title) > 0 {
+			sorted.title = block.Title
+		} else if block.Tag == "meta" {
+			*sorted.metaHeadBlocks = append(*sorted.metaHeadBlocks, block)
+		} else {
+			*sorted.restHeadBlocks = append(*sorted.restHeadBlocks, block)
+		}
+	}
+
+	return &sorted, nil
 }
 
 // __TODO -- add OverrideMatchingParentsFunc that acts just like Head but lets you return simpler HeadBlocks that when matched, override the parent HeadBlocks
@@ -191,20 +212,4 @@ type sortHeadBlocksOutput struct {
 	title          string
 	metaHeadBlocks *[]*HeadBlock
 	restHeadBlocks *[]*HeadBlock
-}
-
-func sortHeadBlocks(blocks *[]*HeadBlock) sortHeadBlocksOutput {
-	result := sortHeadBlocksOutput{}
-	result.metaHeadBlocks = &[]*HeadBlock{}
-	result.restHeadBlocks = &[]*HeadBlock{}
-	for _, block := range *blocks {
-		if len(block.Title) > 0 {
-			result.title = block.Title
-		} else if block.Tag == "meta" {
-			*result.metaHeadBlocks = append(*result.metaHeadBlocks, block)
-		} else {
-			*result.restHeadBlocks = append(*result.restHeadBlocks, block)
-		}
-	}
-	return result
 }

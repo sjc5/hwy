@@ -1,17 +1,9 @@
 package router
 
 import (
-	"net/http"
 	"sort"
 	"strings"
 )
-
-type DataFuncs struct {
-	Loader      DataFunction
-	Action      DataFunction
-	Head        DataFunction
-	HandlerFunc http.HandlerFunc
-}
 
 type MatchingPath struct {
 	Score              int

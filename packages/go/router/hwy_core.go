@@ -3,6 +3,7 @@ package router
 import (
 	"html/template"
 	"io/fs"
+	"net/http"
 	"os"
 	"time"
 
@@ -21,6 +22,13 @@ type DataFunction interface {
 	Execute(props any) (any, error)
 	GetInputInstance() any
 	GetOutputInstance() any
+}
+
+type DataFuncs struct {
+	Loader      DataFunction
+	Action      DataFunction
+	Head        DataFunction
+	HandlerFunc http.HandlerFunc
 }
 
 func NewRoute[
