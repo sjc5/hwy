@@ -382,14 +382,9 @@ func setup() {
 
 	// Populate the global in-memory instancePaths
 	var paths []Path
-	for _, jsonSafePath := range pathsFileJSON.Paths {
+	for _, pathBase := range pathsFileJSON.Paths {
 		paths = append(paths, Path{
-			Pattern:  jsonSafePath.Pattern,
-			Segments: jsonSafePath.Segments,
-			PathType: jsonSafePath.PathType,
-			OutPath:  jsonSafePath.OutPath,
-			SrcPath:  jsonSafePath.SrcPath,
-			Deps:     jsonSafePath.Deps,
+			PathBase: pathBase,
 		})
 	}
 	testHwyInstance.paths = paths
@@ -410,8 +405,8 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 
 	// Define test paths with these loaders
 	testHwyInstance.paths = []Path{
-		{Pattern: "/test1", DataFuncs: &DataFuncs{Loader: loader1}, Segments: &[]string{""}},
-		{Pattern: "/test2", DataFuncs: &DataFuncs{Loader: loader2}, Segments: &[]string{""}},
+		{PathBase: PathBase{Pattern: "/test1", Segments: &[]string{""}}, DataFuncs: &DataFuncs{Loader: loader1}},
+		{PathBase: PathBase{Pattern: "/test2", Segments: &[]string{""}}, DataFuncs: &DataFuncs{Loader: loader2}},
 	}
 
 	// Create a WaitGroup to manage concurrency
@@ -636,7 +631,7 @@ func TestStableHash(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := stableHash(&tt.input)
+			result := headBlockStableHash(&tt.input)
 			if result != tt.expected {
 				t.Errorf("stableHash() = %v, expected %v", result, tt.expected)
 			}
