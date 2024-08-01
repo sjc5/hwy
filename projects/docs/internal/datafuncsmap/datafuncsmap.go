@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"hwy-docs/internal/platform"
-	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -22,9 +21,13 @@ type LoginLoaderOutput struct {
 
 var DataFuncsMap = hwy.DataFuncsMap{
 	"/login": hwy.DataFuncs{
-		Loader: hwy.LoaderFunc[LoginLoaderOutput](func(props *hwy.LoaderProps) (LoginLoaderOutput, error) {
-			return LoginLoaderOutput{Bob: count}, nil
-		}),
+		Loader: hwy.LoaderFunc[LoginLoaderOutput](
+			func(props *hwy.LoaderProps[LoginLoaderOutput]) {
+				props.LoaderRes.Data = LoginLoaderOutput{
+					Bob: count,
+				}
+			},
+		),
 		Action: hwy.ActionFunc[any, any](func(props *hwy.ActionProps) (any, error) {
 			count++
 			return nil, errors.New("Redirect")
@@ -33,13 +36,6 @@ var DataFuncsMap = hwy.DataFuncsMap{
 	},
 	"/$": {
 		Loader: catchAllLoader,
-		Head:   catchAllHead,
-		HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set(
-				"Cache-Control",
-				"public, max-age=60, stale-while-revalidate=3600",
-			)
-		},
 	},
 }
 
@@ -55,35 +51,47 @@ var notFoundMatter = matter{
 
 var c = lru.NewCache[string, *matter](1_000)
 
-var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps) (*matter, error) {
+var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps[*matter]) {
 	normalizedPath := filepath.Clean(strings.Join(*props.SplatSegments, "/"))
 	if normalizedPath == "." {
 		normalizedPath = "README"
 	}
 
+	// title := "Hwy"
+	// if props.LoaderData.(*matter).Title != "" {
+	// 	title = "Hwy | " + props.LoaderData.(*matter).Title
+	// }
+	// return &[]hwy.HeadBlock{{Title: title}}, nil
+
+	props.LoaderRes.HeadBlocks = []*hwy.HeadBlock{{Title: "Hwy Bob"}}
+
 	var item *matter
 	if cached, ok := c.Get(normalizedPath); ok {
 		item = cached
-		return item, nil
+		props.LoaderRes.Data = item
+		return
 	}
 
 	filePath := "markdown/" + normalizedPath + ".md"
 	FS, err := platform.Kiruna.GetPrivateFS()
 	if err != nil {
-		return nil, err
+		props.LoaderRes.Error = err
+		return
 	}
 
 	fileBytes, err := FS.ReadFile(filePath)
 	if err != nil {
 		c.Set(normalizedPath, &notFoundMatter, true)
-		return &notFoundMatter, nil
+		props.LoaderRes.Data = &notFoundMatter
+		return
 	}
 
 	var fm matter
 	rest, err := frontmatter.Parse(bytes.NewReader(fileBytes), &fm)
 	if err != nil {
 		c.Set(normalizedPath, &notFoundMatter, true)
-		return &notFoundMatter, nil
+		props.LoaderRes.Data = &notFoundMatter
+		return
 	}
 
 	item = &matter{
@@ -92,13 +100,5 @@ var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps) (*matt
 	}
 
 	c.Set(normalizedPath, item, false)
-	return item, nil
-}
-
-var catchAllHead hwy.HeadFunc = func(props *hwy.HeadProps) (*[]hwy.HeadBlock, error) {
-	title := "Hwy"
-	if props.LoaderData.(*matter).Title != "" {
-		title = "Hwy | " + props.LoaderData.(*matter).Title
-	}
-	return &[]hwy.HeadBlock{{Title: title}}, nil
+	props.LoaderRes.Data = item
 }

@@ -55,6 +55,8 @@ func (h *Hwy) addDataFuncsToPaths() {
 			h.getAdHocData = h.DataFuncsMap[pattern].Loader
 		}
 	}
+
+	// __TODO allow random resource routes
 }
 
 func getBasePaths(FS fs.FS) (*PathsFile, error) {

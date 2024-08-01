@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+// __TODO test - LoaderRes.Headers, - LoaderRes.Cookies, - LoaderRes.Redirect(), and - didRedirect
+
 type expectedOutput struct {
 	MatchingPaths []string
 	Params        map[string]string
@@ -308,7 +310,7 @@ func testGetMatchingPathData(path string) *ActivePathData {
 	r.URL = &url.URL{}
 	r.URL.Path = path
 	r.Method = "GET"
-	apd, _ := testHwyInstance.getMatchingPathData(nil, &r)
+	apd, _, _ := testHwyInstance.getMatchingPathData(nil, &r)
 	return apd
 }
 
@@ -392,16 +394,20 @@ func setup() {
 
 func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	// Simulate long-running and error-prone loaders
-	loader1 := LoaderFunc[string](func(props *LoaderProps) (string, error) {
-		time.Sleep(100 * time.Millisecond)
-		return "loader1 result", nil
-	})
+	loader1 := LoaderFunc[string](
+		func(props *LoaderProps[string]) {
+			time.Sleep(100 * time.Millisecond)
+			props.LoaderRes.Data = "loader1 result"
+		},
+	)
 
-	loader2 := LoaderFunc[any](func(props *LoaderProps) (any, error) {
-		time.Sleep(100 * time.Millisecond)
-		Log.Infof(`Below should say "ERROR: loader2 error":`)
-		return nil, errors.New("loader2 error")
-	})
+	loader2 := LoaderFunc[any](
+		func(props *LoaderProps[any]) {
+			time.Sleep(100 * time.Millisecond)
+			Log.Infof(`Below should say "ERROR: loader2 error":`)
+			props.LoaderRes.Error = errors.New("loader2 error")
+		},
+	)
 
 	// Define test paths with these loaders
 	testHwyInstance.paths = []Path{
@@ -417,7 +423,7 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	testFunc := func(path string, expectedLoaderData any, expectedError bool) {
 		defer wg.Done()
 		r := http.Request{URL: &url.URL{Path: path}, Method: "GET"}
-		data, _ := testHwyInstance.getMatchingPathData(nil, &r)
+		data, _, _ := testHwyInstance.getMatchingPathData(nil, &r)
 
 		// Validate the output
 		if expectedError {

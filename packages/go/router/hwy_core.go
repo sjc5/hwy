@@ -22,31 +22,12 @@ type DataFunction interface {
 	Execute(props any) (any, error)
 	GetInputInstance() any
 	GetOutputInstance() any
+	GetExecutePropsInstance() any
 }
 
 type DataFuncs struct {
-	Loader      DataFunction
-	Action      DataFunction
-	Head        DataFunction
-	HandlerFunc http.HandlerFunc
-}
-
-func NewRoute[
-	LO any, AI any, AO any,
-](
-	pattern, pathType string, loader LoaderFunc[LO], action ActionFunc[AI, AO], head HeadFunc,
-) Path {
-	return Path{
-		PathBase: PathBase{
-			Pattern:  pattern,
-			PathType: pathType,
-		},
-		DataFuncs: &DataFuncs{
-			Loader: loader,
-			Action: action,
-			Head:   head,
-		},
-	}
+	Loader DataFunction
+	Action DataFunction
 }
 
 type PathBase struct {
@@ -76,6 +57,20 @@ type Hwy struct {
 	clientEntryDeps      []string
 	buildID              string
 	rootTemplate         *template.Template
+}
+
+type Redirect struct {
+	URL  string
+	Code int
+}
+
+type LoaderPropsGetter interface {
+	getData() any
+	getError() error
+	getHeaders() http.Header
+	getCookies() []*http.Cookie
+	getRedirect() *Redirect
+	getHeadBlocks() []*HeadBlock
 }
 
 const HwyPrefix = "__hwy_internal__"

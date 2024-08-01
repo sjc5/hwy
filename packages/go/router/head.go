@@ -86,34 +86,13 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 	return &final, nil
 }
 
-func getExportedHeadBlocks(
-	r *http.Request, activePathData *ActivePathData, defaultHeadBlocks *[]HeadBlock, adHocData any,
-) (*sortHeadBlocksOutput, error) {
+func getExportedHeadBlocks(activePathData *ActivePathData, defaultHeadBlocks *[]HeadBlock) (*sortHeadBlocksOutput, error) {
 	headBlocks := make([]HeadBlock, len(*defaultHeadBlocks))
 
 	copy(headBlocks, *defaultHeadBlocks)
 
-	for i, head := range *activePathData.ActiveHeads {
-		if head != nil {
-			headProps := &HeadProps{
-				Request:       r,
-				Params:        activePathData.Params,
-				SplatSegments: activePathData.SplatSegments,
-				LoaderData:    (*activePathData.LoadersData)[i],
-				ActionData:    (*activePathData.ActionData)[i],
-				AdHocData:     adHocData,
-			}
-
-			localHeadBlocks, err := head.Execute(headProps)
-			if err != nil {
-				errMsg := fmt.Sprintf("could not get head blocks: %v", err)
-				Log.Errorf(errMsg)
-				return nil, errors.New(errMsg)
-			}
-
-			x := localHeadBlocks.(*[]HeadBlock)
-			headBlocks = append(headBlocks, *x...)
-		}
+	for _, head := range *activePathData.HeadBlocks {
+		headBlocks = append(headBlocks, *head)
 	}
 
 	deduped := dedupeHeadBlocks(&headBlocks)

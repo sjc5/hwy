@@ -18,7 +18,10 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		defer a.stop()
 
 		b := newMeasurement("GetRouteData")
-		routeData, err := h.GetRouteData(w, r)
+		routeData, err, didRedirect := h.GetRouteData(w, r)
+		if didRedirect {
+			return
+		}
 		if err != nil {
 			msg := "Error getting route data"
 			Log.Errorf(msg+": %v\n", err)

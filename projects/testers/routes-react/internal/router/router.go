@@ -5,8 +5,7 @@ import (
 	"testers/routes-react/internal/platform"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/sjc5/hwy"
-	bob "github.com/sjc5/hwy/packages/go/router"
+	hwy "github.com/sjc5/hwy/packages/go/router"
 )
 
 var Hwy = hwy.Hwy{}
@@ -19,36 +18,34 @@ func init() {
 	}
 	dataFuncs := hwy.DataFuncsMap{
 		"/dashboard/customers/$customer_id/orders": {
-			Loader: bob.LoaderFunc[any](func(props *hwy.LoaderProps) (any, error) {
-				return map[string]string{
-					"message": "</script><script>alert('Hello, Bob!')</script>",
-				}, nil
-			}),
-			Head: bob.HeadFunc(func(props *hwy.HeadProps) (*[]hwy.HeadBlock, error) {
-				return &[]hwy.HeadBlock{
-					{
-						Tag:        "meta",
-						Attributes: map[string]string{"name": "description", "content": "parent"},
-					},
-					{Title: "JACOB1"},
-				}, nil
-			}),
+			Loader: hwy.LoaderFunc[any](
+				func(props *hwy.LoaderProps[any]) {
+					props.LoaderRes.Data = map[string]string{
+						"message": "</script><script>alert('Hello, Bob!')</script>",
+					}
+					props.LoaderRes.HeadBlocks = []*hwy.HeadBlock{
+						{
+							Tag:        "meta",
+							Attributes: map[string]string{"name": "description", "content": "parent"},
+						},
+						{Title: "JACOB1"},
+					}
+				},
+			),
 		},
 		"/dashboard/customers/$customer_id/orders/$order_id": {
-			Loader: bob.LoaderFunc[strMap](func(props *hwy.LoaderProps) (strMap, error) {
-				return strMap{
-					"message": "kjbkjbkjbkjbkjbk",
-				}, nil
-			}),
-			Head: bob.HeadFunc(func(props *hwy.HeadProps) (*[]hwy.HeadBlock, error) {
-				return &[]hwy.HeadBlock{
-					{
-						Tag:        "meta",
-						Attributes: strMap{"name": "description", "content": "child"},
-					},
-					{Title: "JACOB2"},
-				}, nil
-			}),
+			Loader: hwy.LoaderFunc[strMap](
+				func(props *hwy.LoaderProps[strMap]) {
+					props.LoaderRes.Data = strMap{"message": "kjbkjbkjbkjbkjbk"}
+					props.LoaderRes.HeadBlocks = []*hwy.HeadBlock{
+						{
+							Tag:        "meta",
+							Attributes: strMap{"name": "description", "content": "child"},
+						},
+						{Title: "JACOB2"},
+					}
+				},
+			),
 		},
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/sjc5/kit/pkg/lru"
 )
 
-type LoaderProps struct {
+type BaseLoaderProps struct {
 	Request       *http.Request
 	Params        *map[string]string
 	SplatSegments *[]string
@@ -18,7 +18,7 @@ type ActionProps struct {
 	Request        *http.Request
 	Params         *map[string]string
 	SplatSegments  *[]string
-	ResponseWriter http.ResponseWriter
+	ResponseWriter http.ResponseWriter // __TODO -- consider doing the LoaderProps way
 }
 
 type DecoratedPath struct {
@@ -28,11 +28,11 @@ type DecoratedPath struct {
 
 type ActivePathData struct {
 	MatchingPaths       *[]*DecoratedPath
+	HeadBlocks          *[]*HeadBlock
 	LoadersData         *[]any
 	ImportURLs          *[]string
 	OutermostErrorIndex int
 	ActionData          *[]any
-	ActiveHeads         *[]DataFunction
 	SplatSegments       *[]string
 	Params              *map[string]string
 	Deps                *[]string
@@ -52,7 +52,13 @@ var acceptedMethods = map[string]int{
 
 var gmpdCache = lru.NewCache[string, *gmpdItem](500_000)
 
-func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*ActivePathData, *LoaderProps) {
+type didRedirect = bool
+
+func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
+	*ActivePathData,
+	*BaseLoaderProps,
+	didRedirect,
+) {
 	realPath := r.URL.Path
 	if realPath != "/" && realPath[len(realPath)-1] == '/' {
 		realPath = realPath[:len(realPath)-1]
@@ -140,11 +146,18 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*Acti
 		)
 	}
 
+	numberOfLoaders := len(*item.FullyDecoratedMatchingPaths)
+
 	// loaders data
-	loadersData := make([]any, len(*item.FullyDecoratedMatchingPaths))
-	errors := make([]error, len(*item.FullyDecoratedMatchingPaths))
+	loadersData := make([]any, numberOfLoaders)
+	loadersErrors := make([]error, numberOfLoaders)
+	loadersHeaders := make([]http.Header, numberOfLoaders)
+	loadersCookies := make([][]*http.Cookie, numberOfLoaders)
+	loadersRedirects := make([]*Redirect, numberOfLoaders)
+	loadersHeadBlocks := make([][]*HeadBlock, numberOfLoaders)
+
 	var wg sync.WaitGroup
-	loaderProps := &LoaderProps{
+	baseLoaderProps := &BaseLoaderProps{
 		Request:       r,
 		Params:        item.Params,
 		SplatSegments: item.SplatSegments,
@@ -155,29 +168,58 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*Acti
 		wg.Add(1)
 		go func(i int, dataFuncs *DataFuncs) {
 			defer wg.Done()
+
 			if dataFuncs == nil || dataFuncs.Loader == nil {
-				loadersData[i], errors[i] = nil, nil
+				loadersData[i], loadersErrors[i] = nil, nil
 				return
 			}
-			loadersData[i], errors[i] = (dataFuncs.Loader).Execute(loaderProps)
+
+			loaderProps := dataFuncs.Loader.GetExecutePropsInstance()
+			dataFuncs.Loader.Execute(loaderProps)
+
+			loadersData[i] = loaderProps.(LoaderPropsGetter).getData()
+			loadersErrors[i] = loaderProps.(LoaderPropsGetter).getError()
+			loadersHeaders[i] = loaderProps.(LoaderPropsGetter).getHeaders()
+			loadersCookies[i] = loaderProps.(LoaderPropsGetter).getCookies()
+			loadersRedirects[i] = loaderProps.(LoaderPropsGetter).getRedirect()
+			loadersHeadBlocks[i] = loaderProps.(LoaderPropsGetter).getHeadBlocks()
 		}(i, path.DataFuncs)
 	}
 	wg.Wait()
 
-	// Run handler functions
-	// These are for response mutation such as setting headers or redirecting.
-	// Needs to be in sync, with the last path trumping all others.
-	// However, if you redirect in a handler function, the parent-most
-	// redirect will be the one that takes effect.
-	for _, path := range *item.FullyDecoratedMatchingPaths {
-		if path.DataFuncs != nil && path.DataFuncs.HandlerFunc != nil {
-			path.DataFuncs.HandlerFunc(w, r)
+	// apply first redirect and return
+	for _, redirect := range loadersRedirects {
+		if redirect != nil && redirect.URL != "" && redirect.Code != 0 {
+			http.Redirect(w, r, redirect.URL, redirect.Code)
+			return nil, baseLoaderProps, true
 		}
+	}
+
+	dedupedCookies := make(map[string]*http.Cookie)
+
+	// Merge headers and cookies
+	for i := range numberOfLoaders {
+		if loadersHeaders[i] != nil {
+			for k, v := range loadersHeaders[i] {
+				w.Header()[k] = v
+			}
+		}
+
+		// dedupe and apply cookies
+		if loadersCookies[i] != nil {
+			for _, cookie := range loadersCookies[i] {
+				dedupedCookies[cookie.Name] = cookie
+			}
+		}
+	}
+
+	for _, cookie := range dedupedCookies {
+		http.SetCookie(w, cookie)
 	}
 
 	var thereAreErrors bool
 	outermostErrorIndex := -1
-	for i, err := range errors {
+	for i, err := range loadersErrors {
 		if err != nil {
 			Log.Errorf("ERROR: %v", err)
 			thereAreErrors = true
@@ -195,22 +237,11 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*Acti
 		}
 	}
 
-	var activeHeads []DataFunction
-	for _, path := range *item.FullyDecoratedMatchingPaths {
-		if path.DataFuncs == nil || path.DataFuncs.Head == nil {
-			activeHeads = append(activeHeads, nil)
-		} else {
-			activeHeads = append(activeHeads, path.DataFuncs.Head)
-		}
-	}
-
 	// __TODO -- this is a bit of a mess, also should dedupe
 	if thereAreErrors {
 		var activePathData ActivePathData = ActivePathData{}
 		locMatchingPaths := (*item.FullyDecoratedMatchingPaths)[:outermostErrorIndex+1]
 		activePathData.MatchingPaths = &locMatchingPaths
-		locActiveHeads := activeHeads[:outermostErrorIndex]
-		activePathData.ActiveHeads = &locActiveHeads
 		locLoadersData := loadersData[:outermostErrorIndex]
 		activePathData.LoadersData = &locLoadersData
 		locImportURLs := (*item.ImportURLs)[:outermostErrorIndex+1]
@@ -221,12 +252,18 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*Acti
 		activePathData.SplatSegments = item.SplatSegments
 		activePathData.Params = item.Params
 
-		return &activePathData, loaderProps
+		locHeadBlocksOuter := loadersHeadBlocks[:outermostErrorIndex]
+		locHeadBlocksInner := make([]*HeadBlock, 0, len(locHeadBlocksOuter))
+		for _, headBlocks := range locHeadBlocksOuter {
+			locHeadBlocksInner = append(locHeadBlocksInner, headBlocks...)
+		}
+		activePathData.HeadBlocks = &locHeadBlocksInner
+
+		return &activePathData, baseLoaderProps, false
 	}
 
 	var activePathData ActivePathData = ActivePathData{}
 	activePathData.MatchingPaths = item.FullyDecoratedMatchingPaths
-	activePathData.ActiveHeads = &activeHeads
 	activePathData.LoadersData = &loadersData
 	activePathData.ImportURLs = item.ImportURLs
 	activePathData.OutermostErrorIndex = outermostErrorIndex
@@ -239,7 +276,13 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (*Acti
 	activePathData.Params = item.Params
 	activePathData.Deps = item.Deps
 
-	return &activePathData, loaderProps
+	locHeadBlocksInner := make([]*HeadBlock, 0, len(loadersHeadBlocks))
+	for _, headBlocks := range loadersHeadBlocks {
+		locHeadBlocksInner = append(locHeadBlocksInner, headBlocks...)
+	}
+	activePathData.HeadBlocks = &locHeadBlocksInner
+
+	return &activePathData, baseLoaderProps, false
 }
 
 func decoratePaths(paths *[]*MatchingPath) *[]*DecoratedPath {

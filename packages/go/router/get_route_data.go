@@ -21,8 +21,15 @@ type GetRouteDataOutput struct {
 	Deps                *[]string          `json:"deps"`
 }
 
-func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDataOutput, error) {
-	activePathData, loaderProps := h.getMatchingPathData(w, r)
+func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
+	*GetRouteDataOutput,
+	error,
+	didRedirect,
+) {
+	activePathData, loaderProps, didRedirect := h.getMatchingPathData(w, r)
+	if didRedirect {
+		return nil, nil, true
+	}
 
 	var adHocData any
 	var err error
@@ -32,14 +39,14 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDat
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get ad hoc data: %v", err)
 		Log.Errorf(errMsg)
-		return nil, errors.New(errMsg)
+		return nil, errors.New(errMsg), false
 	}
 
-	headBlocks, err := getExportedHeadBlocks(r, activePathData, &h.DefaultHeadBlocks, adHocData)
+	headBlocks, err := getExportedHeadBlocks(activePathData, &h.DefaultHeadBlocks)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get exported head blocks: %v", err)
 		Log.Errorf(errMsg)
-		return nil, errors.New(errMsg)
+		return nil, errors.New(errMsg), false
 	}
 
 	return &GetRouteDataOutput{
@@ -55,5 +62,5 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (*GetRouteDat
 		AdHocData:           adHocData,
 		BuildID:             h.buildID,
 		Deps:                activePathData.Deps,
-	}, nil
+	}, nil, false
 }
