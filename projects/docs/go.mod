@@ -4,7 +4,7 @@ go 1.22.0
 
 replace github.com/sjc5/hwy => ../../
 
-replace github.com/sjc5/kit => ../../../go-kit
+// replace github.com/sjc5/kit => ../../../go-kit
 
 // replace github.com/sjc5/kiruna => ../../../kiruna
 
@@ -16,7 +16,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/sjc5/hwy v0.15.0-pre.6
 	github.com/sjc5/kiruna v0.0.25
-	github.com/sjc5/kit v0.0.41
+	github.com/sjc5/kit v0.0.42
 )
 
 require (

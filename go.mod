@@ -2,12 +2,12 @@ module github.com/sjc5/hwy
 
 go 1.22.0
 
-replace github.com/sjc5/kit => ../go-kit
+// replace github.com/sjc5/kit => ../go-kit
 
 require (
 	github.com/evanw/esbuild v0.23.0
 	github.com/go-playground/validator/v10 v10.22.0
-	github.com/sjc5/kit v0.0.41
+	github.com/sjc5/kit v0.0.42
 	golang.org/x/sync v0.7.0
 )
 
