@@ -31,10 +31,10 @@ export async function submit<T extends any = any>(
   try {
     const json = await submitRes.response.json();
 
-    const ok = "apiResponseData" in json && Array.isArray(json.actionData);
-    if (!ok) {
-      console.error("Invalid response from server", json);
-      return { success: false, error: "Invalid response from server" };
+    const error = "error" in json ? json.error : undefined;
+    if (error) {
+      console.error(error);
+      return { success: false, error: error };
     }
 
     if (!submitRes.alreadyRevalidated) {
@@ -43,7 +43,7 @@ export async function submit<T extends any = any>(
 
     return {
       success: true,
-      data: json.apiResponseData as T,
+      data: json.data as T,
     };
   } catch (e) {
     return {

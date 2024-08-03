@@ -19,7 +19,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		defer outerT.Checkpoint("GetRootHandler")
 
 		mainT := timer.Conditional(getIsDebug())
-		routeData, didRedirect, isAPIRoute, err := h.GetRouteData(w, r)
+		routeData, didRedirect, routeType, err := h.GetRouteData(w, r)
 		if didRedirect {
 			return
 		}
@@ -31,7 +31,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		}
 		mainT.Checkpoint("GetRouteData")
 
-		if GetIsJSONRequest(r) || isAPIRoute {
+		if GetIsJSONRequest(r) || routeType != RouteTypesEnum.Loader {
 			bytes, err := json.Marshal(routeData)
 			if err != nil {
 				msg := "Error marshalling JSON"

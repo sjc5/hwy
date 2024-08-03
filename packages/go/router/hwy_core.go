@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/sjc5/kit/pkg/colorlog"
+	"github.com/sjc5/kit/pkg/safecache"
+	"github.com/sjc5/kit/pkg/validate"
 )
 
 const (
@@ -15,15 +17,15 @@ const (
 	PathTypeStaticLayout     = "static-layout"
 	PathTypeDynamicLayout    = "dynamic-layout"
 	PathTypeNonUltimateSplat = "non-ultimate-splat"
-	APIPathTypeQuery         = "query"
-	APIPathTypeMutation      = "mutation"
 )
 
 type DataFunction interface {
-	Execute(props any, res any) (any, error)
+	Execute(...any) (any, error)
 	GetInputInstance() any
 	GetOutputInstance() any
 	GetResInstance() any
+	ValidateQueryInput(v *validate.Validate, r *http.Request) (any, error)
+	ValidateMutationInput(v *validate.Validate, r *http.Request) (any, error)
 }
 
 var DataFunctionTypes = struct {
@@ -37,13 +39,12 @@ var DataFunctionTypes = struct {
 }
 
 type PathBase struct {
-	Pattern     string   `json:"pattern"`
-	Segments    []string `json:"segments"`
-	PathType    string   `json:"pathType"`
-	OutPath     string   `json:"outPath,omitempty"`
-	SrcPath     string   `json:"srcPath,omitempty"`
-	Deps        []string `json:"deps,omitempty"`
-	APIPathType string   `json:"apiPathType,omitempty"`
+	Pattern  string   `json:"pattern"`
+	Segments []string `json:"segments"`
+	PathType string   `json:"pathType"`
+	OutPath  string   `json:"outPath,omitempty"`
+	SrcPath  string   `json:"srcPath,omitempty"`
+	Deps     []string `json:"deps,omitempty"`
 }
 
 type Path struct {
@@ -66,6 +67,12 @@ type Hwy struct {
 	clientEntryDeps      []string
 	buildID              string
 	rootTemplate         *template.Template
+	validator            *safecache.Cache[*validate.Validate]
+}
+
+func (h *Hwy) GetValidator() *validate.Validate {
+	v, _ := h.validator.Get()
+	return v
 }
 
 type Redirect struct {

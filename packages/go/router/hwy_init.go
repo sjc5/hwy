@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"io/fs"
 	"slices"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/sjc5/kit/pkg/safecache"
+	"github.com/sjc5/kit/pkg/validate"
 )
 
 func (h *Hwy) Initialize() error {
@@ -34,6 +38,12 @@ func (h *Hwy) Initialize() error {
 	h.addDataFuncsToPaths()
 	h.clientEntryDeps = pathsFile.ClientEntryDeps
 
+	h.validator = safecache.New(func() (*validate.Validate, error) {
+		locValidate := &validate.Validate{}
+		locValidate.Instance = validator.New(validator.WithRequiredStructEnabled())
+		return locValidate, nil
+	}, nil)
+
 	return nil
 }
 
@@ -41,19 +51,8 @@ func (h *Hwy) addDataFuncsToPaths() {
 	listOfPatterns := make([]string, 0, len(h.paths))
 
 	for i, path := range h.paths {
-		switch path.APIPathType {
-		case "":
-			if loader, ok := h.LoadersMap[path.Pattern]; ok {
-				h.paths[i].DataFunction = loader
-			}
-		case APIPathTypeQuery:
-			if queryAction, ok := h.QueryActionsMap[path.Pattern]; ok {
-				h.paths[i].DataFunction = queryAction
-			}
-		case APIPathTypeMutation:
-			if mutationAction, ok := h.MutationActionsMap[path.Pattern]; ok {
-				h.paths[i].DataFunction = mutationAction
-			}
+		if loader, ok := h.LoadersMap[path.Pattern]; ok {
+			h.paths[i].DataFunction = loader
 		}
 
 		listOfPatterns = append(listOfPatterns, path.Pattern)

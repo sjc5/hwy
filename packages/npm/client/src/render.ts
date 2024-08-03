@@ -17,7 +17,18 @@ export async function reRenderApp({
   navigationType,
   runHistoryOptions,
 }: {
-  json: any;
+  json: {
+    title?: string;
+    loadersData?: Record<string, any>;
+    importURLs?: Array<string>;
+    outermostErrorIndex?: number;
+    splatSegments?: Array<string>;
+    params?: Record<string, string>;
+    adHocData?: any;
+    buildID: string;
+    metaHeadBlocks?: Array<any>;
+    restHeadBlocks?: Array<any>;
+  };
   navigationType: NavigationType;
   runHistoryOptions?: {
     href: string;
@@ -26,10 +37,10 @@ export async function reRenderApp({
   };
 }) {
   // Changing the title instantly makes it feel faster
-  document.title = json.title;
+  document.title = json.title ?? "";
 
   const oldList = hwyClientGlobal.get("importURLs");
-  const newList = json.importURLs;
+  const newList = json.importURLs ?? [];
 
   let updatedList: {
     importPath: string;
@@ -99,7 +110,9 @@ export async function reRenderApp({
   ] as const satisfies ReadonlyArray<HwyClientGlobalKey>;
 
   for (const key of identicalKeysToSet) {
-    hwyClientGlobal.set(key, json[key]);
+    if (json[key]) {
+      hwyClientGlobal.set(key, json[key]);
+    }
   }
 
   const oldID = hwyClientGlobal.get("buildID");
@@ -149,7 +162,7 @@ export async function reRenderApp({
   window.dispatchEvent(new CustomEvent(HWY_ROUTE_CHANGE_EVENT_KEY, { detail }));
 
   head.removeAllBetween("meta");
-  head.addBlocks("meta", json.metaHeadBlocks);
+  head.addBlocks("meta", json?.metaHeadBlocks ?? []);
   head.removeAllBetween("rest");
-  head.addBlocks("rest", json.restHeadBlocks);
+  head.addBlocks("rest", json.restHeadBlocks ?? []);
 }

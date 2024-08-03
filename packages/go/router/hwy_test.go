@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-// __TODO test - LoaderRes.Headers, - LoaderRes.Cookies, - LoaderRes.Redirect(), - didRedirect, - API routes
+// __TODO test - LoaderRes.Headers, - LoaderRes.Cookies, - LoaderRes.Redirect(), - didRedirect, - API routes, etc. etc.
 
 type expectedOutput struct {
 	MatchingPaths []string
@@ -395,14 +395,14 @@ func setup() {
 func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	// Simulate long-running and error-prone loaders
 	loader1 := LoaderFunc[string](
-		func(props *DataFunctionProps, res *LoaderRes[string]) {
+		func(props *LoaderProps, res *LoaderRes[string]) {
 			time.Sleep(100 * time.Millisecond)
 			res.Data = "loader1 result"
 		},
 	)
 
 	loader2 := LoaderFunc[any](
-		func(props *DataFunctionProps, res *LoaderRes[any]) {
+		func(props *LoaderProps, res *LoaderRes[any]) {
 			time.Sleep(100 * time.Millisecond)
 			Log.Infof(`Below should say "ERROR: loader2 error":`)
 			res.Error = errors.New("loader2 error")

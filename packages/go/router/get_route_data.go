@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-)
 
-// __TODO permitted methods
+	"github.com/sjc5/kit/pkg/validate"
+)
 
 type GetRouteDataOutput struct {
 	Title               string            `json:"title,omitempty"`
@@ -21,25 +21,33 @@ type GetRouteDataOutput struct {
 	AdHocData           any               `json:"adHocData,omitempty"`
 	BuildID             string            `json:"buildID,omitempty"`
 	Deps                []string          `json:"deps,omitempty"`
-	APIResponseData     any               `json:"apiResponseData,omitempty"`
+	APIResponseData     any               `json:"data,omitempty"`
+	APIResponseError    string            `json:"error,omitempty"`
 }
 
 func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 	*GetRouteDataOutput,
 	didRedirect,
-	isAPIRoute,
+	RouteType,
 	error,
 ) {
-	activePathData, loaderProps, didRedirect, isAPIRoute := h.getMatchingPathData(w, r)
+	activePathData, loaderProps, didRedirect, routeType := h.getMatchingPathData(w, r)
 	if didRedirect {
-		return nil, true, isAPIRoute, nil
+		return nil, true, routeType, nil
 	}
 
-	if isAPIRoute {
+	if routeType != RouteTypesEnum.Loader {
+		var errMsg string
+		if validate.IsValidationError(activePathData.LoadersErrors[0]) {
+			errMsg = "bad request (validation error)"
+		} else if activePathData.LoadersErrors[0] != nil {
+			errMsg = activePathData.LoadersErrors[0].Error()
+		}
 		return &GetRouteDataOutput{
-			APIResponseData: &activePathData.LoadersData[0],
-			BuildID:         h.buildID,
-		}, false, isAPIRoute, nil // __TODO errors!
+			APIResponseData:  activePathData.LoadersData[0],
+			APIResponseError: errMsg,
+			BuildID:          h.buildID,
+		}, false, routeType, nil
 	}
 
 	var adHocData any
@@ -50,14 +58,14 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get ad hoc data: %v", err)
 		Log.Errorf(errMsg)
-		return nil, false, isAPIRoute, errors.New(errMsg)
+		return nil, false, routeType, errors.New(errMsg)
 	}
 
 	headBlocks, err := getExportedHeadBlocks(activePathData, h.DefaultHeadBlocks)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get exported head blocks: %v", err)
 		Log.Errorf(errMsg)
-		return nil, false, isAPIRoute, errors.New(errMsg)
+		return nil, false, routeType, errors.New(errMsg)
 	}
 
 	return &GetRouteDataOutput{
@@ -73,5 +81,5 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 		AdHocData:           adHocData,
 		BuildID:             h.buildID,
 		Deps:                activePathData.Deps,
-	}, false, isAPIRoute, nil
+	}, false, routeType, nil
 }

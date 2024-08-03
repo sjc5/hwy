@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"hwy-docs/internal/platform"
+	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -21,7 +22,7 @@ type LoginLoaderOutput struct {
 
 var DataFuncsMap = hwy.DataFunctionMap{
 	"/login": hwy.LoaderFunc[LoginLoaderOutput](
-		func(props *hwy.DataFunctionProps, res *hwy.LoaderRes[LoginLoaderOutput]) {
+		func(props *hwy.LoaderProps, res *hwy.LoaderRes[LoginLoaderOutput]) {
 			res.Data = LoginLoaderOutput{
 				Bob: count,
 			}
@@ -30,11 +31,15 @@ var DataFuncsMap = hwy.DataFunctionMap{
 	"/$": catchAllLoader,
 }
 
+type TestActionInput struct {
+	CustomerID string `json:"customer_id" validate:"required,oneof=1 2 3"`
+}
+
 var ActionsMap = hwy.DataFunctionMap{
-	"/test-action/$customer_id": hwy.ActionFunc[any, any](
-		func(props *hwy.DataFunctionProps, res *hwy.ActionRes[any]) {
+	"/test-action/$customer_id": hwy.ActionFunc[TestActionInput, string](
+		func(r *http.Request, input TestActionInput, res *hwy.ActionRes[string]) {
 			count++
-			fmt.Println("count", count, props.Params["customer_id"])
+			fmt.Println("count", count, input.CustomerID)
 			res.Data = "bob"
 			// res.Redirect("/login", 302)
 		},
@@ -54,7 +59,7 @@ var notFoundMatter = matter{
 var c = lru.NewCache[string, *matter](1_000)
 
 var catchAllLoader hwy.LoaderFunc[*matter] = func(
-	props *hwy.DataFunctionProps,
+	props *hwy.LoaderProps,
 	res *hwy.LoaderRes[*matter],
 ) {
 	normalizedPath := filepath.Clean(strings.Join(props.SplatSegments, "/"))

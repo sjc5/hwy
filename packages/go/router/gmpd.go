@@ -8,7 +8,7 @@ import (
 	"github.com/sjc5/kit/pkg/lru"
 )
 
-type DataFunctionProps struct {
+type LoaderProps struct {
 	Request       *http.Request
 	Params        map[string]string
 	SplatSegments []string
@@ -31,31 +31,72 @@ type ActivePathData struct {
 	Deps                []string
 }
 
+type RouteType = string
+
+var RouteTypesEnum = struct {
+	Loader         RouteType
+	MutationAction RouteType
+	QueryAction    RouteType
+}{
+	Loader:         "loader",
+	MutationAction: "mutation-action",
+	QueryAction:    "query-action",
+}
+
 type gmpdItem struct {
 	SplatSegments               []string
 	Params                      map[string]string
 	FullyDecoratedMatchingPaths []*DecoratedPath
 	ImportURLs                  []string
 	Deps                        []string
-	isAPIRoute                  isAPIRoute
+	routeType                   RouteType
 }
 
 var gmpdCache = lru.NewCache[string, *gmpdItem](500_000)
 
 type didRedirect = bool
 
+var (
+	queryAcceptedMethods    = map[string]int{"GET": 0, "HEAD": 0}
+	mutationAcceptedMethods = map[string]int{"POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0}
+)
+
 func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	*ActivePathData,
-	*DataFunctionProps,
+	*LoaderProps,
 	didRedirect,
-	isAPIRoute,
+	RouteType,
 ) {
 	realPath := r.URL.Path
 	if realPath != "/" && realPath[len(realPath)-1] == '/' {
 		realPath = realPath[:len(realPath)-1]
 	}
 
-	item := h.getGMPDItem(realPath)
+	var item *gmpdItem
+
+	if action, exists := h.QueryActionsMap[realPath]; exists {
+		_, shouldRunAction := queryAcceptedMethods[r.Method]
+		if !shouldRunAction {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return nil, nil, true, RouteTypesEnum.QueryAction
+		}
+		item = &gmpdItem{
+			routeType:                   RouteTypesEnum.QueryAction,
+			FullyDecoratedMatchingPaths: []*DecoratedPath{{DataFunction: action}},
+		}
+	} else if action, exists := h.MutationActionsMap[r.URL.Path]; exists {
+		_, shouldRunAction := mutationAcceptedMethods[r.Method]
+		if !shouldRunAction {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return nil, nil, true, RouteTypesEnum.MutationAction
+		}
+		item = &gmpdItem{
+			routeType:                   RouteTypesEnum.MutationAction,
+			FullyDecoratedMatchingPaths: []*DecoratedPath{{DataFunction: action}},
+		}
+	} else {
+		item = h.getGMPDItem(realPath)
+	}
 
 	numberOfLoaders := len(item.FullyDecoratedMatchingPaths)
 
@@ -68,7 +109,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	loadersHeadBlocks := make([][]*HeadBlock, numberOfLoaders)
 
 	var wg sync.WaitGroup
-	baseLoaderProps := &DataFunctionProps{
+	baseLoaderProps := &LoaderProps{
 		Request:       r,
 		Params:        item.Params,
 		SplatSegments: item.SplatSegments,
@@ -86,7 +127,26 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 			}
 
 			loaderRes := loader.GetResInstance()
-			loader.Execute(baseLoaderProps, loaderRes)
+			if item.routeType == RouteTypesEnum.Loader {
+				loader.Execute(baseLoaderProps, loaderRes)
+			} else {
+				validator := h.GetValidator()
+				if item.routeType == RouteTypesEnum.QueryAction {
+					inputInstance, err := loader.ValidateQueryInput(validator, r)
+					if err != nil {
+						loadersErrors[i] = err
+						return
+					}
+					loader.Execute(r, inputInstance, loaderRes)
+				} else if item.routeType == RouteTypesEnum.MutationAction {
+					inputInstance, err := loader.ValidateMutationInput(validator, r)
+					if err != nil {
+						loadersErrors[i] = err
+						return
+					}
+					loader.Execute(r, inputInstance, loaderRes)
+				}
+			}
 
 			loadersData[i] = loaderRes.(DataFunctionPropsGetter).GetData()
 			loadersErrors[i] = loaderRes.(DataFunctionPropsGetter).GetError()
@@ -98,11 +158,14 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	}
 	wg.Wait()
 
+	// __TODO question, should redirects, cookies, etc. be conditional on no errors?
+	// if so, same or different for loaders and actions?
+
 	// apply first redirect and return
 	for _, redirect := range loadersRedirects {
 		if redirect != nil && redirect.URL != "" && redirect.Code != 0 {
 			http.Redirect(w, r, redirect.URL, redirect.Code)
-			return nil, baseLoaderProps, true, item.isAPIRoute
+			return nil, baseLoaderProps, true, item.routeType
 		}
 	}
 
@@ -139,8 +202,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 		}
 	}
 
-	// __TODO -- this is a bit of a mess, also should dedupe
-	if thereAreErrors {
+	if thereAreErrors && item.routeType == RouteTypesEnum.Loader {
 		var activePathData ActivePathData = ActivePathData{}
 		locMatchingPaths := item.FullyDecoratedMatchingPaths[:outermostErrorIndex+1]
 		activePathData.MatchingPaths = locMatchingPaths
@@ -161,7 +223,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 		}
 		activePathData.HeadBlocks = locHeadBlocksInner
 
-		return &activePathData, baseLoaderProps, false, item.isAPIRoute
+		return &activePathData, baseLoaderProps, false, item.routeType
 	}
 
 	var activePathData ActivePathData = ActivePathData{}
@@ -180,16 +242,13 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	}
 	activePathData.HeadBlocks = locHeadBlocksInner
 
-	return &activePathData, baseLoaderProps, false, item.isAPIRoute
+	return &activePathData, baseLoaderProps, false, item.routeType
 }
-
-type isAPIRoute = bool
 
 func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 	cachedItem, cachedItemExists := gmpdCache.Get(realPath)
 
 	var item *gmpdItem
-	var isAPIRoute isAPIRoute
 
 	if cachedItemExists {
 		item = cachedItem
@@ -210,7 +269,6 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 					OutPath:            path.OutPath,
 					Segments:           path.Segments,
 					DataFunction:       path.DataFunction,
-					APIPathType:        path.APIPathType,
 					Params:             matcherOutput.params,
 					Deps:               path.Deps,
 				})
@@ -230,21 +288,17 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 		item.FullyDecoratedMatchingPaths = decoratePaths(matchingPaths)
 		item.SplatSegments = splatSegments
 		item.Params = lastPath.Params
+		item.routeType = RouteTypesEnum.Loader
 
-		isAPIRoute = lastPath.APIPathType != ""
-		item.isAPIRoute = isAPIRoute
-
-		if !isAPIRoute {
-			// import URLs
-			item.ImportURLs = make([]string, 0, len(matchingPaths))
-			for _, path := range matchingPaths {
-				item.ImportURLs = append(item.ImportURLs, "/"+path.OutPath)
-			}
-
-			// deps
-			deps := h.getDeps(matchingPaths)
-			item.Deps = deps
+		// import URLs
+		item.ImportURLs = make([]string, 0, len(matchingPaths))
+		for _, path := range matchingPaths {
+			item.ImportURLs = append(item.ImportURLs, "/"+path.OutPath)
 		}
+
+		// deps
+		deps := h.getDeps(matchingPaths)
+		item.Deps = deps
 
 		// cache
 		// isSpam if no matching paths --> avoids cache poisoning while still allowing for cache hits

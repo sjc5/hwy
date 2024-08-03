@@ -61,9 +61,6 @@ type SegmentObj struct {
 func (opts *BuildOptions) walkPages(pagesSrcDir string) []PathBase {
 	var paths []PathBase
 
-	// __TODO no reason this can't be parallelized
-
-	// start with UI routes
 	filepath.WalkDir(
 		pagesSrcDir,
 
@@ -90,22 +87,6 @@ func (opts *BuildOptions) walkPages(pagesSrcDir string) []PathBase {
 			return nil
 		},
 	)
-
-	// now query API routes
-	for pattern := range opts.QueryActionsMap {
-		segmentsInit := segmentsInitFromPattern(pattern)
-		pathBase := pathBaseFromSegmentsInit(segmentsInit)
-		pathBase.APIPathType = APIPathTypeQuery
-		paths = append(paths, *pathBase)
-	}
-
-	// now mutation API routes
-	for pattern := range opts.MutationActionsMap {
-		segmentsInit := segmentsInitFromPattern(pattern)
-		pathBase := pathBaseFromSegmentsInit(segmentsInit)
-		pathBase.APIPathType = APIPathTypeMutation
-		paths = append(paths, *pathBase)
-	}
 
 	return paths
 }
@@ -332,11 +313,9 @@ func Build(opts *BuildOptions) error {
 			hwyClientEntryDeps = depsWithoutClientEntry
 		} else {
 			for i, path := range paths {
-				if path.APIPathType == "" {
-					if path.SrcPath == entryPoint {
-						paths[i].OutPath = filepath.Base(key)
-						paths[i].Deps = deps
-					}
+				if path.SrcPath == entryPoint {
+					paths[i].OutPath = filepath.Base(key)
+					paths[i].Deps = deps
 				}
 			}
 		}

@@ -1,6 +1,10 @@
 package router
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/sjc5/kit/pkg/validate"
+)
 
 // START -- NEEDS TO BE REPEATED IN ~/hwy.go
 
@@ -20,7 +24,7 @@ func (f LoaderRes[O]) Redirect(url string, code int) {
 	*f.redirect = Redirect{URL: url, Code: code}
 }
 
-type LoaderFunc[O any] func(props *DataFunctionProps, res *LoaderRes[O])
+type LoaderFunc[O any] func(props *LoaderProps, res *LoaderRes[O])
 
 func (f LoaderFunc[O]) GetResInstance() any {
 	return &LoaderRes[O]{
@@ -30,13 +34,20 @@ func (f LoaderFunc[O]) GetResInstance() any {
 		HeadBlocks: []*HeadBlock{},
 	}
 }
-func (f LoaderFunc[O]) Execute(props, res any) (any, error) {
-	loaderRes := res.(*LoaderRes[O])
-	f(props.(*DataFunctionProps), loaderRes)
+func (f LoaderFunc[O]) Execute(args ...any) (any, error) {
+	props := args[0].(*LoaderProps)
+	loaderRes := args[1].(*LoaderRes[O])
+	f(props, loaderRes)
 	return nil, nil
 }
 func (f LoaderFunc[O]) GetInputInstance() any {
 	return nil
+}
+func (f LoaderFunc[O]) ValidateQueryInput(v *validate.Validate, r *http.Request) (any, error) {
+	return nil, nil
+}
+func (f LoaderFunc[O]) ValidateMutationInput(v *validate.Validate, r *http.Request) (any, error) {
+	return nil, nil
 }
 func (f LoaderFunc[O]) GetOutputInstance() any {
 	var x O
@@ -56,7 +67,7 @@ func (f ActionRes[O]) Redirect(url string, code int) {
 	*f.redirect = Redirect{URL: url, Code: code}
 }
 
-type ActionFunc[I any, O any] func(props *DataFunctionProps, res *ActionRes[O])
+type ActionFunc[I any, O any] func(r *http.Request, input I, res *ActionRes[O])
 
 func (f ActionFunc[I, O]) GetResInstance() any {
 	return &ActionRes[O]{
@@ -65,14 +76,27 @@ func (f ActionFunc[I, O]) GetResInstance() any {
 		Cookies:  []*http.Cookie{},
 	}
 }
-func (f ActionFunc[I, O]) Execute(props, res any) (any, error) {
-	actionRes := res.(*ActionRes[O])
-	f(props.(*DataFunctionProps), actionRes)
+func (f ActionFunc[I, O]) Execute(args ...any) (any, error) {
+	r := args[0].(*http.Request)
+	input := args[1].(I)
+	res := args[2].(*ActionRes[O])
+	f(r, input, res)
 	return nil, nil
 }
 func (f ActionFunc[I, O]) GetInputInstance() any {
 	var x I
 	return x
+}
+func (f ActionFunc[I, O]) ValidateQueryInput(v *validate.Validate, r *http.Request) (any, error) {
+	var inputInstance I
+	err := v.URLSearchParamsInto(r, &inputInstance)
+	if err != nil {
+		return nil, err
+	}
+	return inputInstance, nil
+}
+func (f ActionFunc[I, O]) ValidateMutationInput(v *validate.Validate, r *http.Request) (any, error) {
+	return nil, nil
 }
 func (f ActionFunc[I, O]) GetOutputInstance() any {
 	var x O

@@ -11,7 +11,6 @@ type MatchingPath struct {
 	Segments           []string
 	PathType           string
 	DataFunction       DataFunction
-	APIPathType        string
 	OutPath            string
 	Params             map[string]string
 	Deps               []string

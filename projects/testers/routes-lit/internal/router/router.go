@@ -9,7 +9,7 @@ import (
 	hwy "github.com/sjc5/hwy/packages/go/router"
 )
 
-var Hwy = hwy.Hwy{}
+var HwyInstance = hwy.Hwy{}
 
 type strMap map[string]string
 
@@ -19,7 +19,7 @@ func init() {
 	}
 	dataFuncs := hwy.DataFunctionMap{
 		"/dashboard/customers/$customer_id/orders": hwy.LoaderFunc[any](
-			func(props *hwy.DataFunctionProps, res *hwy.LoaderRes[any]) {
+			func(props *hwy.LoaderProps, res *hwy.LoaderRes[any]) {
 				res.Data = map[string]string{
 					"message": "</script><script>alert('Hello, Bob!')</script>",
 				}
@@ -36,7 +36,7 @@ func init() {
 			},
 		),
 		"/dashboard/customers/$customer_id/orders/$order_id": hwy.LoaderFunc[strMap](
-			func(props *hwy.DataFunctionProps, res *hwy.LoaderRes[strMap]) {
+			func(props *hwy.LoaderProps, res *hwy.LoaderRes[strMap]) {
 				res.Data = strMap{"message": "kjbkjbkjbkjbkjbk"}
 				res.Headers.Set("bob3", "bob4")
 				res.Cookies = append(res.Cookies, &http.Cookie{Name: "bob3", Value: "bob4"})
@@ -56,7 +56,7 @@ func init() {
 		panic(fmt.Sprintf("Error loading private FS: %v", err))
 	}
 
-	Hwy = hwy.Hwy{
+	HwyInstance = hwy.Hwy{
 		DefaultHeadBlocks:    defaultHeadBlocks,
 		FS:                   privateFS,
 		RootTemplateLocation: "templates/index.go.html",
@@ -65,15 +65,15 @@ func init() {
 			"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
 		},
 		LoadersMap: dataFuncs,
-		QueryActionsMap: hwy.DataFunctionMap{
-			"test": hwy.ActionFunc[any, any](
-				func(props *hwy.DataFunctionProps, res *hwy.ActionRes[any]) {
+		// QueryActionsMap: hwy.DataFunctionMap{
+		// 	"test": hwy.ActionFunc[any, any](
+		// 		func(props *hwy.DataFunctionProps, res *hwy.ActionRes[any]) {
 
-				},
-			),
-		},
+		// 		},
+		// 	),
+		// },
 	}
-	err = Hwy.Initialize()
+	err = HwyInstance.Initialize()
 	if err != nil {
 		fmt.Println(err)
 		panic("Error initializing Hwy")
@@ -85,6 +85,6 @@ func init() {
 func Init() *chi.Mux {
 	r := chi.NewRouter()
 	r.Handle("/public/*", platform.Kiruna.GetServeStaticHandler("/public/", true))
-	r.Handle("/*", Hwy.GetRootHandler())
+	r.Handle("/*", HwyInstance.GetRootHandler())
 	return r
 }
