@@ -18,8 +18,8 @@ func init() {
 		{Title: "JACOB"},
 	}
 	dataFuncs := hwy.DataFunctionMap{
-		"/dashboard/customers/$customer_id/orders": hwy.LoaderFunc[any](
-			func(props *hwy.LoaderProps, res *hwy.LoaderRes[any]) {
+		"/dashboard/customers/$customer_id/orders": hwy.UILoaderFunc[any](
+			func(props *hwy.UILoaderProps, res *hwy.UILoaderRes[any]) {
 				res.Data = map[string]string{
 					"message": "</script><script>alert('Hello, Bob!')</script>",
 				}
@@ -35,8 +35,8 @@ func init() {
 				}
 			},
 		),
-		"/dashboard/customers/$customer_id/orders/$order_id": hwy.LoaderFunc[strMap](
-			func(props *hwy.LoaderProps, res *hwy.LoaderRes[strMap]) {
+		"/dashboard/customers/$customer_id/orders/$order_id": hwy.UILoaderFunc[strMap](
+			func(props *hwy.UILoaderProps, res *hwy.UILoaderRes[strMap]) {
 				res.Data = strMap{"message": "kjbkjbkjbkjbkjbk"}
 				res.Headers.Set("bob3", "bob4")
 				res.Cookies = append(res.Cookies, &http.Cookie{Name: "bob3", Value: "bob4"})
@@ -64,10 +64,10 @@ func init() {
 			"Kiruna":         platform.Kiruna,
 			"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
 		},
-		LoadersMap: dataFuncs,
-		// QueryActionsMap: hwy.DataFunctionMap{
-		// 	"test": hwy.ActionFunc[any, any](
-		// 		func(props *hwy.DataFunctionProps, res *hwy.ActionRes[any]) {
+		UILoaders: dataFuncs,
+		// APIQueries: hwy.DataFunctionMap{
+		// 	"test": hwy.APIFunc[any, any](
+		// 		func(props *hwy.DataFunctionProps, res *hwy.APIRes[any]) {
 
 		// 		},
 		// 	),

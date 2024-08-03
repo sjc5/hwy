@@ -28,14 +28,16 @@ type DataFunction interface {
 	ValidateMutationInput(v *validate.Validate, r *http.Request) (any, error)
 }
 
-var DataFunctionTypes = struct {
-	Loader         string
-	MutationAction string
-	QueryAction    string
+type RouteType = string
+
+var RouteTypesEnum = struct {
+	UILoader    RouteType
+	APIQuery    RouteType
+	APIMutation RouteType
 }{
-	Loader:         "loader",
-	MutationAction: "mutation-action",
-	QueryAction:    "query-action",
+	UILoader:    "ui-loader",
+	APIQuery:    "api-query",
+	APIMutation: "api-mutation",
 }
 
 type PathBase struct {
@@ -57,9 +59,9 @@ type DataFunctionMap map[string]DataFunction
 type Hwy struct {
 	DefaultHeadBlocks    []HeadBlock
 	FS                   fs.FS
-	LoadersMap           DataFunctionMap
-	QueryActionsMap      DataFunctionMap
-	MutationActionsMap   DataFunctionMap
+	UILoaders            DataFunctionMap
+	APIQueries           DataFunctionMap
+	APIMutations         DataFunctionMap
 	RootTemplateLocation string
 	RootTemplateData     map[string]any
 	getAdHocData         DataFunction

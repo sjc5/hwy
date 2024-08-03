@@ -162,13 +162,11 @@ function MaybeWithLayout(
 
 type RoutePropsTypeArg = {
   loaderOutput?: any;
-  actionOutput?: any;
   adHocData?: any;
 };
 
 type DefaultRouteProps = {
   loaderOutput: any;
-  actionOutput: any;
   adHocData: any;
 };
 

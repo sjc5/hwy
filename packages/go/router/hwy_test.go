@@ -394,15 +394,15 @@ func setup() {
 
 func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	// Simulate long-running and error-prone loaders
-	loader1 := LoaderFunc[string](
-		func(props *LoaderProps, res *LoaderRes[string]) {
+	loader1 := UILoaderFunc[string](
+		func(props *UILoaderProps, res *UILoaderRes[string]) {
 			time.Sleep(100 * time.Millisecond)
 			res.Data = "loader1 result"
 		},
 	)
 
-	loader2 := LoaderFunc[any](
-		func(props *LoaderProps, res *LoaderRes[any]) {
+	loader2 := UILoaderFunc[any](
+		func(props *UILoaderProps, res *UILoaderRes[any]) {
 			time.Sleep(100 * time.Millisecond)
 			Log.Infof(`Below should say "ERROR: loader2 error":`)
 			res.Error = errors.New("loader2 error")

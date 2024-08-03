@@ -31,7 +31,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		}
 		mainT.Checkpoint("GetRouteData")
 
-		if GetIsJSONRequest(r) || routeType != RouteTypesEnum.Loader {
+		if GetIsJSONRequest(r) || routeType != RouteTypesEnum.UILoader {
 			bytes, err := json.Marshal(routeData)
 			if err != nil {
 				msg := "Error marshalling JSON"

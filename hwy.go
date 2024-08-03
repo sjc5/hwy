@@ -13,7 +13,7 @@ type HeadBlock = router.HeadBlock
 type DataFunctionMap = router.DataFunctionMap
 type Path = router.Path
 type PathsFile = router.PathsFile
-type LoaderProps = router.LoaderProps
+type UILoaderProps = router.UILoaderProps
 type Redirect = router.Redirect
 
 var Build = router.Build
@@ -21,57 +21,58 @@ var GenerateTypeScript = router.GenerateTypeScript
 var GetIsJSONRequest = router.GetIsJSONRequest
 var GetHeadElements = router.GetHeadElements
 var GetSSRInnerHTML = router.GetSSRInnerHTML
-var DataFunctionTypes = router.DataFunctionTypes
+var RouteTypesEnum = router.RouteTypesEnum
 
 // START -- REPEATED FROM router.go
-type LoaderRes[O any] struct {
-	// same as ActionRes
+
+type UILoaderRes[O any] struct {
+	// same as APIRes
 	Data     O
 	Error    error
 	Headers  http.Header
 	Cookies  []*http.Cookie
 	redirect *Redirect
 
-	// different from ActionRes
+	// different from APIRes
 	HeadBlocks []*HeadBlock
 }
 
-func (f LoaderRes[O]) Redirect(url string, code int) {
+func (f UILoaderRes[O]) Redirect(url string, code int) {
 	*f.redirect = Redirect{URL: url, Code: code}
 }
 
-type LoaderFunc[O any] func(props *LoaderProps, res *LoaderRes[O])
+type UILoaderFunc[O any] func(props *UILoaderProps, res *UILoaderRes[O])
 
-func (f LoaderFunc[O]) GetResInstance() any {
-	return &LoaderRes[O]{
+func (f UILoaderFunc[O]) GetResInstance() any {
+	return &UILoaderRes[O]{
 		redirect:   &Redirect{},
 		Headers:    http.Header{},
 		Cookies:    []*http.Cookie{},
 		HeadBlocks: []*HeadBlock{},
 	}
 }
-func (f LoaderFunc[O]) Execute(args ...any) (any, error) {
-	props := args[0].(*LoaderProps)
-	loaderRes := args[1].(*LoaderRes[O])
-	f(props, loaderRes)
+func (f UILoaderFunc[O]) Execute(args ...any) (any, error) {
+	props := args[0].(*UILoaderProps)
+	UILoaderRes := args[1].(*UILoaderRes[O])
+	f(props, UILoaderRes)
 	return nil, nil
 }
-func (f LoaderFunc[O]) GetInputInstance() any {
+func (f UILoaderFunc[O]) GetInputInstance() any {
 	return nil
 }
-func (f LoaderFunc[O]) ValidateQueryInput(v *validate.Validate, r *http.Request) (any, error) {
+func (f UILoaderFunc[O]) ValidateQueryInput(v *validate.Validate, r *http.Request) (any, error) {
 	return nil, nil
 }
-func (f LoaderFunc[O]) ValidateMutationInput(v *validate.Validate, r *http.Request) (any, error) {
+func (f UILoaderFunc[O]) ValidateMutationInput(v *validate.Validate, r *http.Request) (any, error) {
 	return nil, nil
 }
-func (f LoaderFunc[O]) GetOutputInstance() any {
+func (f UILoaderFunc[O]) GetOutputInstance() any {
 	var x O
 	return x
 }
 
-type ActionRes[O any] struct {
-	// same as LoaderRes
+type APIRes[O any] struct {
+	// same as UILoaderRes
 	Data     O
 	Error    error
 	Headers  http.Header
@@ -79,31 +80,31 @@ type ActionRes[O any] struct {
 	redirect *Redirect
 }
 
-func (f ActionRes[O]) Redirect(url string, code int) {
+func (f APIRes[O]) Redirect(url string, code int) {
 	*f.redirect = Redirect{URL: url, Code: code}
 }
 
-type ActionFunc[I any, O any] func(r *http.Request, input I, res *ActionRes[O])
+type APIFunc[I any, O any] func(r *http.Request, input I, res *APIRes[O])
 
-func (f ActionFunc[I, O]) GetResInstance() any {
-	return &ActionRes[O]{
+func (f APIFunc[I, O]) GetResInstance() any {
+	return &APIRes[O]{
 		redirect: &Redirect{},
 		Headers:  http.Header{},
 		Cookies:  []*http.Cookie{},
 	}
 }
-func (f ActionFunc[I, O]) Execute(args ...any) (any, error) {
+func (f APIFunc[I, O]) Execute(args ...any) (any, error) {
 	r := args[0].(*http.Request)
 	input := args[1].(I)
-	res := args[2].(*ActionRes[O])
+	res := args[2].(*APIRes[O])
 	f(r, input, res)
 	return nil, nil
 }
-func (f ActionFunc[I, O]) GetInputInstance() any {
+func (f APIFunc[I, O]) GetInputInstance() any {
 	var x I
 	return x
 }
-func (f ActionFunc[I, O]) ValidateQueryInput(v *validate.Validate, r *http.Request) (any, error) {
+func (f APIFunc[I, O]) ValidateQueryInput(v *validate.Validate, r *http.Request) (any, error) {
 	var inputInstance I
 	err := v.URLSearchParamsInto(r, &inputInstance)
 	if err != nil {
@@ -111,50 +112,50 @@ func (f ActionFunc[I, O]) ValidateQueryInput(v *validate.Validate, r *http.Reque
 	}
 	return inputInstance, nil
 }
-func (f ActionFunc[I, O]) ValidateMutationInput(v *validate.Validate, r *http.Request) (any, error) {
+func (f APIFunc[I, O]) ValidateMutationInput(v *validate.Validate, r *http.Request) (any, error) {
 	return nil, nil
 }
-func (f ActionFunc[I, O]) GetOutputInstance() any {
+func (f APIFunc[I, O]) GetOutputInstance() any {
 	var x O
 	return x
 }
 
 //////////////////// DataFunctionPropsGetter ////////////////////
 
-func (f LoaderRes[O]) GetData() any {
+func (f UILoaderRes[O]) GetData() any {
 	return f.Data
 }
-func (f LoaderRes[O]) GetError() error {
+func (f UILoaderRes[O]) GetError() error {
 	return f.Error
 }
-func (f LoaderRes[O]) GetHeaders() http.Header {
+func (f UILoaderRes[O]) GetHeaders() http.Header {
 	return f.Headers
 }
-func (f LoaderRes[O]) GetCookies() []*http.Cookie {
+func (f UILoaderRes[O]) GetCookies() []*http.Cookie {
 	return f.Cookies
 }
-func (f LoaderRes[O]) GetRedirect() *Redirect {
+func (f UILoaderRes[O]) GetRedirect() *Redirect {
 	return f.redirect
 }
-func (f LoaderRes[O]) GetHeadBlocks() []*HeadBlock {
+func (f UILoaderRes[O]) GetHeadBlocks() []*HeadBlock {
 	return f.HeadBlocks
 }
-func (f ActionRes[O]) GetData() any {
+func (f APIRes[O]) GetData() any {
 	return f.Data
 }
-func (f ActionRes[O]) GetError() error {
+func (f APIRes[O]) GetError() error {
 	return f.Error
 }
-func (f ActionRes[O]) GetHeaders() http.Header {
+func (f APIRes[O]) GetHeaders() http.Header {
 	return f.Headers
 }
-func (f ActionRes[O]) GetCookies() []*http.Cookie {
+func (f APIRes[O]) GetCookies() []*http.Cookie {
 	return f.Cookies
 }
-func (f ActionRes[O]) GetRedirect() *Redirect {
+func (f APIRes[O]) GetRedirect() *Redirect {
 	return f.redirect
 }
-func (f ActionRes[O]) GetHeadBlocks() []*HeadBlock {
+func (f APIRes[O]) GetHeadBlocks() []*HeadBlock {
 	return nil // noop
 }
 

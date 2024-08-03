@@ -36,7 +36,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 		return nil, true, routeType, nil
 	}
 
-	if routeType != RouteTypesEnum.Loader {
+	if routeType != RouteTypesEnum.UILoader {
 		var errMsg string
 		if validate.IsValidationError(activePathData.LoadersErrors[0]) {
 			errMsg = "bad request (validation error)"

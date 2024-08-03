@@ -51,19 +51,19 @@ func (h *Hwy) addDataFuncsToPaths() {
 	listOfPatterns := make([]string, 0, len(h.paths))
 
 	for i, path := range h.paths {
-		if loader, ok := h.LoadersMap[path.Pattern]; ok {
+		if loader, ok := h.UILoaders[path.Pattern]; ok {
 			h.paths[i].DataFunction = loader
 		}
 
 		listOfPatterns = append(listOfPatterns, path.Pattern)
 	}
 
-	for pattern := range h.LoadersMap {
+	for pattern := range h.UILoaders {
 		if pattern != "AdHocData" && !slices.Contains(listOfPatterns, pattern) {
 			Log.Errorf("Warning: no matching path found for pattern %v. Make sure you're writing your patterns correctly and that your client route exists.", pattern)
 		}
 		if pattern == "AdHocData" {
-			h.getAdHocData = h.LoadersMap[pattern] // __TODO -- hmm this feels out of place / poorly designed
+			h.getAdHocData = h.UILoaders[pattern] // __TODO -- hmm this feels out of place / poorly designed
 		}
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/sjc5/kit/pkg/lru"
 )
 
-type LoaderProps struct {
+type UILoaderProps struct {
 	Request       *http.Request
 	Params        map[string]string
 	SplatSegments []string
@@ -31,18 +31,6 @@ type ActivePathData struct {
 	Deps                []string
 }
 
-type RouteType = string
-
-var RouteTypesEnum = struct {
-	Loader         RouteType
-	MutationAction RouteType
-	QueryAction    RouteType
-}{
-	Loader:         "loader",
-	MutationAction: "mutation-action",
-	QueryAction:    "query-action",
-}
-
 type gmpdItem struct {
 	SplatSegments               []string
 	Params                      map[string]string
@@ -63,7 +51,7 @@ var (
 
 func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	*ActivePathData,
-	*LoaderProps,
+	*UILoaderProps,
 	didRedirect,
 	RouteType,
 ) {
@@ -74,25 +62,25 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 
 	var item *gmpdItem
 
-	if action, exists := h.QueryActionsMap[realPath]; exists {
-		_, shouldRunAction := queryAcceptedMethods[r.Method]
-		if !shouldRunAction {
+	if apiQuery, exists := h.APIQueries[realPath]; exists {
+		_, methodIsPermitted := queryAcceptedMethods[r.Method]
+		if !methodIsPermitted {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-			return nil, nil, true, RouteTypesEnum.QueryAction
+			return nil, nil, true, RouteTypesEnum.APIQuery
 		}
 		item = &gmpdItem{
-			routeType:                   RouteTypesEnum.QueryAction,
-			FullyDecoratedMatchingPaths: []*DecoratedPath{{DataFunction: action}},
+			routeType:                   RouteTypesEnum.APIQuery,
+			FullyDecoratedMatchingPaths: []*DecoratedPath{{DataFunction: apiQuery}},
 		}
-	} else if action, exists := h.MutationActionsMap[r.URL.Path]; exists {
-		_, shouldRunAction := mutationAcceptedMethods[r.Method]
-		if !shouldRunAction {
+	} else if apiMutation, exists := h.APIMutations[r.URL.Path]; exists {
+		_, methodIsPermitted := mutationAcceptedMethods[r.Method]
+		if !methodIsPermitted {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-			return nil, nil, true, RouteTypesEnum.MutationAction
+			return nil, nil, true, RouteTypesEnum.APIMutation
 		}
 		item = &gmpdItem{
-			routeType:                   RouteTypesEnum.MutationAction,
-			FullyDecoratedMatchingPaths: []*DecoratedPath{{DataFunction: action}},
+			routeType:                   RouteTypesEnum.APIMutation,
+			FullyDecoratedMatchingPaths: []*DecoratedPath{{DataFunction: apiMutation}},
 		}
 	} else {
 		item = h.getGMPDItem(realPath)
@@ -109,7 +97,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	loadersHeadBlocks := make([][]*HeadBlock, numberOfLoaders)
 
 	var wg sync.WaitGroup
-	baseLoaderProps := &LoaderProps{
+	baseLoaderProps := &UILoaderProps{
 		Request:       r,
 		Params:        item.Params,
 		SplatSegments: item.SplatSegments,
@@ -127,18 +115,18 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 			}
 
 			loaderRes := loader.GetResInstance()
-			if item.routeType == RouteTypesEnum.Loader {
+			if item.routeType == RouteTypesEnum.UILoader {
 				loader.Execute(baseLoaderProps, loaderRes)
 			} else {
 				validator := h.GetValidator()
-				if item.routeType == RouteTypesEnum.QueryAction {
+				if item.routeType == RouteTypesEnum.APIQuery {
 					inputInstance, err := loader.ValidateQueryInput(validator, r)
 					if err != nil {
 						loadersErrors[i] = err
 						return
 					}
 					loader.Execute(r, inputInstance, loaderRes)
-				} else if item.routeType == RouteTypesEnum.MutationAction {
+				} else if item.routeType == RouteTypesEnum.APIMutation {
 					inputInstance, err := loader.ValidateMutationInput(validator, r)
 					if err != nil {
 						loadersErrors[i] = err
@@ -159,7 +147,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	wg.Wait()
 
 	// __TODO question, should redirects, cookies, etc. be conditional on no errors?
-	// if so, same or different for loaders and actions?
+	// if so, same or different for ui-loaders and api functions?
 
 	// apply first redirect and return
 	for _, redirect := range loadersRedirects {
@@ -202,7 +190,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 		}
 	}
 
-	if thereAreErrors && item.routeType == RouteTypesEnum.Loader {
+	if thereAreErrors && item.routeType == RouteTypesEnum.UILoader {
 		var activePathData ActivePathData = ActivePathData{}
 		locMatchingPaths := item.FullyDecoratedMatchingPaths[:outermostErrorIndex+1]
 		activePathData.MatchingPaths = locMatchingPaths
@@ -288,7 +276,7 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 		item.FullyDecoratedMatchingPaths = decoratePaths(matchingPaths)
 		item.SplatSegments = splatSegments
 		item.Params = lastPath.Params
-		item.routeType = RouteTypesEnum.Loader
+		item.routeType = RouteTypesEnum.UILoader
 
 		// import URLs
 		item.ImportURLs = make([]string, 0, len(matchingPaths))

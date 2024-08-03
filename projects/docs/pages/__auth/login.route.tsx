@@ -7,10 +7,11 @@ import {
   QueryAPIOutput,
 } from "~/__generated_ts_api/api-types";
 
+// __TODO this whole file is moot
+
 type AppRouteComponentProps<T extends QueryAPIKey | MutationAPIKey> =
   RouteComponentProps<{
     loaderOutput: QueryAPIOutput<T extends QueryAPIKey ? T : any>;
-    actionOutput: MutationAPIOutput<T extends MutationAPIKey ? T : any>;
   }>;
 
 const thisRoute = "/login";

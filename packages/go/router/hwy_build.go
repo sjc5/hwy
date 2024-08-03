@@ -19,18 +19,18 @@ import (
 type AdHocType = rpc.AdHocType
 
 type BuildOptions struct {
-	IsDev              bool
-	ClientEntry        string
-	PagesSrcDir        string
-	HashedOutDir       string
-	UnhashedOutDir     string
-	ClientEntryOut     string
-	UsePreactCompat    bool
-	LoadersMap         DataFunctionMap
-	QueryActionsMap    DataFunctionMap
-	MutationActionsMap DataFunctionMap
-	GeneratedTSOutDir  string
-	AdHocTypes         []AdHocType
+	IsDev             bool
+	ClientEntry       string
+	PagesSrcDir       string
+	HashedOutDir      string
+	UnhashedOutDir    string
+	ClientEntryOut    string
+	UsePreactCompat   bool
+	UILoaders         DataFunctionMap
+	APIQueries        DataFunctionMap
+	APIMutations      DataFunctionMap
+	GeneratedTSOutDir string
+	AdHocTypes        []AdHocType
 }
 
 type ImportPath = string
@@ -202,7 +202,7 @@ func GenerateTypeScript(opts *BuildOptions) error {
 
 	// for k, v := range opts. // come back
 
-	for key, loader := range opts.LoadersMap {
+	for key, loader := range opts.UILoaders {
 		loaderRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeQuery}
 
 		if loader != nil {
@@ -212,26 +212,26 @@ func GenerateTypeScript(opts *BuildOptions) error {
 		routeDefs = append(routeDefs, loaderRouteDef)
 	}
 
-	for key, queryAction := range opts.QueryActionsMap {
-		queryActionRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeQuery}
+	for key, apiQuery := range opts.APIQueries {
+		apiQueryRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeQuery}
 
-		if queryAction != nil {
-			queryActionRouteDef.Input = queryAction.GetInputInstance()
-			queryActionRouteDef.Output = queryAction.GetOutputInstance()
+		if apiQuery != nil {
+			apiQueryRouteDef.Input = apiQuery.GetInputInstance()
+			apiQueryRouteDef.Output = apiQuery.GetOutputInstance()
 		}
 
-		routeDefs = append(routeDefs, queryActionRouteDef)
+		routeDefs = append(routeDefs, apiQueryRouteDef)
 	}
 
-	for key, mutationAction := range opts.MutationActionsMap {
-		mutationActionRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeMutation}
+	for key, mutationQuery := range opts.APIMutations {
+		mutationQueryRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeMutation}
 
-		if mutationAction != nil {
-			mutationActionRouteDef.Input = mutationAction.GetInputInstance()
-			mutationActionRouteDef.Output = mutationAction.GetOutputInstance()
+		if mutationQuery != nil {
+			mutationQueryRouteDef.Input = mutationQuery.GetInputInstance()
+			mutationQueryRouteDef.Output = mutationQuery.GetOutputInstance()
 		}
 
-		routeDefs = append(routeDefs, mutationActionRouteDef)
+		routeDefs = append(routeDefs, mutationQueryRouteDef)
 	}
 
 	err := rpc.GenerateTypeScript(rpc.Opts{
