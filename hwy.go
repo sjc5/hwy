@@ -7,6 +7,8 @@ import (
 	"github.com/sjc5/kit/pkg/validate"
 )
 
+// __TODO - add API prefix concept and TS type extractors based on prefix
+
 type BuildOptions = router.BuildOptions
 type Hwy = router.Hwy
 type HeadBlock = router.HeadBlock
