@@ -4,20 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"net/http"
 	"slices"
 	"sort"
 	"strings"
 )
-
-type HeadProps struct {
-	Request       *http.Request
-	Params        *map[string]string
-	SplatSegments *[]string
-	LoaderData    any
-	ActionData    any
-	AdHocData     any
-}
 
 type HeadBlock struct {
 	Tag        string            `json:"tag,omitempty"`
@@ -55,7 +45,7 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 
 	// Add head blocks
 	htmlBuilder.WriteString(metaStart + "\n")
-	for _, block := range *routeData.MetaHeadBlocks {
+	for _, block := range routeData.MetaHeadBlocks {
 		if !slices.Contains(permittedTags, block.Tag) {
 			continue
 		}
@@ -69,7 +59,7 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 	htmlBuilder.WriteString(metaEnd + "\n")
 
 	htmlBuilder.WriteString(restStart + "\n")
-	for _, block := range *routeData.RestHeadBlocks {
+	for _, block := range routeData.RestHeadBlocks {
 		if !slices.Contains(permittedTags, block.Tag) {
 			continue
 		}
@@ -86,28 +76,28 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 	return &final, nil
 }
 
-func getExportedHeadBlocks(activePathData *ActivePathData, defaultHeadBlocks *[]HeadBlock) (*sortHeadBlocksOutput, error) {
-	headBlocks := make([]HeadBlock, len(*defaultHeadBlocks))
+func getExportedHeadBlocks(activePathData *ActivePathData, defaultHeadBlocks []HeadBlock) (*sortHeadBlocksOutput, error) {
+	headBlocks := make([]HeadBlock, len(defaultHeadBlocks))
 
-	copy(headBlocks, *defaultHeadBlocks)
+	copy(headBlocks, defaultHeadBlocks)
 
-	for _, head := range *activePathData.HeadBlocks {
+	for _, head := range activePathData.HeadBlocks {
 		headBlocks = append(headBlocks, *head)
 	}
 
-	deduped := dedupeHeadBlocks(&headBlocks)
+	deduped := dedupeHeadBlocks(headBlocks)
 
 	sorted := sortHeadBlocksOutput{}
-	sorted.metaHeadBlocks = &[]*HeadBlock{}
-	sorted.restHeadBlocks = &[]*HeadBlock{}
+	sorted.metaHeadBlocks = []*HeadBlock{}
+	sorted.restHeadBlocks = []*HeadBlock{}
 
-	for _, block := range *deduped {
+	for _, block := range deduped {
 		if len(block.Title) > 0 {
 			sorted.title = block.Title
 		} else if block.Tag == "meta" {
-			*sorted.metaHeadBlocks = append(*sorted.metaHeadBlocks, block)
+			sorted.metaHeadBlocks = append(sorted.metaHeadBlocks, block)
 		} else {
-			*sorted.restHeadBlocks = append(*sorted.restHeadBlocks, block)
+			sorted.restHeadBlocks = append(sorted.restHeadBlocks, block)
 		}
 	}
 
@@ -118,14 +108,14 @@ func getExportedHeadBlocks(activePathData *ActivePathData, defaultHeadBlocks *[]
 // additionally, would make sense to also take an a defaultOverrideHeadBlocks arg at root as well, just like DefaultHeadBlocks
 // ALternatively, could build the concept into each Path level as a new opportunity to set a DefaultHeadBlocks slice, applicable to it and its children
 
-func dedupeHeadBlocks(blocks *[]HeadBlock) *[]*HeadBlock {
+func dedupeHeadBlocks(blocks []HeadBlock) []*HeadBlock {
 	uniqueBlocks := make(map[string]*HeadBlock)
 	var dedupedBlocks []*HeadBlock
 
 	titleIdx := -1
 	descriptionIdx := -1
 
-	for _, block := range *blocks {
+	for _, block := range blocks {
 		if len(block.Title) > 0 {
 			if titleIdx == -1 {
 				titleIdx = len(dedupedBlocks)
@@ -149,7 +139,7 @@ func dedupeHeadBlocks(blocks *[]HeadBlock) *[]*HeadBlock {
 		}
 	}
 
-	return &dedupedBlocks
+	return dedupedBlocks
 }
 
 func headBlockStableHash(block *HeadBlock) string {
@@ -189,6 +179,6 @@ func renderBlock(htmlBuilder *strings.Builder, block *HeadBlock) error {
 
 type sortHeadBlocksOutput struct {
 	title          string
-	metaHeadBlocks *[]*HeadBlock
-	restHeadBlocks *[]*HeadBlock
+	metaHeadBlocks []*HeadBlock
+	restHeadBlocks []*HeadBlock
 }

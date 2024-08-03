@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/sjc5/kit/pkg/colorlog"
 )
@@ -16,40 +15,50 @@ const (
 	PathTypeStaticLayout     = "static-layout"
 	PathTypeDynamicLayout    = "dynamic-layout"
 	PathTypeNonUltimateSplat = "non-ultimate-splat"
+	APIPathTypeQuery         = "query"
+	APIPathTypeMutation      = "mutation"
 )
 
 type DataFunction interface {
-	Execute(props any) (any, error)
+	Execute(props any, res any) (any, error)
 	GetInputInstance() any
 	GetOutputInstance() any
-	GetExecutePropsInstance() any
+	GetResInstance() any
 }
 
-type DataFuncs struct {
-	Loader DataFunction
-	Action DataFunction
+var DataFunctionTypes = struct {
+	Loader         string
+	MutationAction string
+	QueryAction    string
+}{
+	Loader:         "loader",
+	MutationAction: "mutation-action",
+	QueryAction:    "query-action",
 }
 
 type PathBase struct {
-	Pattern  string    `json:"pattern"`
-	Segments *[]string `json:"segments"`
-	PathType string    `json:"pathType"`
-	OutPath  string    `json:"outPath"`
-	SrcPath  string    `json:"srcPath"`
-	Deps     *[]string `json:"deps"`
+	Pattern     string   `json:"pattern"`
+	Segments    []string `json:"segments"`
+	PathType    string   `json:"pathType"`
+	OutPath     string   `json:"outPath,omitempty"`
+	SrcPath     string   `json:"srcPath,omitempty"`
+	Deps        []string `json:"deps,omitempty"`
+	APIPathType string   `json:"apiPathType,omitempty"`
 }
 
 type Path struct {
 	PathBase
-	DataFuncs *DataFuncs `json:",omitempty"`
+	DataFunction DataFunction `json:",omitempty"`
 }
 
-type DataFuncsMap map[string]DataFuncs
+type DataFunctionMap map[string]DataFunction
 
 type Hwy struct {
 	DefaultHeadBlocks    []HeadBlock
 	FS                   fs.FS
-	DataFuncsMap         DataFuncsMap
+	LoadersMap           DataFunctionMap
+	QueryActionsMap      DataFunctionMap
+	MutationActionsMap   DataFunctionMap
 	RootTemplateLocation string
 	RootTemplateData     map[string]any
 	getAdHocData         DataFunction
@@ -64,37 +73,19 @@ type Redirect struct {
 	Code int
 }
 
-type LoaderPropsGetter interface {
-	getData() any
-	getError() error
-	getHeaders() http.Header
-	getCookies() []*http.Cookie
-	getRedirect() *Redirect
-	getHeadBlocks() []*HeadBlock
+type DataFunctionPropsGetter interface {
+	GetData() any
+	GetError() error
+	GetHeaders() http.Header
+	GetCookies() []*http.Cookie
+	GetRedirect() *Redirect
+	GetHeadBlocks() []*HeadBlock // only applicable for loaders
 }
 
 const HwyPrefix = "__hwy_internal__"
 
 func getIsDebug() bool {
 	return os.Getenv("HWY_ENV") == "development"
-}
-
-type measure struct {
-	start time.Time
-	name  string
-}
-
-func (m *measure) stop() {
-	if getIsDebug() {
-		Log.Info("timing -- ", time.Since(m.start), " -- ", m.name)
-	}
-}
-
-func newMeasurement(name string) *measure {
-	return &measure{
-		start: time.Now(),
-		name:  name,
-	}
 }
 
 var Log = colorlog.Log{Label: "Hwy"}

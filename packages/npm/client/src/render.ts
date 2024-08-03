@@ -109,24 +109,11 @@ export async function reRenderApp({
     hwyClientGlobal.set("buildID", json.buildID);
   }
 
-  if (navigationType !== "revalidation") {
-    hwyClientGlobal.set("actionData", json.actionData);
-  }
-
   let highestIndex: number | undefined;
-  if (navigationType !== "revalidation") {
-    for (let i = 0; i < updatedList.length; i++) {
-      if (updatedList[i].type === "new") {
-        highestIndex = i;
-        break;
-      }
-    }
-  } else {
-    for (let i = 0; i < (json.actionData as any[]).length; i++) {
-      if (json.actionData[i] !== undefined) {
-        highestIndex = i;
-        break;
-      }
+  for (let i = 0; i < updatedList.length; i++) {
+    if (updatedList[i].type === "new") {
+      highestIndex = i;
+      break;
     }
   }
 
@@ -150,6 +137,8 @@ export async function reRenderApp({
     if (navigationType === "browserHistory" && scrollStateToRestore) {
       scrollStateToDispatch = scrollStateToRestore;
     }
+
+    // if revalidation, do nothing
   }
 
   // dispatch event

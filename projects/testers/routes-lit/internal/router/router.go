@@ -17,48 +17,38 @@ func init() {
 	defaultHeadBlocks := []hwy.HeadBlock{
 		{Title: "JACOB"},
 	}
-	dataFuncs := hwy.DataFuncsMap{
-		"/dashboard/customers/$customer_id/orders": {
-			Loader: hwy.LoaderFunc[any](
-				func(props *hwy.LoaderProps[any]) {
-					props.LoaderRes.Data = map[string]string{
-						"message": "</script><script>alert('Hello, Bob!')</script>",
-					}
-					// props.LoaderRes.Redirect("/login", http.StatusFound)
-					props.LoaderRes.Headers.Set("bob3", "bob3")
-					props.LoaderRes.Cookies = append(props.LoaderRes.Cookies, &http.Cookie{
-						Name:  "bob3",
-						Value: "bob3",
-					})
-					props.LoaderRes.HeadBlocks = []*hwy.HeadBlock{
-						{
-							Tag:        "meta",
-							Attributes: map[string]string{"name": "description", "content": "parent"},
-						},
-						{Title: "JACOB1"},
-					}
-				},
-			),
-		},
-		"/dashboard/customers/$customer_id/orders/$order_id": {
-			Loader: hwy.LoaderFunc[strMap](
-				func(props *hwy.LoaderProps[strMap]) {
-					props.LoaderRes.Data = strMap{"message": "kjbkjbkjbkjbkjbk"}
-					props.LoaderRes.Headers.Set("bob3", "bob4")
-					props.LoaderRes.Cookies = append(props.LoaderRes.Cookies, &http.Cookie{
-						Name:  "bob3",
-						Value: "bob4",
-					})
-					props.LoaderRes.HeadBlocks = []*hwy.HeadBlock{
-						{
-							Tag:        "meta",
-							Attributes: strMap{"name": "description", "content": "child"},
-						},
-						{Title: "JACOB2"},
-					}
-				},
-			),
-		},
+	dataFuncs := hwy.DataFunctionMap{
+		"/dashboard/customers/$customer_id/orders": hwy.LoaderFunc[any](
+			func(props *hwy.DataFunctionProps, res *hwy.LoaderRes[any]) {
+				res.Data = map[string]string{
+					"message": "</script><script>alert('Hello, Bob!')</script>",
+				}
+				// res.Redirect("/login", http.StatusFound)
+				res.Headers.Set("bob3", "bob3")
+				res.Cookies = append(res.Cookies, &http.Cookie{Name: "bob3", Value: "bob3"})
+				res.HeadBlocks = []*hwy.HeadBlock{
+					{
+						Tag:        "meta",
+						Attributes: map[string]string{"name": "description", "content": "parent"},
+					},
+					{Title: "JACOB1"},
+				}
+			},
+		),
+		"/dashboard/customers/$customer_id/orders/$order_id": hwy.LoaderFunc[strMap](
+			func(props *hwy.DataFunctionProps, res *hwy.LoaderRes[strMap]) {
+				res.Data = strMap{"message": "kjbkjbkjbkjbkjbk"}
+				res.Headers.Set("bob3", "bob4")
+				res.Cookies = append(res.Cookies, &http.Cookie{Name: "bob3", Value: "bob4"})
+				res.HeadBlocks = []*hwy.HeadBlock{
+					{
+						Tag:        "meta",
+						Attributes: strMap{"name": "description", "content": "child"},
+					},
+					{Title: "JACOB2"},
+				}
+			},
+		),
 	}
 
 	privateFS, err := platform.Kiruna.GetPrivateFS()
@@ -74,7 +64,14 @@ func init() {
 			"Kiruna":         platform.Kiruna,
 			"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
 		},
-		DataFuncsMap: dataFuncs,
+		LoadersMap: dataFuncs,
+		QueryActionsMap: hwy.DataFunctionMap{
+			"test": hwy.ActionFunc[any, any](
+				func(props *hwy.DataFunctionProps, res *hwy.ActionRes[any]) {
+
+				},
+			),
+		},
 	}
 	err = Hwy.Initialize()
 	if err != nil {

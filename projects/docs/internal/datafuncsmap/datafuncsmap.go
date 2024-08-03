@@ -2,7 +2,7 @@ package datafuncsmap
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"hwy-docs/internal/platform"
 	"path/filepath"
 	"strings"
@@ -19,24 +19,26 @@ type LoginLoaderOutput struct {
 	Bob int
 }
 
-var DataFuncsMap = hwy.DataFuncsMap{
-	"/login": hwy.DataFuncs{
-		Loader: hwy.LoaderFunc[LoginLoaderOutput](
-			func(props *hwy.LoaderProps[LoginLoaderOutput]) {
-				props.LoaderRes.Data = LoginLoaderOutput{
-					Bob: count,
-				}
-			},
-		),
-		Action: hwy.ActionFunc[any, any](func(props *hwy.ActionProps) (any, error) {
+var DataFuncsMap = hwy.DataFunctionMap{
+	"/login": hwy.LoaderFunc[LoginLoaderOutput](
+		func(props *hwy.DataFunctionProps, res *hwy.LoaderRes[LoginLoaderOutput]) {
+			res.Data = LoginLoaderOutput{
+				Bob: count,
+			}
+		},
+	),
+	"/$": catchAllLoader,
+}
+
+var ActionsMap = hwy.DataFunctionMap{
+	"/test-action/$customer_id": hwy.ActionFunc[any, any](
+		func(props *hwy.DataFunctionProps, res *hwy.ActionRes[any]) {
 			count++
-			return nil, errors.New("Redirect")
-			// return "bob", nil
-		}),
-	},
-	"/$": {
-		Loader: catchAllLoader,
-	},
+			fmt.Println("count", count, props.Params["customer_id"])
+			res.Data = "bob"
+			// res.Redirect("/login", 302)
+		},
+	),
 }
 
 type matter struct {
@@ -51,8 +53,11 @@ var notFoundMatter = matter{
 
 var c = lru.NewCache[string, *matter](1_000)
 
-var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps[*matter]) {
-	normalizedPath := filepath.Clean(strings.Join(*props.SplatSegments, "/"))
+var catchAllLoader hwy.LoaderFunc[*matter] = func(
+	props *hwy.DataFunctionProps,
+	res *hwy.LoaderRes[*matter],
+) {
+	normalizedPath := filepath.Clean(strings.Join(props.SplatSegments, "/"))
 	if normalizedPath == "." {
 		normalizedPath = "README"
 	}
@@ -63,26 +68,26 @@ var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps[*matter
 	// }
 	// return &[]hwy.HeadBlock{{Title: title}}, nil
 
-	props.LoaderRes.HeadBlocks = []*hwy.HeadBlock{{Title: "Hwy Bob"}}
+	res.HeadBlocks = []*hwy.HeadBlock{{Title: "Hwy Bob"}}
 
 	var item *matter
 	if cached, ok := c.Get(normalizedPath); ok {
 		item = cached
-		props.LoaderRes.Data = item
+		res.Data = item
 		return
 	}
 
 	filePath := "markdown/" + normalizedPath + ".md"
 	FS, err := platform.Kiruna.GetPrivateFS()
 	if err != nil {
-		props.LoaderRes.Error = err
+		res.Error = err
 		return
 	}
 
 	fileBytes, err := FS.ReadFile(filePath)
 	if err != nil {
 		c.Set(normalizedPath, &notFoundMatter, true)
-		props.LoaderRes.Data = &notFoundMatter
+		res.Data = &notFoundMatter
 		return
 	}
 
@@ -90,7 +95,7 @@ var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps[*matter
 	rest, err := frontmatter.Parse(bytes.NewReader(fileBytes), &fm)
 	if err != nil {
 		c.Set(normalizedPath, &notFoundMatter, true)
-		props.LoaderRes.Data = &notFoundMatter
+		res.Data = &notFoundMatter
 		return
 	}
 
@@ -100,5 +105,5 @@ var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps[*matter
 	}
 
 	c.Set(normalizedPath, item, false)
-	props.LoaderRes.Data = item
+	res.Data = item
 }

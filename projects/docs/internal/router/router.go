@@ -52,7 +52,8 @@ func init() {
 			"Kiruna":         platform.Kiruna,
 			"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
 		},
-		DataFuncsMap: datafuncsmap.DataFuncsMap,
+		LoadersMap:      datafuncsmap.DataFuncsMap,
+		QueryActionsMap: datafuncsmap.ActionsMap,
 	}
 
 	err = Hwy.Initialize()

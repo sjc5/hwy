@@ -113,7 +113,6 @@ class HwyRootOutletShadowDef<AHD> extends LitElement {
       params: ctx.get("params") ?? {},
       splatSegments: ctx.get("splatSegments") ?? [],
       loaderData: ctx.get("loadersData")?.[idx],
-      actionData: ctx.get("actionData")?.[idx],
       Outlet,
       adHocData: ctx.get("adHocData") ?? this.adHocData,
     };
@@ -207,7 +206,6 @@ export type HwyRouteComponentProps<
   T extends RoutePropsTypeArg = DefaultRouteProps,
 > = {
   loaderData: T["loaderOutput"];
-  actionData: T["actionOutput"] | undefined;
   Outlet: Outlet;
   params: Record<string, string>;
   splatSegments: Array<string>;
@@ -228,9 +226,6 @@ export class HwyRouteShadow<
 > extends LitElement {
   @property()
   loaderData!: T["loaderOutput"];
-
-  @property()
-  actionData?: T["actionOutput"];
 
   @property()
   Outlet!: (...props: any) => TemplateResult;

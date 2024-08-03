@@ -6,47 +6,58 @@ import (
 	"net/http"
 )
 
+// __TODO permitted methods
+
 type GetRouteDataOutput struct {
-	Title               string             `json:"title"`
-	MetaHeadBlocks      *[]*HeadBlock      `json:"metaHeadBlocks"`
-	RestHeadBlocks      *[]*HeadBlock      `json:"restHeadBlocks"`
-	LoadersData         *[]any             `json:"loadersData"`
-	ImportURLs          *[]string          `json:"importURLs"`
-	OutermostErrorIndex int                `json:"outermostErrorIndex"`
-	SplatSegments       *[]string          `json:"splatSegments"`
-	Params              *map[string]string `json:"params"`
-	ActionData          *[]any             `json:"actionData"`
-	AdHocData           any                `json:"adHocData"`
-	BuildID             string             `json:"buildID"`
-	Deps                *[]string          `json:"deps"`
+	Title               string            `json:"title,omitempty"`
+	MetaHeadBlocks      []*HeadBlock      `json:"metaHeadBlocks,omitempty"`
+	RestHeadBlocks      []*HeadBlock      `json:"restHeadBlocks,omitempty"`
+	LoadersData         []any             `json:"loadersData,omitempty"`
+	LoadersErrors       []error           `json:"loadersErrors,omitempty"`
+	ImportURLs          []string          `json:"importURLs,omitempty"`
+	OutermostErrorIndex int               `json:"outermostErrorIndex,omitempty"`
+	SplatSegments       []string          `json:"splatSegments,omitempty"`
+	Params              map[string]string `json:"params,omitempty"`
+	AdHocData           any               `json:"adHocData,omitempty"`
+	BuildID             string            `json:"buildID,omitempty"`
+	Deps                []string          `json:"deps,omitempty"`
+	APIResponseData     any               `json:"apiResponseData,omitempty"`
 }
 
 func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 	*GetRouteDataOutput,
-	error,
 	didRedirect,
+	isAPIRoute,
+	error,
 ) {
-	activePathData, loaderProps, didRedirect := h.getMatchingPathData(w, r)
+	activePathData, loaderProps, didRedirect, isAPIRoute := h.getMatchingPathData(w, r)
 	if didRedirect {
-		return nil, nil, true
+		return nil, true, isAPIRoute, nil
+	}
+
+	if isAPIRoute {
+		return &GetRouteDataOutput{
+			APIResponseData: &activePathData.LoadersData[0],
+			BuildID:         h.buildID,
+		}, false, isAPIRoute, nil // __TODO errors!
 	}
 
 	var adHocData any
 	var err error
 	if h.getAdHocData != nil {
-		adHocData, err = h.getAdHocData.Execute(loaderProps)
+		adHocData, err = h.getAdHocData.Execute(loaderProps, nil)
 	}
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get ad hoc data: %v", err)
 		Log.Errorf(errMsg)
-		return nil, errors.New(errMsg), false
+		return nil, false, isAPIRoute, errors.New(errMsg)
 	}
 
-	headBlocks, err := getExportedHeadBlocks(activePathData, &h.DefaultHeadBlocks)
+	headBlocks, err := getExportedHeadBlocks(activePathData, h.DefaultHeadBlocks)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get exported head blocks: %v", err)
 		Log.Errorf(errMsg)
-		return nil, errors.New(errMsg), false
+		return nil, false, isAPIRoute, errors.New(errMsg)
 	}
 
 	return &GetRouteDataOutput{
@@ -54,13 +65,13 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 		MetaHeadBlocks:      headBlocks.metaHeadBlocks,
 		RestHeadBlocks:      headBlocks.restHeadBlocks,
 		LoadersData:         activePathData.LoadersData,
+		LoadersErrors:       activePathData.LoadersErrors,
 		ImportURLs:          activePathData.ImportURLs,
 		OutermostErrorIndex: activePathData.OutermostErrorIndex,
 		SplatSegments:       activePathData.SplatSegments,
 		Params:              activePathData.Params,
-		ActionData:          activePathData.ActionData,
 		AdHocData:           adHocData,
 		BuildID:             h.buildID,
 		Deps:                activePathData.Deps,
-	}, nil, false
+	}, false, isAPIRoute, nil
 }

@@ -4,7 +4,7 @@ import "strings"
 
 type matcherOutput struct {
 	matches            bool
-	params             *map[string]string
+	params             map[string]string
 	score              int
 	realSegmentsLength int
 }
@@ -47,7 +47,7 @@ func matcher(pattern, path string) matcherOutput {
 	strength := getMatchStrength(pattern, path)
 	return matcherOutput{
 		matches:            true,
-		params:             &params,
+		params:             params,
 		score:              strength.Score,
 		realSegmentsLength: strength.RealSegmentsLength,
 	}

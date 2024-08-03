@@ -41,22 +41,32 @@ func (h *Hwy) addDataFuncsToPaths() {
 	listOfPatterns := make([]string, 0, len(h.paths))
 
 	for i, path := range h.paths {
-		if dataFuncs, ok := (h.DataFuncsMap)[path.Pattern]; ok {
-			(h.paths)[i].DataFuncs = &dataFuncs
+		switch path.APIPathType {
+		case "":
+			if loader, ok := h.LoadersMap[path.Pattern]; ok {
+				h.paths[i].DataFunction = loader
+			}
+		case APIPathTypeQuery:
+			if queryAction, ok := h.QueryActionsMap[path.Pattern]; ok {
+				h.paths[i].DataFunction = queryAction
+			}
+		case APIPathTypeMutation:
+			if mutationAction, ok := h.MutationActionsMap[path.Pattern]; ok {
+				h.paths[i].DataFunction = mutationAction
+			}
 		}
+
 		listOfPatterns = append(listOfPatterns, path.Pattern)
 	}
 
-	for pattern := range h.DataFuncsMap {
+	for pattern := range h.LoadersMap {
 		if pattern != "AdHocData" && !slices.Contains(listOfPatterns, pattern) {
 			Log.Errorf("Warning: no matching path found for pattern %v. Make sure you're writing your patterns correctly and that your client route exists.", pattern)
 		}
 		if pattern == "AdHocData" {
-			h.getAdHocData = h.DataFuncsMap[pattern].Loader
+			h.getAdHocData = h.LoadersMap[pattern] // __TODO -- hmm this feels out of place / poorly designed
 		}
 	}
-
-	// __TODO allow random resource routes
 }
 
 func getBasePaths(FS fs.FS) (*PathsFile, error) {

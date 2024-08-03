@@ -6,8 +6,8 @@ import (
 	"github.com/sjc5/hwy"
 )
 
-func getHwyBuildOptions(isDev bool) hwy.BuildOptions {
-	return hwy.BuildOptions{
+func getHwyBuildOptions(isDev bool) *hwy.BuildOptions {
+	return &hwy.BuildOptions{
 		IsDev:             isDev,
 		ClientEntry:       "entry.client.tsx",
 		PagesSrcDir:       "pages",
@@ -16,7 +16,8 @@ func getHwyBuildOptions(isDev bool) hwy.BuildOptions {
 		ClientEntryOut:    "static/public",
 		UsePreactCompat:   true,
 		GeneratedTSOutDir: "__generated_ts_api",
-		DataFuncsMap:      datafuncsmap.DataFuncsMap,
+		LoadersMap:        datafuncsmap.DataFuncsMap,
+		QueryActionsMap:   datafuncsmap.ActionsMap,
 	}
 }
 

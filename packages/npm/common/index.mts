@@ -9,7 +9,6 @@ type HwyClientGlobal = {
   outermostErrorIndex: number;
   splatSegments: Array<string>;
   params: Record<string, string>;
-  actionData: any;
   activeComponents: Array<any>;
   activeErrorBoundaries: Array<any>;
   adHocData: any;
@@ -51,7 +50,6 @@ export type GetRouteDataOutput<AHD extends any = any> = {
   outermostErrorIndex: number;
   splatSegments: Array<string>;
   params: Record<string, string>;
-  actionData: Array<any>;
   adHocData: AHD;
   buildID: string;
   deps: Array<string>;

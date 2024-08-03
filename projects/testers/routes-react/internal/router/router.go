@@ -16,37 +16,33 @@ func init() {
 	defaultHeadBlocks := []hwy.HeadBlock{
 		{Title: "JACOB"},
 	}
-	dataFuncs := hwy.DataFuncsMap{
-		"/dashboard/customers/$customer_id/orders": {
-			Loader: hwy.LoaderFunc[any](
-				func(props *hwy.LoaderProps[any]) {
-					props.LoaderRes.Data = map[string]string{
-						"message": "</script><script>alert('Hello, Bob!')</script>",
-					}
-					props.LoaderRes.HeadBlocks = []*hwy.HeadBlock{
-						{
-							Tag:        "meta",
-							Attributes: map[string]string{"name": "description", "content": "parent"},
-						},
-						{Title: "JACOB1"},
-					}
-				},
-			),
-		},
-		"/dashboard/customers/$customer_id/orders/$order_id": {
-			Loader: hwy.LoaderFunc[strMap](
-				func(props *hwy.LoaderProps[strMap]) {
-					props.LoaderRes.Data = strMap{"message": "kjbkjbkjbkjbkjbk"}
-					props.LoaderRes.HeadBlocks = []*hwy.HeadBlock{
-						{
-							Tag:        "meta",
-							Attributes: strMap{"name": "description", "content": "child"},
-						},
-						{Title: "JACOB2"},
-					}
-				},
-			),
-		},
+	dataFuncs := hwy.DataFunctionMap{
+		"/dashboard/customers/$customer_id/orders": hwy.LoaderFunc[any](
+			func(props *hwy.DataFunctionProps, res *hwy.LoaderRes[any]) {
+				res.Data = map[string]string{
+					"message": "</script><script>alert('Hello, Bob!')</script>",
+				}
+				res.HeadBlocks = []*hwy.HeadBlock{
+					{
+						Tag:        "meta",
+						Attributes: map[string]string{"name": "description", "content": "parent"},
+					},
+					{Title: "JACOB1"},
+				}
+			},
+		),
+		"/dashboard/customers/$customer_id/orders/$order_id": hwy.LoaderFunc[strMap](
+			func(props *hwy.DataFunctionProps, res *hwy.LoaderRes[strMap]) {
+				res.Data = strMap{"message": "kjbkjbkjbkjbkjbk"}
+				res.HeadBlocks = []*hwy.HeadBlock{
+					{
+						Tag:        "meta",
+						Attributes: strMap{"name": "description", "content": "child"},
+					},
+					{Title: "JACOB2"},
+				}
+			},
+		),
 	}
 
 	privateFS, err := platform.Kiruna.GetPrivateFS()
@@ -62,7 +58,7 @@ func init() {
 			"Kiruna":         platform.Kiruna,
 			"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
 		},
-		DataFuncsMap: dataFuncs,
+		LoadersMap: dataFuncs,
 	}
 	err = Hwy.Initialize()
 	if err != nil {

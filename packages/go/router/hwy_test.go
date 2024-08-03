@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-// __TODO test - LoaderRes.Headers, - LoaderRes.Cookies, - LoaderRes.Redirect(), and - didRedirect
+// __TODO test - LoaderRes.Headers, - LoaderRes.Cookies, - LoaderRes.Redirect(), - didRedirect, - API routes
 
 type expectedOutput struct {
 	MatchingPaths []string
@@ -45,12 +45,12 @@ func TestRouter(t *testing.T) {
 		matchingPathData := testGetMatchingPathData(path.Path)
 
 		// Has expected number of matching paths
-		if len(*matchingPathData.MatchingPaths) != len(path.ExpectedOutput.MatchingPaths) {
+		if len(matchingPathData.MatchingPaths) != len(path.ExpectedOutput.MatchingPaths) {
 			Log.Errorf("Path: %s", path.Path)
-			t.Errorf("Expected %d matching paths, but got %d", len(path.ExpectedOutput.MatchingPaths), len(*matchingPathData.MatchingPaths))
+			t.Errorf("Expected %d matching paths, but got %d", len(path.ExpectedOutput.MatchingPaths), len(matchingPathData.MatchingPaths))
 		}
 
-		for i, matchingPath := range *matchingPathData.MatchingPaths {
+		for i, matchingPath := range matchingPathData.MatchingPaths {
 			// Each matching path is of the expected type
 			if matchingPath.PathType != path.ExpectedOutput.MatchingPaths[i] {
 				Log.Errorf("Path: %s", path.Path)
@@ -59,30 +59,30 @@ func TestRouter(t *testing.T) {
 		}
 
 		// Has expected number of params
-		if len(*matchingPathData.Params) != len(path.ExpectedOutput.Params) {
+		if len(matchingPathData.Params) != len(path.ExpectedOutput.Params) {
 			Log.Errorf("Path: %s", path.Path)
-			t.Errorf("Expected %d params, but got %d", len(path.ExpectedOutput.Params), len(*matchingPathData.Params))
+			t.Errorf("Expected %d params, but got %d", len(path.ExpectedOutput.Params), len(matchingPathData.Params))
 		}
 
 		for key, expectedParam := range path.ExpectedOutput.Params {
 			// Each param has the expected value
-			if (*matchingPathData.Params)[key] != expectedParam {
+			if matchingPathData.Params[key] != expectedParam {
 				Log.Errorf("Path: %s", path.Path)
-				t.Errorf("Expected param %s to be %s, but got %s", key, expectedParam, (*matchingPathData.Params)[key])
+				t.Errorf("Expected param %s to be %s, but got %s", key, expectedParam, matchingPathData.Params[key])
 			}
 		}
 
 		// Has expected number of splat segments
-		if matchingPathData.SplatSegments != nil && len(*matchingPathData.SplatSegments) != len(path.ExpectedOutput.SplatSegments) {
+		if matchingPathData.SplatSegments != nil && len(matchingPathData.SplatSegments) != len(path.ExpectedOutput.SplatSegments) {
 			Log.Errorf("Path: %s", path.Path)
-			t.Errorf("Expected %d splat segments, but got %d", len(path.ExpectedOutput.SplatSegments), len(*matchingPathData.SplatSegments))
+			t.Errorf("Expected %d splat segments, but got %d", len(path.ExpectedOutput.SplatSegments), len(matchingPathData.SplatSegments))
 		}
 
 		for i, expectedSplatSegment := range path.ExpectedOutput.SplatSegments {
 			// Each splat segment has the expected value
-			if (*matchingPathData.SplatSegments)[i] != expectedSplatSegment {
+			if matchingPathData.SplatSegments[i] != expectedSplatSegment {
 				Log.Errorf("Path: %s", path.Path)
-				t.Errorf("Expected splat segment %d to be %s, but got %s", i, expectedSplatSegment, (*matchingPathData.SplatSegments)[i])
+				t.Errorf("Expected splat segment %d to be %s, but got %s", i, expectedSplatSegment, matchingPathData.SplatSegments[i])
 			}
 		}
 	}
@@ -310,7 +310,7 @@ func testGetMatchingPathData(path string) *ActivePathData {
 	r.URL = &url.URL{}
 	r.URL.Path = path
 	r.Method = "GET"
-	apd, _, _ := testHwyInstance.getMatchingPathData(nil, &r)
+	apd, _, _, _ := testHwyInstance.getMatchingPathData(nil, &r)
 	return apd
 }
 
@@ -359,7 +359,7 @@ func setup() {
 	}
 
 	// Run the Hwy build
-	err = Build(BuildOptions{
+	err = Build(&BuildOptions{
 		PagesSrcDir:    "../tmp/fixtures/pages",
 		HashedOutDir:   "../tmp/out",
 		UnhashedOutDir: "../tmp/out",
@@ -395,24 +395,24 @@ func setup() {
 func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	// Simulate long-running and error-prone loaders
 	loader1 := LoaderFunc[string](
-		func(props *LoaderProps[string]) {
+		func(props *DataFunctionProps, res *LoaderRes[string]) {
 			time.Sleep(100 * time.Millisecond)
-			props.LoaderRes.Data = "loader1 result"
+			res.Data = "loader1 result"
 		},
 	)
 
 	loader2 := LoaderFunc[any](
-		func(props *LoaderProps[any]) {
+		func(props *DataFunctionProps, res *LoaderRes[any]) {
 			time.Sleep(100 * time.Millisecond)
 			Log.Infof(`Below should say "ERROR: loader2 error":`)
-			props.LoaderRes.Error = errors.New("loader2 error")
+			res.Error = errors.New("loader2 error")
 		},
 	)
 
 	// Define test paths with these loaders
 	testHwyInstance.paths = []Path{
-		{PathBase: PathBase{Pattern: "/test1", Segments: &[]string{""}}, DataFuncs: &DataFuncs{Loader: loader1}},
-		{PathBase: PathBase{Pattern: "/test2", Segments: &[]string{""}}, DataFuncs: &DataFuncs{Loader: loader2}},
+		{PathBase: PathBase{Pattern: "/test1", Segments: []string{""}}, DataFunction: loader1},
+		{PathBase: PathBase{Pattern: "/test2", Segments: []string{""}}, DataFunction: loader2},
 	}
 
 	// Create a WaitGroup to manage concurrency
@@ -423,30 +423,30 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	testFunc := func(path string, expectedLoaderData any, expectedError bool) {
 		defer wg.Done()
 		r := http.Request{URL: &url.URL{Path: path}, Method: "GET"}
-		data, _, _ := testHwyInstance.getMatchingPathData(nil, &r)
+		data, _, _, _ := testHwyInstance.getMatchingPathData(nil, &r)
 
 		// Validate the output
 		if expectedError {
-			if len(*data.LoadersData) != 0 {
-				t.Errorf("Expected 0 loader data due to error, but got %d", len(*data.LoadersData))
+			if len(data.LoadersData) != 0 {
+				t.Errorf("Expected 0 loader data due to error, but got %d", len(data.LoadersData))
 			}
 			if data.OutermostErrorIndex == -1 {
 				t.Error("Expected error boundary index to be set, but it was -1")
 			}
 		} else {
-			if len(*data.LoadersData) != 1 {
-				t.Errorf("Expected 1 loader data, but got %d", len(*data.LoadersData))
+			if len(data.LoadersData) != 1 {
+				t.Errorf("Expected 1 loader data, but got %d", len(data.LoadersData))
 			}
-			if (*data.LoadersData)[0] != expectedLoaderData {
-				t.Errorf("Expected loader data %v, but got %v", expectedLoaderData, (*data.LoadersData)[0])
+			if data.LoadersData[0] != expectedLoaderData {
+				t.Errorf("Expected loader data %v, but got %v", expectedLoaderData, data.LoadersData[0])
 			}
 			if data.OutermostErrorIndex != -1 {
 				t.Errorf("Expected error boundary index to be -1, but got %d", data.OutermostErrorIndex)
 			}
 		}
 
-		if len(*data.MatchingPaths) != 1 {
-			t.Errorf("Expected 1 matching path, but got %d", len(*data.MatchingPaths))
+		if len(data.MatchingPaths) != 1 {
+			t.Errorf("Expected 1 matching path, but got %d", len(data.MatchingPaths))
 		}
 	}
 
@@ -461,10 +461,10 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 func TestGetHeadElements(t *testing.T) {
 	routeData := &GetRouteDataOutput{
 		Title: "Test Title",
-		MetaHeadBlocks: &[]*HeadBlock{
+		MetaHeadBlocks: []*HeadBlock{
 			{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Test Description"}},
 		},
-		RestHeadBlocks: &[]*HeadBlock{
+		RestHeadBlocks: []*HeadBlock{
 			{Tag: "link", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
 		},
 	}
@@ -598,10 +598,10 @@ func TestDedupeHeadBlocks(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := dedupeHeadBlocks(&tt.input)
-			if !reflect.DeepEqual(*result, tt.expected) {
+			result := dedupeHeadBlocks(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
 				fmt.Println("Result:")
-				for _, block := range *result {
+				for _, block := range result {
 					t.Logf("%+v", block)
 				}
 
@@ -610,7 +610,7 @@ func TestDedupeHeadBlocks(t *testing.T) {
 					t.Logf("%+v", block)
 				}
 
-				t.Errorf("dedupeHeadBlocks() = %v, expected %v", *result, tt.expected)
+				t.Errorf("dedupeHeadBlocks() = %v, expected %v", result, tt.expected)
 			}
 		})
 	}
@@ -677,10 +677,10 @@ func TestDedupeHeadBlocksEdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := dedupeHeadBlocks(&tt.input)
-			if !reflect.DeepEqual(*result, tt.expected) {
+			result := dedupeHeadBlocks(tt.input)
+			if !reflect.DeepEqual(result, tt.expected) {
 				fmt.Println("Result:")
-				for _, block := range *result {
+				for _, block := range result {
 					t.Logf("%+v", block)
 				}
 
@@ -689,7 +689,7 @@ func TestDedupeHeadBlocksEdgeCases(t *testing.T) {
 					t.Logf("%+v", block)
 				}
 
-				t.Errorf("dedupeHeadBlocks() = %v, expected %v", *result, tt.expected)
+				t.Errorf("dedupeHeadBlocks() = %v, expected %v", result, tt.expected)
 			}
 		})
 	}
