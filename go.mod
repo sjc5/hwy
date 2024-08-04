@@ -7,7 +7,7 @@ go 1.22.0
 require (
 	github.com/evanw/esbuild v0.23.0
 	github.com/go-playground/validator/v10 v10.22.0
-	github.com/sjc5/kit v0.0.42
+	github.com/sjc5/kit v0.0.43
 	golang.org/x/sync v0.7.0
 )
 

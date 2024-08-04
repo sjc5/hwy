@@ -35,6 +35,8 @@ type TestAPIQueryInput struct {
 	CustomerID string `json:"customer_id" validate:"required,oneof=1 2 3"`
 }
 
+// __TODO should input be a pointer?
+
 var APIQueries = hwy.DataFunctionMap{
 	"/test-api-query/$customer_id": hwy.APIFunc[TestAPIQueryInput, string](
 		func(r *http.Request, input TestAPIQueryInput, res *hwy.APIRes[string]) {

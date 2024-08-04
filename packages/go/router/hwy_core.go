@@ -109,5 +109,10 @@ func GetAdHocDataContextWithValue(r *http.Request, val any) context.Context {
 
 func GetAdHocDataFromContext[T any](r *http.Request) T {
 	ctx := r.Context()
+	val := ctx.Value(adHocDataContextKey)
+	if val == nil {
+		var zeroVal T
+		return zeroVal
+	}
 	return ctx.Value(adHocDataContextKey).(T)
 }

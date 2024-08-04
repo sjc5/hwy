@@ -392,17 +392,21 @@ func setup() {
 	testHwyInstance.paths = paths
 }
 
+type TestUILoaderFuncOutput struct {
+	Asdf string
+}
+
 func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	// Simulate long-running and error-prone loaders
-	loader1 := UILoaderFunc[string](
-		func(props *UILoaderProps, res *UILoaderRes[string]) {
+	loader1 := UILoaderFunc[TestUILoaderFuncOutput](
+		func(props *UILoaderProps, res *UILoaderRes[TestUILoaderFuncOutput]) {
 			time.Sleep(100 * time.Millisecond)
-			res.Data = "loader1 result"
+			res.Data = TestUILoaderFuncOutput{Asdf: "loader1 result"}
 		},
 	)
 
-	loader2 := UILoaderFunc[any](
-		func(props *UILoaderProps, res *UILoaderRes[any]) {
+	loader2 := UILoaderFunc[struct{}](
+		func(props *UILoaderProps, res *UILoaderRes[struct{}]) {
 			time.Sleep(100 * time.Millisecond)
 			Log.Infof(`Below should say "ERROR: loader2 error":`)
 			res.Error = errors.New("loader2 error")
@@ -451,7 +455,7 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	}
 
 	// Run test functions concurrently
-	go testFunc("/test1", "loader1 result", false)
+	go testFunc("/test1", TestUILoaderFuncOutput{Asdf: "loader1 result"}, false)
 	go testFunc("/test2", nil, true)
 
 	// Wait for all goroutines to finish
