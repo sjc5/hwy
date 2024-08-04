@@ -189,12 +189,12 @@ function MaybeWithLayout(
 }
 
 type RoutePropsTypeArg = {
-  loaderOutput?: any;
+  loaderData?: any;
   adHocData?: any;
 };
 
 type DefaultRouteProps = {
-  loaderOutput: any;
+  loaderData: any;
   adHocData: any;
 };
 
@@ -203,7 +203,7 @@ type Outlet = (passToChild?: Record<string, any>) => TemplateResult;
 export type HwyRouteComponentProps<
   T extends RoutePropsTypeArg = DefaultRouteProps,
 > = {
-  loaderData: T["loaderOutput"];
+  loaderData: T["loaderData"];
   Outlet: Outlet;
   params: Record<string, string>;
   splatSegments: Array<string>;
@@ -223,7 +223,7 @@ export class HwyRouteShadow<
   T extends RoutePropsTypeArg = DefaultRouteProps,
 > extends LitElement {
   @property()
-  loaderData!: T["loaderOutput"];
+  loaderData!: T["loaderData"];
 
   @property()
   Outlet!: (...props: any) => TemplateResult;

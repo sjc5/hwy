@@ -21,13 +21,12 @@ type LoginLoaderOutput struct {
 }
 
 var UILoaders = hwy.DataFunctionMap{
-	"/login": hwy.UILoaderFunc[LoginLoaderOutput](
-		func(props *hwy.UILoaderProps, res *hwy.UILoaderRes[LoginLoaderOutput]) {
-			res.Data = LoginLoaderOutput{
-				Bob: count,
-			}
-		},
-	),
+	"/login": hwy.UILoaderFunc[LoginLoaderOutput](func(
+		props *hwy.UILoaderProps,
+		res *hwy.UILoaderRes[LoginLoaderOutput],
+	) {
+		res.Data = LoginLoaderOutput{Bob: count}
+	}),
 	"/$": catchAllLoader,
 }
 

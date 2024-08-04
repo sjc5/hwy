@@ -161,19 +161,19 @@ function MaybeWithLayout(
 }
 
 type RoutePropsTypeArg = {
-  loaderOutput?: any;
+  loaderData?: any;
   adHocData?: any;
 };
 
 type DefaultRouteProps = {
-  loaderOutput: any;
+  loaderData: any;
   adHocData: any;
 };
 
 export type RouteComponentProps<
   T extends RoutePropsTypeArg = DefaultRouteProps,
 > = {
-  loaderData: T["loaderOutput"];
+  loaderData: T["loaderData"];
   Outlet: (...props: any) => JSX.Element;
   params: Record<string, string>;
   splatSegments: Array<string>;
