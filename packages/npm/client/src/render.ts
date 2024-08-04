@@ -133,8 +133,9 @@ export async function reRenderApp({
   let scrollStateToDispatch: ScrollState | undefined;
 
   if (runHistoryOptions) {
-    // __TODO scroll to top on link clicks, but provide an opt-out
-    // __TODO scroll to top on form responses, but provide an opt-out
+    // __TODO
+    // - scroll to top on link clicks, but provide an opt-out
+    // - scroll to top on form responses, but provide an opt-out
 
     const { href, scrollStateToRestore, replace } = runHistoryOptions;
 

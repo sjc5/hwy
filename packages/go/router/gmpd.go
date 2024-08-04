@@ -146,9 +146,6 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	}
 	wg.Wait()
 
-	// __TODO question, should redirects, cookies, etc. be conditional on no errors?
-	// if so, same or different for ui-loaders and api functions?
-
 	// apply first redirect and return
 	for _, redirect := range loadersRedirects {
 		if redirect != nil && redirect.URL != "" && redirect.Code != 0 {

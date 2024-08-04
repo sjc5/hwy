@@ -7,7 +7,9 @@ import (
 	"github.com/sjc5/kit/pkg/validate"
 )
 
-// __TODO - add API prefix concept and TS type extractors based on prefix
+// __TODO
+// - add API prefix concept and TS type extractors and client based on prefix
+// - don't revalidate on query, only on mutation
 
 type BuildOptions = router.BuildOptions
 type Hwy = router.Hwy

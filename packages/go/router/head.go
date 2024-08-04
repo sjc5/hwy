@@ -104,10 +104,6 @@ func getExportedHeadBlocks(activePathData *ActivePathData, defaultHeadBlocks []H
 	return &sorted, nil
 }
 
-// __TODO -- add OverrideMatchingParentsFunc that acts just like Head but lets you return simpler HeadBlocks that when matched, override the parent HeadBlocks
-// additionally, would make sense to also take an a defaultOverrideHeadBlocks arg at root as well, just like DefaultHeadBlocks
-// ALternatively, could build the concept into each Path level as a new opportunity to set a DefaultHeadBlocks slice, applicable to it and its children
-
 func dedupeHeadBlocks(blocks []HeadBlock) []*HeadBlock {
 	uniqueBlocks := make(map[string]*HeadBlock)
 	var dedupedBlocks []*HeadBlock
