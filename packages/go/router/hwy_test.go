@@ -310,7 +310,7 @@ func testGetMatchingPathData(path string) *ActivePathData {
 	r.URL = &url.URL{}
 	r.URL.Path = path
 	r.Method = "GET"
-	apd, _, _, _ := testHwyInstance.getMatchingPathData(nil, &r)
+	apd, _, _ := testHwyInstance.getMatchingPathData(nil, &r)
 	return apd
 }
 
@@ -423,7 +423,7 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	testFunc := func(path string, expectedLoaderData any, expectedError bool) {
 		defer wg.Done()
 		r := http.Request{URL: &url.URL{Path: path}, Method: "GET"}
-		data, _, _, _ := testHwyInstance.getMatchingPathData(nil, &r)
+		data, _, _ := testHwyInstance.getMatchingPathData(nil, &r)
 
 		// Validate the output
 		if expectedError {

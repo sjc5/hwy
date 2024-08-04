@@ -24,6 +24,11 @@ var GetIsJSONRequest = router.GetIsJSONRequest
 var GetHeadElements = router.GetHeadElements
 var GetSSRInnerHTML = router.GetSSRInnerHTML
 var RouteTypesEnum = router.RouteTypesEnum
+var GetAdHocDataContextWithValue = router.GetAdHocDataContextWithValue
+
+func GetAdHocDataFromContext[T any](r *http.Request) T {
+	return router.GetAdHocDataFromContext[T](r)
+}
 
 // START -- REPEATED FROM router.go
 

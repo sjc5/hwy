@@ -31,10 +31,14 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 	RouteType,
 	error,
 ) {
-	activePathData, loaderProps, didRedirect, routeType := h.getMatchingPathData(w, r)
+	activePathData, didRedirect, routeType := h.getMatchingPathData(w, r)
 	if didRedirect {
 		return nil, true, routeType, nil
 	}
+
+	var adHocData any
+	var err error
+	var headBlocks *sortHeadBlocksOutput
 
 	if routeType != RouteTypesEnum.UILoader {
 		var errMsg string
@@ -48,25 +52,18 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 			APIResponseError: errMsg,
 			BuildID:          h.buildID,
 		}, false, routeType, nil
+	} else {
+		adHocData = GetAdHocDataFromContext[any](r)
+
+		headBlocks, err = getExportedHeadBlocks(activePathData, h.DefaultHeadBlocks)
+		if err != nil {
+			errMsg := fmt.Sprintf("could not get exported head blocks: %v", err)
+			Log.Errorf(errMsg)
+			return nil, false, routeType, errors.New(errMsg)
+		}
 	}
 
-	var adHocData any
-	var err error
-	if h.getAdHocData != nil {
-		adHocData, err = h.getAdHocData.Execute(loaderProps, nil)
-	}
-	if err != nil {
-		errMsg := fmt.Sprintf("could not get ad hoc data: %v", err)
-		Log.Errorf(errMsg)
-		return nil, false, routeType, errors.New(errMsg)
-	}
-
-	headBlocks, err := getExportedHeadBlocks(activePathData, h.DefaultHeadBlocks)
-	if err != nil {
-		errMsg := fmt.Sprintf("could not get exported head blocks: %v", err)
-		Log.Errorf(errMsg)
-		return nil, false, routeType, errors.New(errMsg)
-	}
+	fmt.Println("adHocData", adHocData)
 
 	return &GetRouteDataOutput{
 		Title:               headBlocks.title,

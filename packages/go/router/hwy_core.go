@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"html/template"
 	"io/fs"
 	"net/http"
@@ -64,7 +65,6 @@ type Hwy struct {
 	APIMutations         DataFunctionMap
 	RootTemplateLocation string
 	RootTemplateData     map[string]any
-	getAdHocData         DataFunction
 	paths                []Path
 	clientEntryDeps      []string
 	buildID              string
@@ -98,3 +98,16 @@ func getIsDebug() bool {
 }
 
 var Log = colorlog.Log{Label: "Hwy"}
+
+type hwyContextKey string
+
+const adHocDataContextKey hwyContextKey = "adHocData"
+
+func GetAdHocDataContextWithValue(r *http.Request, val any) context.Context {
+	return context.WithValue(r.Context(), adHocDataContextKey, val)
+}
+
+func GetAdHocDataFromContext[T any](r *http.Request) T {
+	ctx := r.Context()
+	return ctx.Value(adHocDataContextKey).(T)
+}

@@ -51,7 +51,6 @@ var (
 
 func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	*ActivePathData,
-	*UILoaderProps,
 	didRedirect,
 	RouteType,
 ) {
@@ -66,7 +65,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 		_, methodIsPermitted := queryAcceptedMethods[r.Method]
 		if !methodIsPermitted {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-			return nil, nil, true, RouteTypesEnum.APIQuery
+			return nil, true, RouteTypesEnum.APIQuery
 		}
 		item = &gmpdItem{
 			routeType:                   RouteTypesEnum.APIQuery,
@@ -76,7 +75,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 		_, methodIsPermitted := mutationAcceptedMethods[r.Method]
 		if !methodIsPermitted {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-			return nil, nil, true, RouteTypesEnum.APIMutation
+			return nil, true, RouteTypesEnum.APIMutation
 		}
 		item = &gmpdItem{
 			routeType:                   RouteTypesEnum.APIMutation,
@@ -115,6 +114,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 			}
 
 			loaderRes := loader.GetResInstance()
+
 			if item.routeType == RouteTypesEnum.UILoader {
 				loader.Execute(baseLoaderProps, loaderRes)
 			} else {
@@ -153,7 +153,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	for _, redirect := range loadersRedirects {
 		if redirect != nil && redirect.URL != "" && redirect.Code != 0 {
 			http.Redirect(w, r, redirect.URL, redirect.Code)
-			return nil, baseLoaderProps, true, item.routeType
+			return nil, true, item.routeType
 		}
 	}
 
@@ -211,7 +211,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 		}
 		activePathData.HeadBlocks = locHeadBlocksInner
 
-		return &activePathData, baseLoaderProps, false, item.routeType
+		return &activePathData, false, item.routeType
 	}
 
 	var activePathData ActivePathData = ActivePathData{}
@@ -230,7 +230,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	}
 	activePathData.HeadBlocks = locHeadBlocksInner
 
-	return &activePathData, baseLoaderProps, false, item.routeType
+	return &activePathData, false, item.routeType
 }
 
 func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
