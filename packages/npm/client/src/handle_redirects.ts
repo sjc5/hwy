@@ -5,7 +5,10 @@ export async function handleRedirects(props: {
   abortController: AbortController;
   url: URL;
   requestInit?: RequestInit;
-}) {
+}): Promise<{
+  didRedirect: boolean;
+  response?: Response;
+}> {
   let res: any;
   let bodyParentObj: RequestInit = {};
 
@@ -37,7 +40,7 @@ export async function handleRedirects(props: {
       if (!getIsInternalLink(newURL.href)) {
         // external link, hard redirecting
         window.location.href = newURL.href;
-        return;
+        return { didRedirect: true, response: res };
       }
 
       // internal link, soft redirecting
@@ -46,7 +49,7 @@ export async function handleRedirects(props: {
         navigationType: "redirect",
       });
 
-      return;
+      return { didRedirect: true, response: res };
     }
   } catch (err) {
     // If this was an attempted redirect,
@@ -56,5 +59,5 @@ export async function handleRedirects(props: {
     console.error(err);
   }
 
-  return res;
+  return { didRedirect: false, response: res };
 }

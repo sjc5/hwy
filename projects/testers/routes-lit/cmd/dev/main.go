@@ -31,7 +31,7 @@ var tsWatchedFile = kiruna.WatchedFile{
 }
 
 func buildHwy(path string) error {
-	err := hwy.Build(hwy.BuildOptions{
+	err := hwy.Build(&hwy.BuildOptions{
 		IsDev:          true,
 		ClientEntry:    "entry.client.ts",
 		PagesSrcDir:    "pages",

@@ -8,19 +8,19 @@ import (
 type MatchingPath struct {
 	Score              int
 	RealSegmentsLength int
-	Segments           *[]string
+	Segments           []string
 	PathType           string
-	DataFuncs          *DataFuncs
+	DataFunction       DataFunction
 	OutPath            string
-	Params             *map[string]string
-	Deps               *[]string
+	Params             Params
+	Deps               []string
 }
 
-type GroupedBySegmentLength map[int]*[]*MatchingPath
+type GroupedBySegmentLength map[int][]*MatchingPath
 
-func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]string, *[]*MatchingPath) {
+func getMatchingPathsInternal(pathsArg []MatchingPath, realPath string) ([]string, []*MatchingPath) {
 	var paths []*MatchingPath
-	for _, x := range *pathsArg {
+	for _, x := range pathsArg {
 		// if it's dash route (home), no need to compare segments length
 		if x.RealSegmentsLength == 0 {
 			paths = append(paths, &x)
@@ -35,7 +35,7 @@ func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]str
 		}
 
 		// make sure any remaining matches are not longer than the path itself
-		shouldMoveOn := len(*x.Segments) <= indexAdjustedRealSegmentsLength
+		shouldMoveOn := len(x.Segments) <= indexAdjustedRealSegmentsLength
 		if !shouldMoveOn {
 			continue
 		}
@@ -48,7 +48,7 @@ func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]str
 		}
 
 		var truthySegments []string
-		for _, segment := range *x.Segments {
+		for _, segment := range x.Segments {
 			if len(segment) > 0 {
 				truthySegments = append(truthySegments, segment)
 			}
@@ -75,14 +75,14 @@ func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]str
 		paths = nonUltimateCatchPaths
 	}
 
-	var splatSegments *[]string
+	var splatSegments []string
 
 	// if only one match now, return it
 	if len(paths) == 1 {
-		if (paths)[0].PathType == PathTypeUltimateCatch {
+		if paths[0].PathType == PathTypeUltimateCatch {
 			splatSegments = getBaseSplatSegments(realPath)
 		}
-		return splatSegments, &paths
+		return splatSegments, paths
 	}
 
 	// now we only have real child paths
@@ -95,7 +95,7 @@ func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]str
 		}
 	}
 
-	highestScoresBySegmentLengthOfDefiniteMatches := getHighestScoresBySegmentLength(&definiteMatches)
+	highestScoresBySegmentLengthOfDefiniteMatches := getHighestScoresBySegmentLength(definiteMatches)
 
 	// the "maybe matches" need to compete with each other
 	// they also need some more complicated logic
@@ -104,15 +104,15 @@ func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]str
 
 	for _, x := range paths {
 		if x.PathType != PathTypeStaticLayout {
-			segmentLength := len(*x.Segments)
+			segmentLength := len(x.Segments)
 
 			highestScoreForThisSegmentLength, exists := highestScoresBySegmentLengthOfDefiniteMatches[segmentLength]
 
 			if !exists || x.Score > highestScoreForThisSegmentLength {
 				if groupedBySegmentLength[segmentLength] == nil {
-					groupedBySegmentLength[segmentLength] = &[]*MatchingPath{}
+					groupedBySegmentLength[segmentLength] = []*MatchingPath{}
 				}
-				*groupedBySegmentLength[segmentLength] = append(*groupedBySegmentLength[segmentLength], x)
+				groupedBySegmentLength[segmentLength] = append(groupedBySegmentLength[segmentLength], x)
 			}
 		}
 	}
@@ -121,13 +121,13 @@ func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]str
 
 	var xformedMaybes []*MatchingPath
 	var wildcardSplat *MatchingPath = nil
-	for _, paths := range *sortedGroupedBySegmentLength {
-		winner := (*paths)[0]
+	for _, paths := range sortedGroupedBySegmentLength {
+		winner := paths[0]
 		highestScore := winner.Score
 		var indexCandidate *MatchingPath = nil
 
-		for _, path := range *paths {
-			if path.PathType == PathTypeIndex && path.RealSegmentsLength < len(*path.Segments) {
+		for _, path := range paths {
+			if path.PathType == PathTypeIndex && path.RealSegmentsLength < len(path.Segments) {
 				if indexCandidate == nil {
 					indexCandidate = path
 				} else {
@@ -170,9 +170,9 @@ func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]str
 				a := x.PathType == PathTypeStaticLayout
 				b := x.RealSegmentsLength == winner.RealSegmentsLength
 				var c bool
-				if len(*x.Segments) >= 1 && len(*winner.Segments) >= 2 {
-					lastSegmentOfX := (*x.Segments)[len(*x.Segments)-1]
-					secondToLastSegmentOfWinner := (*winner.Segments)[len(*winner.Segments)-2]
+				if len(x.Segments) >= 1 && len(winner.Segments) >= 2 {
+					lastSegmentOfX := x.Segments[len(x.Segments)-1]
+					secondToLastSegmentOfWinner := winner.Segments[len(winner.Segments)-2]
 					c = lastSegmentOfX != secondToLastSegmentOfWinner
 				}
 				d := x.Score > winner.Score
@@ -188,17 +188,17 @@ func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]str
 		}
 	}
 
-	maybeFinalPaths := getMaybeFinalPaths(&definiteMatches, &xformedMaybes)
+	maybeFinalPaths := getMaybeFinalPaths(definiteMatches, xformedMaybes)
 
-	if len(*maybeFinalPaths) > 0 {
-		lastPath := (*maybeFinalPaths)[len(*maybeFinalPaths)-1]
+	if len(maybeFinalPaths) > 0 {
+		lastPath := maybeFinalPaths[len(maybeFinalPaths)-1]
 
 		// get index-adjusted segments length
 		var lastPathSegmentsLengthConstructive int
 		if lastPath.PathType == PathTypeIndex {
-			lastPathSegmentsLengthConstructive = len(*lastPath.Segments) - 1
+			lastPathSegmentsLengthConstructive = len(lastPath.Segments) - 1
 		} else {
-			lastPathSegmentsLengthConstructive = len(*lastPath.Segments)
+			lastPathSegmentsLengthConstructive = len(lastPath.Segments)
 		}
 
 		splatIsTooFarOut := lastPathSegmentsLengthConstructive > lastPath.RealSegmentsLength
@@ -208,37 +208,37 @@ func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]str
 
 		if weNeedADifferentSplat {
 			if wildcardSplat != nil {
-				(*maybeFinalPaths)[len(*maybeFinalPaths)-1] = wildcardSplat
+				maybeFinalPaths[len(maybeFinalPaths)-1] = wildcardSplat
 				splatSegments = getSplatSegmentsFromWinningPath(wildcardSplat, realPath)
 			} else {
 				splatSegments = getBaseSplatSegments(realPath)
 				var filteredPaths []*MatchingPath
-				for _, x := range *pathsArg {
+				for _, x := range pathsArg {
 					if x.PathType == PathTypeUltimateCatch {
 						filteredPaths = append(filteredPaths, &x)
 						break
 					}
 				}
-				return splatSegments, &filteredPaths
+				return splatSegments, filteredPaths
 			}
 		}
 	}
 
 	// if a dynamic layout is adjacent and before an index, we need to remove it
 	// IF the index does not share the same dynamic segment
-	for i := 0; i < len(*maybeFinalPaths); i++ {
-		current := (*maybeFinalPaths)[i]
+	for i := 0; i < len(maybeFinalPaths); i++ {
+		current := maybeFinalPaths[i]
 		var next MatchingPath
-		if i+1 < len(*maybeFinalPaths) {
-			locNext := (*maybeFinalPaths)[i+1]
+		if i+1 < len(maybeFinalPaths) {
+			locNext := maybeFinalPaths[i+1]
 			next = *locNext
 		}
 
 		if current.PathType == PathTypeDynamicLayout && next.PathType == PathTypeIndex {
-			currentDynamicSegment := (*current.Segments)[len(*current.Segments)-1]
-			nextDynamicSegment := (*next.Segments)[len(*next.Segments)-2]
+			currentDynamicSegment := current.Segments[len(current.Segments)-1]
+			nextDynamicSegment := next.Segments[len(next.Segments)-2]
 			if currentDynamicSegment != nextDynamicSegment {
-				*maybeFinalPaths = append((*maybeFinalPaths)[:i], (*maybeFinalPaths)[i+1:]...)
+				maybeFinalPaths = append(maybeFinalPaths[:i], maybeFinalPaths[i+1:]...)
 			}
 		}
 	}
@@ -246,8 +246,8 @@ func getMatchingPathsInternal(pathsArg *[]MatchingPath, realPath string) (*[]str
 	return splatSegments, maybeFinalPaths
 }
 
-func findNonUltimateSplat(paths *[]*MatchingPath) *MatchingPath {
-	for _, path := range *paths {
+func findNonUltimateSplat(paths []*MatchingPath) *MatchingPath {
+	for _, path := range paths {
 		if path.PathType == PathTypeNonUltimateSplat {
 			return path // Return a pointer to the matching path
 		}
@@ -255,7 +255,7 @@ func findNonUltimateSplat(paths *[]*MatchingPath) *MatchingPath {
 	return nil // Return nil if no matching path is found
 }
 
-func getSortedGroupedBySegmentLength(groupedBySegmentLength GroupedBySegmentLength) *[]*[]*MatchingPath {
+func getSortedGroupedBySegmentLength(groupedBySegmentLength GroupedBySegmentLength) [][]*MatchingPath {
 	keys := make([]int, 0, len(groupedBySegmentLength))
 	for k := range groupedBySegmentLength {
 		keys = append(keys, k)
@@ -264,18 +264,18 @@ func getSortedGroupedBySegmentLength(groupedBySegmentLength GroupedBySegmentLeng
 	// Sort the keys in ascending order
 	sort.Ints(keys)
 
-	sortedGroupedBySegmentLength := make([]*[]*MatchingPath, 0, len(groupedBySegmentLength))
+	sortedGroupedBySegmentLength := make([][]*MatchingPath, 0, len(groupedBySegmentLength))
 	for _, k := range keys {
 		sortedGroupedBySegmentLength = append(sortedGroupedBySegmentLength, groupedBySegmentLength[k])
 	}
 
-	return &sortedGroupedBySegmentLength
+	return sortedGroupedBySegmentLength
 }
 
-func getHighestScoresBySegmentLength(matches *[]*MatchingPath) map[int]int {
+func getHighestScoresBySegmentLength(matches []*MatchingPath) map[int]int {
 	highestScores := make(map[int]int)
-	for _, match := range *matches {
-		segmentLength := len(*match.Segments)
+	for _, match := range matches {
+		segmentLength := len(match.Segments)
 		if currentScore, exists := highestScores[segmentLength]; !exists || match.Score > currentScore {
 			highestScores[segmentLength] = match.Score
 		}
@@ -283,7 +283,7 @@ func getHighestScoresBySegmentLength(matches *[]*MatchingPath) map[int]int {
 	return highestScores
 }
 
-func getSplatSegmentsFromWinningPath(winner *MatchingPath, realPath string) *[]string {
+func getSplatSegmentsFromWinningPath(winner *MatchingPath, realPath string) []string {
 	data := strings.Split(realPath, "/")
 
 	filteredData := []string{}
@@ -294,7 +294,7 @@ func getSplatSegmentsFromWinningPath(winner *MatchingPath, realPath string) *[]s
 	}
 
 	numOfNonSplatSegments := 0
-	for _, x := range *winner.Segments {
+	for _, x := range winner.Segments {
 		if x != "$" {
 			numOfNonSplatSegments++
 		}
@@ -303,35 +303,35 @@ func getSplatSegmentsFromWinningPath(winner *MatchingPath, realPath string) *[]s
 	numOfSplatSegments := len(filteredData) - numOfNonSplatSegments
 	if numOfSplatSegments > 0 {
 		final := filteredData[len(filteredData)-numOfSplatSegments:]
-		return &final
+		return final
 	} else {
-		return &[]string{}
+		return []string{}
 	}
 }
 
 func getWinnerIsDynamicIndex(winner *MatchingPath) bool {
-	segmentsLength := len(*winner.Segments)
+	segmentsLength := len(winner.Segments)
 	if winner.PathType == PathTypeIndex && segmentsLength >= 2 {
-		secondToLastSegment := (*winner.Segments)[segmentsLength-2]
+		secondToLastSegment := winner.Segments[segmentsLength-2]
 		return strings.HasPrefix(secondToLastSegment, "$")
 	}
 	return false
 }
 
-func getMaybeFinalPaths(definiteMatches, xformedMaybes *[]*MatchingPath) *[]*MatchingPath {
-	maybeFinalPaths := append(*definiteMatches, *xformedMaybes...)
+func getMaybeFinalPaths(definiteMatches, xformedMaybes []*MatchingPath) []*MatchingPath {
+	maybeFinalPaths := append(definiteMatches, xformedMaybes...)
 	sort.Slice(maybeFinalPaths, func(i, j int) bool {
-		return len(*maybeFinalPaths[i].Segments) < len(*maybeFinalPaths[j].Segments)
+		return len(maybeFinalPaths[i].Segments) < len(maybeFinalPaths[j].Segments)
 	})
-	return &maybeFinalPaths
+	return maybeFinalPaths
 }
 
-func getBaseSplatSegments(realPath string) *[]string {
+func getBaseSplatSegments(realPath string) []string {
 	var splatSegments []string
 	for _, segment := range strings.Split(realPath, "/") {
 		if len(segment) > 0 {
 			splatSegments = append(splatSegments, segment)
 		}
 	}
-	return &splatSegments
+	return splatSegments
 }

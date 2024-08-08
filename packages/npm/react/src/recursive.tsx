@@ -36,9 +36,6 @@ export function RootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
   const [loaderData, setLoaderData] = useState(
     (ctx.get("loadersData") as any)?.[idx],
   );
-  const [actionData, setActionData] = useState(
-    (ctx.get("actionData") as any)?.[idx],
-  );
 
   useEffect(() => {
     window.addEventListener(HWY_ROUTE_CHANGE_EVENT_KEY, ((
@@ -49,7 +46,6 @@ export function RootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
         setParams(ctx.get("params") ?? {});
         setSplatSegments(ctx.get("splatSegments") ?? []);
         setLoaderData((ctx.get("loadersData") as any)?.[idx]);
-        setActionData((ctx.get("actionData") as any)?.[idx]);
       });
 
       if (e.detail.scrollState) {
@@ -92,11 +88,10 @@ export function RootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
       params: params as any,
       splatSegments: splatSegments as any,
       loaderData,
-      actionData,
       Outlet,
       adHocData,
     };
-  }, [props, params, splatSegments, loaderData, actionData, Outlet, adHocData]);
+  }, [props, params, splatSegments, loaderData, Outlet, adHocData]);
 
   const ebc = useMemo(() => {
     return (
@@ -166,22 +161,19 @@ function MaybeWithLayout(
 }
 
 type RoutePropsTypeArg = {
-  loaderOutput?: any;
-  actionOutput?: any;
+  loaderData?: any;
   adHocData?: any;
 };
 
 type DefaultRouteProps = {
-  loaderOutput: any;
-  actionOutput: any;
+  loaderData: any;
   adHocData: any;
 };
 
 export type RouteComponentProps<
   T extends RoutePropsTypeArg = DefaultRouteProps,
 > = {
-  loaderData: T["loaderOutput"];
-  actionData: T["actionOutput"] | undefined;
+  loaderData: T["loaderData"];
   Outlet: (...props: any) => JSX.Element;
   params: Record<string, string>;
   splatSegments: Array<string>;
