@@ -9,6 +9,7 @@ import (
 
 	"github.com/sjc5/kit/pkg/colorlog"
 	"github.com/sjc5/kit/pkg/safecache"
+	"github.com/sjc5/kit/pkg/timer"
 	"github.com/sjc5/kit/pkg/validate"
 )
 
@@ -114,4 +115,8 @@ func GetAdHocDataFromContext[T any](r *http.Request) T {
 		return zeroVal
 	}
 	return ctx.Value(adHocDataContextKey).(T)
+}
+
+func newTimer() *timer.Timer {
+	return timer.Conditional(getIsDebug())
 }

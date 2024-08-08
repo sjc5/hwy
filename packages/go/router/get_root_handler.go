@@ -9,16 +9,15 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/sjc5/kit/pkg/timer"
 	"golang.org/x/sync/errgroup"
 )
 
 func (h *Hwy) GetRootHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		outerT := timer.Conditional(getIsDebug())
+		outerT := newTimer()
 		defer outerT.Checkpoint("GetRootHandler")
 
-		mainT := timer.Conditional(getIsDebug())
+		mainT := newTimer()
 		routeData, didRedirect, routeType, err := h.GetRouteData(w, r)
 		if didRedirect {
 			return
@@ -61,7 +60,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		mainT.Reset()
 
 		eg.Go(func() error {
-			egInnerT := timer.Conditional(getIsDebug())
+			egInnerT := newTimer()
 			if h.rootTemplate == nil {
 				tmpl, err := template.ParseFS(h.FS, h.RootTemplateLocation)
 				if err != nil {
@@ -74,7 +73,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		})
 
 		eg.Go(func() error {
-			egInnerT := timer.Conditional(getIsDebug())
+			egInnerT := newTimer()
 			he, err := GetHeadElements(routeData)
 			if err != nil {
 				return fmt.Errorf("error getting head elements: %v", err)
@@ -85,7 +84,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		})
 
 		eg.Go(func() error {
-			egInnerT := timer.Conditional(getIsDebug())
+			egInnerT := newTimer()
 			sih, err := GetSSRInnerHTML(routeData, true)
 			if err != nil {
 				return fmt.Errorf("error getting SSR inner HTML: %v", err)

@@ -163,7 +163,7 @@ export async function reRenderApp({
   window.dispatchEvent(new CustomEvent(HWY_ROUTE_CHANGE_EVENT_KEY, { detail }));
 
   head.removeAllBetween("meta");
-  head.addBlocks("meta", json?.metaHeadBlocks ?? []);
+  head.addBlocks("meta", json.metaHeadBlocks ?? []);
   head.removeAllBetween("rest");
   head.addBlocks("rest", json.restHeadBlocks ?? []);
 }
