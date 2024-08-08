@@ -26,9 +26,9 @@ type BuildOptions struct {
 	UnhashedOutDir    string
 	ClientEntryOut    string
 	UsePreactCompat   bool
-	UILoaders         DataFunctionMap
-	APIQueries        DataFunctionMap
-	APIMutations      DataFunctionMap
+	Loaders           DataFunctionMap
+	QueryActions      DataFunctionMap
+	MutationActions   DataFunctionMap
 	GeneratedTSOutDir string
 	AdHocTypes        []AdHocType
 }
@@ -202,7 +202,7 @@ func GenerateTypeScript(opts *BuildOptions) error {
 
 	// for k, v := range opts. // come back
 
-	for key, loader := range opts.UILoaders {
+	for key, loader := range opts.Loaders {
 		loaderRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeQuery}
 
 		if loader != nil {
@@ -212,18 +212,18 @@ func GenerateTypeScript(opts *BuildOptions) error {
 		routeDefs = append(routeDefs, loaderRouteDef)
 	}
 
-	for key, apiQuery := range opts.APIQueries {
-		apiQueryRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeQuery}
+	for key, queryAction := range opts.QueryActions {
+		queryActionRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeQuery}
 
-		if apiQuery != nil {
-			apiQueryRouteDef.Input = apiQuery.GetInputInstance()
-			apiQueryRouteDef.Output = apiQuery.GetOutputInstance()
+		if queryAction != nil {
+			queryActionRouteDef.Input = queryAction.GetInputInstance()
+			queryActionRouteDef.Output = queryAction.GetOutputInstance()
 		}
 
-		routeDefs = append(routeDefs, apiQueryRouteDef)
+		routeDefs = append(routeDefs, queryActionRouteDef)
 	}
 
-	for key, mutationQuery := range opts.APIMutations {
+	for key, mutationQuery := range opts.MutationActions {
 		mutationQueryRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeMutation}
 
 		if mutationQuery != nil {

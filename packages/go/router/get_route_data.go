@@ -9,20 +9,20 @@ import (
 )
 
 type GetRouteDataOutput struct {
-	Title               string            `json:"title,omitempty"`
-	MetaHeadBlocks      []*HeadBlock      `json:"metaHeadBlocks,omitempty"`
-	RestHeadBlocks      []*HeadBlock      `json:"restHeadBlocks,omitempty"`
-	LoadersData         []any             `json:"loadersData,omitempty"`
-	LoadersErrors       []error           `json:"loadersErrors,omitempty"`
-	ImportURLs          []string          `json:"importURLs,omitempty"`
-	OutermostErrorIndex int               `json:"outermostErrorIndex,omitempty"`
-	SplatSegments       []string          `json:"splatSegments,omitempty"`
-	Params              map[string]string `json:"params,omitempty"`
-	AdHocData           any               `json:"adHocData,omitempty"`
-	BuildID             string            `json:"buildID,omitempty"`
-	Deps                []string          `json:"deps,omitempty"`
-	APIResponseData     any               `json:"data,omitempty"`
-	APIResponseError    string            `json:"error,omitempty"`
+	Title               string        `json:"title,omitempty"`
+	MetaHeadBlocks      []*HeadBlock  `json:"metaHeadBlocks,omitempty"`
+	RestHeadBlocks      []*HeadBlock  `json:"restHeadBlocks,omitempty"`
+	LoadersData         []any         `json:"loadersData,omitempty"`
+	LoadersErrors       []error       `json:"loadersErrors,omitempty"`
+	ImportURLs          []string      `json:"importURLs,omitempty"`
+	OutermostErrorIndex int           `json:"outermostErrorIndex,omitempty"`
+	SplatSegments       SplatSegments `json:"splatSegments,omitempty"`
+	Params              Params        `json:"params,omitempty"`
+	AdHocData           any           `json:"adHocData,omitempty"`
+	BuildID             string        `json:"buildID,omitempty"`
+	Deps                []string      `json:"deps,omitempty"`
+	ActionResData       any           `json:"data,omitempty"`
+	ActionResError      string        `json:"error,omitempty"`
 }
 
 func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
@@ -40,7 +40,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 	var err error
 	var headBlocks *sortHeadBlocksOutput
 
-	if routeType != RouteTypesEnum.UILoader {
+	if routeType != RouteTypesEnum.Loader {
 		var errMsg string
 		if validate.IsValidationError(activePathData.LoadersErrors[0]) {
 			errMsg = "bad request (validation error)"
@@ -48,9 +48,9 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 			errMsg = activePathData.LoadersErrors[0].Error()
 		}
 		return &GetRouteDataOutput{
-			APIResponseData:  activePathData.LoadersData[0],
-			APIResponseError: errMsg,
-			BuildID:          h.buildID,
+			ActionResData:  activePathData.LoadersData[0],
+			ActionResError: errMsg,
+			BuildID:        h.buildID,
 		}, false, routeType, nil
 	} else {
 		adHocData = GetAdHocDataFromContext[any](r)
@@ -62,8 +62,6 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 			return nil, false, routeType, errors.New(errMsg)
 		}
 	}
-
-	fmt.Println("adHocData", adHocData)
 
 	return &GetRouteDataOutput{
 		Title:               headBlocks.title,

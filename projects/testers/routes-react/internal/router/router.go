@@ -13,16 +13,14 @@ var HwyInstance = hwy.Hwy{}
 type strMap map[string]string
 
 func init() {
-	defaultHeadBlocks := []hwy.HeadBlock{
-		{Title: "JACOB"},
-	}
+	defaultHeadBlocks := []hwy.HeadBlock{{Title: "JACOB"}}
 	dataFuncs := hwy.DataFunctionMap{
-		"/dashboard/customers/$customer_id/orders": hwy.UILoaderFunc[any](
-			func(props *hwy.UILoaderProps, res *hwy.UILoaderRes[any]) {
-				res.Data = map[string]string{
+		"/dashboard/customers/$customer_id/orders": hwy.Loader[any](
+			func(ctx hwy.LoaderCtx[any]) {
+				ctx.Res.Data = map[string]string{
 					"message": "</script><script>alert('Hello, Bob!')</script>",
 				}
-				res.HeadBlocks = []*hwy.HeadBlock{
+				ctx.Res.HeadBlocks = []*hwy.HeadBlock{
 					{
 						Tag:        "meta",
 						Attributes: map[string]string{"name": "description", "content": "parent"},
@@ -31,10 +29,10 @@ func init() {
 				}
 			},
 		),
-		"/dashboard/customers/$customer_id/orders/$order_id": hwy.UILoaderFunc[strMap](
-			func(props *hwy.UILoaderProps, res *hwy.UILoaderRes[strMap]) {
-				res.Data = strMap{"message": "kjbkjbkjbkjbkjbk"}
-				res.HeadBlocks = []*hwy.HeadBlock{
+		"/dashboard/customers/$customer_id/orders/$order_id": hwy.Loader[strMap](
+			func(ctx hwy.LoaderCtx[strMap]) {
+				ctx.Res.Data = strMap{"message": "kjbkjbkjbkjbkjbk"}
+				ctx.Res.HeadBlocks = []*hwy.HeadBlock{
 					{
 						Tag:        "meta",
 						Attributes: strMap{"name": "description", "content": "child"},
@@ -58,7 +56,7 @@ func init() {
 			"Kiruna":         platform.Kiruna,
 			"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
 		},
-		UILoaders: dataFuncs,
+		Loaders: dataFuncs,
 	}
 	err = HwyInstance.Initialize()
 	if err != nil {

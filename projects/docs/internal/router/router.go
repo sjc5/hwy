@@ -52,8 +52,8 @@ func init() {
 			"Kiruna":         platform.Kiruna,
 			"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
 		},
-		UILoaders:  datafuncsmap.UILoaders,
-		APIQueries: datafuncsmap.APIQueries,
+		Loaders:      datafuncsmap.Loaders,
+		QueryActions: datafuncsmap.QueryActions,
 	}
 
 	err = HwyInstance.Initialize()

@@ -8,11 +8,8 @@ import (
 	"github.com/sjc5/kit/pkg/lru"
 )
 
-type UILoaderProps struct {
-	Request       *http.Request
-	Params        map[string]string
-	SplatSegments []string
-}
+type Params map[string]string
+type SplatSegments []string
 
 type DecoratedPath struct {
 	DataFunction DataFunction
@@ -26,14 +23,14 @@ type ActivePathData struct {
 	LoadersErrors       []error
 	ImportURLs          []string
 	OutermostErrorIndex int
-	SplatSegments       []string
-	Params              map[string]string
+	SplatSegments       SplatSegments
+	Params              Params
 	Deps                []string
 }
 
 type gmpdItem struct {
-	SplatSegments               []string
-	Params                      map[string]string
+	SplatSegments               SplatSegments
+	Params                      Params
 	FullyDecoratedMatchingPaths []*DecoratedPath
 	ImportURLs                  []string
 	Deps                        []string
@@ -45,9 +42,33 @@ var gmpdCache = lru.NewCache[string, *gmpdItem](500_000)
 type didRedirect = bool
 
 var (
-	queryAcceptedMethods    = map[string]int{"GET": 0, "HEAD": 0}
-	mutationAcceptedMethods = map[string]int{"POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0}
+	QueryAcceptedMethods    = map[string]int{"GET": 0, "HEAD": 0}
+	MutationAcceptedMethods = map[string]int{"POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0}
 )
+
+func (h *Hwy) getMaybeActionAndRouteType(realPath string, method string) (DataFunction, RouteType) {
+	var queryAction DataFunction
+	var queryActionExists bool
+	var queryMethodIsPermitted bool
+
+	var mutationAction DataFunction
+	var mutationActionExists bool
+	var mutationMethodIsPermitted bool
+
+	if queryAction, queryActionExists = h.QueryActions[realPath]; queryActionExists {
+		if _, queryMethodIsPermitted = QueryAcceptedMethods[method]; queryMethodIsPermitted {
+			return queryAction, RouteTypesEnum.QueryAction
+		}
+	}
+
+	if mutationAction, mutationActionExists = h.MutationActions[realPath]; mutationActionExists {
+		if _, mutationMethodIsPermitted = MutationAcceptedMethods[method]; mutationMethodIsPermitted {
+			return mutationAction, RouteTypesEnum.MutationAction
+		}
+	}
+
+	return nil, RouteTypesEnum.Loader
+}
 
 func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	*ActivePathData,
@@ -61,25 +82,11 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 
 	var item *gmpdItem
 
-	if apiQuery, exists := h.APIQueries[realPath]; exists {
-		_, methodIsPermitted := queryAcceptedMethods[r.Method]
-		if !methodIsPermitted {
-			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-			return nil, true, RouteTypesEnum.APIQuery
-		}
+	action, routeType := h.getMaybeActionAndRouteType(realPath, r.Method)
+	if action != nil {
 		item = &gmpdItem{
-			routeType:                   RouteTypesEnum.APIQuery,
-			FullyDecoratedMatchingPaths: []*DecoratedPath{{DataFunction: apiQuery}},
-		}
-	} else if apiMutation, exists := h.APIMutations[r.URL.Path]; exists {
-		_, methodIsPermitted := mutationAcceptedMethods[r.Method]
-		if !methodIsPermitted {
-			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-			return nil, true, RouteTypesEnum.APIMutation
-		}
-		item = &gmpdItem{
-			routeType:                   RouteTypesEnum.APIMutation,
-			FullyDecoratedMatchingPaths: []*DecoratedPath{{DataFunction: apiMutation}},
+			routeType:                   routeType,
+			FullyDecoratedMatchingPaths: []*DecoratedPath{{DataFunction: action}},
 		}
 	} else {
 		item = h.getGMPDItem(realPath)
@@ -96,11 +103,6 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	loadersHeadBlocks := make([][]*HeadBlock, numberOfLoaders)
 
 	var wg sync.WaitGroup
-	baseLoaderProps := &UILoaderProps{
-		Request:       r,
-		Params:        item.Params,
-		SplatSegments: item.SplatSegments,
-	}
 
 	// run loaders in parallel
 	for i, path := range item.FullyDecoratedMatchingPaths {
@@ -115,25 +117,15 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 
 			loaderRes := loader.GetResInstance()
 
-			if item.routeType == RouteTypesEnum.UILoader {
-				loader.Execute(baseLoaderProps, loaderRes)
+			if item.routeType == RouteTypesEnum.Loader {
+				loader.Execute(r, item.Params, item.SplatSegments, loaderRes)
 			} else {
-				validator := h.GetValidator()
-				if item.routeType == RouteTypesEnum.APIQuery {
-					inputInstance, err := loader.ValidateQueryInput(validator, r)
-					if err != nil {
-						loadersErrors[i] = err
-						return
-					}
-					loader.Execute(r, inputInstance, loaderRes)
-				} else if item.routeType == RouteTypesEnum.APIMutation {
-					inputInstance, err := loader.ValidateMutationInput(validator, r)
-					if err != nil {
-						loadersErrors[i] = err
-						return
-					}
-					loader.Execute(r, inputInstance, loaderRes)
+				inputInstance, err := loader.ValidateInput(h.GetValidator(), r, item.routeType)
+				if err != nil {
+					loadersErrors[i] = err
+					return
 				}
+				loader.Execute(r, inputInstance, loaderRes)
 			}
 
 			loadersData[i] = loaderRes.(DataFunctionPropsGetter).GetData()
@@ -154,7 +146,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 		}
 	}
 
-	dedupedCookies := make(map[string]*http.Cookie)
+	cookiesToSet := make([]*http.Cookie, 0, numberOfLoaders)
 
 	// Merge headers and cookies
 	for i := range numberOfLoaders {
@@ -163,16 +155,12 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 				w.Header()[k] = v
 			}
 		}
-
-		// dedupe and apply cookies
 		if loadersCookies[i] != nil {
-			for _, cookie := range loadersCookies[i] {
-				dedupedCookies[cookie.Name] = cookie
-			}
+			cookiesToSet = append(cookiesToSet, loadersCookies[i]...)
 		}
 	}
 
-	for _, cookie := range dedupedCookies {
+	for _, cookie := range cookiesToSet {
 		http.SetCookie(w, cookie)
 	}
 
@@ -187,7 +175,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 		}
 	}
 
-	if thereAreErrors && item.routeType == RouteTypesEnum.UILoader {
+	if thereAreErrors && item.routeType == RouteTypesEnum.Loader {
 		var activePathData ActivePathData = ActivePathData{}
 		locMatchingPaths := item.FullyDecoratedMatchingPaths[:outermostErrorIndex+1]
 		activePathData.MatchingPaths = locMatchingPaths
@@ -273,7 +261,7 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 		item.FullyDecoratedMatchingPaths = decoratePaths(matchingPaths)
 		item.SplatSegments = splatSegments
 		item.Params = lastPath.Params
-		item.routeType = RouteTypesEnum.UILoader
+		item.routeType = RouteTypesEnum.Loader
 
 		// import URLs
 		item.ImportURLs = make([]string, 0, len(matchingPaths))

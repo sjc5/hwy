@@ -20,16 +20,16 @@ import (
 
 type expectedOutput struct {
 	MatchingPaths []string
-	Params        map[string]string
-	SplatSegments []string
+	Params        Params
+	SplatSegments SplatSegments
 }
 
 type testPath struct {
 	Path           string
 	ExpectedOutput struct {
 		MatchingPaths []string
-		Params        map[string]string
-		SplatSegments []string
+		Params        Params
+		SplatSegments SplatSegments
 	}
 }
 
@@ -93,14 +93,14 @@ var testPaths = []testPath{
 		Path: "/does-not-exist",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeUltimateCatch},
-			SplatSegments: []string{"does-not-exist"},
+			SplatSegments: SplatSegments{"does-not-exist"},
 		},
 	},
 	{
 		Path: "/this-should-be-ignored",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeUltimateCatch},
-			SplatSegments: []string{"this-should-be-ignored"},
+			SplatSegments: SplatSegments{"this-should-be-ignored"},
 		},
 	},
 	{
@@ -119,21 +119,21 @@ var testPaths = []testPath{
 		Path: "/lion/123",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeNonUltimateSplat},
-			SplatSegments: []string{"123"},
+			SplatSegments: SplatSegments{"123"},
 		},
 	},
 	{
 		Path: "/lion/123/456",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeNonUltimateSplat},
-			SplatSegments: []string{"123", "456"},
+			SplatSegments: SplatSegments{"123", "456"},
 		},
 	},
 	{
 		Path: "/lion/123/456/789",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeNonUltimateSplat},
-			SplatSegments: []string{"123", "456", "789"},
+			SplatSegments: SplatSegments{"123", "456", "789"},
 		},
 	},
 	{
@@ -146,22 +146,22 @@ var testPaths = []testPath{
 		Path: "/tiger/123",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeDynamicLayout, PathTypeIndex},
-			Params:        map[string]string{"tiger_id": "123"},
+			Params:        Params{"tiger_id": "123"},
 		},
 	},
 	{
 		Path: "/tiger/123/456",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeDynamicLayout, PathTypeDynamicLayout},
-			Params:        map[string]string{"tiger_id": "123", "tiger_cub_id": "456"},
+			Params:        Params{"tiger_id": "123", "tiger_cub_id": "456"},
 		},
 	},
 	{
 		Path: "/tiger/123/456/789",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeDynamicLayout, PathTypeNonUltimateSplat},
-			Params:        map[string]string{"tiger_id": "123"},
-			SplatSegments: []string{"456", "789"},
+			Params:        Params{"tiger_id": "123"},
+			SplatSegments: SplatSegments{"456", "789"},
 		},
 	},
 	{
@@ -174,23 +174,23 @@ var testPaths = []testPath{
 		Path: "/bear/123",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeDynamicLayout},
-			Params:        map[string]string{"bear_id": "123"},
+			Params:        Params{"bear_id": "123"},
 		},
 	},
 	{
 		Path: "/bear/123/456",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeDynamicLayout, PathTypeNonUltimateSplat},
-			Params:        map[string]string{"bear_id": "123"},
-			SplatSegments: []string{"456"},
+			Params:        Params{"bear_id": "123"},
+			SplatSegments: SplatSegments{"456"},
 		},
 	},
 	{
 		Path: "/bear/123/456/789",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeDynamicLayout, PathTypeNonUltimateSplat},
-			Params:        map[string]string{"bear_id": "123"},
-			SplatSegments: []string{"456", "789"},
+			Params:        Params{"bear_id": "123"},
+			SplatSegments: SplatSegments{"456", "789"},
 		},
 	},
 	{
@@ -203,7 +203,7 @@ var testPaths = []testPath{
 		Path: "/dashboard/asdf",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeNonUltimateSplat},
-			SplatSegments: []string{"asdf"},
+			SplatSegments: SplatSegments{"asdf"},
 		},
 	},
 	{
@@ -216,21 +216,21 @@ var testPaths = []testPath{
 		Path: "/dashboard/customers/123",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeStaticLayout, PathTypeDynamicLayout, PathTypeIndex},
-			Params:        map[string]string{"customer_id": "123"},
+			Params:        Params{"customer_id": "123"},
 		},
 	},
 	{
 		Path: "/dashboard/customers/123/orders",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeStaticLayout, PathTypeDynamicLayout, PathTypeStaticLayout, PathTypeIndex},
-			Params:        map[string]string{"customer_id": "123"},
+			Params:        Params{"customer_id": "123"},
 		},
 	},
 	{
 		Path: "/dashboard/customers/123/orders/456",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeStaticLayout, PathTypeStaticLayout, PathTypeDynamicLayout, PathTypeStaticLayout, PathTypeDynamicLayout},
-			Params:        map[string]string{"customer_id": "123", "order_id": "456"},
+			Params:        Params{"customer_id": "123", "order_id": "456"},
 		},
 	},
 	{
@@ -243,14 +243,14 @@ var testPaths = []testPath{
 		Path: "/articles/bob",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeUltimateCatch},
-			SplatSegments: []string{"articles", "bob"},
+			SplatSegments: SplatSegments{"articles", "bob"},
 		},
 	},
 	{
 		Path: "/articles/test",
 		ExpectedOutput: expectedOutput{
 			MatchingPaths: []string{PathTypeUltimateCatch},
-			SplatSegments: []string{"articles", "test"},
+			SplatSegments: SplatSegments{"articles", "test"},
 		},
 	},
 	{
@@ -392,24 +392,24 @@ func setup() {
 	testHwyInstance.paths = paths
 }
 
-type TestUILoaderFuncOutput struct {
+type TestLoaderOutput struct {
 	Asdf string
 }
 
 func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	// Simulate long-running and error-prone loaders
-	loader1 := UILoaderFunc[TestUILoaderFuncOutput](
-		func(props *UILoaderProps, res *UILoaderRes[TestUILoaderFuncOutput]) {
+	loader1 := Loader[TestLoaderOutput](
+		func(ctx LoaderCtx[TestLoaderOutput]) {
 			time.Sleep(100 * time.Millisecond)
-			res.Data = TestUILoaderFuncOutput{Asdf: "loader1 result"}
+			ctx.Res.Data = TestLoaderOutput{Asdf: "loader1 result"}
 		},
 	)
 
-	loader2 := UILoaderFunc[struct{}](
-		func(props *UILoaderProps, res *UILoaderRes[struct{}]) {
+	loader2 := Loader[struct{}](
+		func(ctx LoaderCtx[struct{}]) {
 			time.Sleep(100 * time.Millisecond)
 			Log.Infof(`Below should say "ERROR: loader2 error":`)
-			res.Error = errors.New("loader2 error")
+			ctx.Res.Error = errors.New("loader2 error")
 		},
 	)
 
@@ -455,7 +455,7 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	}
 
 	// Run test functions concurrently
-	go testFunc("/test1", TestUILoaderFuncOutput{Asdf: "loader1 result"}, false)
+	go testFunc("/test1", TestLoaderOutput{Asdf: "loader1 result"}, false)
 	go testFunc("/test2", nil, true)
 
 	// Wait for all goroutines to finish

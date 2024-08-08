@@ -16,8 +16,8 @@ func getHwyBuildOptions(isDev bool) *hwy.BuildOptions {
 		ClientEntryOut:    "static/public",
 		UsePreactCompat:   true,
 		GeneratedTSOutDir: "__generated_ts_api",
-		UILoaders:         datafuncsmap.UILoaders,
-		APIQueries:        datafuncsmap.APIQueries,
+		Loaders:           datafuncsmap.Loaders,
+		QueryActions:      datafuncsmap.QueryActions,
 	}
 }
 

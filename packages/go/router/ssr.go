@@ -14,8 +14,8 @@ type SSRInnerHTMLInput struct {
 	LoadersData         []any
 	ImportURLs          []string
 	OutermostErrorIndex int
-	SplatSegments       []string
-	Params              map[string]string
+	SplatSegments       SplatSegments
+	Params              Params
 	AdHocData           any
 	Deps                []string
 }

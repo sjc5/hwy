@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"hwy-docs/internal/platform"
-	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -20,26 +19,24 @@ type LoginLoaderOutput struct {
 	Bob int
 }
 
-var UILoaders = hwy.DataFunctionMap{
-	"/login": hwy.UILoaderFunc[LoginLoaderOutput](func(
-		props *hwy.UILoaderProps,
-		res *hwy.UILoaderRes[LoginLoaderOutput],
-	) {
-		res.Data = LoginLoaderOutput{Bob: count}
-	}),
+var Loaders = hwy.DataFunctionMap{
+	"/login": hwy.Loader[LoginLoaderOutput](
+		func(ctx hwy.LoaderCtx[LoginLoaderOutput]) {
+			ctx.Res.Data = LoginLoaderOutput{Bob: count}
+		}),
 	"/$": catchAllLoader,
 }
 
-type TestAPIQueryInput struct {
+type TestQueryActionInput struct {
 	CustomerID string `json:"customer_id" validate:"required,oneof=1 2 3"`
 }
 
-var APIQueries = hwy.DataFunctionMap{
-	"/test-api-query/$customer_id": hwy.APIFunc[TestAPIQueryInput, string](
-		func(r *http.Request, input TestAPIQueryInput, res *hwy.APIRes[string]) {
+var QueryActions = hwy.DataFunctionMap{
+	"/test-api-query/$customer_id": hwy.Action[TestQueryActionInput, string](
+		func(ctx hwy.ActionCtx[TestQueryActionInput, string]) {
 			count++
-			fmt.Println("count", count, input.CustomerID)
-			res.Data = "bob"
+			fmt.Println("count", count, ctx.Input.CustomerID)
+			ctx.Res.Data = "bob"
 			// res.Redirect("/login", 302)
 		},
 	),
@@ -57,11 +54,8 @@ var notFoundMatter = matter{
 
 var c = lru.NewCache[string, *matter](1_000)
 
-var catchAllLoader hwy.UILoaderFunc[*matter] = func(
-	props *hwy.UILoaderProps,
-	res *hwy.UILoaderRes[*matter],
-) {
-	normalizedPath := filepath.Clean(strings.Join(props.SplatSegments, "/"))
+var catchAllLoader hwy.Loader[*matter] = func(ctx hwy.LoaderCtx[*matter]) {
+	normalizedPath := filepath.Clean(strings.Join(ctx.SplatSegments, "/"))
 	if normalizedPath == "." {
 		normalizedPath = "README"
 	}
@@ -72,26 +66,26 @@ var catchAllLoader hwy.UILoaderFunc[*matter] = func(
 	// }
 	// return &[]hwy.HeadBlock{{Title: title}}, nil
 
-	res.HeadBlocks = []*hwy.HeadBlock{{Title: "Hwy Bob"}}
+	ctx.Res.HeadBlocks = []*hwy.HeadBlock{{Title: "Hwy Bob"}}
 
 	var item *matter
 	if cached, ok := c.Get(normalizedPath); ok {
 		item = cached
-		res.Data = item
+		ctx.Res.Data = item
 		return
 	}
 
 	filePath := "markdown/" + normalizedPath + ".md"
 	FS, err := platform.Kiruna.GetPrivateFS()
 	if err != nil {
-		res.Error = err
+		ctx.Res.Error = err
 		return
 	}
 
 	fileBytes, err := FS.ReadFile(filePath)
 	if err != nil {
 		c.Set(normalizedPath, &notFoundMatter, true)
-		res.Data = &notFoundMatter
+		ctx.Res.Data = &notFoundMatter
 		return
 	}
 
@@ -99,7 +93,7 @@ var catchAllLoader hwy.UILoaderFunc[*matter] = func(
 	rest, err := frontmatter.Parse(bytes.NewReader(fileBytes), &fm)
 	if err != nil {
 		c.Set(normalizedPath, &notFoundMatter, true)
-		res.Data = &notFoundMatter
+		ctx.Res.Data = &notFoundMatter
 		return
 	}
 
@@ -109,5 +103,5 @@ var catchAllLoader hwy.UILoaderFunc[*matter] = func(
 	}
 
 	c.Set(normalizedPath, item, false)
-	res.Data = item
+	ctx.Res.Data = item
 }
