@@ -4,7 +4,7 @@ import "strings"
 
 type matcherOutput struct {
 	matches            bool
-	params             *map[string]string
+	params             Params
 	score              int
 	realSegmentsLength int
 }
@@ -27,7 +27,7 @@ func matcher(pattern, path string) matcherOutput {
 	if len(patternSegments) > len(pathSegments) {
 		return matcherOutput{}
 	}
-	params := make(map[string]string)
+	params := make(Params)
 	for i, ps := range patternSegments {
 		if i >= len(pathSegments) {
 			return matcherOutput{}
@@ -47,7 +47,7 @@ func matcher(pattern, path string) matcherOutput {
 	strength := getMatchStrength(pattern, path)
 	return matcherOutput{
 		matches:            true,
-		params:             &params,
+		params:             params,
 		score:              strength.Score,
 		realSegmentsLength: strength.RealSegmentsLength,
 	}

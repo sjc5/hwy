@@ -11,14 +11,13 @@ type SSRInnerHTMLInput struct {
 	HwyPrefix           string
 	IsDev               bool
 	BuildID             string
-	LoadersData         *[]any
-	ImportURLs          *[]string
+	LoadersData         []any
+	ImportURLs          []string
 	OutermostErrorIndex int
-	SplatSegments       *[]string
-	Params              *map[string]string
-	ActionData          *[]any
+	SplatSegments       SplatSegments
+	Params              Params
 	AdHocData           any
-	Deps                *[]string
+	Deps                []string
 }
 
 const ssrInnerTmplStr = `<script>
@@ -31,7 +30,6 @@ const ssrInnerTmplStr = `<script>
 	x.outermostErrorIndex = {{.OutermostErrorIndex}};
 	x.splatSegments = {{.SplatSegments}};
 	x.params = {{.Params}};
-	x.actionData = {{.ActionData}};
 	x.adHocData = {{.AdHocData}};
 	const deps = {{.Deps}};
 	deps.forEach(module => {
@@ -55,7 +53,6 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML,
 		OutermostErrorIndex: routeData.OutermostErrorIndex,
 		SplatSegments:       routeData.SplatSegments,
 		Params:              routeData.Params,
-		ActionData:          routeData.ActionData,
 		AdHocData:           routeData.AdHocData,
 		Deps:                routeData.Deps,
 	}

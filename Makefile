@@ -35,7 +35,7 @@ testers-routes-react-dev:
 	&& go run ./cmd/dev
 
 testers-routes-react-tidy:
-	@cd projects/testers/routes \
+	@cd projects/testers/routes-react \
 	&& go mod tidy
 
 testers-routes-react-install:

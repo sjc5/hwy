@@ -2,9 +2,8 @@ package datafuncsmap
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"hwy-docs/internal/platform"
-	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -20,27 +19,27 @@ type LoginLoaderOutput struct {
 	Bob int
 }
 
-var DataFuncsMap = hwy.DataFuncsMap{
-	"/login": hwy.DataFuncs{
-		Loader: hwy.LoaderFunc[LoginLoaderOutput](func(props *hwy.LoaderProps) (LoginLoaderOutput, error) {
-			return LoginLoaderOutput{Bob: count}, nil
+var Loaders = hwy.DataFunctionMap{
+	"/login": hwy.Loader[LoginLoaderOutput](
+		func(ctx hwy.LoaderCtx[LoginLoaderOutput]) {
+			ctx.Res.Data = LoginLoaderOutput{Bob: count}
 		}),
-		Action: hwy.ActionFunc[any, any](func(props *hwy.ActionProps) (any, error) {
+	"/$": catchAllLoader,
+}
+
+type TestQueryActionInput struct {
+	CustomerID string `json:"customer_id" validate:"required,oneof=1 2 3"`
+}
+
+var QueryActions = hwy.DataFunctionMap{
+	"/test-api-query/$customer_id": hwy.Action[TestQueryActionInput, string](
+		func(ctx hwy.ActionCtx[TestQueryActionInput, string]) {
 			count++
-			return nil, errors.New("Redirect")
-			// return "bob", nil
-		}),
-	},
-	"/$": {
-		Loader: catchAllLoader,
-		Head:   catchAllHead,
-		HandlerFunc: func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set(
-				"Cache-Control",
-				"public, max-age=60, stale-while-revalidate=3600",
-			)
+			fmt.Println("count", count, ctx.Input.CustomerID)
+			ctx.Res.Data = "bob"
+			// res.Redirect("/login", 302)
 		},
-	},
+	),
 }
 
 type matter struct {
@@ -55,35 +54,47 @@ var notFoundMatter = matter{
 
 var c = lru.NewCache[string, *matter](1_000)
 
-var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps) (*matter, error) {
-	normalizedPath := filepath.Clean(strings.Join(*props.SplatSegments, "/"))
+var catchAllLoader hwy.Loader[*matter] = func(ctx hwy.LoaderCtx[*matter]) {
+	normalizedPath := filepath.Clean(strings.Join(ctx.SplatSegments, "/"))
 	if normalizedPath == "." {
 		normalizedPath = "README"
 	}
 
+	// title := "Hwy"
+	// if props.LoaderData.(*matter).Title != "" {
+	// 	title = "Hwy | " + props.LoaderData.(*matter).Title
+	// }
+	// return &[]hwy.HeadBlock{{Title: title}}, nil
+
+	ctx.Res.HeadBlocks = []*hwy.HeadBlock{{Title: "Hwy Bob"}}
+
 	var item *matter
 	if cached, ok := c.Get(normalizedPath); ok {
 		item = cached
-		return item, nil
+		ctx.Res.Data = item
+		return
 	}
 
 	filePath := "markdown/" + normalizedPath + ".md"
 	FS, err := platform.Kiruna.GetPrivateFS()
 	if err != nil {
-		return nil, err
+		ctx.Res.Error = err
+		return
 	}
 
 	fileBytes, err := FS.ReadFile(filePath)
 	if err != nil {
 		c.Set(normalizedPath, &notFoundMatter, true)
-		return &notFoundMatter, nil
+		ctx.Res.Data = &notFoundMatter
+		return
 	}
 
 	var fm matter
 	rest, err := frontmatter.Parse(bytes.NewReader(fileBytes), &fm)
 	if err != nil {
 		c.Set(normalizedPath, &notFoundMatter, true)
-		return &notFoundMatter, nil
+		ctx.Res.Data = &notFoundMatter
+		return
 	}
 
 	item = &matter{
@@ -92,13 +103,5 @@ var catchAllLoader hwy.LoaderFunc[*matter] = func(props *hwy.LoaderProps) (*matt
 	}
 
 	c.Set(normalizedPath, item, false)
-	return item, nil
-}
-
-var catchAllHead hwy.HeadFunc = func(props *hwy.HeadProps) (*[]hwy.HeadBlock, error) {
-	title := "Hwy"
-	if props.LoaderData.(*matter).Title != "" {
-		title = "Hwy | " + props.LoaderData.(*matter).Title
-	}
-	return &[]hwy.HeadBlock{{Title: title}}, nil
+	ctx.Res.Data = item
 }

@@ -12,8 +12,11 @@ import (
 	"time"
 
 	esbuild "github.com/evanw/esbuild/pkg/api"
+	"github.com/sjc5/kit/pkg/id"
 	"github.com/sjc5/kit/pkg/rpc"
 )
+
+type AdHocType = rpc.AdHocType
 
 type BuildOptions struct {
 	IsDev             bool
@@ -23,8 +26,11 @@ type BuildOptions struct {
 	UnhashedOutDir    string
 	ClientEntryOut    string
 	UsePreactCompat   bool
-	DataFuncsMap      DataFuncsMap
+	Loaders           DataFunctionMap
+	QueryActions      DataFunctionMap
+	MutationActions   DataFunctionMap
 	GeneratedTSOutDir string
+	AdHocTypes        []AdHocType
 }
 
 type ImportPath = string
@@ -52,137 +58,186 @@ type SegmentObj struct {
 	Segment     string
 }
 
-func walkPages(pagesSrcDir string) []PathBase {
+func (opts *BuildOptions) walkPages(pagesSrcDir string) []PathBase {
 	var paths []PathBase
-	filepath.WalkDir(pagesSrcDir, func(patternArg string, d fs.DirEntry, err error) error {
-		cleanPatternArg := filepath.Clean(strings.TrimPrefix(patternArg, pagesSrcDir))
-		isPageFile := strings.Contains(cleanPatternArg, ".route.")
-		if !isPageFile {
+
+	filepath.WalkDir(
+		pagesSrcDir,
+
+		func(patternArg string, _ fs.DirEntry, err error) error {
+			cleanPatternArg := filepath.Clean(strings.TrimPrefix(patternArg, pagesSrcDir))
+
+			isPageFile := strings.Contains(cleanPatternArg, ".route.")
+			if !isPageFile {
+				return nil
+			}
+
+			ext := filepath.Ext(cleanPatternArg)
+			preExtDelineator := ".route"
+
+			pattern := strings.TrimSuffix(cleanPatternArg, preExtDelineator+ext)
+
+			segmentsInit := segmentsInitFromPattern(pattern)
+
+			pathBase := pathBaseFromSegmentsInit(segmentsInit)
+			pathBase.SrcPath = filepath.Join(pagesSrcDir, pattern) + preExtDelineator + ext
+
+			paths = append(paths, *pathBase)
+
 			return nil
-		}
-		ext := filepath.Ext(cleanPatternArg)
-		preExtDelineator := ".route"
-		pattern := strings.TrimSuffix(cleanPatternArg, preExtDelineator+ext)
-		isIndex := false
-		patternToSplit := strings.TrimPrefix(pattern, "/")
+		},
+	)
 
-		// Clean out double underscore segments
-		segmentsInitWithDubUnderscores := strings.Split(patternToSplit, "/")
-		segmentsInit := make([]string, 0, len(segmentsInitWithDubUnderscores))
-		for _, segment := range segmentsInitWithDubUnderscores {
-			if strings.HasPrefix(segment, "__") {
-				continue
-			}
-			segmentsInit = append(segmentsInit, segment)
-		}
-
-		segments := make([]SegmentObj, len(segmentsInit))
-		for i, segmentStr := range segmentsInit {
-			isSplat := false
-			if segmentStr == "$" {
-				isSplat = true
-			}
-			if segmentStr == "_index" {
-				segmentStr = ""
-				isIndex = true
-			}
-			segmentType := "normal"
-			if isSplat {
-				segmentType = "splat"
-			} else if strings.HasPrefix(segmentStr, "$") {
-				segmentType = "dynamic"
-			} else if isIndex {
-				segmentType = "index"
-			}
-			segments[i] = SegmentObj{
-				SegmentType: segmentType,
-				Segment:     segmentStr,
-			}
-		}
-		segmentStrs := make([]string, len(segments))
-		for i, segment := range segments {
-			segmentStrs[i] = segment.Segment
-		}
-		SrcPath := filepath.Join(pagesSrcDir, pattern) + preExtDelineator + ext
-		truthySegments := []string{}
-		for _, segment := range segmentStrs {
-			if segment != "" {
-				truthySegments = append(truthySegments, segment)
-			}
-		}
-		patternToUse := "/" + strings.Join(truthySegments, "/")
-		if patternToUse != "/" && strings.HasSuffix(patternToUse, "/") {
-			patternToUse = strings.TrimSuffix(patternToUse, "/")
-		}
-		pathType := PathTypeStaticLayout
-		if isIndex {
-			pathType = PathTypeIndex
-			if patternToUse == "/" {
-				patternToUse += "_index"
-			} else {
-				patternToUse += "/_index"
-			}
-		} else if segments[len(segments)-1].SegmentType == "splat" {
-			pathType = PathTypeNonUltimateSplat
-		} else if segments[len(segments)-1].SegmentType == "dynamic" {
-			pathType = PathTypeDynamicLayout
-		}
-		if patternToUse == "/$" {
-			pathType = PathTypeUltimateCatch
-		}
-		paths = append(paths, PathBase{
-			Pattern:  patternToUse,
-			Segments: &segmentStrs,
-			PathType: pathType,
-			SrcPath:  SrcPath,
-		})
-		return nil
-	})
 	return paths
 }
 
-func writePathsToDisk(pagesSrcDir string, pathsJSONOut string) (*[]PathBase, error) {
-	paths := walkPages(pagesSrcDir)
+func segmentsInitFromPattern(pattern string) []string {
+	patternToSplit := strings.TrimPrefix(pattern, "/")
+
+	// Clean out double underscore segments
+	segmentsInitWithDubUnderscores := strings.Split(patternToSplit, "/")
+	segmentsInit := make([]string, 0, len(segmentsInitWithDubUnderscores))
+	for _, segment := range segmentsInitWithDubUnderscores {
+		if strings.HasPrefix(segment, "__") {
+			continue
+		}
+		segmentsInit = append(segmentsInit, segment)
+	}
+
+	return segmentsInit
+}
+
+func pathBaseFromSegmentsInit(segmentsInit []string) *PathBase {
+	isIndex := false
+	segments := make([]SegmentObj, len(segmentsInit))
+
+	for i, segmentStr := range segmentsInit {
+		isSplat := false
+		if segmentStr == "$" {
+			isSplat = true
+		}
+		if segmentStr == "_index" {
+			segmentStr = ""
+			isIndex = true
+		}
+		segmentType := "normal"
+		if isSplat {
+			segmentType = "splat"
+		} else if strings.HasPrefix(segmentStr, "$") {
+			segmentType = "dynamic"
+		} else if isIndex {
+			segmentType = "index"
+		}
+		segments[i] = SegmentObj{
+			SegmentType: segmentType,
+			Segment:     segmentStr,
+		}
+	}
+
+	segmentStrs := make([]string, len(segments))
+	for i, segment := range segments {
+		segmentStrs[i] = segment.Segment
+	}
+
+	truthySegments := []string{}
+	for _, segment := range segmentStrs {
+		if segment != "" {
+			truthySegments = append(truthySegments, segment)
+		}
+	}
+
+	patternToUse := "/" + strings.Join(truthySegments, "/")
+	if patternToUse != "/" && strings.HasSuffix(patternToUse, "/") {
+		patternToUse = strings.TrimSuffix(patternToUse, "/")
+	}
+
+	pathType := PathTypeStaticLayout
+	if isIndex {
+		pathType = PathTypeIndex
+		if patternToUse == "/" {
+			patternToUse += "_index"
+		} else {
+			patternToUse += "/_index"
+		}
+	} else if segments[len(segments)-1].SegmentType == "splat" {
+		pathType = PathTypeNonUltimateSplat
+	} else if segments[len(segments)-1].SegmentType == "dynamic" {
+		pathType = PathTypeDynamicLayout
+	}
+
+	if patternToUse == "/$" {
+		pathType = PathTypeUltimateCatch
+	}
+
+	return &PathBase{
+		Pattern:  patternToUse,
+		Segments: segmentStrs,
+		PathType: pathType,
+	}
+}
+
+func (opts *BuildOptions) writePathsToDisk(pagesSrcDir string, pathsJSONOut string) ([]PathBase, error) {
+	paths := opts.walkPages(pagesSrcDir)
+
 	err := os.MkdirAll(filepath.Dir(pathsJSONOut), os.ModePerm)
 	if err != nil {
 		return nil, err
 	}
+
 	pathsAsJSON, err := json.Marshal(paths)
 	if err != nil {
 		return nil, err
 	}
+
 	err = os.WriteFile(pathsJSONOut, pathsAsJSON, os.ModePerm)
 	if err != nil {
 		return nil, err
 	}
-	return &paths, nil
+
+	return paths, nil
 }
 
-func GenerateTypeScript(opts BuildOptions) error {
+func GenerateTypeScript(opts *BuildOptions) error {
 	var routeDefs []rpc.RouteDef
 
-	for k, v := range opts.DataFuncsMap {
-		loaderRouteDef := rpc.RouteDef{Key: k, Type: rpc.TypeQuery}
+	// for k, v := range opts. // come back
 
-		if v.Loader != nil {
-			loaderRouteDef.Output = v.Loader.GetOutputInstance()
+	for key, loader := range opts.Loaders {
+		loaderRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeQuery}
+
+		if loader != nil {
+			loaderRouteDef.Output = loader.GetOutputInstance()
 		}
 
 		routeDefs = append(routeDefs, loaderRouteDef)
+	}
 
-		actionRouteDef := rpc.RouteDef{Key: k, Type: rpc.TypeMutation}
+	for key, queryAction := range opts.QueryActions {
+		queryActionRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeQuery}
 
-		if v.Action != nil {
-			actionRouteDef.Input = v.Action.GetInputInstance()
-			actionRouteDef.Output = v.Action.GetOutputInstance()
+		if queryAction != nil {
+			queryActionRouteDef.Input = queryAction.GetInputInstance()
+			queryActionRouteDef.Output = queryAction.GetOutputInstance()
 		}
 
-		routeDefs = append(routeDefs, actionRouteDef)
+		routeDefs = append(routeDefs, queryActionRouteDef)
+	}
+
+	for key, mutationQuery := range opts.MutationActions {
+		mutationQueryRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeMutation}
+
+		if mutationQuery != nil {
+			mutationQueryRouteDef.Input = mutationQuery.GetInputInstance()
+			mutationQueryRouteDef.Output = mutationQuery.GetOutputInstance()
+		}
+
+		routeDefs = append(routeDefs, mutationQueryRouteDef)
 	}
 
 	err := rpc.GenerateTypeScript(rpc.Opts{
-		OutDest:   opts.GeneratedTSOutDir,
-		RouteDefs: routeDefs,
+		OutDest:    opts.GeneratedTSOutDir,
+		RouteDefs:  routeDefs,
+		AdHocTypes: opts.AdHocTypes,
 	})
 
 	if err != nil {
@@ -193,13 +248,18 @@ func GenerateTypeScript(opts BuildOptions) error {
 	return nil
 }
 
-func Build(opts BuildOptions) error {
+func Build(opts *BuildOptions) error {
 	startTime := time.Now()
-	buildID := fmt.Sprintf("%d", startTime.Unix())
+
+	buildID, err := id.New(16)
+	if err != nil {
+		Log.Errorf("error generating random ID: %s", err)
+		return err
+	}
 	Log.Infof("new build id: %s", buildID)
 
 	pathsJSONOut := filepath.Join(opts.UnhashedOutDir, "hwy_paths.json")
-	paths, err := writePathsToDisk(opts.PagesSrcDir, pathsJSONOut)
+	paths, err := opts.writePathsToDisk(opts.PagesSrcDir, pathsJSONOut)
 	if err != nil {
 		Log.Errorf("error writing paths to disk: %s", err)
 		return err
@@ -252,17 +312,17 @@ func Build(opts BuildOptions) error {
 			}
 			hwyClientEntryDeps = depsWithoutClientEntry
 		} else {
-			for i, path := range *paths {
+			for i, path := range paths {
 				if path.SrcPath == entryPoint {
-					(*paths)[i].OutPath = filepath.Base(key)
-					(*paths)[i].Deps = &deps
+					paths[i].OutPath = filepath.Base(key)
+					paths[i].Deps = deps
 				}
 			}
 		}
 	}
 
 	pf := PathsFile{
-		Paths:           *paths,
+		Paths:           paths,
 		ClientEntryDeps: hwyClientEntryDeps,
 		BuildID:         buildID,
 	}
@@ -457,11 +517,13 @@ func cleanHashedOutDir(hashedOutDir string) error {
 	return nil
 }
 
-func getEntrypoints(paths *[]PathBase, opts BuildOptions) []string {
-	entryPoints := make([]string, 0, len(*paths)+1)
+func getEntrypoints(paths []PathBase, opts *BuildOptions) []string {
+	entryPoints := make([]string, 0, len(paths)+1)
 	entryPoints = append(entryPoints, opts.ClientEntry)
-	for _, path := range *paths {
-		entryPoints = append(entryPoints, path.SrcPath)
+	for _, path := range paths {
+		if path.SrcPath != "" {
+			entryPoints = append(entryPoints, path.SrcPath)
+		}
 	}
 	return entryPoints
 }

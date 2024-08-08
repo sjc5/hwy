@@ -32,19 +32,19 @@ export async function internalNavigate(props: {
 
     url.searchParams.set(HWY_PREFIX_JSON, "1");
 
-    const res = await handleRedirects({
+    const { response } = await handleRedirects({
       abortController,
       url,
     });
 
     abortControllers.delete(abortControllerKey);
 
-    if (!res || res.status !== 200) {
+    if (!response || response.status !== 200) {
       setStatus({ type: props.navigationType, value: false });
       return;
     }
 
-    const json = await res?.json();
+    const json = await response?.json();
 
     if (!json) {
       throw new Error("No JSON response");

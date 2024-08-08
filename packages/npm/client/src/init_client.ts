@@ -1,6 +1,6 @@
 import { getHwyClientGlobal } from "../../common/index.mjs";
 import { initializeCustomHistory } from "./custom_history.js";
-import { addDataBoostListeners } from "./data_boost_listeners.js";
+import { addAnchorClickListenener } from "./data_boost_listeners.js";
 
 const hwyClientGlobal = getHwyClientGlobal();
 
@@ -23,7 +23,7 @@ export async function initClient(renderFn: () => void) {
   renderFn();
 
   // INSTANTIATE GLOBAL EVENT LISTENERS
-  addDataBoostListeners();
+  addAnchorClickListenener();
 }
 
 function importComponents() {

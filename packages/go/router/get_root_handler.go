@@ -14,21 +14,23 @@ import (
 
 func (h *Hwy) GetRootHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		a := newMeasurement("GetRootHandler")
-		defer a.stop()
+		outerT := newTimer()
+		defer outerT.Checkpoint("GetRootHandler")
 
-		b := newMeasurement("GetRouteData")
-		routeData, err := h.GetRouteData(w, r)
+		mainT := newTimer()
+		routeData, didRedirect, routeType, err := h.GetRouteData(w, r)
+		if didRedirect {
+			return
+		}
 		if err != nil {
 			msg := "Error getting route data"
 			Log.Errorf(msg+": %v\n", err)
 			http.Error(w, msg, http.StatusInternalServerError)
 			return
 		}
-		b.stop()
+		mainT.Checkpoint("GetRouteData")
 
-		if GetIsJSONRequest(r) {
-			c := newMeasurement("JSON marshalling")
+		if GetIsJSONRequest(r) || routeType != RouteTypesEnum.Loader {
 			bytes, err := json.Marshal(routeData)
 			if err != nil {
 				msg := "Error marshalling JSON"
@@ -36,11 +38,10 @@ func (h *Hwy) GetRootHandler() http.Handler {
 				http.Error(w, msg, http.StatusInternalServerError)
 				return
 			}
-			c.stop()
+			mainT.Checkpoint("JSON marshalling")
 
-			d := newMeasurement("ETAG")
 			etag := fmt.Sprintf("%x", sha256.Sum256(bytes))
-			d.stop()
+			mainT.Checkpoint("ETAG")
 
 			w.Header().Set("ETag", etag)
 			if isNotModified(r, etag) {
@@ -56,10 +57,10 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		var ssrInnerHTML *template.HTML
 		var headElements *template.HTML
 
-		errGroupMeasure := newMeasurement("errgroup")
+		mainT.Reset()
 
 		eg.Go(func() error {
-			f := newMeasurement("template.ParseFS")
+			egInnerT := newTimer()
 			if h.rootTemplate == nil {
 				tmpl, err := template.ParseFS(h.FS, h.RootTemplateLocation)
 				if err != nil {
@@ -67,29 +68,29 @@ func (h *Hwy) GetRootHandler() http.Handler {
 				}
 				h.rootTemplate = tmpl
 			}
-			f.stop()
+			egInnerT.Checkpoint("template.ParseFS")
 			return nil
 		})
 
 		eg.Go(func() error {
-			g := newMeasurement("GetHeadElements")
+			egInnerT := newTimer()
 			he, err := GetHeadElements(routeData)
 			if err != nil {
 				return fmt.Errorf("error getting head elements: %v", err)
 			}
 			headElements = he
-			g.stop()
+			egInnerT.Checkpoint("GetHeadElements")
 			return nil
 		})
 
 		eg.Go(func() error {
-			h := newMeasurement("GetSSRInnerHTML")
+			egInnerT := newTimer()
 			sih, err := GetSSRInnerHTML(routeData, true)
 			if err != nil {
 				return fmt.Errorf("error getting SSR inner HTML: %v", err)
 			}
 			ssrInnerHTML = sih
-			h.stop()
+			egInnerT.Checkpoint("GetSSRInnerHTML")
 			return nil
 		})
 
@@ -100,7 +101,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			return
 		}
 
-		errGroupMeasure.stop()
+		mainT.Checkpoint("errGroup")
 
 		tmplData := map[string]any{}
 		for key, value := range h.RootTemplateData {
@@ -111,18 +112,16 @@ func (h *Hwy) GetRootHandler() http.Handler {
 
 		var buf bytes.Buffer
 
-		i := newMeasurement("Template execution")
 		err = h.rootTemplate.Execute(&buf, tmplData)
 		if err != nil {
 			msg := "Error executing template"
 			Log.Errorf(msg+": %v\n", err)
 			http.Error(w, msg, http.StatusInternalServerError)
 		}
-		i.stop()
+		mainT.Checkpoint("Template execution")
 
-		f := newMeasurement("ETAG")
 		etag := fmt.Sprintf("%x", sha256.Sum256(buf.Bytes()))
-		f.stop()
+		mainT.Checkpoint("ETAG")
 
 		w.Header().Set("ETag", etag)
 		if isNotModified(r, etag) {

@@ -1,13 +1,16 @@
 package router
 
 import (
+	"context"
 	"html/template"
 	"io/fs"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/sjc5/kit/pkg/colorlog"
+	"github.com/sjc5/kit/pkg/safecache"
+	"github.com/sjc5/kit/pkg/timer"
+	"github.com/sjc5/kit/pkg/validate"
 )
 
 const (
@@ -19,63 +22,73 @@ const (
 )
 
 type DataFunction interface {
-	Execute(props any) (any, error)
+	Execute(...any) (any, error)
 	GetInputInstance() any
 	GetOutputInstance() any
+	GetResInstance() any
+	ValidateInput(*validate.Validate, *http.Request, RouteType) (any, error)
 }
 
-type DataFuncs struct {
-	Loader      DataFunction
-	Action      DataFunction
-	Head        DataFunction
-	HandlerFunc http.HandlerFunc
-}
+type RouteType = string
 
-func NewRoute[
-	LO any, AI any, AO any,
-](
-	pattern, pathType string, loader LoaderFunc[LO], action ActionFunc[AI, AO], head HeadFunc,
-) Path {
-	return Path{
-		PathBase: PathBase{
-			Pattern:  pattern,
-			PathType: pathType,
-		},
-		DataFuncs: &DataFuncs{
-			Loader: loader,
-			Action: action,
-			Head:   head,
-		},
-	}
+var RouteTypesEnum = struct {
+	Loader         RouteType
+	QueryAction    RouteType
+	MutationAction RouteType
+}{
+	Loader:         "loader",
+	QueryAction:    "query-action",
+	MutationAction: "mutation-action",
 }
 
 type PathBase struct {
-	Pattern  string    `json:"pattern"`
-	Segments *[]string `json:"segments"`
-	PathType string    `json:"pathType"`
-	OutPath  string    `json:"outPath"`
-	SrcPath  string    `json:"srcPath"`
-	Deps     *[]string `json:"deps"`
+	Pattern  string   `json:"pattern"`
+	Segments []string `json:"segments"`
+	PathType string   `json:"pathType"`
+	OutPath  string   `json:"outPath,omitempty"`
+	SrcPath  string   `json:"srcPath,omitempty"`
+	Deps     []string `json:"deps,omitempty"`
 }
 
 type Path struct {
 	PathBase
-	DataFuncs *DataFuncs `json:",omitempty"`
+	DataFunction DataFunction `json:",omitempty"`
 }
 
-type DataFuncsMap map[string]DataFuncs
+type DataFunctionMap map[string]DataFunction
 
 type Hwy struct {
 	DefaultHeadBlocks    []HeadBlock
 	FS                   fs.FS
-	DataFuncsMap         DataFuncsMap
+	Loaders              DataFunctionMap
+	QueryActions         DataFunctionMap
+	MutationActions      DataFunctionMap
 	RootTemplateLocation string
 	RootTemplateData     map[string]any
-	getAdHocData         DataFunction
 	paths                []Path
 	clientEntryDeps      []string
 	buildID              string
 	rootTemplate         *template.Template
+	validator            *safecache.Cache[*validate.Validate]
+}
+
+func (h *Hwy) GetValidator() *validate.Validate {
+	v, _ := h.validator.Get()
+	return v
+}
+
+type Redirect struct {
+	URL  string
+	Code int
+}
+
+type DataFunctionPropsGetter interface {
+	GetData() any
+	GetError() error
+	GetHeaders() http.Header
+	GetCookies() []*http.Cookie
+	GetRedirect() *Redirect
+	GetHeadBlocks() []*HeadBlock // only applicable for loaders
 }
 
 const HwyPrefix = "__hwy_internal__"
@@ -84,22 +97,26 @@ func getIsDebug() bool {
 	return os.Getenv("HWY_ENV") == "development"
 }
 
-type measure struct {
-	start time.Time
-	name  string
-}
-
-func (m *measure) stop() {
-	if getIsDebug() {
-		Log.Info("timing -- ", time.Since(m.start), " -- ", m.name)
-	}
-}
-
-func newMeasurement(name string) *measure {
-	return &measure{
-		start: time.Now(),
-		name:  name,
-	}
-}
-
 var Log = colorlog.Log{Label: "Hwy"}
+
+type hwyContextKey string
+
+const adHocDataContextKey hwyContextKey = "adHocData"
+
+func GetAdHocDataContextWithValue(r *http.Request, val any) context.Context {
+	return context.WithValue(r.Context(), adHocDataContextKey, val)
+}
+
+func GetAdHocDataFromContext[T any](r *http.Request) T {
+	ctx := r.Context()
+	val := ctx.Value(adHocDataContextKey)
+	if val == nil {
+		var zeroVal T
+		return zeroVal
+	}
+	return ctx.Value(adHocDataContextKey).(T)
+}
+
+func newTimer() *timer.Timer {
+	return timer.Conditional(getIsDebug())
+}

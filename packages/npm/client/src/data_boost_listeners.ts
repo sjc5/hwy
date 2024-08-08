@@ -1,13 +1,7 @@
 import { getShouldPreventLinkDefault } from "./helpers.js";
 import { internalNavigate } from "./navigate.js";
-import { submit } from "./submit.js";
 
-export function addDataBoostListeners() {
-  addAnchorClickListenener();
-  addFormSubmitListener();
-}
-
-function addAnchorClickListenener() {
+export function addAnchorClickListenener() {
   document.body.addEventListener("click", async function (event) {
     const anchor = (event.target as HTMLElement).closest("a");
 
@@ -22,23 +16,5 @@ function addAnchorClickListenener() {
         navigationType: "userNavigation",
       });
     }
-  });
-}
-
-function addFormSubmitListener() {
-  window.addEventListener("submit", async function (event) {
-    const form = event.target as HTMLFormElement;
-
-    if (!form.dataset.boost || event.defaultPrevented) {
-      return;
-    }
-
-    event.preventDefault();
-
-    const requestInit: RequestInit = { method: form.method };
-    if (form.method.toLowerCase() !== "get") {
-      requestInit.body = new FormData(form);
-    }
-    await submit(form.action || window.location.href, requestInit);
   });
 }

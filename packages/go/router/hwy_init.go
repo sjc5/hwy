@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"io/fs"
 	"slices"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/sjc5/kit/pkg/safecache"
+	"github.com/sjc5/kit/pkg/validate"
 )
 
 func (h *Hwy) Initialize() error {
@@ -34,6 +38,12 @@ func (h *Hwy) Initialize() error {
 	h.addDataFuncsToPaths()
 	h.clientEntryDeps = pathsFile.ClientEntryDeps
 
+	h.validator = safecache.New(func() (*validate.Validate, error) {
+		locValidate := &validate.Validate{}
+		locValidate.Instance = validator.New(validator.WithRequiredStructEnabled())
+		return locValidate, nil
+	}, nil)
+
 	return nil
 }
 
@@ -41,18 +51,16 @@ func (h *Hwy) addDataFuncsToPaths() {
 	listOfPatterns := make([]string, 0, len(h.paths))
 
 	for i, path := range h.paths {
-		if dataFuncs, ok := (h.DataFuncsMap)[path.Pattern]; ok {
-			(h.paths)[i].DataFuncs = &dataFuncs
+		if loader, ok := h.Loaders[path.Pattern]; ok {
+			h.paths[i].DataFunction = loader
 		}
+
 		listOfPatterns = append(listOfPatterns, path.Pattern)
 	}
 
-	for pattern := range h.DataFuncsMap {
-		if pattern != "AdHocData" && !slices.Contains(listOfPatterns, pattern) {
+	for pattern := range h.Loaders {
+		if !slices.Contains(listOfPatterns, pattern) {
 			Log.Errorf("Warning: no matching path found for pattern %v. Make sure you're writing your patterns correctly and that your client route exists.", pattern)
-		}
-		if pattern == "AdHocData" {
-			h.getAdHocData = h.DataFuncsMap[pattern].Loader
 		}
 	}
 }
