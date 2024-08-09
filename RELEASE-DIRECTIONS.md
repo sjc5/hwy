@@ -34,4 +34,4 @@ Then:
 2. Publish to npm -- `pnpm publish=[pre|non-pre]`
 3. Copy new version number
 4. Push to GitHub with commit message `v[version_number] (and merge into main)
-5. Run Go release script from main branch, pasting in new version number
+5. Run Go release script from main branch, pasting in new version number -- `./scripts/go/bumper.sh`
