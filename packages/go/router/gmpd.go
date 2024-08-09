@@ -120,7 +120,7 @@ func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 			if item.routeType == RouteTypesEnum.Loader {
 				loader.Execute(r, item.Params, item.SplatSegments, loaderRes)
 			} else {
-				inputInstance, err := loader.ValidateInput(h.GetValidator(), r, item.routeType)
+				inputInstance, err := loader.ValidateInput(h.validator, r, item.routeType)
 				if err != nil {
 					loadersErrors[i] = err
 					return

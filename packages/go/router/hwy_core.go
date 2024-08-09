@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/sjc5/kit/pkg/colorlog"
-	"github.com/sjc5/kit/pkg/safecache"
 	"github.com/sjc5/kit/pkg/timer"
 	"github.com/sjc5/kit/pkg/validate"
 )
@@ -69,12 +68,7 @@ type Hwy struct {
 	clientEntryDeps      []string
 	buildID              string
 	rootTemplate         *template.Template
-	validator            *safecache.Cache[*validate.Validate]
-}
-
-func (h *Hwy) GetValidator() *validate.Validate {
-	v, _ := h.validator.Get()
-	return v
+	validator            *validate.Validate
 }
 
 type Redirect struct {
