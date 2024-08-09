@@ -8,7 +8,6 @@ import (
 	"slices"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/sjc5/kit/pkg/safecache"
 	"github.com/sjc5/kit/pkg/validate"
 )
 
@@ -38,11 +37,9 @@ func (h *Hwy) Initialize() error {
 	h.addDataFuncsToPaths()
 	h.clientEntryDeps = pathsFile.ClientEntryDeps
 
-	h.validator = safecache.New(func() (*validate.Validate, error) {
-		locValidate := &validate.Validate{}
-		locValidate.Instance = validator.New(validator.WithRequiredStructEnabled())
-		return locValidate, nil
-	}, nil)
+	h.validator = &validate.Validate{
+		Instance: validator.New(validator.WithRequiredStructEnabled()),
+	}
 
 	return nil
 }
