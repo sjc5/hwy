@@ -31,7 +31,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 	RouteType,
 	error,
 ) {
-	activePathData, didRedirect, routeType := h.getMatchingPathData(w, r)
+	activePathData, didRedirect, routeType := h.Hwy__internal__getMatchingPathData(w, r)
 	if didRedirect {
 		return nil, true, routeType, nil
 	}

@@ -70,7 +70,8 @@ func (h *Hwy) getMaybeActionAndRouteType(realPath string, method string) (DataFu
 	return nil, RouteTypesEnum.Loader
 }
 
-func (h *Hwy) getMatchingPathData(w http.ResponseWriter, r *http.Request) (
+// Not for public consumption. Do not use or rely on this.
+func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	*ActivePathData,
 	didRedirect,
 	RouteType,

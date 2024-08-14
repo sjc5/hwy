@@ -71,6 +71,11 @@ type Hwy struct {
 	validator            *validate.Validate
 }
 
+// Not for public consumption. Do not use or rely on this.
+func (h *Hwy) Hwy__internal__setPaths(paths []Path) {
+	h.paths = paths
+}
+
 type Redirect struct {
 	URL  string
 	Code int

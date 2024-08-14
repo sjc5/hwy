@@ -36,8 +36,6 @@ func GetAdHocDataFromContext[T any](r *http.Request) T {
 	return router.GetAdHocDataFromContext[T](r)
 }
 
-// START -- REPEATED FROM router.go
-
 type LoaderRes[O any] struct {
 	// same as ActionRes
 	Data     O
@@ -218,5 +216,3 @@ func (f ActionRes[O]) GetRedirect() *Redirect {
 func (f ActionRes[O]) GetHeadBlocks() []*HeadBlock {
 	return nil // noop
 }
-
-// END -- Repeated from router.go

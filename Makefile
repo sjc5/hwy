@@ -1,7 +1,12 @@
 # --- TESTS ---
 
-test-go:
+test-go-router:
 	@cd packages/go/router && go test
+
+test-go-general:
+	@cd packages/go/hwy_test && go test
+
+test-go: test-go-router test-go-general
 
 # --- PUBLISHING GO ---
 

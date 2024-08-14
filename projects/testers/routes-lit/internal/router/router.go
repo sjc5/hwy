@@ -6,7 +6,7 @@ import (
 	"testers/routes-lit/internal/platform"
 
 	"github.com/go-chi/chi/v5"
-	hwy "github.com/sjc5/hwy/packages/go/router"
+	"github.com/sjc5/hwy"
 )
 
 var HwyInstance = hwy.Hwy{}
