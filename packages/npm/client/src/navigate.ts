@@ -29,7 +29,6 @@ export async function internalNavigate(props: {
 
   try {
     const url = new URL(props.href, window.location.origin);
-
     url.searchParams.set(HWY_PREFIX_JSON, "1");
 
     const { response } = await handleRedirects({
@@ -39,7 +38,7 @@ export async function internalNavigate(props: {
 
     abortControllers.delete(abortControllerKey);
 
-    if (!response || response.status !== 200) {
+    if (!response || (!response.ok && response.status !== 304)) {
       setStatus({ type: props.navigationType, value: false });
       return;
     }

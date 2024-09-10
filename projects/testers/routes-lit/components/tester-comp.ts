@@ -2,7 +2,7 @@ import { HwyRoute, makeComp } from "@hwy-js/lit";
 import { html } from "lit";
 import { guard } from "lit/directives/guard.js";
 
-class TesterCompDef extends HwyRoute<{ loaderOutput: "bob" }> {
+class TesterCompDef extends HwyRoute<{ loaderData: "bob" }> {
   render() {
     const randomColor = guard(
       [],

@@ -1,12 +1,12 @@
 import { getHwyClientGlobal } from "../../common/index.mjs";
-import { initializeCustomHistory } from "./custom_history.js";
+import { initCustomHistory } from "./custom_history.js";
 import { addAnchorClickListenener } from "./data_boost_listeners.js";
 
 const hwyClientGlobal = getHwyClientGlobal();
 
 export async function initClient(renderFn: () => void) {
   // HANDLE HISTORY STUFF
-  initializeCustomHistory();
+  initCustomHistory();
 
   // HANDLE COMPONENTS
   const components = await importComponents();

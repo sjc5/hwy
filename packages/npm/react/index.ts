@@ -1,7 +1,7 @@
 export {
-  RootLayoutComponent,
-  RootLayoutComponentProps,
-  RootOutlet,
-  RouteComponent,
-  RouteComponentProps,
+  HwyLayout,
+  HwyLayoutProps,
+  HwyRootOutlet,
+  HwyRoute,
+  HwyRouteProps,
 } from "./src/recursive.js";

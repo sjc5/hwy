@@ -5,7 +5,7 @@ import { scrollStateMapSubKey } from "./scroll_restoration.js";
 export let customHistory: ReturnType<typeof createBrowserHistory>;
 let lastKnownCustomLocation: (typeof customHistory)["location"];
 
-export function initializeCustomHistory() {
+export function initCustomHistory() {
   customHistory = createBrowserHistory();
   lastKnownCustomLocation = customHistory.location;
   customHistory.listen(customHistoryListener);

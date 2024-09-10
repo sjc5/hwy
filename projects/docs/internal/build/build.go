@@ -6,25 +6,30 @@ import (
 	"github.com/sjc5/hwy"
 )
 
-func getHwyBuildOptions(isDev bool) *hwy.BuildOptions {
-	return &hwy.BuildOptions{
-		IsDev:             isDev,
-		ClientEntry:       "entry.client.tsx",
-		PagesSrcDir:       "pages",
-		HashedOutDir:      "static/public/__nohash",
-		UnhashedOutDir:    "static/private",
-		ClientEntryOut:    "static/public",
-		UsePreactCompat:   true,
-		GeneratedTSOutDir: "__generated_ts_api",
-		Loaders:           datafuncsmap.Loaders,
-		QueryActions:      datafuncsmap.QueryActions,
-	}
+var dataFuncs = hwy.DataFuncs{
+	Loaders:      datafuncsmap.Loaders,
+	QueryActions: datafuncsmap.QueryActions,
 }
 
-func GenerateTypeScript(isDev bool) error {
-	return hwy.GenerateTypeScript(getHwyBuildOptions(isDev))
+func GenerateTypeScript() error {
+	return hwy.GenerateTypeScript(&hwy.TSGenOptions{
+		GeneratedTSOutDir: "__generated_ts_api",
+		DataFuncs:         dataFuncs,
+	})
 }
 
 func RunHwyBuild(isDev bool) error {
-	return hwy.Build(getHwyBuildOptions(isDev))
+	return hwy.Build(&hwy.BuildOptions{
+		// inputs
+		IsDev:           isDev,
+		ClientEntry:     "entry.client.tsx",
+		PagesSrcDir:     "pages",
+		DataFuncs:       dataFuncs,
+		UsePreactCompat: true,
+
+		// outputs
+		HashedOutDir:      "static/public/__nohash",
+		UnhashedOutDir:    "static/private",
+		ClientEntryOutDir: "static/public",
+	})
 }

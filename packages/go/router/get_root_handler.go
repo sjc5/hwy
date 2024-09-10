@@ -19,6 +19,12 @@ func (h *Hwy) GetRootHandler() http.Handler {
 
 		mainT := newTimer()
 		routeData, didRedirect, routeType, err := h.GetRouteData(w, r)
+
+		if routeType == RouteTypesEnum.NotFound {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Not found"))
+			return
+		}
 		if didRedirect {
 			return
 		}
@@ -61,19 +67,6 @@ func (h *Hwy) GetRootHandler() http.Handler {
 
 		eg.Go(func() error {
 			egInnerT := newTimer()
-			if h.rootTemplate == nil {
-				tmpl, err := template.ParseFS(h.FS, h.RootTemplateLocation)
-				if err != nil {
-					return fmt.Errorf("error parsing root template: %v", err)
-				}
-				h.rootTemplate = tmpl
-			}
-			egInnerT.Checkpoint("template.ParseFS")
-			return nil
-		})
-
-		eg.Go(func() error {
-			egInnerT := newTimer()
 			he, err := GetHeadElements(routeData)
 			if err != nil {
 				return fmt.Errorf("error getting head elements: %v", err)
@@ -104,7 +97,20 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		mainT.Checkpoint("errGroup")
 
 		tmplData := map[string]any{}
-		for key, value := range h.RootTemplateData {
+
+		var rootTemplateData map[string]any
+		if h.GetRootTemplateData != nil {
+			rootTemplateData, err = h.GetRootTemplateData(r)
+		} else {
+			rootTemplateData = map[string]any{}
+		}
+		if err != nil {
+			msg := "Error getting root template data"
+			Log.Errorf(msg+": %v\n", err)
+			http.Error(w, msg, http.StatusInternalServerError)
+			return
+		}
+		for key, value := range rootTemplateData {
 			tmplData[key] = value
 		}
 		tmplData["HeadElements"] = headElements

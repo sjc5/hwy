@@ -10,7 +10,7 @@ func main() {
 	fmt.Println("Building...")
 
 	// Generate TS
-	err := build.GenerateTypeScript(false)
+	err := build.GenerateTypeScript()
 	if err != nil {
 		panic(err)
 	}

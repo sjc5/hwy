@@ -16,21 +16,34 @@ import (
 	"github.com/sjc5/kit/pkg/rpc"
 )
 
+const (
+	HwyClientEntryFileName = "hwy_client_entry.js"
+	HwyPathsFileName       = "hwy_paths.json"
+)
+
 type AdHocType = rpc.AdHocType
 
+type DataFuncs struct {
+	Loaders         DataFunctionMap
+	QueryActions    DataFunctionMap
+	MutationActions DataFunctionMap
+}
+
 type BuildOptions struct {
-	IsDev             bool
-	ClientEntry       string
+	// inputs
+	IsDev       bool
+	ClientEntry string
+	DataFuncs
+	UsePreactCompat bool
+
+	// outputs
 	PagesSrcDir       string
 	HashedOutDir      string
 	UnhashedOutDir    string
-	ClientEntryOut    string
-	UsePreactCompat   bool
-	Loaders           DataFunctionMap
-	QueryActions      DataFunctionMap
-	MutationActions   DataFunctionMap
-	GeneratedTSOutDir string
-	AdHocTypes        []AdHocType
+	ClientEntryOutDir string
+
+	// esbuild passthroughs
+	ESBuildPlugins []esbuild.Plugin
 }
 
 type ImportPath = string
@@ -44,13 +57,15 @@ type MetafileJSON struct {
 	Outputs map[ImportPath]struct {
 		Imports    []MetafileImport `json:"imports"`
 		EntryPoint string           `json:"entryPoint"`
+		CSSBundle  string           `json:"cssBundle"`
 	} `json:"outputs"`
 }
 
 type PathsFile struct {
-	Paths           []PathBase   `json:"paths"`
-	ClientEntryDeps []ImportPath `json:"clientEntryDeps"`
-	BuildID         string       `json:"buildID"`
+	Paths             []PathBase        `json:"paths"`
+	ClientEntryDeps   []ImportPath      `json:"clientEntryDeps"`
+	BuildID           string            `json:"buildID"`
+	DepToCSSBundleMap map[string]string `json:"depToCSSBundleMap"`
 }
 
 type SegmentObj struct {
@@ -197,57 +212,6 @@ func (opts *BuildOptions) writePathsToDisk(pagesSrcDir string, pathsJSONOut stri
 	return paths, nil
 }
 
-func GenerateTypeScript(opts *BuildOptions) error {
-	var routeDefs []rpc.RouteDef
-
-	// for k, v := range opts. // come back
-
-	for key, loader := range opts.Loaders {
-		loaderRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeQuery}
-
-		if loader != nil {
-			loaderRouteDef.Output = loader.GetOutputInstance()
-		}
-
-		routeDefs = append(routeDefs, loaderRouteDef)
-	}
-
-	for key, queryAction := range opts.QueryActions {
-		queryActionRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeQuery}
-
-		if queryAction != nil {
-			queryActionRouteDef.Input = queryAction.GetInputInstance()
-			queryActionRouteDef.Output = queryAction.GetOutputInstance()
-		}
-
-		routeDefs = append(routeDefs, queryActionRouteDef)
-	}
-
-	for key, mutationQuery := range opts.MutationActions {
-		mutationQueryRouteDef := rpc.RouteDef{Key: key, Type: rpc.TypeMutation}
-
-		if mutationQuery != nil {
-			mutationQueryRouteDef.Input = mutationQuery.GetInputInstance()
-			mutationQueryRouteDef.Output = mutationQuery.GetOutputInstance()
-		}
-
-		routeDefs = append(routeDefs, mutationQueryRouteDef)
-	}
-
-	err := rpc.GenerateTypeScript(rpc.Opts{
-		OutDest:    opts.GeneratedTSOutDir,
-		RouteDefs:  routeDefs,
-		AdHocTypes: opts.AdHocTypes,
-	})
-
-	if err != nil {
-		Log.Errorf("error generating typescript: %s", err)
-		return err
-	}
-
-	return nil
-}
-
 func Build(opts *BuildOptions) error {
 	startTime := time.Now()
 
@@ -258,7 +222,7 @@ func Build(opts *BuildOptions) error {
 	}
 	Log.Infof("new build id: %s", buildID)
 
-	pathsJSONOut := filepath.Join(opts.UnhashedOutDir, "hwy_paths.json")
+	pathsJSONOut := filepath.Join(opts.UnhashedOutDir, HwyPathsFileName)
 	paths, err := opts.writePathsToDisk(opts.PagesSrcDir, pathsJSONOut)
 	if err != nil {
 		Log.Errorf("error writing paths to disk: %s", err)
@@ -279,6 +243,7 @@ func Build(opts *BuildOptions) error {
 		UsePreactCompat: opts.UsePreactCompat,
 		HashedOutDir:    opts.HashedOutDir,
 		EntryPoints:     getEntrypoints(paths, opts),
+		Plugins:         opts.ESBuildPlugins,
 	})
 	if len(result.Errors) > 0 {
 		err = errors.New(result.Errors[0].Text)
@@ -295,7 +260,15 @@ func Build(opts *BuildOptions) error {
 
 	hwyClientEntry := ""
 	hwyClientEntryDeps := []string{}
+
+	var depToCSSBundleMap = map[string]string{}
+
 	for key, output := range metafileJSONMap.Outputs {
+		cleanKey := filepath.Base(key)
+		if output.CSSBundle != "" {
+			depToCSSBundleMap[cleanKey] = filepath.Base(output.CSSBundle)
+		}
+
 		entryPoint := output.EntryPoint
 		deps, err := findAllDependencies(&metafileJSONMap, key)
 		if err != nil {
@@ -303,7 +276,7 @@ func Build(opts *BuildOptions) error {
 			return err
 		}
 		if opts.ClientEntry == entryPoint {
-			hwyClientEntry = filepath.Base(key)
+			hwyClientEntry = cleanKey
 			depsWithoutClientEntry := make([]string, 0, len(deps)-1)
 			for _, dep := range deps {
 				if dep != hwyClientEntry {
@@ -314,7 +287,7 @@ func Build(opts *BuildOptions) error {
 		} else {
 			for i, path := range paths {
 				if path.SrcPath == entryPoint {
-					paths[i].OutPath = filepath.Base(key)
+					paths[i].OutPath = cleanKey
 					paths[i].Deps = deps
 				}
 			}
@@ -322,10 +295,12 @@ func Build(opts *BuildOptions) error {
 	}
 
 	pf := PathsFile{
-		Paths:           paths,
-		ClientEntryDeps: hwyClientEntryDeps,
-		BuildID:         buildID,
+		Paths:             paths,
+		ClientEntryDeps:   hwyClientEntryDeps,
+		BuildID:           buildID,
+		DepToCSSBundleMap: depToCSSBundleMap,
 	}
+
 	var pathsAsJSON []byte
 	if opts.IsDev {
 		pathsAsJSON, err = json.MarshalIndent(pf, "", "\t")
@@ -353,7 +328,11 @@ func Build(opts *BuildOptions) error {
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(opts.ClientEntryOut, "hwy_client_entry.js"), clientEntryFileBytes, os.ModePerm)
+	err = os.WriteFile(
+		filepath.Join(opts.ClientEntryOutDir, HwyClientEntryFileName),
+		clientEntryFileBytes,
+		os.ModePerm,
+	)
 	if err != nil {
 		Log.Errorf("error writing client entry file: %s", err)
 		return err
@@ -369,7 +348,7 @@ func Build(opts *BuildOptions) error {
 	return nil
 }
 
-func findAllDependencies(metafile *MetafileJSON, entry ImportPath) ([]ImportPath, error) {
+func findAllDependencies(metafile *MetafileJSON, path ImportPath) ([]ImportPath, error) {
 	seen := make(map[ImportPath]bool)
 	var result []ImportPath
 
@@ -388,23 +367,23 @@ func findAllDependencies(metafile *MetafileJSON, entry ImportPath) ([]ImportPath
 		}
 	}
 
-	recurse(entry)
+	recurse(path)
 
 	cleanResults := make([]ImportPath, 0, len(result)+1)
 	for _, res := range result {
 		cleanResults = append(cleanResults, filepath.Base(res))
 	}
-	if !slices.Contains(cleanResults, filepath.Base(entry)) {
-		cleanResults = append(cleanResults, filepath.Base(entry))
+	if !slices.Contains(cleanResults, filepath.Base(path)) {
+		cleanResults = append(cleanResults, filepath.Base(path))
 	}
 	return cleanResults, nil
 }
 
 var preactCompatAlias = map[string]string{
 	"react":                "preact/compat",
-	"react-dom/test-utils": "preact/test-utils",
-	"react-dom":            "preact/compat",
 	"react/jsx-runtime":    "preact/jsx-runtime",
+	"react-dom":            "preact/compat",
+	"react-dom/test-utils": "preact/test-utils",
 }
 
 type RunEsbuildOpts struct {
@@ -412,13 +391,18 @@ type RunEsbuildOpts struct {
 	UsePreactCompat bool
 	HashedOutDir    string
 	EntryPoints     []string
+	Plugins         []esbuild.Plugin
 }
 
-const hwyChunkPrefix = "hwy_chunk__"
-const hwyEntryPrefix = "hwy_entry__"
+const (
+	hwyChunkPrefix = "hwy_chunk__"
+	hwyEntryPrefix = "hwy_entry__"
+)
 
-var cachedEsbuildCtx esbuild.BuildContext
-var latestCacheKey string
+var (
+	cachedEsbuildCtx esbuild.BuildContext
+	latestCacheKey   string
+)
 
 func runEsbuild(opts RunEsbuildOpts) esbuild.BuildResult {
 	cacheKey := fmt.Sprintf("%v%v%v%v", opts.IsDev, opts.UsePreactCompat, opts.HashedOutDir, opts.EntryPoints)
@@ -470,6 +454,10 @@ func runEsbuild(opts RunEsbuildOpts) esbuild.BuildResult {
 		Platform:    esbuild.PlatformBrowser,
 		ChunkNames:  hwyChunkPrefix + "[hash]",
 		EntryNames:  hwyEntryPrefix + "[hash]",
+	}
+
+	if opts.Plugins != nil {
+		esbuildOpts.Plugins = opts.Plugins
 	}
 
 	ctx, err := esbuild.Context(esbuildOpts)

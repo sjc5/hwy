@@ -1,7 +1,7 @@
 export {
-  HwyRootLayout,
-  HwyRootLayoutProps,
-  HwyRootLayoutShadow,
+  HwyLayout,
+  HwyLayoutProps,
+  HwyLayoutShadow,
   HwyRootOutlet,
   HwyRootOutletShadow,
   HwyRoute,

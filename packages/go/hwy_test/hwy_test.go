@@ -1,8 +1,6 @@
 package hwy_test
 
 import (
-	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -316,7 +314,7 @@ func testGetMatchingPathData(path string) *router.ActivePathData {
 func setup() {
 	// temporarily create fixtures for testing
 	for _, file := range filesToMock {
-		targetPath := "../tmp/fixtures/" + file
+		targetPath := "../tmp/" + file
 		err := os.MkdirAll(filepath.Dir(targetPath), 0755)
 		if err != nil {
 			panic(err)
@@ -329,7 +327,7 @@ func setup() {
 	router.Log.Infof("created temporary fixtures for testing")
 
 	// Write the root template to the temporary directory
-	templateDir := "../tmp/fixtures/templates"
+	templateDir := "../tmp/templates"
 	err := os.MkdirAll(templateDir, 0755)
 	if err != nil {
 		panic(err)
@@ -353,42 +351,26 @@ func setup() {
 	}
 
 	testHwyInstance = router.Hwy{
-		FS:                   os.DirFS("../tmp/fixtures"),
+		FS:                   os.DirFS("../tmp"),
 		RootTemplateLocation: "templates/root.html",
 	}
 
 	// Run the Hwy build
 	err = router.Build(&router.BuildOptions{
-		PagesSrcDir:    "../tmp/fixtures/pages",
-		HashedOutDir:   "../tmp/out",
-		UnhashedOutDir: "../tmp/out",
-		ClientEntryOut: "../tmp/out",
-		ClientEntry:    "../tmp/fixtures/client.entry.tsx",
+		PagesSrcDir:       "../tmp/pages",
+		HashedOutDir:      "../tmp/",
+		UnhashedOutDir:    "../tmp/",
+		ClientEntryOutDir: "../tmp/",
+		ClientEntry:       "../tmp/client.entry.tsx",
 	})
 	if err != nil {
 		panic(err)
 	}
 
-	// Grab the generated paths file
-	pathsFileLocation := "../tmp/out/hwy_paths.json"
-	pathsFileBytes, err := os.ReadFile(pathsFileLocation)
+	err = testHwyInstance.Init()
 	if err != nil {
 		panic(err)
 	}
-	pathsFileJSON := router.PathsFile{}
-	err = json.Unmarshal(pathsFileBytes, &pathsFileJSON)
-	if err != nil {
-		panic(err)
-	}
-
-	// Populate the global in-memory instancePaths
-	var paths []router.Path
-	for _, pathBase := range pathsFileJSON.Paths {
-		paths = append(paths, router.Path{
-			PathBase: pathBase,
-		})
-	}
-	testHwyInstance.Hwy__internal__setPaths(paths)
 }
 
 type TestLoaderOutput struct {
@@ -408,7 +390,7 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 		func(ctx hwy.LoaderCtx[struct{}]) {
 			time.Sleep(100 * time.Millisecond)
 			router.Log.Infof(`Below should say "ERROR: loader2 error":`)
-			ctx.Res.Error = errors.New("loader2 error")
+			ctx.Res.ErrMsg = "loader2 error"
 		},
 	)
 
@@ -464,7 +446,7 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 func TestGetRootHandler(t *testing.T) {
 	defer clean()
 
-	// Initialize the handler
+	// Init the handler
 	handler := testHwyInstance.GetRootHandler()
 
 	// Create a response recorder and request

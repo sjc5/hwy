@@ -18,27 +18,41 @@ type SSRInnerHTMLInput struct {
 	Params              Params
 	AdHocData           any
 	Deps                []string
+	CSSBundles          []string
 }
 
-const ssrInnerTmplStr = `<script>
-	globalThis[Symbol.for("{{.HwyPrefix}}")] = {};
-	const x = globalThis[Symbol.for("{{.HwyPrefix}}")];
-	x.isDev = {{.IsDev}};
-	x.buildID = {{.BuildID}};
-	x.loadersData = {{.LoadersData}};
-	x.importURLs = {{.ImportURLs}};
-	x.outermostErrorIndex = {{.OutermostErrorIndex}};
-	x.splatSegments = {{.SplatSegments}};
-	x.params = {{.Params}};
-	x.adHocData = {{.AdHocData}};
-	const deps = {{.Deps}};
-	deps.forEach(module => {
-		const link = document.createElement('link');
-		link.rel = 'modulepreload';
-		link.href = "/public/" + module;
-		document.head.appendChild(link);
-	 });
-</script>`
+const ssrInnerTmplStr = `
+	<script>
+		globalThis[Symbol.for("{{.HwyPrefix}}")] = {};
+		const x = globalThis[Symbol.for("{{.HwyPrefix}}")];
+
+		x.isDev = {{.IsDev}};
+		x.buildID = {{.BuildID}};
+		x.loadersData = {{.LoadersData}};
+		x.importURLs = {{.ImportURLs}};
+		x.outermostErrorIndex = {{.OutermostErrorIndex}};
+		x.splatSegments = {{.SplatSegments}};
+		x.params = {{.Params}};
+		x.adHocData = {{.AdHocData}};
+
+		const deps = {{.Deps}};
+		deps.forEach(x => {
+			const link = document.createElement('link');
+			link.rel = 'modulepreload';
+			link.href = "/public/" + x;
+			document.head.appendChild(link);
+			});
+
+		const cssBundles = {{.CSSBundles}};
+		cssBundles.forEach(x => {
+			const link = document.createElement('link');
+			link.rel = 'stylesheet';
+			link.href = "/public/" + x;
+			link.setAttribute("data-hwy-css-bundle", x);
+			document.head.appendChild(link);
+		});
+	</script>
+`
 
 var ssrInnerTmpl = template.Must(template.New("ssr").Parse(ssrInnerTmplStr))
 
@@ -55,6 +69,7 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML,
 		Params:              routeData.Params,
 		AdHocData:           routeData.AdHocData,
 		Deps:                routeData.Deps,
+		CSSBundles:          routeData.CSSBundles,
 	}
 	err := ssrInnerTmpl.Execute(&htmlBuilder, dto)
 	if err != nil {

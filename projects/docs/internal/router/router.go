@@ -2,6 +2,7 @@ package router
 
 import (
 	"fmt"
+	"net/http"
 
 	"hwy-docs/internal/datafuncsmap"
 	"hwy-docs/internal/middleware"
@@ -16,7 +17,7 @@ func init() {
 	godotenv.Load()
 }
 
-var HwyInstance = hwy.Hwy{}
+var hwyInstance = hwy.Hwy{}
 
 func init() {
 	privateFS, err := platform.Kiruna.GetPrivateFS()
@@ -44,19 +45,23 @@ func init() {
 		},
 	}
 
-	HwyInstance = hwy.Hwy{
-		DefaultHeadBlocks:    defaultHeadBlocks,
+	hwyInstance = hwy.Hwy{
 		FS:                   privateFS,
 		RootTemplateLocation: "templates/index.go.html",
-		RootTemplateData: map[string]any{
-			"Kiruna":         platform.Kiruna,
-			"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
+		Loaders:              datafuncsmap.Loaders,
+		QueryActions:         datafuncsmap.QueryActions,
+		GetDefaultHeadBlocks: func(r *http.Request) ([]hwy.HeadBlock, error) {
+			return defaultHeadBlocks, nil
 		},
-		Loaders:      datafuncsmap.Loaders,
-		QueryActions: datafuncsmap.QueryActions,
+		GetRootTemplateData: func(r *http.Request) (map[string]any, error) {
+			return map[string]any{
+				"Kiruna":         platform.Kiruna,
+				"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
+			}, nil
+		},
 	}
 
-	err = HwyInstance.Initialize()
+	err = hwyInstance.Init()
 	if err != nil {
 		fmt.Println(err)
 		panic("Error initializing Hwy")
@@ -67,6 +72,6 @@ func Init() *chi.Mux {
 	r := chi.NewRouter()
 	middleware.ApplyGlobal(r)
 	r.Handle("/public/*", platform.Kiruna.GetServeStaticHandler("/public/", true))
-	r.Handle("/*", HwyInstance.GetRootHandler())
+	r.Handle("/*", hwyInstance.GetRootHandler())
 	return r
 }

@@ -32,12 +32,18 @@ var tsWatchedFile = kiruna.WatchedFile{
 
 func buildHwy(path string) error {
 	err := hwy.Build(&hwy.BuildOptions{
-		IsDev:          true,
-		ClientEntry:    "entry.client.tsx",
-		PagesSrcDir:    "pages",
-		HashedOutDir:   "static/public/__nohash",
-		UnhashedOutDir: "static/private",
-		ClientEntryOut: "static/public",
+		// inputs
+		IsDev:       true,
+		ClientEntry: "entry.client.tsx",
+		PagesSrcDir: "pages",
+
+		// IF PREACT
+		UsePreactCompat: true,
+
+		// outputs
+		HashedOutDir:      "static/public/__nohash",
+		UnhashedOutDir:    "static/private",
+		ClientEntryOutDir: "static/public",
 	})
 	if err != nil {
 		fmt.Println(err)

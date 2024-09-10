@@ -74,6 +74,13 @@ async function submitInner(
   const urlToUse = new URL(url, window.location.origin);
   urlToUse.searchParams.set(HWY_PREFIX_JSON, "1");
 
+  if (!requestInit) {
+    requestInit = {};
+  }
+  const headers = new Headers(requestInit.headers);
+  headers.set("X-Hwy-Action", "1");
+  requestInit.headers = headers;
+
   try {
     const { response, didRedirect } = await handleRedirects({
       abortController,

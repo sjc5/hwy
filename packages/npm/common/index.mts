@@ -53,6 +53,7 @@ export type GetRouteDataOutput<AHD extends any = any> = {
   adHocData: AHD;
   buildID: string;
   deps: Array<string>;
+  cssBundles: Array<string>;
 
   // SSR Only
   activeErrorBoundaries: Array<any> | null;

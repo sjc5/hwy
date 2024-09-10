@@ -14,6 +14,9 @@ import (
 // - don't revalidate on query, only on mutation
 
 type BuildOptions = router.BuildOptions
+type TSGenOptions = router.TSGenOptions
+type AdHocType = router.AdHocType
+type DataFuncs = router.DataFuncs
 type Hwy = router.Hwy
 type HeadBlock = router.HeadBlock
 type DataFunctionMap = router.DataFunctionMap
@@ -31,6 +34,7 @@ var GetHeadElements = router.GetHeadElements
 var GetSSRInnerHTML = router.GetSSRInnerHTML
 var RouteTypesEnum = router.RouteTypesEnum
 var GetAdHocDataContextWithValue = router.GetAdHocDataContextWithValue
+var ClientEntryFileName = router.HwyClientEntryFileName
 
 func GetAdHocDataFromContext[T any](r *http.Request) T {
 	return router.GetAdHocDataFromContext[T](r)
@@ -39,7 +43,7 @@ func GetAdHocDataFromContext[T any](r *http.Request) T {
 type LoaderRes[O any] struct {
 	// same as ActionRes
 	Data     O
-	Error    error
+	ErrMsg   string
 	Headers  http.Header
 	Cookies  []*http.Cookie
 	redirect *Redirect
@@ -55,8 +59,12 @@ type LoaderCtx[O any] struct {
 	Res           *LoaderRes[O]
 }
 
-func (f LoaderRes[O]) Redirect(url string, code int) {
-	*f.redirect = Redirect{URL: url, Code: code}
+func (f *LoaderRes[O]) ServerError() {
+	f.ErrMsg = http.StatusText(http.StatusInternalServerError)
+}
+
+func (f *LoaderRes[O]) Redirect(url string, code int) {
+	f.redirect = &Redirect{URL: url, Code: code}
 }
 
 type Loader[O any] func(ctx LoaderCtx[O])
@@ -92,7 +100,7 @@ func (f Loader[O]) GetOutputInstance() any {
 type ActionRes[O any] struct {
 	// same as LoaderRes
 	Data     O
-	Error    error
+	ErrMsg   string
 	Headers  http.Header
 	Cookies  []*http.Cookie
 	redirect *Redirect
@@ -104,8 +112,12 @@ type ActionCtx[I any, O any] struct {
 	Res   *ActionRes[O]
 }
 
-func (f ActionRes[O]) Redirect(url string, code int) {
-	*f.redirect = Redirect{URL: url, Code: code}
+func (f *ActionRes[O]) ServerError() {
+	f.ErrMsg = http.StatusText(http.StatusInternalServerError)
+}
+
+func (f *ActionRes[O]) Redirect(url string, code int) {
+	f.redirect = &Redirect{URL: url, Code: code}
 }
 
 type Action[I any, O any] func(ctx ActionCtx[I, O])
@@ -118,11 +130,11 @@ func (f Action[I, O]) GetResInstance() any {
 	}
 }
 func (f Action[I, O]) Execute(args ...any) (any, error) {
-	f(ActionCtx[I, O]{
-		Req:   args[0].(*http.Request),
-		Input: args[1].(I),
-		Res:   args[2].(*ActionRes[O]),
-	})
+	x := ActionCtx[I, O]{Req: args[0].(*http.Request), Res: args[2].(*ActionRes[O])}
+	if args[1] != nil {
+		x.Input = args[1].(I)
+	}
+	f(x)
 	return nil, nil
 }
 func (f Action[I, O]) GetInputInstance() any {
@@ -139,7 +151,14 @@ func (f Action[I, O]) ValidateInput(v *validate.Validate, r *http.Request, actio
 	var x I
 	var err error
 
-	isPtr := reflect.TypeOf(x).Kind() == reflect.Ptr
+	// __TODO add a test for an "any" input type, which comes up here as nil
+	_type := reflect.TypeOf(x)
+	if _type == nil {
+		return nil, nil
+	}
+
+	kind := _type.Kind()
+	isPtr := kind == reflect.Ptr
 
 	if !isPtr {
 		if isQuery {
@@ -155,10 +174,10 @@ func (f Action[I, O]) ValidateInput(v *validate.Validate, r *http.Request, actio
 
 	ptrIsNil := reflect.ValueOf(x).IsNil()
 	if ptrIsNil {
-		x = reflect.New(reflect.TypeOf(x).Elem()).Interface().(I)
+		x = reflect.New(_type.Elem()).Interface().(I)
 	}
 
-	pointsToStruct := isPtr && reflect.TypeOf(x).Elem().Kind() == reflect.Struct
+	pointsToStruct := isPtr && _type.Elem().Kind() == reflect.Struct
 	if pointsToStruct {
 		if isQuery {
 			err = v.URLSearchParamsInto(r, x)
@@ -180,39 +199,39 @@ func (f Action[I, O]) GetOutputInstance() any {
 
 //////////////////// DataFunctionPropsGetter ////////////////////
 
-func (f LoaderRes[O]) GetData() any {
+func (f *LoaderRes[O]) GetData() any {
 	return f.Data
 }
-func (f LoaderRes[O]) GetError() error {
-	return f.Error
+func (f *LoaderRes[O]) GetErrMsg() string {
+	return f.ErrMsg
 }
-func (f LoaderRes[O]) GetHeaders() http.Header {
+func (f *LoaderRes[O]) GetHeaders() http.Header {
 	return f.Headers
 }
-func (f LoaderRes[O]) GetCookies() []*http.Cookie {
+func (f *LoaderRes[O]) GetCookies() []*http.Cookie {
 	return f.Cookies
 }
-func (f LoaderRes[O]) GetRedirect() *Redirect {
+func (f *LoaderRes[O]) GetRedirect() *Redirect {
 	return f.redirect
 }
-func (f LoaderRes[O]) GetHeadBlocks() []*HeadBlock {
+func (f *LoaderRes[O]) GetHeadBlocks() []*HeadBlock {
 	return f.HeadBlocks
 }
-func (f ActionRes[O]) GetData() any {
+func (f *ActionRes[O]) GetData() any {
 	return f.Data
 }
-func (f ActionRes[O]) GetError() error {
-	return f.Error
+func (f *ActionRes[O]) GetErrMsg() string {
+	return f.ErrMsg
 }
-func (f ActionRes[O]) GetHeaders() http.Header {
+func (f *ActionRes[O]) GetHeaders() http.Header {
 	return f.Headers
 }
-func (f ActionRes[O]) GetCookies() []*http.Cookie {
+func (f *ActionRes[O]) GetCookies() []*http.Cookie {
 	return f.Cookies
 }
-func (f ActionRes[O]) GetRedirect() *Redirect {
+func (f *ActionRes[O]) GetRedirect() *Redirect {
 	return f.redirect
 }
-func (f ActionRes[O]) GetHeadBlocks() []*HeadBlock {
+func (f *ActionRes[O]) GetHeadBlocks() []*HeadBlock {
 	return nil // noop
 }
