@@ -49,8 +49,12 @@ export function makeComp<T extends typeof LitElement>(
   }
   strings.raw = strings;
 
-  return function (props: ExtractProps<T>): TemplateResult {
-    const values = keys.map((key) => (props as any)[key]);
+  return function (
+    ...args: AllPropsAreOptional<ExtractProps<T>> extends true
+      ? [props?: ExtractProps<T>]
+      : [props: ExtractProps<T>]
+  ): TemplateResult {
+    const values = keys.map((key) => (args?.[0] as any)?.[key]);
     return html(strings, ...values);
   };
 }
@@ -70,6 +74,9 @@ type ExtractProps<T extends typeof LitElement> = {
     ? never
     : K]: T["prototype"][K];
 };
+
+type AllPropsAreOptional<T extends Record<any, any>> =
+  Partial<T> extends T ? true : false;
 
 type ExcludedProperties =
   | keyof LitElement

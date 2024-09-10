@@ -34,10 +34,12 @@ var RouteTypesEnum = struct {
 	Loader         RouteType
 	QueryAction    RouteType
 	MutationAction RouteType
+	NotFound       RouteType
 }{
 	Loader:         "loader",
 	QueryAction:    "query-action",
 	MutationAction: "mutation-action",
+	NotFound:       "not-found",
 }
 
 type PathBase struct {
@@ -57,18 +59,20 @@ type Path struct {
 type DataFunctionMap map[string]DataFunction
 
 type Hwy struct {
-	DefaultHeadBlocks    []HeadBlock
 	FS                   fs.FS
 	Loaders              DataFunctionMap
 	QueryActions         DataFunctionMap
 	MutationActions      DataFunctionMap
 	RootTemplateLocation string
-	RootTemplateData     map[string]any
-	paths                []Path
-	clientEntryDeps      []string
-	buildID              string
-	rootTemplate         *template.Template
-	validator            *validate.Validate
+	Validator            *validate.Validate
+	GetDefaultHeadBlocks func(r *http.Request) ([]HeadBlock, error)
+	GetRootTemplateData  func(r *http.Request) (map[string]any, error)
+
+	paths             []Path
+	clientEntryDeps   []string
+	buildID           string
+	depToCSSBundleMap map[string]string
+	rootTemplate      *template.Template
 }
 
 // Not for public consumption. Do not use or rely on this.
@@ -83,7 +87,7 @@ type Redirect struct {
 
 type DataFunctionPropsGetter interface {
 	GetData() any
-	GetError() error
+	GetErrMsg() string
 	GetHeaders() http.Header
 	GetCookies() []*http.Cookie
 	GetRedirect() *Redirect

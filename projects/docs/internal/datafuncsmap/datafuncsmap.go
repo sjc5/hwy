@@ -78,7 +78,7 @@ var catchAllLoader hwy.Loader[*matter] = func(ctx hwy.LoaderCtx[*matter]) {
 	filePath := "markdown/" + normalizedPath + ".md"
 	FS, err := platform.Kiruna.GetPrivateFS()
 	if err != nil {
-		ctx.Res.Error = err
+		ctx.Res.ErrMsg = "Error loading private FS"
 		return
 	}
 

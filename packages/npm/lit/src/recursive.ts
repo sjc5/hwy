@@ -14,7 +14,7 @@ type BaseProps<AHD extends any = any> = {
   index?: number;
   fallbackErrorBoundary?: ErrorBoundaryComp;
   adHocData?: AHD;
-  layout?: AsComp<typeof HwyRootLayout<{ adHocData: AHD }>>;
+  layout?: AsComp<typeof HwyLayout<{ adHocData: AHD }>>;
 };
 
 const noErrorBoundaryTmpl = html`<div>Error: No error boundary found.</div>`;
@@ -36,7 +36,7 @@ class HwyRootOutletShadowDef<AHD> extends LitElement {
   adHocData?: AHD;
 
   @property()
-  layout?: AsComp<typeof HwyRootLayout>;
+  layout?: AsComp<typeof HwyLayout>;
 
   @property()
   passedFromParent?: Record<string, any>;
@@ -180,7 +180,7 @@ class HwyRootOutletDef<AHD> extends HwyRootOutletShadowDef<AHD> {
 export const HwyRootOutlet = makeComp(HwyRootOutletDef, "hwy-root-outlet");
 
 function MaybeWithLayout(
-  props: BaseProps & HwyRootLayoutProps & { Outlet: Outlet },
+  props: BaseProps & HwyLayoutProps & { Outlet: Outlet },
 ): TemplateResult {
   if (props.layout && !props.index) {
     return props.layout(props);
@@ -213,9 +213,7 @@ export type HwyRouteComponentProps<
 export type HwyRouteComponent<T extends RoutePropsTypeArg = DefaultRouteProps> =
   (props: HwyRouteComponentProps<T>) => TemplateResult;
 
-export type HwyRootLayoutProps<
-  T extends RoutePropsTypeArg = DefaultRouteProps,
-> = {
+export type HwyLayoutProps<T extends RoutePropsTypeArg = DefaultRouteProps> = {
   Outlet: Outlet;
 } & Pick<HwyRouteComponentProps<T>, "params" | "splatSegments" | "adHocData">;
 
@@ -249,7 +247,7 @@ export class HwyRoute<
   }
 }
 
-export class HwyRootLayoutShadow<
+export class HwyLayoutShadow<
   T extends RoutePropsTypeArg = DefaultRouteProps,
 > extends LitElement {
   @property()
@@ -265,9 +263,9 @@ export class HwyRootLayoutShadow<
   Outlet!: Outlet;
 }
 
-export class HwyRootLayout<
+export class HwyLayout<
   T extends RoutePropsTypeArg = DefaultRouteProps,
-> extends HwyRootLayoutShadow<T> {
+> extends HwyLayoutShadow<T> {
   createRenderRoot() {
     return this;
   }

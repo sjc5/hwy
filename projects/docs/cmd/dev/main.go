@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	err := build.GenerateTypeScript(true)
+	err := build.GenerateTypeScript()
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +36,7 @@ var goWatchedFile = kiruna.WatchedFile{
 	Pattern: "**/*.go",
 	OnChangeCallbacks: []kiruna.OnChange{{
 		Func: func(s string) error {
-			return build.GenerateTypeScript(true)
+			return build.GenerateTypeScript()
 		},
 		Strategy: kiruna.OnChangeStrategyConcurrent,
 	}},

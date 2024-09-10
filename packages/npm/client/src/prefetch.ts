@@ -1,3 +1,5 @@
+import { HWY_PREFIX_JSON } from "../../common/index.mjs";
+
 export function getAbsoluteURL(href: string): {
   absoluteURL: string;
   isExternal: boolean;
@@ -20,8 +22,10 @@ export function getAbsoluteURL(href: string): {
 
   // Filters out things like "#", "tel:", "mailto:", etc.
   if (url.protocol.startsWith("http")) {
+    url.searchParams.set(HWY_PREFIX_JSON, "1");
+
     return {
-      absoluteURL: url.href + "?__hwy_internal__json=1",
+      absoluteURL: url.href,
       isExternal: false,
     };
   }

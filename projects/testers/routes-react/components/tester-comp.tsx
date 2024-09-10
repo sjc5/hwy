@@ -1,4 +1,4 @@
-import { RouteComponentProps } from "@hwy-js/react";
+import { HwyRouteProps } from "@hwy-js/react";
 import { useState } from "react";
 
 function TesterComp({
@@ -6,8 +6,8 @@ function TesterComp({
   params,
   splatSegments,
   ...rest
-}: RouteComponentProps<{
-  loaderOutput: "bob";
+}: HwyRouteProps<{
+  loaderData: "bob";
 }>) {
   const [randomColor] = useState(
     "#" + Math.floor(Math.random() * 16777215).toString(16),

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"io/fs"
 	"slices"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/sjc5/kit/pkg/validate"
 )
 
-func (h *Hwy) Initialize() error {
+func (h *Hwy) Init() error {
 	if h.FS == nil {
 		return errors.New("FS is nil")
 	}
@@ -29,17 +30,26 @@ func (h *Hwy) Initialize() error {
 		h.paths = ip
 	}
 	for _, pathBase := range pathsFile.Paths {
-		h.paths = append(h.paths, Path{
-			PathBase: pathBase,
-		})
+		h.paths = append(h.paths, Path{PathBase: pathBase})
 	}
 
 	h.addDataFuncsToPaths()
 	h.clientEntryDeps = pathsFile.ClientEntryDeps
 
-	h.validator = &validate.Validate{
+	h.depToCSSBundleMap = pathsFile.DepToCSSBundleMap
+	if h.depToCSSBundleMap == nil {
+		h.depToCSSBundleMap = make(map[string]string)
+	}
+
+	h.Validator = &validate.Validate{
 		Instance: validator.New(validator.WithRequiredStructEnabled()),
 	}
+
+	tmpl, err := template.ParseFS(h.FS, h.RootTemplateLocation)
+	if err != nil {
+		return fmt.Errorf("error parsing root template: %v", err)
+	}
+	h.rootTemplate = tmpl
 
 	return nil
 }
@@ -64,9 +74,9 @@ func (h *Hwy) addDataFuncsToPaths() {
 
 func getBasePaths(FS fs.FS) (*PathsFile, error) {
 	pathsFile := PathsFile{}
-	file, err := FS.Open("hwy_paths.json")
+	file, err := FS.Open(HwyPathsFileName)
 	if err != nil {
-		errMsg := fmt.Sprintf("could not open hwy_paths.json: %v", err)
+		errMsg := fmt.Sprintf("could not open %s: %v", HwyPathsFileName, err)
 		Log.Errorf(errMsg)
 		return nil, errors.New(errMsg)
 	}
@@ -74,7 +84,7 @@ func getBasePaths(FS fs.FS) (*PathsFile, error) {
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&pathsFile)
 	if err != nil {
-		errMsg := fmt.Sprintf("could not decode hwy_paths.json: %v", err)
+		errMsg := fmt.Sprintf("could not decode %s: %v", HwyPathsFileName, err)
 		Log.Errorf(errMsg)
 		return nil, errors.New(errMsg)
 	}

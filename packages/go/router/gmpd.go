@@ -20,7 +20,7 @@ type ActivePathData struct {
 	MatchingPaths       []*DecoratedPath
 	HeadBlocks          []*HeadBlock
 	LoadersData         []any
-	LoadersErrors       []error
+	LoadersErrMsgs      []string
 	ImportURLs          []string
 	OutermostErrorIndex int
 	SplatSegments       SplatSegments
@@ -46,7 +46,11 @@ var (
 	MutationAcceptedMethods = map[string]int{"POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0}
 )
 
-func (h *Hwy) getMaybeActionAndRouteType(realPath string, method string) (DataFunction, RouteType) {
+func (h *Hwy) getMaybeActionAndRouteType(realPath string, r *http.Request) (DataFunction, RouteType) {
+	if !getIsHwyAPISubmit(r) {
+		return nil, RouteTypesEnum.Loader
+	}
+
 	var queryAction DataFunction
 	var queryActionExists bool
 	var queryMethodIsPermitted bool
@@ -56,18 +60,22 @@ func (h *Hwy) getMaybeActionAndRouteType(realPath string, method string) (DataFu
 	var mutationMethodIsPermitted bool
 
 	if queryAction, queryActionExists = h.QueryActions[realPath]; queryActionExists {
-		if _, queryMethodIsPermitted = QueryAcceptedMethods[method]; queryMethodIsPermitted {
+		if _, queryMethodIsPermitted = QueryAcceptedMethods[r.Method]; queryMethodIsPermitted {
 			return queryAction, RouteTypesEnum.QueryAction
 		}
 	}
 
 	if mutationAction, mutationActionExists = h.MutationActions[realPath]; mutationActionExists {
-		if _, mutationMethodIsPermitted = MutationAcceptedMethods[method]; mutationMethodIsPermitted {
+		if _, mutationMethodIsPermitted = MutationAcceptedMethods[r.Method]; mutationMethodIsPermitted {
 			return mutationAction, RouteTypesEnum.MutationAction
 		}
 	}
 
-	return nil, RouteTypesEnum.Loader
+	return nil, RouteTypesEnum.NotFound
+}
+
+func getIsHwyAPISubmit(r *http.Request) bool {
+	return r.Header.Get("X-Hwy-Action") != ""
 }
 
 // Not for public consumption. Do not use or rely on this.
@@ -83,7 +91,10 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 
 	var item *gmpdItem
 
-	action, routeType := h.getMaybeActionAndRouteType(realPath, r.Method)
+	action, routeType := h.getMaybeActionAndRouteType(realPath, r)
+	if routeType == RouteTypesEnum.NotFound {
+		return nil, false, routeType
+	}
 	if action != nil {
 		item = &gmpdItem{
 			routeType:                   routeType,
@@ -97,7 +108,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 
 	// loaders data
 	loadersData := make([]any, numberOfLoaders)
-	loadersErrors := make([]error, numberOfLoaders)
+	loadersErrMsgs := make([]string, numberOfLoaders)
 	loadersHeaders := make([]http.Header, numberOfLoaders)
 	loadersCookies := make([][]*http.Cookie, numberOfLoaders)
 	loadersRedirects := make([]*Redirect, numberOfLoaders)
@@ -112,7 +123,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 			defer wg.Done()
 
 			if loader == nil {
-				loadersData[i], loadersErrors[i] = nil, nil
+				loadersData[i], loadersErrMsgs[i] = nil, ""
 				return
 			}
 
@@ -121,16 +132,16 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 			if item.routeType == RouteTypesEnum.Loader {
 				loader.Execute(r, item.Params, item.SplatSegments, loaderRes)
 			} else {
-				inputInstance, err := loader.ValidateInput(h.validator, r, item.routeType)
+				inputInstance, err := loader.ValidateInput(h.Validator, r, item.routeType)
 				if err != nil {
-					loadersErrors[i] = err
+					loadersErrMsgs[i] = err.Error()
 					return
 				}
 				loader.Execute(r, inputInstance, loaderRes)
 			}
 
 			loadersData[i] = loaderRes.(DataFunctionPropsGetter).GetData()
-			loadersErrors[i] = loaderRes.(DataFunctionPropsGetter).GetError()
+			loadersErrMsgs[i] = loaderRes.(DataFunctionPropsGetter).GetErrMsg()
 			loadersHeaders[i] = loaderRes.(DataFunctionPropsGetter).GetHeaders()
 			loadersCookies[i] = loaderRes.(DataFunctionPropsGetter).GetCookies()
 			loadersRedirects[i] = loaderRes.(DataFunctionPropsGetter).GetRedirect()
@@ -167,9 +178,9 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 
 	var thereAreErrors bool
 	outermostErrorIndex := -1
-	for i, err := range loadersErrors {
-		if err != nil {
-			Log.Errorf("ERROR: %v", err)
+	for i, errMsg := range loadersErrMsgs {
+		if errMsg != "" {
+			Log.Errorf("ERROR: %s", errMsg)
 			thereAreErrors = true
 			outermostErrorIndex = i
 			break
@@ -187,8 +198,8 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 		activePathData.OutermostErrorIndex = outermostErrorIndex
 		activePathData.SplatSegments = item.SplatSegments
 		activePathData.Params = item.Params
-		locErrors := loadersErrors[:outermostErrorIndex+1]
-		activePathData.LoadersErrors = locErrors
+		locErrors := loadersErrMsgs[:outermostErrorIndex+1]
+		activePathData.LoadersErrMsgs = locErrors
 
 		locHeadBlocksOuter := loadersHeadBlocks[:outermostErrorIndex]
 		locHeadBlocksInner := make([]*HeadBlock, 0, len(locHeadBlocksOuter))
@@ -208,7 +219,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 	activePathData.SplatSegments = item.SplatSegments
 	activePathData.Params = item.Params
 	activePathData.Deps = item.Deps
-	activePathData.LoadersErrors = loadersErrors
+	activePathData.LoadersErrMsgs = loadersErrMsgs
 
 	locHeadBlocksInner := make([]*HeadBlock, 0, len(loadersHeadBlocks))
 	for _, headBlocks := range loadersHeadBlocks {
@@ -227,7 +238,7 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 	if cachedItemExists {
 		item = cachedItem
 	} else {
-		// initialize
+		// init
 		item = &gmpdItem{}
 
 		// matcher

@@ -2,13 +2,14 @@ package router
 
 import (
 	"fmt"
+	"net/http"
 	"testers/routes-react/internal/platform"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/sjc5/hwy"
 )
 
-var HwyInstance = hwy.Hwy{}
+var hwyInstance = hwy.Hwy{}
 
 type strMap map[string]string
 
@@ -48,17 +49,21 @@ func init() {
 		panic(fmt.Sprintf("Error loading private FS: %v", err))
 	}
 
-	HwyInstance = hwy.Hwy{
-		DefaultHeadBlocks:    defaultHeadBlocks,
+	hwyInstance = hwy.Hwy{
 		FS:                   privateFS,
 		RootTemplateLocation: "templates/index.go.html",
-		RootTemplateData: map[string]any{
-			"Kiruna":         platform.Kiruna,
-			"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
+		Loaders:              dataFuncs,
+		GetDefaultHeadBlocks: func(r *http.Request) ([]hwy.HeadBlock, error) {
+			return defaultHeadBlocks, nil
 		},
-		Loaders: dataFuncs,
+		GetRootTemplateData: func(r *http.Request) (map[string]any, error) {
+			return map[string]any{
+				"Kiruna":         platform.Kiruna,
+				"ClientEntryURL": platform.Kiruna.GetPublicURL("hwy_client_entry.js"),
+			}, nil
+		},
 	}
-	err = HwyInstance.Initialize()
+	err = hwyInstance.Init()
 	if err != nil {
 		fmt.Println(err)
 		panic("Error initializing Hwy")
@@ -70,6 +75,6 @@ func init() {
 func Init() *chi.Mux {
 	r := chi.NewRouter()
 	r.Handle("/public/*", platform.Kiruna.GetServeStaticHandler("/public/", true))
-	r.Handle("/*", HwyInstance.GetRootHandler())
+	r.Handle("/*", hwyInstance.GetRootHandler())
 	return r
 }

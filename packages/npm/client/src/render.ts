@@ -19,15 +19,18 @@ export async function reRenderApp({
 }: {
   json: {
     title?: string;
+    metaHeadBlocks?: Array<any>;
+    restHeadBlocks?: Array<any>;
     loadersData?: Record<string, any>;
+    loadersErrorMessages?: Array<string>;
     importURLs?: Array<string>;
     outermostErrorIndex?: number;
     splatSegments?: Array<string>;
     params?: Record<string, string>;
     adHocData?: any;
     buildID: string;
-    metaHeadBlocks?: Array<any>;
-    restHeadBlocks?: Array<any>;
+    deps?: Array<string>;
+    cssBundles?: Array<string>;
   };
   navigationType: NavigationType;
   runHistoryOptions?: {
@@ -38,6 +41,31 @@ export async function reRenderApp({
 }) {
   // Changing the title instantly makes it feel faster
   document.title = json.title ?? "";
+
+  // Add missing deps modulepreload links
+  for (const x of json.deps ?? []) {
+    const href = "/public/" + x;
+    if (document.querySelector(`link[href="${href}"]`)) {
+      continue;
+    }
+    const newLink = document.createElement("link");
+    newLink.rel = "modulepreload";
+    newLink.href = href;
+    document.head.appendChild(newLink);
+  }
+
+  // Add missing css bundle preload links
+  for (const x of json.cssBundles ?? []) {
+    const href = "/public/" + x;
+    if (document.querySelector(`link[href="${href}"]`)) {
+      continue;
+    }
+    const newLink = document.createElement("link");
+    newLink.rel = "preload";
+    newLink.href = href;
+    newLink.as = "style";
+    document.head.appendChild(newLink);
+  }
 
   const oldList = hwyClientGlobal.get("importURLs");
   const newList = json.importURLs ?? [];
@@ -110,9 +138,7 @@ export async function reRenderApp({
   ] as const satisfies ReadonlyArray<HwyClientGlobalKey>;
 
   for (const key of identicalKeysToSet) {
-    if (json[key]) {
-      hwyClientGlobal.set(key, json[key]);
-    }
+    hwyClientGlobal.set(key, json[key]);
   }
 
   const oldID = hwyClientGlobal.get("buildID");
@@ -160,6 +186,33 @@ export async function reRenderApp({
     index: highestIndex ?? 0,
     scrollState: scrollStateToDispatch,
   } as const;
+
+  window.requestAnimationFrame(() => {
+    // remove old css bundles
+    const actualRouteStyleSheetsOnPage = document.querySelectorAll(
+      "[data-hwy-css-bundle]",
+    );
+    actualRouteStyleSheetsOnPage.forEach((x) => {
+      const attr = x.getAttribute(cssBundleDataAttr)!;
+      if (!json.cssBundles?.includes(attr)) {
+        x.remove();
+      }
+    });
+
+    // add new css bundles
+    json.cssBundles?.forEach((x) => {
+      const href = "/public/" + x;
+      if (document.querySelector(`link[${cssBundleDataAttr}="${x}"]`)) {
+        return;
+      }
+      const newLink = document.createElement("link");
+      newLink.rel = "stylesheet";
+      newLink.href = href;
+      newLink.setAttribute(cssBundleDataAttr, x);
+      document.head.appendChild(newLink);
+    });
+  });
+
   window.dispatchEvent(new CustomEvent(HWY_ROUTE_CHANGE_EVENT_KEY, { detail }));
 
   head.removeAllBetween("meta");
@@ -167,3 +220,5 @@ export async function reRenderApp({
   head.removeAllBetween("rest");
   head.addBlocks("rest", json.restHeadBlocks ?? []);
 }
+
+const cssBundleDataAttr = "data-hwy-css-bundle";

@@ -30,16 +30,22 @@ type StatusEvent = {
   isRevalidating: boolean;
 };
 
+let dispatchStatusEventDebounceTimer: number | undefined;
+
 function dispatchStatusEvent() {
-  window.dispatchEvent(
-    new CustomEvent(STATUS_EVENT_KEY, {
-      detail: {
-        isRevalidating,
-        isSubmitting,
-        isNavigating,
-      } satisfies StatusEvent,
-    }),
-  );
+  clearTimeout(dispatchStatusEventDebounceTimer);
+
+  dispatchStatusEventDebounceTimer = setTimeout(() => {
+    window.dispatchEvent(
+      new CustomEvent(STATUS_EVENT_KEY, {
+        detail: {
+          isRevalidating,
+          isSubmitting,
+          isNavigating,
+        } satisfies StatusEvent,
+      }),
+    );
+  }, 1);
 }
 
 export function getStatus() {
@@ -50,8 +56,13 @@ export function getStatus() {
   };
 }
 
+type CleanupFunction = () => void;
+
 export function addStatusListener(
   listener: (event: CustomEvent<StatusEvent>) => void,
-) {
+): CleanupFunction {
   window.addEventListener(STATUS_EVENT_KEY, listener as any);
+  return () => {
+    window.removeEventListener(STATUS_EVENT_KEY, listener as any);
+  };
 }

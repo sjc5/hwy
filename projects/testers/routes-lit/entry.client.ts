@@ -1,9 +1,9 @@
 import { initClient } from "@hwy-js/client";
-import { HwyRootLayout, HwyRootOutlet, makeComp } from "@hwy-js/lit";
+import { HwyLayout, HwyRootOutlet, makeComp } from "@hwy-js/lit";
 import { html, render } from "lit";
 import { Sidebar } from "./components/sidebar";
 
-class LayoutDef extends HwyRootLayout {
+class LayoutDef extends HwyLayout {
   render() {
     return html`
       ${Sidebar({})}

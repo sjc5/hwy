@@ -1,31 +1,29 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
-import type {
-  GetRouteDataOutput,
-  RouteChangeEvent,
-  RouteData,
-} from "../../common/index.mjs";
+import type { RouteChangeEvent, RouteData } from "../../common/index.mjs";
 import {
   HWY_ROUTE_CHANGE_EVENT_KEY,
   getHwyClientGlobal,
 } from "../../common/index.mjs";
 
 type ErrorBoundaryComp = () => JSX.Element;
-type ServerKey = keyof GetRouteDataOutput;
+
 type BaseProps<AHD extends any = any> = {
   routeData?: RouteData<AHD>;
   index?: number;
   fallbackErrorBoundary?: ErrorBoundaryComp;
   adHocData?: AHD;
-  layout?: RootLayoutComponent<{ adHocData: AHD }>;
+  layout?: HwyLayout<{ adHocData: AHD }>;
 };
 
-export function RootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
-  const ctx: {
-    get: (sk: ServerKey) => GetRouteDataOutput[ServerKey];
-  } = getHwyClientGlobal() as any;
+let shouldScroll = false;
+
+export function HwyRootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
+  const ctx = getHwyClientGlobal();
   const idx = props.index ?? 0;
+
   const CurrentComponent = (ctx.get("activeComponents") as any)?.[idx];
+
   const [adHocData, setAdHocData] = useState(
     ctx.get("adHocData") ?? props.adHocData,
   );
@@ -37,21 +35,36 @@ export function RootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
     (ctx.get("loadersData") as any)?.[idx],
   );
 
-  useEffect(() => {
-    window.addEventListener(HWY_ROUTE_CHANGE_EVENT_KEY, ((
-      e: RouteChangeEvent,
-    ) => {
-      flushSync(() => {
-        setAdHocData(ctx.get("adHocData") ?? props.adHocData);
-        setParams(ctx.get("params") ?? {});
-        setSplatSegments(ctx.get("splatSegments") ?? []);
-        setLoaderData((ctx.get("loadersData") as any)?.[idx]);
-      });
+  const listener = useCallback((e: RouteChangeEvent) => {
+    flushSync(() => {
+      setAdHocData(ctx.get("adHocData") ?? props.adHocData);
+      setParams(ctx.get("params") ?? {});
+      setSplatSegments(ctx.get("splatSegments") ?? []);
+      setLoaderData((ctx.get("loadersData") as any)?.[idx]);
+    });
 
-      if (e.detail.scrollState) {
-        window.scrollTo(e.detail.scrollState.x, e.detail.scrollState.y);
-      }
-    }) as any);
+    if (e.detail.scrollState) {
+      shouldScroll = true;
+      window.requestAnimationFrame(() => {
+        if (shouldScroll && e.detail.scrollState) {
+          window.scrollTo(e.detail.scrollState.x, e.detail.scrollState.y);
+          shouldScroll = false;
+        }
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener(
+      HWY_ROUTE_CHANGE_EVENT_KEY,
+      listener as EventListener,
+    );
+    return () => {
+      window.removeEventListener(
+        HWY_ROUTE_CHANGE_EVENT_KEY,
+        listener as EventListener,
+      );
+    };
   }, []);
 
   const EB = useMemo(
@@ -69,7 +82,7 @@ export function RootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
 
     if (!nextOutletIsAnErrorBoundary) {
       outlet = (localProps: Record<string, any> | undefined) => {
-        return <RootOutlet {...localProps} {...props} index={idx + 1} />;
+        return <HwyRootOutlet {...localProps} {...props} index={idx + 1} />;
       };
     } else {
       outlet =
@@ -131,20 +144,13 @@ export function RootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
     );
   } catch (error) {
     console.error(error);
-    return (
-      <MaybeWithLayout
-        {...props}
-        adHocData={props.adHocData}
-        params={params as any}
-        splatSegments={splatSegments as any}
-        children={ebc}
-      />
-    );
+
+    return <MaybeWithLayout {...extendedProps} children={ebc} />;
   }
 }
 
 function MaybeWithLayout(
-  props: BaseProps & RootLayoutComponentProps & { children: JSX.Element },
+  props: BaseProps & HwyLayoutProps & { children: JSX.Element },
 ): JSX.Element {
   if (props.layout && !props.index) {
     return (
@@ -170,9 +176,7 @@ type DefaultRouteProps = {
   adHocData: any;
 };
 
-export type RouteComponentProps<
-  T extends RoutePropsTypeArg = DefaultRouteProps,
-> = {
+export type HwyRouteProps<T extends RoutePropsTypeArg = DefaultRouteProps> = {
   loaderData: T["loaderData"];
   Outlet: (...props: any) => JSX.Element;
   params: Record<string, string>;
@@ -180,16 +184,14 @@ export type RouteComponentProps<
   adHocData: T["adHocData"] | undefined;
 };
 
-export type RouteComponent<T extends RoutePropsTypeArg = DefaultRouteProps> = (
-  props: RouteComponentProps<T>,
+export type HwyRoute<T extends RoutePropsTypeArg = DefaultRouteProps> = (
+  props: HwyRouteProps<T>,
 ) => JSX.Element;
 
-export type RootLayoutComponentProps<
-  T extends RoutePropsTypeArg = DefaultRouteProps,
-> = {
+export type HwyLayoutProps<T extends RoutePropsTypeArg = DefaultRouteProps> = {
   children: JSX.Element;
-} & Pick<RouteComponentProps<T>, "params" | "splatSegments" | "adHocData">;
+} & Pick<HwyRouteProps<T>, "params" | "splatSegments" | "adHocData">;
 
-export type RootLayoutComponent<
-  T extends RoutePropsTypeArg = DefaultRouteProps,
-> = (props: RootLayoutComponentProps<T>) => JSX.Element;
+export type HwyLayout<T extends RoutePropsTypeArg = DefaultRouteProps> = (
+  props: HwyLayoutProps<T>,
+) => JSX.Element;

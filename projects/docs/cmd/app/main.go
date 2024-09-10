@@ -18,7 +18,7 @@ func main() {
 	// Create a new router and setup the API
 	r := router.Init()
 
-	// Initialize the server
+	// Init the server
 	server := &http.Server{Addr: fmt.Sprintf(":%d", platform.GetEnv().Port), Handler: r}
 
 	// Setup the server run context
