@@ -11,6 +11,7 @@ export type NavigationType =
   | "browserHistory"
   | "userNavigation"
   | "revalidation"
+  | "dev-revalidation"
   | "redirect";
 
 export async function internalNavigate(props: {
@@ -30,6 +31,10 @@ export async function internalNavigate(props: {
   try {
     const url = new URL(props.href, window.location.origin);
     url.searchParams.set(HWY_PREFIX_JSON, "1");
+
+    if (props.navigationType === "dev-revalidation") {
+      url.searchParams.set("dev-revalidation", "1");
+    }
 
     const { response } = await handleRedirects({
       abortController,
@@ -66,6 +71,14 @@ export async function internalNavigate(props: {
   }
 }
 
+export async function navigate(href: string, options?: { replace?: boolean }) {
+  await internalNavigate({
+    href,
+    navigationType: "userNavigation",
+    replace: options?.replace,
+  });
+}
+
 export async function revalidate() {
   await internalNavigate({
     href: window.location.href,
@@ -73,10 +86,9 @@ export async function revalidate() {
   });
 }
 
-export async function navigate(href: string, options?: { replace?: boolean }) {
+export async function devRevalidate() {
   await internalNavigate({
-    href,
-    navigationType: "userNavigation",
-    replace: options?.replace,
+    href: window.location.href,
+    navigationType: "dev-revalidation",
   });
 }

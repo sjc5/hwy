@@ -114,66 +114,68 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 	loadersRedirects := make([]*Redirect, numberOfLoaders)
 	loadersHeadBlocks := make([][]*HeadBlock, numberOfLoaders)
 
-	var wg sync.WaitGroup
+	if r.URL.Query().Get("dev-revalidation") != "1" {
+		var wg sync.WaitGroup
 
-	// run loaders in parallel
-	for i, path := range item.FullyDecoratedMatchingPaths {
-		wg.Add(1)
-		go func(i int, loader DataFunction) {
-			defer wg.Done()
+		// run loaders in parallel
+		for i, path := range item.FullyDecoratedMatchingPaths {
+			wg.Add(1)
+			go func(i int, loader DataFunction) {
+				defer wg.Done()
 
-			if loader == nil {
-				loadersData[i], loadersErrMsgs[i] = nil, ""
-				return
-			}
-
-			loaderRes := loader.GetResInstance()
-
-			if item.routeType == RouteTypesEnum.Loader {
-				loader.Execute(r, item.Params, item.SplatSegments, loaderRes)
-			} else {
-				inputInstance, err := loader.ValidateInput(h.Validator, r, item.routeType)
-				if err != nil {
-					loadersErrMsgs[i] = err.Error()
+				if loader == nil {
+					loadersData[i], loadersErrMsgs[i] = nil, ""
 					return
 				}
-				loader.Execute(r, inputInstance, loaderRes)
+
+				loaderRes := loader.GetResInstance()
+
+				if item.routeType == RouteTypesEnum.Loader {
+					loader.Execute(r, item.Params, item.SplatSegments, loaderRes)
+				} else {
+					inputInstance, err := loader.ValidateInput(h.Validator, r, item.routeType)
+					if err != nil {
+						loadersErrMsgs[i] = err.Error()
+						return
+					}
+					loader.Execute(r, inputInstance, loaderRes)
+				}
+
+				loadersData[i] = loaderRes.(DataFunctionPropsGetter).GetData()
+				loadersErrMsgs[i] = loaderRes.(DataFunctionPropsGetter).GetErrMsg()
+				loadersHeaders[i] = loaderRes.(DataFunctionPropsGetter).GetHeaders()
+				loadersCookies[i] = loaderRes.(DataFunctionPropsGetter).GetCookies()
+				loadersRedirects[i] = loaderRes.(DataFunctionPropsGetter).GetRedirect()
+				loadersHeadBlocks[i] = loaderRes.(DataFunctionPropsGetter).GetHeadBlocks()
+			}(i, path.DataFunction)
+		}
+		wg.Wait()
+
+		// apply first redirect and return
+		for _, redirect := range loadersRedirects {
+			if redirect != nil && redirect.URL != "" && redirect.Code != 0 {
+				http.Redirect(w, r, redirect.URL, redirect.Code)
+				return nil, true, item.routeType
 			}
-
-			loadersData[i] = loaderRes.(DataFunctionPropsGetter).GetData()
-			loadersErrMsgs[i] = loaderRes.(DataFunctionPropsGetter).GetErrMsg()
-			loadersHeaders[i] = loaderRes.(DataFunctionPropsGetter).GetHeaders()
-			loadersCookies[i] = loaderRes.(DataFunctionPropsGetter).GetCookies()
-			loadersRedirects[i] = loaderRes.(DataFunctionPropsGetter).GetRedirect()
-			loadersHeadBlocks[i] = loaderRes.(DataFunctionPropsGetter).GetHeadBlocks()
-		}(i, path.DataFunction)
-	}
-	wg.Wait()
-
-	// apply first redirect and return
-	for _, redirect := range loadersRedirects {
-		if redirect != nil && redirect.URL != "" && redirect.Code != 0 {
-			http.Redirect(w, r, redirect.URL, redirect.Code)
-			return nil, true, item.routeType
 		}
-	}
 
-	cookiesToSet := make([]*http.Cookie, 0, numberOfLoaders)
+		cookiesToSet := make([]*http.Cookie, 0, numberOfLoaders)
 
-	// Merge headers and cookies
-	for i := range numberOfLoaders {
-		if loadersHeaders[i] != nil {
-			for k, v := range loadersHeaders[i] {
-				w.Header()[k] = v
+		// Merge headers and cookies
+		for i := range numberOfLoaders {
+			if loadersHeaders[i] != nil {
+				for k, v := range loadersHeaders[i] {
+					w.Header()[k] = v
+				}
+			}
+			if loadersCookies[i] != nil {
+				cookiesToSet = append(cookiesToSet, loadersCookies[i]...)
 			}
 		}
-		if loadersCookies[i] != nil {
-			cookiesToSet = append(cookiesToSet, loadersCookies[i]...)
-		}
-	}
 
-	for _, cookie := range cookiesToSet {
-		http.SetCookie(w, cookie)
+		for _, cookie := range cookiesToSet {
+			http.SetCookie(w, cookie)
+		}
 	}
 
 	var thereAreErrors bool

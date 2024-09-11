@@ -6,7 +6,7 @@ export {
   getShouldPreventLinkDefault,
 } from "./src/helpers.js";
 export { getAdHocData, initClient } from "./src/init_client.js";
-export { navigate, revalidate } from "./src/navigate.js";
+export { devRevalidate, navigate, revalidate } from "./src/navigate.js";
 export {
   getAbsoluteURL,
   getPrefetchHandlers,

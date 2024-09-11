@@ -13,6 +13,10 @@ export function setStatus({
   type: NavigationType | "submission";
   value: boolean;
 }) {
+  if (type === "dev-revalidation") {
+    return;
+  }
+
   if (type === "revalidation") {
     isRevalidating = value;
   } else if (type === "submission") {

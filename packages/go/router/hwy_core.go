@@ -67,8 +67,10 @@ type Hwy struct {
 	Validator            *validate.Validate
 	GetDefaultHeadBlocks func(r *http.Request) ([]HeadBlock, error)
 	GetRootTemplateData  func(r *http.Request) (map[string]any, error)
+	PublicURLResolver    func(string) string
 
 	paths             []Path
+	clientEntryURL    string
 	clientEntryDeps   []string
 	buildID           string
 	depToCSSBundleMap map[string]string

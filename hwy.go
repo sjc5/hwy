@@ -35,6 +35,8 @@ var GetSSRInnerHTML = router.GetSSRInnerHTML
 var RouteTypesEnum = router.RouteTypesEnum
 var GetAdHocDataContextWithValue = router.GetAdHocDataContextWithValue
 var ClientEntryFileName = router.HwyClientEntryFileName
+var CreatePublicURLResolverPlugin = router.CreatePublicURLResolverPlugin
+var CreateCSSURLFuncResolverPlugin = router.CreateCSSURLFuncResolverPlugin
 
 func GetAdHocDataFromContext[T any](r *http.Request) T {
 	return router.GetAdHocDataFromContext[T](r)

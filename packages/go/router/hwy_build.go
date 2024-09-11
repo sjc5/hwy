@@ -37,10 +37,9 @@ type BuildOptions struct {
 	UsePreactCompat bool
 
 	// outputs
-	PagesSrcDir       string
-	HashedOutDir      string
-	UnhashedOutDir    string
-	ClientEntryOutDir string
+	PagesSrcDir    string
+	HashedOutDir   string
+	UnhashedOutDir string
 
 	// esbuild passthroughs
 	ESBuildPlugins []esbuild.Plugin
@@ -63,6 +62,7 @@ type MetafileJSON struct {
 
 type PathsFile struct {
 	Paths             []PathBase        `json:"paths"`
+	ClientEntry       string            `json:"clientEntry"`
 	ClientEntryDeps   []ImportPath      `json:"clientEntryDeps"`
 	BuildID           string            `json:"buildID"`
 	DepToCSSBundleMap map[string]string `json:"depToCSSBundleMap"`
@@ -296,6 +296,7 @@ func Build(opts *BuildOptions) error {
 
 	pf := PathsFile{
 		Paths:             paths,
+		ClientEntry:       hwyClientEntry,
 		ClientEntryDeps:   hwyClientEntryDeps,
 		BuildID:           buildID,
 		DepToCSSBundleMap: depToCSSBundleMap,
@@ -316,31 +317,6 @@ func Build(opts *BuildOptions) error {
 	err = os.WriteFile(pathsJSONOut, pathsAsJSON, os.ModePerm)
 	if err != nil {
 		Log.Errorf("error writing paths to disk: %s", err)
-		return err
-	}
-
-	clientEntryPath := filepath.Join(opts.HashedOutDir, hwyClientEntry)
-
-	// Mv file at path stored in hwyClientEntry var to ../ in OutDir
-	clientEntryFileBytes, err := os.ReadFile(clientEntryPath)
-	if err != nil {
-		Log.Errorf("error reading client entry file: %s", err)
-		return err
-	}
-
-	err = os.WriteFile(
-		filepath.Join(opts.ClientEntryOutDir, HwyClientEntryFileName),
-		clientEntryFileBytes,
-		os.ModePerm,
-	)
-	if err != nil {
-		Log.Errorf("error writing client entry file: %s", err)
-		return err
-	}
-
-	err = os.Remove(clientEntryPath)
-	if err != nil {
-		Log.Errorf("error removing client entry file: %s", err)
 		return err
 	}
 

@@ -353,15 +353,15 @@ func setup() {
 	testHwyInstance = router.Hwy{
 		FS:                   os.DirFS("../tmp"),
 		RootTemplateLocation: "templates/root.html",
+		PublicURLResolver:    func(path string) string { return path },
 	}
 
 	// Run the Hwy build
 	err = router.Build(&router.BuildOptions{
-		PagesSrcDir:       "../tmp/pages",
-		HashedOutDir:      "../tmp/",
-		UnhashedOutDir:    "../tmp/",
-		ClientEntryOutDir: "../tmp/",
-		ClientEntry:       "../tmp/client.entry.tsx",
+		PagesSrcDir:    "../tmp/pages",
+		HashedOutDir:   "../tmp/",
+		UnhashedOutDir: "../tmp/",
+		ClientEntry:    "../tmp/client.entry.tsx",
 	})
 	if err != nil {
 		panic(err)

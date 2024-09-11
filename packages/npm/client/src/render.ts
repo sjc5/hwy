@@ -1,4 +1,5 @@
 import {
+  GetRouteDataOutput,
   HWY_ROUTE_CHANGE_EVENT_KEY,
   HwyClientGlobalKey,
   RouteChangeEventDetail,
@@ -17,21 +18,7 @@ export async function reRenderApp({
   navigationType,
   runHistoryOptions,
 }: {
-  json: {
-    title?: string;
-    metaHeadBlocks?: Array<any>;
-    restHeadBlocks?: Array<any>;
-    loadersData?: Record<string, any>;
-    loadersErrorMessages?: Array<string>;
-    importURLs?: Array<string>;
-    outermostErrorIndex?: number;
-    splatSegments?: Array<string>;
-    params?: Record<string, string>;
-    adHocData?: any;
-    buildID: string;
-    deps?: Array<string>;
-    cssBundles?: Array<string>;
-  };
+  json: GetRouteDataOutput;
   navigationType: NavigationType;
   runHistoryOptions?: {
     href: string;
@@ -54,6 +41,9 @@ export async function reRenderApp({
     document.head.appendChild(newLink);
   }
 
+  // Create an array to store promises for CSS bundle preloads
+  const cssBundlePromises = [];
+
   // Add missing css bundle preload links
   for (const x of json.cssBundles ?? []) {
     const href = "/public/" + x;
@@ -65,6 +55,13 @@ export async function reRenderApp({
     newLink.href = href;
     newLink.as = "style";
     document.head.appendChild(newLink);
+
+    // Create a promise for this CSS bundle preload
+    const preloadPromise = new Promise((resolve, reject) => {
+      newLink.onload = resolve;
+      newLink.onerror = reject;
+    });
+    cssBundlePromises.push(preloadPromise);
   }
 
   const oldList = hwyClientGlobal.get("importURLs");
@@ -187,6 +184,18 @@ export async function reRenderApp({
     scrollState: scrollStateToDispatch,
   } as const;
 
+  // Wait for all CSS bundle preloads to complete
+  if (cssBundlePromises.length > 0) {
+    try {
+      console.log("Waiting for CSS bundle preloads to complete...");
+      await Promise.all(cssBundlePromises);
+      console.log("CSS bundle preloads completed.");
+    } catch (error) {
+      console.error("Error preloading CSS bundles:", error);
+    }
+  }
+
+  // Now that CSS is preloaded, update the DOM
   window.requestAnimationFrame(() => {
     // remove old css bundles
     const actualRouteStyleSheetsOnPage = document.querySelectorAll(

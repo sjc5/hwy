@@ -16,6 +16,9 @@ func (h *Hwy) Init() error {
 	if h.FS == nil {
 		return errors.New("FS is nil")
 	}
+	if h.PublicURLResolver == nil {
+		return errors.New("PublicURLResolver is nil")
+	}
 
 	pathsFile, err := getBasePaths(h.FS)
 	if err != nil {
@@ -32,6 +35,8 @@ func (h *Hwy) Init() error {
 	for _, pathBase := range pathsFile.Paths {
 		h.paths = append(h.paths, Path{PathBase: pathBase})
 	}
+
+	h.clientEntryURL = h.PublicURLResolver(pathsFile.ClientEntry)
 
 	h.addDataFuncsToPaths()
 	h.clientEntryDeps = pathsFile.ClientEntryDeps

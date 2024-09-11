@@ -41,9 +41,8 @@ func buildHwy(path string) error {
 		UsePreactCompat: true,
 
 		// outputs
-		HashedOutDir:      "static/public/__nohash",
-		UnhashedOutDir:    "static/private",
-		ClientEntryOutDir: "static/public",
+		HashedOutDir:   "static/public/__nohash",
+		UnhashedOutDir: "static/private",
 	})
 	if err != nil {
 		fmt.Println(err)

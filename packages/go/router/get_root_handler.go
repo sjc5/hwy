@@ -110,11 +110,13 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			http.Error(w, msg, http.StatusInternalServerError)
 			return
 		}
+
 		for key, value := range rootTemplateData {
 			tmplData[key] = value
 		}
 		tmplData["HeadElements"] = headElements
 		tmplData["SSRInnerHTML"] = ssrInnerHTML
+		tmplData["ClientEntryURL"] = h.clientEntryURL
 
 		var buf bytes.Buffer
 
