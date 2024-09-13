@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"html/template"
 	"strings"
+
+	"github.com/sjc5/kit/pkg/htmlutil"
 )
 
 type SSRInnerHTMLInput struct {
@@ -21,43 +23,47 @@ type SSRInnerHTMLInput struct {
 	CSSBundles          []string
 }
 
-const ssrInnerTmplStr = `
-	<script>
-		globalThis[Symbol.for("{{.HwyPrefix}}")] = {};
-		const x = globalThis[Symbol.for("{{.HwyPrefix}}")];
+// Sadly, must include the script tags so html/template parses this correctly.
+// They are stripped off later in order to get the correct sha256 hash.
+// Then they are added back via htmlutil.RenderElement.
+const ssrInnerHTMLTmplStr = `<script>
+	globalThis[Symbol.for("{{.HwyPrefix}}")] = {};
+	const x = globalThis[Symbol.for("{{.HwyPrefix}}")];
+	x.isDev = {{.IsDev}};
+	x.buildID = {{.BuildID}};
+	x.loadersData = {{.LoadersData}};
+	x.importURLs = {{.ImportURLs}};
+	x.outermostErrorIndex = {{.OutermostErrorIndex}};
+	x.splatSegments = {{.SplatSegments}};
+	x.params = {{.Params}};
+	x.adHocData = {{.AdHocData}};
+	const deps = {{.Deps}};
+	deps.forEach(x => {
+		const link = document.createElement('link');
+		link.rel = 'modulepreload';
+		link.href = "/public/" + x;
+		document.head.appendChild(link);
+	});
+	const cssBundles = {{.CSSBundles}};
+	cssBundles.forEach(x => {
+		const link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.href = "/public/" + x;
+		link.setAttribute("data-hwy-css-bundle", x);
+		document.head.appendChild(link);
+	});
+</script>`
 
-		x.isDev = {{.IsDev}};
-		x.buildID = {{.BuildID}};
-		x.loadersData = {{.LoadersData}};
-		x.importURLs = {{.ImportURLs}};
-		x.outermostErrorIndex = {{.OutermostErrorIndex}};
-		x.splatSegments = {{.SplatSegments}};
-		x.params = {{.Params}};
-		x.adHocData = {{.AdHocData}};
+var ssrInnerTmpl = template.Must(template.New("ssr").Parse(ssrInnerHTMLTmplStr))
 
-		const deps = {{.Deps}};
-		deps.forEach(x => {
-			const link = document.createElement('link');
-			link.rel = 'modulepreload';
-			link.href = "/public/" + x;
-			document.head.appendChild(link);
-			});
+type GetSSRInnerHTMLOutput struct {
+	Script     *template.HTML
+	Sha256Hash string
+}
 
-		const cssBundles = {{.CSSBundles}};
-		cssBundles.forEach(x => {
-			const link = document.createElement('link');
-			link.rel = 'stylesheet';
-			link.href = "/public/" + x;
-			link.setAttribute("data-hwy-css-bundle", x);
-			document.head.appendChild(link);
-		});
-	</script>
-`
-
-var ssrInnerTmpl = template.Must(template.New("ssr").Parse(ssrInnerTmplStr))
-
-func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML, error) {
+func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*GetSSRInnerHTMLOutput, error) {
 	var htmlBuilder strings.Builder
+
 	var dto = SSRInnerHTMLInput{
 		HwyPrefix:           HwyPrefix,
 		IsDev:               isDev,
@@ -71,12 +77,36 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*template.HTML,
 		Deps:                routeData.Deps,
 		CSSBundles:          routeData.CSSBundles,
 	}
+
 	err := ssrInnerTmpl.Execute(&htmlBuilder, dto)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not execute SSR inner HTML template: %v", err)
 		Log.Errorf(errMsg)
 		return nil, errors.New(errMsg)
 	}
-	final := template.HTML(htmlBuilder.String())
-	return &final, nil
+
+	innerHTML := htmlBuilder.String()
+	innerHTML = strings.TrimPrefix(innerHTML, "<script>")
+	innerHTML = strings.TrimSuffix(innerHTML, "</script>")
+
+	el := htmlutil.Element{
+		Tag:       "script",
+		InnerHTML: template.HTML(innerHTML),
+	}
+
+	sha256Hash, err := htmlutil.AddSha256HashInline(&el, true)
+	if err != nil {
+		errMsg := fmt.Sprintf("could not handle CSP for SSR inner HTML: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
+	}
+
+	renderedEl, err := htmlutil.RenderElement(&el)
+	if err != nil {
+		errMsg := fmt.Sprintf("could not render SSR inner HTML: %v", err)
+		Log.Errorf(errMsg)
+		return nil, errors.New(errMsg)
+	}
+
+	return &GetSSRInnerHTMLOutput{Script: &renderedEl, Sha256Hash: sha256Hash}, nil
 }

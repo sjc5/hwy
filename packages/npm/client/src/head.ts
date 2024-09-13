@@ -1,3 +1,5 @@
+import { HeadBlock } from "../../common/index.mjs";
+
 const markerCache: Record<
   string,
   { startComment: Comment | null; endComment: Comment | null }
@@ -18,7 +20,7 @@ function removeAllBetween(type: "meta" | "rest") {
   }
 }
 
-function addBlocks(type: "meta" | "rest", blocks: Array<any>) {
+function addBlocks(type: "meta" | "rest", blocks: Array<HeadBlock>) {
   const { startComment, endComment } = getStartAndEndComments(type);
   if (!startComment || !endComment) {
     return;
@@ -27,23 +29,29 @@ function addBlocks(type: "meta" | "rest", blocks: Array<any>) {
   const fragment = document.createDocumentFragment();
 
   for (const block of blocks) {
-    let newEl: HTMLElement | null = null;
+    if (!block.tag) {
+      continue;
+    }
 
-    if (block.title) {
-      newEl = document.createElement("title");
-      newEl.textContent = block.title;
-    } else if (block.tag) {
-      newEl = document.createElement(block.tag);
-      if (newEl && block.attributes) {
-        for (const key of Object.keys(block.attributes)) {
-          newEl.setAttribute(key, block.attributes[key]);
-        }
+    const newEl = document.createElement(block.tag);
+
+    if (block.safeAttributes) {
+      for (const key of Object.keys(block.safeAttributes)) {
+        newEl.setAttribute(key, block.safeAttributes[key]);
       }
     }
 
-    if (newEl) {
-      fragment.appendChild(newEl);
+    if (block.booleanAttributes) {
+      for (const key of block.booleanAttributes) {
+        newEl.setAttribute(key, "");
+      }
     }
+
+    if (block.innerHTML) {
+      newEl.innerHTML = block.innerHTML;
+    }
+
+    fragment.appendChild(newEl);
   }
 
   endComment.parentNode?.insertBefore(fragment, endComment);

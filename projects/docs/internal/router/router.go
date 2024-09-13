@@ -27,7 +27,8 @@ func init() {
 
 	var defaultHeadBlocks = []hwy.HeadBlock{
 		{
-			Title: "Hwy",
+			Tag:       "title",
+			InnerHTML: "Hwy",
 		},
 		{
 			Tag: "meta",

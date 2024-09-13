@@ -14,7 +14,7 @@ var hwyInstance = hwy.Hwy{}
 type strMap map[string]string
 
 func init() {
-	defaultHeadBlocks := []hwy.HeadBlock{{Title: "JACOB"}}
+	defaultHeadBlocks := []hwy.HeadBlock{{Tag: "title", InnerHTML: "JACOB"}}
 	dataFuncs := hwy.DataFunctionMap{
 		"/dashboard/customers/$customer_id/orders": hwy.Loader[any](
 			func(ctx hwy.LoaderCtx[any]) {
@@ -29,7 +29,7 @@ func init() {
 						Tag:        "meta",
 						Attributes: map[string]string{"name": "description", "content": "parent"},
 					},
-					{Title: "JACOB1"},
+					{Tag: "title", InnerHTML: "JACOB1"},
 				}
 			},
 		),
@@ -43,7 +43,7 @@ func init() {
 						Tag:        "meta",
 						Attributes: strMap{"name": "description", "content": "child"},
 					},
-					{Title: "JACOB2"},
+					{Tag: "title", InnerHTML: "JACOB2"},
 				}
 			},
 		),

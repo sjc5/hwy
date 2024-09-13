@@ -66,7 +66,7 @@ var catchAllLoader hwy.Loader[*matter] = func(ctx hwy.LoaderCtx[*matter]) {
 	// }
 	// return &[]hwy.HeadBlock{{Title: title}}, nil
 
-	ctx.Res.HeadBlocks = []*hwy.HeadBlock{{Title: "Hwy Bob"}}
+	ctx.Res.HeadBlocks = []*hwy.HeadBlock{{Tag: "title", InnerHTML: "Hwy Bob"}}
 
 	var item *matter
 	if cached, ok := c.Get(normalizedPath); ok {

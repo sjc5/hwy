@@ -43,62 +43,62 @@ func TestDedupeHeadBlocks(t *testing.T) {
 		{
 			name: "No duplicates, with title and description",
 			input: []HeadBlock{
-				{Tag: "", Title: "Hwy", Attributes: nil},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "og:image", "content": "create-hwy-snippet.webp"}},
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", Attributes: map[string]string{"name": "og:image", "content": "create-hwy-snippet.webp"}},
 			},
 			expected: []*HeadBlock{
-				{Tag: "", Title: "Hwy", Attributes: nil},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "og:image", "content": "create-hwy-snippet.webp"}},
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", Attributes: map[string]string{"name": "og:image", "content": "create-hwy-snippet.webp"}},
 			},
 		},
 		{
 			name: "With duplicates",
 			input: []HeadBlock{
-				{Tag: "", Title: "Hwy", Attributes: nil},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
 			},
 			expected: []*HeadBlock{
-				{Tag: "", Title: "Hwy", Attributes: nil},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
 			},
 		},
 		{
 			name: "No title or description",
 			input: []HeadBlock{
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "keywords", "content": "go, test"}},
-				{Tag: "link", Title: "", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+				{Tag: "meta", Attributes: map[string]string{"name": "keywords", "content": "go, test"}},
+				{Tag: "link", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
 			},
 			expected: []*HeadBlock{
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "keywords", "content": "go, test"}},
-				{Tag: "link", Title: "", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+				{Tag: "meta", Attributes: map[string]string{"name": "keywords", "content": "go, test"}},
+				{Tag: "link", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
 			},
 		},
 		{
 			name: "Multiple titles and descriptions",
 			input: []HeadBlock{
-				{Tag: "", Title: "Hwy 1", Attributes: nil},
-				{Tag: "", Title: "Hwy 2", Attributes: nil},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Description 1"}},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Description 2"}},
+				{Tag: "title", InnerHTML: "Hwy 1", Attributes: nil},
+				{Tag: "title", InnerHTML: "Hwy 2", Attributes: nil},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Description 1"}},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Description 2"}},
 			},
 			expected: []*HeadBlock{
-				{Tag: "", Title: "Hwy 2", Attributes: nil},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "description", "content": "Description 2"}},
+				{Tag: "title", InnerHTML: "Hwy 2", Attributes: nil},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Description 2"}},
 			},
 		},
 		{
 			name: "Different tags with same attributes",
 			input: []HeadBlock{
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
-				{Tag: "link", Title: "", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
+				{Tag: "meta", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
+				{Tag: "link", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+				{Tag: "meta", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
 			},
 			expected: []*HeadBlock{
-				{Tag: "meta", Title: "", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
-				{Tag: "link", Title: "", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
+				{Tag: "meta", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
+				{Tag: "link", Attributes: map[string]string{"rel": "stylesheet", "href": "/style.css"}},
 			},
 		},
 	}
@@ -137,7 +137,7 @@ func TestStableHash(t *testing.T) {
 		},
 		{
 			name:     "Title tag",
-			input:    HeadBlock{Tag: "title", Title: "Test Title", Attributes: nil},
+			input:    HeadBlock{Tag: "title", InnerHTML: "Test Title", Attributes: nil},
 			expected: "title|",
 		},
 	}

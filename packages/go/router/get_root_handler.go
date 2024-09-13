@@ -2,13 +2,13 @@ package router
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
 
+	"github.com/sjc5/kit/pkg/cryptoutil"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -46,7 +46,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			}
 			mainT.Checkpoint("JSON marshalling")
 
-			etag := fmt.Sprintf("%x", sha256.Sum256(bytes))
+			etag := fmt.Sprintf("%x", cryptoutil.Sha256Hash(bytes))
 			mainT.Checkpoint("ETAG")
 
 			w.Header().Set("ETag", etag)
@@ -60,7 +60,8 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		}
 
 		var eg errgroup.Group
-		var ssrInnerHTML *template.HTML
+		var ssrScript *template.HTML
+		var ssrScriptSha256Hash string
 		var headElements *template.HTML
 
 		mainT.Reset()
@@ -82,7 +83,8 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			if err != nil {
 				return fmt.Errorf("error getting SSR inner HTML: %v", err)
 			}
-			ssrInnerHTML = sih
+			ssrScript = sih.Script
+			ssrScriptSha256Hash = sih.Sha256Hash
 			egInnerT.Checkpoint("GetSSRInnerHTML")
 			return nil
 		})
@@ -115,7 +117,8 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			tmplData[key] = value
 		}
 		tmplData["HeadElements"] = headElements
-		tmplData["SSRInnerHTML"] = ssrInnerHTML
+		tmplData["SSRScriptElement"] = ssrScript
+		tmplData["SSRScriptElementSha256Hash"] = ssrScriptSha256Hash
 		tmplData["ClientEntryURL"] = h.clientEntryURL
 
 		var buf bytes.Buffer
@@ -128,7 +131,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		}
 		mainT.Checkpoint("Template execution")
 
-		etag := fmt.Sprintf("%x", sha256.Sum256(buf.Bytes()))
+		etag := fmt.Sprintf("%x", cryptoutil.Sha256Hash(buf.Bytes()))
 		mainT.Checkpoint("ETAG")
 
 		w.Header().Set("ETag", etag)

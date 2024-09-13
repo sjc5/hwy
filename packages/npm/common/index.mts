@@ -34,17 +34,18 @@ export function getHwyClientGlobal() {
   return { get, set };
 }
 
-export type TitleHeadBlock = { title: string };
-export type OtherHeadBlock = {
-  tag: "meta" | "base" | "link" | "style" | "script" | "noscript" | string;
-  attributes: Record<string, string | undefined>;
+// __TODO set up go/ts type sharing script
+export type HeadBlock = {
+  tag?: string;
+  safeAttributes?: Record<string, string>;
+  booleanAttributes?: Array<string>;
+  innerHTML?: string;
 };
-export type HeadBlock = TitleHeadBlock | OtherHeadBlock;
 
 export type GetRouteDataOutput<AHD extends any = any> = {
   title: string;
-  metaHeadBlocks: Array<OtherHeadBlock>;
-  restHeadBlocks: Array<OtherHeadBlock>;
+  metaHeadBlocks: Array<HeadBlock>;
+  restHeadBlocks: Array<HeadBlock>;
   loadersData: Array<any>;
   importURLs: Array<string>;
   outermostErrorIndex: number;

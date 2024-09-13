@@ -28,7 +28,7 @@ func RunHwyBuild(isDev bool) error {
 		UsePreactCompat: true,
 
 		// outputs
-		HashedOutDir:   "static/public/__nohash",
-		UnhashedOutDir: "static/private",
+		PreHashedOutDir: "static/public/__nohash",
+		UnhashedOutDir:  "static/private",
 	})
 }

@@ -7,11 +7,11 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 	"time"
 
 	esbuild "github.com/evanw/esbuild/pkg/api"
+	"github.com/sjc5/kit/pkg/esbuildutil"
 	"github.com/sjc5/kit/pkg/id"
 	"github.com/sjc5/kit/pkg/rpc"
 )
@@ -37,33 +37,18 @@ type BuildOptions struct {
 	UsePreactCompat bool
 
 	// outputs
-	PagesSrcDir    string
-	HashedOutDir   string
-	UnhashedOutDir string
+	PagesSrcDir     string
+	PreHashedOutDir string
+	UnhashedOutDir  string
 
 	// esbuild passthroughs
 	ESBuildPlugins []esbuild.Plugin
 }
 
-type ImportPath = string
-
-type MetafileImport struct {
-	Path ImportPath `json:"path"`
-	Kind string     `json:"kind"`
-}
-
-type MetafileJSON struct {
-	Outputs map[ImportPath]struct {
-		Imports    []MetafileImport `json:"imports"`
-		EntryPoint string           `json:"entryPoint"`
-		CSSBundle  string           `json:"cssBundle"`
-	} `json:"outputs"`
-}
-
 type PathsFile struct {
 	Paths             []PathBase        `json:"paths"`
 	ClientEntry       string            `json:"clientEntry"`
-	ClientEntryDeps   []ImportPath      `json:"clientEntryDeps"`
+	ClientEntryDeps   []string          `json:"clientEntryDeps"`
 	BuildID           string            `json:"buildID"`
 	DepToCSSBundleMap map[string]string `json:"depToCSSBundleMap"`
 }
@@ -232,7 +217,7 @@ func Build(opts *BuildOptions) error {
 	// Remove all files in hashedOutDir starting with hwyChunkPrefix or hwyEntryPrefix.
 	// This could theoretically be done in parallel with the esbuild step, but it's unlikely
 	// that it would be perceptibly faster.
-	err = cleanHashedOutDir(opts.HashedOutDir)
+	err = cleanPreHashedOutDir(opts.PreHashedOutDir)
 	if err != nil {
 		Log.Errorf("error cleaning hashed out dir: %s", err)
 		return err
@@ -241,7 +226,7 @@ func Build(opts *BuildOptions) error {
 	result := runEsbuild(RunEsbuildOpts{
 		IsDev:           opts.IsDev,
 		UsePreactCompat: opts.UsePreactCompat,
-		HashedOutDir:    opts.HashedOutDir,
+		HashedOutDir:    opts.PreHashedOutDir,
 		EntryPoints:     getEntrypoints(paths, opts),
 		Plugins:         opts.ESBuildPlugins,
 	})
@@ -251,7 +236,7 @@ func Build(opts *BuildOptions) error {
 		return err
 	}
 
-	metafileJSONMap := MetafileJSON{}
+	metafileJSONMap := esbuildutil.ESBuildMetafileSubset{}
 	err = json.Unmarshal([]byte(result.Metafile), &metafileJSONMap)
 	if err != nil {
 		Log.Errorf("error unmarshalling metafile JSON: %s", err)
@@ -270,11 +255,7 @@ func Build(opts *BuildOptions) error {
 		}
 
 		entryPoint := output.EntryPoint
-		deps, err := findAllDependencies(&metafileJSONMap, key)
-		if err != nil {
-			Log.Errorf("error finding all dependencies: %s", err)
-			return err
-		}
+		deps := esbuildutil.FindAllDependencies(&metafileJSONMap, key)
 		if opts.ClientEntry == entryPoint {
 			hwyClientEntry = cleanKey
 			depsWithoutClientEntry := make([]string, 0, len(deps)-1)
@@ -322,37 +303,6 @@ func Build(opts *BuildOptions) error {
 
 	Log.Infof("build completed in %s", time.Since(startTime))
 	return nil
-}
-
-func findAllDependencies(metafile *MetafileJSON, path ImportPath) ([]ImportPath, error) {
-	seen := make(map[ImportPath]bool)
-	var result []ImportPath
-
-	var recurse func(path ImportPath)
-	recurse = func(path ImportPath) {
-		if seen[path] {
-			return
-		}
-		seen[path] = true
-		result = append(result, path)
-
-		if output, exists := metafile.Outputs[path]; exists {
-			for _, imp := range output.Imports {
-				recurse(imp.Path)
-			}
-		}
-	}
-
-	recurse(path)
-
-	cleanResults := make([]ImportPath, 0, len(result)+1)
-	for _, res := range result {
-		cleanResults = append(cleanResults, filepath.Base(res))
-	}
-	if !slices.Contains(cleanResults, filepath.Base(path)) {
-		cleanResults = append(cleanResults, filepath.Base(path))
-	}
-	return cleanResults, nil
 }
 
 var preactCompatAlias = map[string]string{
@@ -447,7 +397,7 @@ func runEsbuild(opts RunEsbuildOpts) esbuild.BuildResult {
 	return ctx.Rebuild()
 }
 
-func cleanHashedOutDir(hashedOutDir string) error {
+func cleanPreHashedOutDir(hashedOutDir string) error {
 	fileInfo, err := os.Stat(hashedOutDir)
 	if err != nil {
 		if os.IsNotExist(err) {

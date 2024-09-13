@@ -27,7 +27,10 @@ export async function reRenderApp({
   };
 }) {
   // Changing the title instantly makes it feel faster
-  document.title = json.title ?? "";
+  // The temp textarea trick is to decode any HTML entities in the title
+  const tempTxt = document.createElement("textarea");
+  tempTxt.innerHTML = json.title ?? "";
+  document.title = tempTxt.value;
 
   // Add missing deps modulepreload links
   for (const x of json.deps ?? []) {

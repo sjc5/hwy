@@ -4,68 +4,50 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"slices"
 	"sort"
 	"strings"
+
+	"github.com/sjc5/kit/pkg/htmlutil"
 )
 
-type HeadBlock struct {
-	Tag        string            `json:"tag,omitempty"`
-	Attributes map[string]string `json:"attributes,omitempty"`
-	Title      string            `json:"title,omitempty"`
-}
+type HeadBlock = htmlutil.Element
 
 const (
-	metaStart          = `<!-- data-hwy="meta-start" -->`
-	metaEnd            = `<!-- data-hwy="meta-end" -->`
-	restStart          = `<!-- data-hwy="rest-start" -->`
-	restEnd            = `<!-- data-hwy="rest-end" -->`
-	titleTmplStr       = `<title>{{.}}</title>` + "\n"
-	headElsTmplStr     = `{{range $key, $value := .Attributes}}{{$key}}="{{$value}}" {{end}}/>` + "\n"
-	scriptBlockTmplStr = `{{range $key, $value := .Attributes}}{{$key}}="{{$value}}" {{end}}></script>` + "\n"
-)
-
-var (
-	titleTmpl       = template.Must(template.New("title").Parse(titleTmplStr))
-	headElsTmpl     = template.Must(template.New("headblock").Parse(headElsTmplStr))
-	scriptBlockTmpl = template.Must(template.New("scriptblock").Parse(scriptBlockTmplStr))
-	permittedTags   = []string{"meta", "base", "link", "style", "script", "noscript"}
+	metaStart = `<!-- data-hwy="meta-start" -->`
+	metaEnd   = `<!-- data-hwy="meta-end" -->`
+	restStart = `<!-- data-hwy="rest-start" -->`
+	restEnd   = `<!-- data-hwy="rest-end" -->`
 )
 
 func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 	var htmlBuilder strings.Builder
 
 	// Add title
-	err := titleTmpl.Execute(&htmlBuilder, routeData.Title)
+	err := htmlutil.RenderElementToBuilder(&htmlutil.Element{Tag: "title", InnerHTML: template.HTML(routeData.Title)}, &htmlBuilder)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not execute title template: %v", err)
 		Log.Errorf(errMsg)
 		return nil, errors.New(errMsg)
 	}
 
-	// Add head blocks
+	// Add meta head els
 	htmlBuilder.WriteString(metaStart + "\n")
-	for _, block := range routeData.MetaHeadBlocks {
-		if !slices.Contains(permittedTags, block.Tag) {
-			continue
-		}
-		err := renderBlock(&htmlBuilder, block)
+	for _, el := range routeData.MetaHeadBlocks {
+		err := htmlutil.RenderElementToBuilder(el, &htmlBuilder)
 		if err != nil {
-			errMsg := fmt.Sprintf("could not render meta head block: %v", err)
+			errMsg := fmt.Sprintf("could not render meta head el: %v", err)
 			Log.Errorf(errMsg)
 			return nil, errors.New(errMsg)
 		}
 	}
 	htmlBuilder.WriteString(metaEnd + "\n")
 
+	// Add rest head els
 	htmlBuilder.WriteString(restStart + "\n")
-	for _, block := range routeData.RestHeadBlocks {
-		if !slices.Contains(permittedTags, block.Tag) {
-			continue
-		}
-		err := renderBlock(&htmlBuilder, block)
+	for _, el := range routeData.RestHeadBlocks {
+		err := htmlutil.RenderElementToBuilder(el, &htmlBuilder)
 		if err != nil {
-			errMsg := fmt.Sprintf("could not render rest head block: %v", err)
+			errMsg := fmt.Sprintf("could not render rest head el: %v", err)
 			Log.Errorf(errMsg)
 			return nil, errors.New(errMsg)
 		}
@@ -76,77 +58,79 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 	return &final, nil
 }
 
-func getExportedHeadBlocks(activePathData *ActivePathData, defaultHeadBlocks []HeadBlock) (*sortHeadBlocksOutput, error) {
-	headBlocks := make([]HeadBlock, len(defaultHeadBlocks))
+func getExportedHeadBlocks(activePathData *ActivePathData, defaultHeadBlocks []htmlutil.Element) (*sortHeadBlocksOutput, error) {
+	headEls := make([]htmlutil.Element, len(defaultHeadBlocks))
 
-	copy(headBlocks, defaultHeadBlocks)
+	copy(headEls, defaultHeadBlocks)
 
 	for _, head := range activePathData.HeadBlocks {
-		headBlocks = append(headBlocks, *head)
+		headEls = append(headEls, *head)
 	}
 
-	deduped := dedupeHeadBlocks(headBlocks)
+	deduped := dedupeHeadBlocks(headEls)
 
 	sorted := sortHeadBlocksOutput{}
-	sorted.metaHeadBlocks = []*HeadBlock{}
-	sorted.restHeadBlocks = []*HeadBlock{}
+	sorted.metaHeadBlocks = []*htmlutil.Element{}
+	sorted.restHeadBlocks = []*htmlutil.Element{}
 
-	for _, block := range deduped {
-		if len(block.Title) > 0 {
-			sorted.title = block.Title
-		} else if block.Tag == "meta" {
-			sorted.metaHeadBlocks = append(sorted.metaHeadBlocks, block)
+	for _, el := range deduped {
+		if el.Tag == "title" {
+			sorted.title = template.HTMLEscapeString(string(el.InnerHTML))
+		} else if el.Tag == "meta" {
+			safeEl := htmlutil.EscapeIntoTrusted(el)
+			sorted.metaHeadBlocks = append(sorted.metaHeadBlocks, &safeEl)
 		} else {
-			sorted.restHeadBlocks = append(sorted.restHeadBlocks, block)
+			safeEl := htmlutil.EscapeIntoTrusted(el)
+			sorted.restHeadBlocks = append(sorted.restHeadBlocks, &safeEl)
 		}
 	}
 
 	return &sorted, nil
 }
 
-func dedupeHeadBlocks(blocks []HeadBlock) []*HeadBlock {
-	uniqueBlocks := make(map[string]*HeadBlock)
-	var dedupedBlocks []*HeadBlock
+func dedupeHeadBlocks(els []htmlutil.Element) []*htmlutil.Element {
+	uniqueEls := make(map[string]*htmlutil.Element)
+	var dedupedEls []*htmlutil.Element
 
 	titleIdx := -1
 	descriptionIdx := -1
 
-	for _, block := range blocks {
-		if len(block.Title) > 0 {
+	for _, el := range els {
+		if el.Tag == "title" {
 			if titleIdx == -1 {
-				titleIdx = len(dedupedBlocks)
-				dedupedBlocks = append(dedupedBlocks, &block)
+				titleIdx = len(dedupedEls)
+				dedupedEls = append(dedupedEls, &el)
 			} else {
-				dedupedBlocks[titleIdx] = &block
+				dedupedEls[titleIdx] = &el
 			}
-		} else if block.Tag == "meta" && block.Attributes["name"] == "description" {
+		} else if el.Tag == "meta" && el.Attributes["name"] == "description" {
 			if descriptionIdx == -1 {
-				descriptionIdx = len(dedupedBlocks)
-				dedupedBlocks = append(dedupedBlocks, &block)
+				descriptionIdx = len(dedupedEls)
+				dedupedEls = append(dedupedEls, &el)
 			} else {
-				dedupedBlocks[descriptionIdx] = &block
+				dedupedEls[descriptionIdx] = &el
 			}
 		} else {
-			key := headBlockStableHash(&block)
-			if _, exists := uniqueBlocks[key]; !exists {
-				uniqueBlocks[key] = &block
-				dedupedBlocks = append(dedupedBlocks, &block)
+			key := headBlockStableHash(&el)
+			if _, exists := uniqueEls[key]; !exists {
+				uniqueEls[key] = &el
+				dedupedEls = append(dedupedEls, &el)
 			}
 		}
 	}
 
-	return dedupedBlocks
+	return dedupedEls
 }
 
-func headBlockStableHash(block *HeadBlock) string {
-	parts := make([]string, 0, len(block.Attributes))
-	for key, value := range block.Attributes {
+func headBlockStableHash(el *htmlutil.Element) string {
+	parts := make([]string, 0, len(el.Attributes))
+	for key, value := range el.Attributes {
 		parts = append(parts, key+"="+value)
 	}
 	sort.Strings(parts) // Ensure attributes are in a consistent order
 	var sb strings.Builder
-	sb.Grow(len(block.Tag) + 1 + (len(parts) * 16))
-	sb.WriteString(block.Tag)
+	sb.Grow(len(el.Tag) + 1 + (len(parts) * 16))
+	sb.WriteString(el.Tag)
 	sb.WriteString("|")
 	for i, part := range parts {
 		if i > 0 {
@@ -157,24 +141,8 @@ func headBlockStableHash(block *HeadBlock) string {
 	return sb.String()
 }
 
-func renderBlock(htmlBuilder *strings.Builder, block *HeadBlock) error {
-	htmlBuilder.WriteString("<" + block.Tag + " ")
-	var err error
-	if block.Tag == "script" {
-		err = scriptBlockTmpl.Execute(htmlBuilder, block)
-	} else {
-		err = headElsTmpl.Execute(htmlBuilder, block)
-	}
-	if err != nil {
-		errMsg := fmt.Sprintf("could not execute head block template: %v", err)
-		Log.Errorf(errMsg)
-		return errors.New(errMsg)
-	}
-	return nil
-}
-
 type sortHeadBlocksOutput struct {
 	title          string
-	metaHeadBlocks []*HeadBlock
-	restHeadBlocks []*HeadBlock
+	metaHeadBlocks []*htmlutil.Element
+	restHeadBlocks []*htmlutil.Element
 }
