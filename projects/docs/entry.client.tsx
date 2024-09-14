@@ -1,5 +1,8 @@
+declare global {
+	var process: { env: { NODE_ENV: string } };
+}
 if (process.env.NODE_ENV === "development") {
-  await import("preact/debug");
+	await import("preact/debug");
 }
 
 import { addStatusListener, initClient } from "@hwy-js/client";
@@ -8,29 +11,25 @@ import { StrictMode, hydrate, startTransition } from "preact/compat";
 import { RootLayout } from "./pages/layout.js";
 
 await initClient(() => {
-  startTransition(() => {
-    hydrate(
-      <StrictMode>
-        <RootOutlet
-          fallbackErrorBoundary={() => <div>Something went wrong.</div>}
-          layout={RootLayout}
-        />
-      </StrictMode>,
-      document.getElementById("root") as HTMLElement,
-    );
-  });
+	startTransition(() => {
+		hydrate(
+			<StrictMode>
+				<RootOutlet
+					fallbackErrorBoundary={() => <div>Something went wrong.</div>}
+					layout={RootLayout}
+				/>
+			</StrictMode>,
+			document.getElementById("root") as HTMLElement,
+		);
+	});
 });
-
-declare global {
-  var process: { env: { NODE_ENV: string } };
-}
 
 import NProgress from "nprogress";
 
-addStatusListener(function (evt) {
-  if (evt.detail.isNavigating && !NProgress.isStarted()) {
-    NProgress.start();
-  } else {
-    NProgress.done();
-  }
+addStatusListener((evt) => {
+	if (evt.detail.isNavigating && !NProgress.isStarted()) {
+		NProgress.start();
+	} else {
+		NProgress.done();
+	}
 });

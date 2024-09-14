@@ -1,0 +1,9 @@
+#!/bin/sh
+
+make check-staged
+
+# If the tests fail, prevent the commit
+if [ $? -ne 0 ]; then
+  echo "Tests failed. Commit aborted."
+  exit 1
+fi

@@ -3,8 +3,8 @@ import { html } from "lit";
 import { property } from "lit/decorators.js";
 
 class SidebarDef extends LightElement {
-  render() {
-    return html`
+	render() {
+		return html`
       <ul class="sidebar">
         ${LinkListItem({ href: "/does-not-exist" })}
         ${LinkListItem({ href: "/this-should-be-ignored" })}
@@ -33,21 +33,21 @@ class SidebarDef extends LightElement {
         ${LinkListItem({ href: "/articles/test/articles" })}
       </ul>
     `;
-  }
+	}
 }
 
 export const Sidebar = makeComp(SidebarDef, "sidebar");
 
 class LinkDef extends LightElement {
-  @property() href = "";
+	@property() href = "";
 
-  render() {
-    return html`
+	render() {
+		return html`
       <li>
         <a href=${this.href} data-boost="true"> ${this.href} </a>
       </li>
     `;
-  }
+	}
 }
 
 const LinkListItem = makeComp(LinkDef, "link-list-item");

@@ -1,16 +1,16 @@
 {
-  "devDependencies": {
-    "@hwy-js/client": "workspace:*",
-    "@hwy-js/react": "workspace:*",
-    "@types/react": "^18.3.5",
-    "@types/react-dom": "^18.3.0",
-    "preact": "^10.23.2",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "typescript": "^5.4.3"
-  },
-  "overrides": {
-    "@types/react": "npm:types-react@rc",
-    "@types/react-dom": "npm:types-react-dom@rc"
-  }
+	"devDependencies": {
+		"@hwy-js/client": "workspace:*",
+		"@hwy-js/react": "workspace:*",
+		"@types/react": "^18.3.5",
+		"@types/react-dom": "^18.3.0",
+		"preact": "^10.23.2",
+		"react": "18.3.1",
+		"react-dom": "18.3.1",
+		"typescript": "^5.4.3"
+	},
+	"overrides": {
+		"@types/react": "npm:types-react@rc",
+		"@types/react-dom": "npm:types-react-dom@rc"
+	}
 }

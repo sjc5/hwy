@@ -1,39 +1,37 @@
 {
-  "name": "@hwy-js/react",
-  "version": "0.15.0-pre.28",
-  "author": {
-    "name": "Samuel J. Cook"
-  },
-  "description": "React utilities for Hwy framework",
-  "type": "module",
-  "exports": {
-    ".": "./dist/index.js"
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "rm -rf dist && tsup-node index.ts --format esm --dts",
-    "dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
-    "publish-pre": "npm publish --access public --tag pre",
-    "publish-non-pre": "npm publish --access public",
-    "update-latest": "pnpm update --latest",
-    "typecheck": "tsc"
-  },
-  "devDependencies": {
-    "@types/react": "^18.3.5",
-    "@types/react-dom": "^18.3.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "tsup": "^8.0.2",
-    "typescript": "^5.4.4"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/sjc5/hwy",
-    "directory": "packages/npm/react"
-  },
-  "homepage": "https://hwy.dev",
-  "bugs": "https://github.com/sjc5/hwy/issues",
-  "sideEffects": false
+	"name": "@hwy-js/react",
+	"version": "0.15.0-pre.28",
+	"author": {
+		"name": "Samuel J. Cook"
+	},
+	"description": "React utilities for Hwy framework",
+	"type": "module",
+	"exports": {
+		".": "./dist/index.js"
+	},
+	"files": ["dist"],
+	"scripts": {
+		"build": "rm -rf dist && tsup-node index.ts --format esm --dts",
+		"dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
+		"publish-pre": "npm publish --access public --tag pre",
+		"publish-non-pre": "npm publish --access public",
+		"update-latest": "pnpm update --latest",
+		"typecheck": "tsc"
+	},
+	"devDependencies": {
+		"@types/react": "^18.3.5",
+		"@types/react-dom": "^18.3.0",
+		"react": "18.3.1",
+		"react-dom": "18.3.1",
+		"tsup": "^8.0.2",
+		"typescript": "^5.4.4"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sjc5/hwy",
+		"directory": "packages/npm/react"
+	},
+	"homepage": "https://hwy.dev",
+	"bugs": "https://github.com/sjc5/hwy/issues",
+	"sideEffects": false
 }

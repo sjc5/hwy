@@ -3,28 +3,30 @@ import { html } from "lit";
 import { guard } from "lit/directives/guard.js";
 
 class TesterCompDef extends HwyRoute<{ loaderData: "bob" }> {
-  render() {
-    const randomColor = guard(
-      [],
-      () => "#" + Math.floor(Math.random() * 16777215).toString(16),
-    );
+	render() {
+		const randomColor = guard(
+			[],
+			() => "#" + Math.floor(Math.random() * 16777215).toString(16),
+		);
 
-    console.log(this.passedFromParent);
+		console.log(this.passedFromParent);
 
-    return html`
+		return html`
       <div class="outlet-wrapper" style="background-color: ${randomColor};">
         <div class="tester-comp-wrapper">
           <p>Splat Segments:${JSON.stringify(this.splatSegments)}</p>
 
-          ${Object.keys(this.params).length
-            ? html`<p>Params: ${JSON.stringify(this.params)}</p>`
-            : null}
+          ${
+						Object.keys(this.params).length
+							? html`<p>Params: ${JSON.stringify(this.params)}</p>`
+							: null
+					}
           ${this.loaderData && JSON.stringify(this.loaderData)} ${this.Outlet()}
         </div>
         ${RANDOM_TEXT}
       </div>
     `;
-  }
+	}
 }
 
 export const TesterComp = makeComp(TesterCompDef);

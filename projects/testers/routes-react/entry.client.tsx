@@ -1,9 +1,9 @@
 // IF PREACT
 declare global {
-  var process: { env: { NODE_ENV: string } };
+	var process: { env: { NODE_ENV: string } };
 }
 if (process.env.NODE_ENV === "development") {
-  await import("preact/debug");
+	await import("preact/debug");
 }
 
 import { initClient } from "@hwy-js/client";
@@ -19,35 +19,35 @@ import { render } from "preact";
 import { StrictMode } from "preact/compat";
 
 await initClient(() => {
-  const rootEl = document.getElementById("root") as HTMLElement;
+	const rootEl = document.getElementById("root") as HTMLElement;
 
-  // IF REACT
-  // const root = createRoot(rootEl);
-  // root.render(
-  //   <React.StrictMode>
-  //     <Sidebar />
-  //     <main>
-  //       <HwyRootOutlet
-  //         fallbackErrorBoundary={function ErrorBoundary() {
-  //           return <div>Error Boundary in Root</div>;
-  //         }}
-  //       />
-  //     </main>
-  //   </React.StrictMode>,
-  // );
+	// IF REACT
+	// const root = createRoot(rootEl);
+	// root.render(
+	//   <React.StrictMode>
+	//     <Sidebar />
+	//     <main>
+	//       <HwyRootOutlet
+	//         fallbackErrorBoundary={function ErrorBoundary() {
+	//           return <div>Error Boundary in Root</div>;
+	//         }}
+	//       />
+	//     </main>
+	//   </React.StrictMode>,
+	// );
 
-  // IF PREACT
-  render(
-    <StrictMode>
-      <Sidebar />
-      <main>
-        <HwyRootOutlet
-          fallbackErrorBoundary={function ErrorBoundary() {
-            return <div>Error Boundary in Root</div>;
-          }}
-        />
-      </main>
-    </StrictMode>,
-    rootEl,
-  );
+	// IF PREACT
+	render(
+		<StrictMode>
+			<Sidebar />
+			<main>
+				<HwyRootOutlet
+					fallbackErrorBoundary={function ErrorBoundary() {
+						return <div>Error Boundary in Root</div>;
+					}}
+				/>
+			</main>
+		</StrictMode>,
+		rootEl,
+	);
 });

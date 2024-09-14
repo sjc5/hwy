@@ -9,10 +9,10 @@ hljs.registerLanguage("bash", bash);
 hljs.registerLanguage("json", json);
 
 export function RenderedMarkdown({ grayMatterObj }: { grayMatterObj: MdObj }) {
-  const title = grayMatterObj.title ? `<h1>${grayMatterObj.title}</h1>` : "";
-  const html = title + grayMatterObj.content;
-  useEffect(hljs.highlightAll, [grayMatterObj]);
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+	const title = grayMatterObj.title ? `<h1>${grayMatterObj.title}</h1>` : "";
+	const html = title + grayMatterObj.content;
+	useEffect(hljs.highlightAll, [grayMatterObj]);
+	return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 export type MdObj = { title: string; content: string };

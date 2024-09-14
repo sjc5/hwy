@@ -1,4 +1,4 @@
-import { NavigationType } from "./navigate.js";
+import type { NavigationType } from "./navigate.js";
 
 const STATUS_EVENT_KEY = "hwy:status";
 
@@ -7,66 +7,66 @@ let isSubmitting = false;
 let isRevalidating = false;
 
 export function setStatus({
-  type,
-  value,
+	type,
+	value,
 }: {
-  type: NavigationType | "submission";
-  value: boolean;
+	type: NavigationType | "submission";
+	value: boolean;
 }) {
-  if (type === "dev-revalidation") {
-    return;
-  }
+	if (type === "dev-revalidation") {
+		return;
+	}
 
-  if (type === "revalidation") {
-    isRevalidating = value;
-  } else if (type === "submission") {
-    isSubmitting = value;
-  } else {
-    isNavigating = value;
-  }
+	if (type === "revalidation") {
+		isRevalidating = value;
+	} else if (type === "submission") {
+		isSubmitting = value;
+	} else {
+		isNavigating = value;
+	}
 
-  dispatchStatusEvent();
+	dispatchStatusEvent();
 }
 
 type StatusEvent = {
-  isNavigating: boolean;
-  isSubmitting: boolean;
-  isRevalidating: boolean;
+	isNavigating: boolean;
+	isSubmitting: boolean;
+	isRevalidating: boolean;
 };
 
 let dispatchStatusEventDebounceTimer: number | undefined;
 
 function dispatchStatusEvent() {
-  clearTimeout(dispatchStatusEventDebounceTimer);
+	clearTimeout(dispatchStatusEventDebounceTimer);
 
-  dispatchStatusEventDebounceTimer = setTimeout(() => {
-    window.dispatchEvent(
-      new CustomEvent(STATUS_EVENT_KEY, {
-        detail: {
-          isRevalidating,
-          isSubmitting,
-          isNavigating,
-        } satisfies StatusEvent,
-      }),
-    );
-  }, 1);
+	dispatchStatusEventDebounceTimer = setTimeout(() => {
+		window.dispatchEvent(
+			new CustomEvent(STATUS_EVENT_KEY, {
+				detail: {
+					isRevalidating,
+					isSubmitting,
+					isNavigating,
+				} satisfies StatusEvent,
+			}),
+		);
+	}, 1);
 }
 
 export function getStatus() {
-  return {
-    isNavigating,
-    isSubmitting,
-    isRevalidating,
-  };
+	return {
+		isNavigating,
+		isSubmitting,
+		isRevalidating,
+	};
 }
 
 type CleanupFunction = () => void;
 
 export function addStatusListener(
-  listener: (event: CustomEvent<StatusEvent>) => void,
+	listener: (event: CustomEvent<StatusEvent>) => void,
 ): CleanupFunction {
-  window.addEventListener(STATUS_EVENT_KEY, listener as any);
-  return () => {
-    window.removeEventListener(STATUS_EVENT_KEY, listener as any);
-  };
+	window.addEventListener(STATUS_EVENT_KEY, listener as any);
+	return () => {
+		window.removeEventListener(STATUS_EVENT_KEY, listener as any);
+	};
 }

@@ -1,48 +1,44 @@
 {
-  "name": "hwy-monorepo",
-  "version": "0.0.0",
-  "type": "module",
-  "private": true,
-  "author": {
-    "name": "Samuel J. Cook"
-  },
-  "description": "Monorepo for Hwy framework",
-  "scripts": {
-    "build:client": "pnpm -r --filter @hwy-js/client run build",
-    "build:react": "pnpm -r --filter @hwy-js/react run build",
-    "build:lit": "pnpm -r --filter @hwy-js/lit run build",
-    "build": "pnpm build:client && pnpm build:react && pnpm build:lit",
-    "dev:test": "npx vitest",
-    "dev:client": "pnpm -r --filter @hwy-js/client run dev",
-    "dev:react": "pnpm -r --filter @hwy-js/react run dev",
-    "dev:lit": "pnpm -r --filter @hwy-js/lit run dev",
-    "dev": "pnpm build && npm-run-all --parallel dev:*",
-    "add-pre": "node scripts/npm/add_pre.js",
-    "remove-pre": "node scripts/npm/remove_pre.js",
-    "bump-pre": "node scripts/npm/bump_pre.js",
-    "bump-patch": "node scripts/npm/bump_patch.js",
-    "bump-minor": "node scripts/npm/bump_minor.js",
-    "bump-major": "node scripts/npm/bump_major.js",
-    "current-version": "node scripts/npm/current_version.js",
-    "set-version": "node scripts/npm/set_version.js",
-    "test": "pnpm build && npx vitest run",
-    "typecheck:client": "pnpm -r --filter @hwy-js/client run typecheck",
-    "typecheck:react": "pnpm -r --filter @hwy-js/react run typecheck",
-    "typecheck:lit": "pnpm -r --filter @hwy-js/lit run typecheck",
-    "typecheck": "npm-run-all --parallel typecheck:*",
-    "pre-publish": "pnpm typecheck && pnpm test",
-    "publish-pre": "pnpm pre-publish && pnpm -r publish-pre",
-    "publish-non-pre": "pnpm pre-publish && pnpm -r publish-non-pre",
-    "update-latest": "pnpm update --latest && pnpm -r update-latest && pnpm i",
-    "format": "npx prettier --write ."
-  },
-  "devDependencies": {
-    "npm-run-all": "^4.1.5",
-    "prettier": "^3.2.5",
-    "typescript": "^5.4.4",
-    "vitest": "^1.4.0"
-  },
-  "prettier": {
-    "tabs": true
-  }
+	"name": "hwy-monorepo",
+	"version": "0.0.0",
+	"type": "module",
+	"private": true,
+	"author": {
+		"name": "Samuel J. Cook"
+	},
+	"description": "Monorepo for Hwy framework",
+	"scripts": {
+		"build:client": "pnpm -r --filter @hwy-js/client run build",
+		"build:react": "pnpm -r --filter @hwy-js/react run build",
+		"build:lit": "pnpm -r --filter @hwy-js/lit run build",
+		"build": "pnpm build:client && pnpm build:react && pnpm build:lit",
+		"dev:test": "npx vitest",
+		"dev:client": "pnpm -r --filter @hwy-js/client run dev",
+		"dev:react": "pnpm -r --filter @hwy-js/react run dev",
+		"dev:lit": "pnpm -r --filter @hwy-js/lit run dev",
+		"dev": "pnpm build && npm-run-all --parallel dev:*",
+		"add-pre": "node scripts/npm/add_pre.js",
+		"remove-pre": "node scripts/npm/remove_pre.js",
+		"bump-pre": "node scripts/npm/bump_pre.js",
+		"bump-patch": "node scripts/npm/bump_patch.js",
+		"bump-minor": "node scripts/npm/bump_minor.js",
+		"bump-major": "node scripts/npm/bump_major.js",
+		"current-version": "node scripts/npm/current_version.js",
+		"set-version": "node scripts/npm/set_version.js",
+		"test": "pnpm build && npx vitest run",
+		"typecheck:client": "pnpm -r --filter @hwy-js/client run typecheck",
+		"typecheck:react": "pnpm -r --filter @hwy-js/react run typecheck",
+		"typecheck:lit": "pnpm -r --filter @hwy-js/lit run typecheck",
+		"typecheck": "npm-run-all --parallel typecheck:*",
+		"pre-publish": "pnpm typecheck && pnpm test",
+		"publish-pre": "pnpm pre-publish && pnpm -r publish-pre",
+		"publish-non-pre": "pnpm pre-publish && pnpm -r publish-non-pre",
+		"update-latest": "pnpm update --latest && pnpm -r update-latest && pnpm i"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.0",
+		"npm-run-all": "^4.1.5",
+		"typescript": "^5.4.4",
+		"vitest": "^1.4.0"
+	}
 }

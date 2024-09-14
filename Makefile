@@ -13,6 +13,17 @@ test-go: test-go-router test-go-general
 publish-go: test-go
 	@./scripts/go/bumper.sh
 
+# --- LINTING AND FORMATTING JAVASCRIPT ---
+
+check:
+	@pnpm biome check --write .
+
+check-staged:
+	@pnpm biome check --write . --staged 
+
+setup-lint-staged-hook:
+	@git config core.hooksPath .hooks
+
 # --- PROJECTS ---
 
 docs-dev:

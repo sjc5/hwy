@@ -1,16 +1,16 @@
 {
-  "name": "docs",
-  "private": true,
-  "type": "module",
-  "devDependencies": {
-    "@hwy-js/client": "0.15.0-pre.2",
-    "@hwy-js/react": "0.15.0-pre.2",
-    "@types/nprogress": "^0.2.3",
-    "highlight.js": "^11.9.0",
-    "nprogress": "^0.2.0",
-    "preact": "^10.20.2",
-    "typescript": "^5.4.3",
-    "use-html-dialog": "^0.2.1",
-    "usehooks-ts": "^3.1.0"
-  }
+	"name": "docs",
+	"private": true,
+	"type": "module",
+	"devDependencies": {
+		"@hwy-js/client": "0.15.0-pre.2",
+		"@hwy-js/react": "0.15.0-pre.2",
+		"@types/nprogress": "^0.2.3",
+		"highlight.js": "^11.9.0",
+		"nprogress": "^0.2.0",
+		"preact": "^10.20.2",
+		"typescript": "^5.4.3",
+		"use-html-dialog": "^0.2.1",
+		"usehooks-ts": "^3.1.0"
+	}
 }
