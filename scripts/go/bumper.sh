@@ -16,17 +16,14 @@ then
 fi
 
 current_tag=$(git describe --tags --abbrev=0)
-
-if [ -z "${current_tag}" ]; then 
-		cat <<EOF
-No existing tags found. Get started by running:
-\`\`\`sh
-${blue_start}git tag v0.0.1
-git push origin v0.0.1
-GOPROXY=proxy.golang.org go list -m all${color_end}
-\`\`\`
-Aborted
-EOF
+if [ -z "${current_tag}" ]; then
+    echo "No existing tags found. Get started by running:"
+		echo "\`\`\`sh"
+    printf "${blue_start}git tag v0.0.1\n"
+    echo "git push origin v0.0.1"
+    printf "GOPROXY=proxy.golang.org go list -m all${color_end}\n"
+		echo "\`\`\`"
+    echo "Aborted"
     exit 1
 else
     echo "current tag: ${current_tag}"

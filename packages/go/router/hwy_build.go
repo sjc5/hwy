@@ -17,8 +17,7 @@ import (
 )
 
 const (
-	HwyClientEntryFileName = "hwy_client_entry.js"
-	HwyPathsFileName       = "hwy_paths.json"
+	HwyPathsFileName = "hwy_paths.json"
 )
 
 type AdHocType = rpc.AdHocType
@@ -37,9 +36,9 @@ type BuildOptions struct {
 	UsePreactCompat bool
 
 	// outputs
-	PagesSrcDir     string
-	PreHashedOutDir string
-	UnhashedOutDir  string
+	PagesSrcDir         string
+	StaticPublicOutDir  string
+	StaticPrivateOutDir string
 
 	// esbuild passthroughs
 	ESBuildPlugins []esbuild.Plugin
@@ -207,28 +206,28 @@ func Build(opts *BuildOptions) error {
 	}
 	Log.Infof("new build id: %s", buildID)
 
-	pathsJSONOut := filepath.Join(opts.UnhashedOutDir, HwyPathsFileName)
+	pathsJSONOut := filepath.Join(opts.StaticPrivateOutDir, HwyPathsFileName)
 	paths, err := opts.writePathsToDisk(opts.PagesSrcDir, pathsJSONOut)
 	if err != nil {
 		Log.Errorf("error writing paths to disk: %s", err)
 		return err
 	}
 
-	// Remove all files in hashedOutDir starting with hwyChunkPrefix or hwyEntryPrefix.
+	// Remove all files in StaticPublicOutDir starting with hwyChunkPrefix or hwyEntryPrefix.
 	// This could theoretically be done in parallel with the esbuild step, but it's unlikely
 	// that it would be perceptibly faster.
-	err = cleanPreHashedOutDir(opts.PreHashedOutDir)
+	err = cleanStaticPublicOutDir(opts.StaticPublicOutDir)
 	if err != nil {
-		Log.Errorf("error cleaning hashed out dir: %s", err)
+		Log.Errorf("error cleaning static public out dir: %s", err)
 		return err
 	}
 
-	result := runEsbuild(RunEsbuildOpts{
-		IsDev:           opts.IsDev,
-		UsePreactCompat: opts.UsePreactCompat,
-		HashedOutDir:    opts.PreHashedOutDir,
-		EntryPoints:     getEntrypoints(paths, opts),
-		Plugins:         opts.ESBuildPlugins,
+	result := runEsbuild(runEsbuildOpts{
+		IsDev:              opts.IsDev,
+		UsePreactCompat:    opts.UsePreactCompat,
+		StaticPublicOutDir: opts.StaticPublicOutDir,
+		EntryPoints:        getEntrypoints(paths, opts),
+		Plugins:            opts.ESBuildPlugins,
 	})
 	if len(result.Errors) > 0 {
 		err = errors.New(result.Errors[0].Text)
@@ -312,12 +311,12 @@ var preactCompatAlias = map[string]string{
 	"react-dom/test-utils": "preact/test-utils",
 }
 
-type RunEsbuildOpts struct {
-	IsDev           bool
-	UsePreactCompat bool
-	HashedOutDir    string
-	EntryPoints     []string
-	Plugins         []esbuild.Plugin
+type runEsbuildOpts struct {
+	IsDev              bool
+	UsePreactCompat    bool
+	StaticPublicOutDir string
+	EntryPoints        []string
+	Plugins            []esbuild.Plugin
 }
 
 const (
@@ -330,8 +329,8 @@ var (
 	latestCacheKey   string
 )
 
-func runEsbuild(opts RunEsbuildOpts) esbuild.BuildResult {
-	cacheKey := fmt.Sprintf("%v%v%v%v", opts.IsDev, opts.UsePreactCompat, opts.HashedOutDir, opts.EntryPoints)
+func runEsbuild(opts runEsbuildOpts) esbuild.BuildResult {
+	cacheKey := fmt.Sprintf("%v%v%v%v", opts.IsDev, opts.UsePreactCompat, opts.StaticPublicOutDir, opts.EntryPoints)
 
 	if cacheKey == latestCacheKey {
 		Log.Infof("reusing esbuild context")
@@ -360,7 +359,7 @@ func runEsbuild(opts RunEsbuildOpts) esbuild.BuildResult {
 		EntryPoints: opts.EntryPoints,
 
 		// dynamic based on build opts
-		Outdir:            opts.HashedOutDir,
+		Outdir:            opts.StaticPublicOutDir,
 		Alias:             alias,
 		Sourcemap:         sourcemap,
 		MinifyWhitespace:  !opts.IsDev,
@@ -397,23 +396,23 @@ func runEsbuild(opts RunEsbuildOpts) esbuild.BuildResult {
 	return ctx.Rebuild()
 }
 
-func cleanPreHashedOutDir(hashedOutDir string) error {
-	fileInfo, err := os.Stat(hashedOutDir)
+func cleanStaticPublicOutDir(staticPublicOutDir string) error {
+	fileInfo, err := os.Stat(staticPublicOutDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			Log.Warningf("hashed out dir does not exist: %s", hashedOutDir)
+			Log.Warningf("static public out dir does not exist: %s", staticPublicOutDir)
 			return nil
 		}
 		return err
 	}
 
 	if !fileInfo.IsDir() {
-		errMsg := fmt.Sprintf("%s is not a directory", hashedOutDir)
+		errMsg := fmt.Sprintf("%s is not a directory", staticPublicOutDir)
 		Log.Errorf(errMsg)
 		return errors.New(errMsg)
 	}
 
-	err = filepath.Walk(hashedOutDir, func(path string, info fs.FileInfo, err error) error {
+	err = filepath.Walk(staticPublicOutDir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}

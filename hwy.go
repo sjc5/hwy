@@ -34,7 +34,6 @@ var GetHeadElements = router.GetHeadElements
 var GetSSRInnerHTML = router.GetSSRInnerHTML
 var RouteTypesEnum = router.RouteTypesEnum
 var GetAdHocDataContextWithValue = router.GetAdHocDataContextWithValue
-var ClientEntryFileName = router.HwyClientEntryFileName
 var CreatePublicURLResolverPlugin = router.CreatePublicURLResolverPlugin
 var CreateCSSURLFuncResolverPlugin = router.CreateCSSURLFuncResolverPlugin
 

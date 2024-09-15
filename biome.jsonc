@@ -10,7 +10,7 @@
 		"ignore": [
 			"node_modules",
 			"dist",
-			"static/public/__nohash",
+			"static/public/prehashed",
 			"__generated_ts_api/*"
 		]
 	},

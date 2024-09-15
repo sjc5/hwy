@@ -38,8 +38,8 @@ func buildHwy(path string) error {
 		PagesSrcDir: "pages",
 
 		// outputs
-		PreHashedOutDir: "static/public/__nohash",
-		UnhashedOutDir:  "static/private",
+		StaticPublicOutDir:  "static/public/prehashed",
+		StaticPrivateOutDir: "static/private",
 	})
 	if err != nil {
 		fmt.Println(err)

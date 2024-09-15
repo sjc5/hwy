@@ -358,10 +358,10 @@ func setup() {
 
 	// Run the Hwy build
 	err = router.Build(&router.BuildOptions{
-		PagesSrcDir:     "../tmp/pages",
-		PreHashedOutDir: "../tmp/",
-		UnhashedOutDir:  "../tmp/",
-		ClientEntry:     "../tmp/client.entry.tsx",
+		PagesSrcDir:         "../tmp/pages",
+		StaticPublicOutDir:  "../tmp/",
+		StaticPrivateOutDir: "../tmp/",
+		ClientEntry:         "../tmp/client.entry.tsx",
 	})
 	if err != nil {
 		panic(err)
