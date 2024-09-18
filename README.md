@@ -2,7 +2,8 @@
 
 <img src="/banner.webp" alt="Hwy logo banner">
 
-Hwy is a minimalist, Go-based Next.js alternative with nested routing.
+Hwy is a fullstack web framework for driving a (p)react frontend with a Go backend.
+Includes end-to-end typesafety, file-based nested UI routing, and much more.
 
 ## Project Goals
 
