@@ -1,7 +1,0 @@
-go 1.22.0
-
-use (
-	./projects/docs
-	./projects/testers/routes-react
-	./projects/testers/routes-lit
-)

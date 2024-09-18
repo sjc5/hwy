@@ -1,4 +1,3 @@
 packages:
   - "packages/npm/*"
-  - "projects/testers/*"
   - "scripts/npm"

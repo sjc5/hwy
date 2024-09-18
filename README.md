@@ -20,8 +20,6 @@ Hwy is a minimalist, Go-based Next.js alternative with nested routing.
 
 Coming soon.
 
-For now – if you're adventurous – you can peek into the `projects` folder in our monorepo for some usage examples.
-
 ## Project Status
 
 Hwy is in alpha stage and is not recommended for use in production unless you

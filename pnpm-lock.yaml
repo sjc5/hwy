@@ -76,48 +76,6 @@ importers:
         specifier: ^5.4.4
         version: 5.5.3
 
-  projects/testers/routes-lit:
-    devDependencies:
-      '@hwy-js/client':
-        specifier: workspace:*
-        version: link:../../../packages/npm/client
-      '@hwy-js/lit':
-        specifier: workspace:*
-        version: link:../../../packages/npm/lit
-      lit:
-        specifier: ^3.1.4
-        version: 3.1.4
-      typescript:
-        specifier: ^5.4.3
-        version: 5.5.3
-
-  projects/testers/routes-react:
-    devDependencies:
-      '@hwy-js/client':
-        specifier: workspace:*
-        version: link:../../../packages/npm/client
-      '@hwy-js/react':
-        specifier: workspace:*
-        version: link:../../../packages/npm/react
-      '@types/react':
-        specifier: ^18.3.5
-        version: 18.3.5
-      '@types/react-dom':
-        specifier: ^18.3.0
-        version: 18.3.0
-      preact:
-        specifier: ^10.23.2
-        version: 10.23.2
-      react:
-        specifier: 18.3.1
-        version: 18.3.1
-      react-dom:
-        specifier: 18.3.1
-        version: 18.3.1(react@18.3.1)
-      typescript:
-        specifier: ^5.4.3
-        version: 5.5.3
-
   scripts/npm:
     devDependencies:
       '@types/node':
@@ -1240,9 +1198,6 @@ packages:
   postcss@8.4.39:
     resolution: {integrity: sha512-0vzE+lAiG7hZl1/9I8yzKLx3aR9Xbof3fBHKunvMfOCYAtMhrsnccJY2iTURb9EZd5+pLuiNV9/c/GZJOHsgIw==}
     engines: {node: ^10 || ^12 || >=14}
-
-  preact@10.23.2:
-    resolution: {integrity: sha512-kKYfePf9rzKnxOAKDpsWhg/ysrHPqT+yQ7UW4JjdnqjFIeNUnNcEJvhuA8fDenxAGWzUqtd51DfVg7xp/8T9NA==}
 
   pretty-format@29.7.0:
     resolution: {integrity: sha512-Pdlw/oPxN+aXdmM9R00JVC9WVFoCLTKJvDVLgmJ+qAffBMxsV85l/Lu7sNx4zSzPyoL2euImuEwHhOXdEgNFZQ==}
@@ -2735,8 +2690,6 @@ snapshots:
       nanoid: 3.3.7
       picocolors: 1.0.1
       source-map-js: 1.2.0
-
-  preact@10.23.2: {}
 
   pretty-format@29.7.0:
     dependencies:
