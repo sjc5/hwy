@@ -18,8 +18,5 @@ publish-go: test-go
 check:
 	@pnpm biome check --write .
 
-check-staged:
-	@pnpm biome check --write . --staged 
-
-setup-lint-staged-hook:
+setup-pre-commit-hook:
 	@git config core.hooksPath .hooks

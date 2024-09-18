@@ -1,6 +1,6 @@
 #!/bin/sh
 
-make check-staged
+make check
 
 # If the tests fail, prevent the commit
 if [ $? -ne 0 ]; then
