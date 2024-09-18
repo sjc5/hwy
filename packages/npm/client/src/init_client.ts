@@ -34,6 +34,13 @@ function importComponents() {
 	);
 }
 
-export function getAdHocData<T = any>(): T | undefined {
-	return getHwyClientGlobal().get("adHocData");
+export function getCurrentHwyData<T = any>() {
+	const hcg = getHwyClientGlobal();
+
+	return {
+		buildID: hcg.get("buildID") || "",
+		splatSegments: hcg.get("splatSegments") || [],
+		params: hcg.get("params") || {},
+		adHocData: (hcg.get("adHocData") || null) as T | null,
+	};
 }

@@ -5,7 +5,7 @@ export {
 	getIsInternalLink,
 	getShouldPreventLinkDefault,
 } from "./src/helpers.js";
-export { getAdHocData, initClient } from "./src/init_client.js";
+export { getCurrentHwyData, initClient } from "./src/init_client.js";
 export { devRevalidate, navigate, revalidate } from "./src/navigate.js";
 export {
 	getAbsoluteURL,
