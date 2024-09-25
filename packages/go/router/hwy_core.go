@@ -93,6 +93,7 @@ type DataFunctionPropsGetter interface {
 	GetHeaders() http.Header
 	GetCookies() []*http.Cookie
 	GetRedirect() *Redirect
+	GetClientRedirectURL() string
 	GetHeadBlocks() []*HeadBlock // only applicable for loaders
 }
 

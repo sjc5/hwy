@@ -55,6 +55,7 @@ export type GetRouteDataOutput<AHD = any> = {
 	buildID: string;
 	deps: Array<string>;
 	cssBundles: Array<string>;
+	clientRedirectURL: string | null;
 
 	// SSR Only
 	activeErrorBoundaries: Array<any> | null;

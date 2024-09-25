@@ -39,8 +39,6 @@ type gmpdItem struct {
 
 var gmpdCache = lru.NewCache[string, *gmpdItem](500_000)
 
-type didRedirect = bool
-
 var (
 	QueryAcceptedMethods    = map[string]int{"GET": 0, "HEAD": 0}
 	MutationAcceptedMethods = map[string]int{"POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0}
@@ -78,10 +76,15 @@ func getIsHwyAPISubmit(r *http.Request) bool {
 	return r.Header.Get("X-Hwy-Action") != ""
 }
 
+type redirectStatus struct {
+	didServerRedirect bool
+	clientRedirectURL string
+}
+
 // Not for public consumption. Do not use or rely on this.
 func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.Request) (
 	*ActivePathData,
-	didRedirect,
+	*redirectStatus,
 	RouteType,
 ) {
 	realPath := r.URL.Path
@@ -93,7 +96,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 
 	action, routeType := h.getMaybeActionAndRouteType(realPath, r)
 	if routeType == RouteTypesEnum.NotFound {
-		return nil, false, routeType
+		return nil, nil, routeType
 	}
 	if action != nil {
 		item = &gmpdItem{
@@ -112,6 +115,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 	loadersHeaders := make([]http.Header, numberOfLoaders)
 	loadersCookies := make([][]*http.Cookie, numberOfLoaders)
 	loadersRedirects := make([]*Redirect, numberOfLoaders)
+	loadersClientRedirectURLs := make([]string, numberOfLoaders)
 	loadersHeadBlocks := make([][]*HeadBlock, numberOfLoaders)
 
 	if r.URL.Query().Get("dev-revalidation") != "1" {
@@ -146,6 +150,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 				loadersHeaders[i] = loaderRes.(DataFunctionPropsGetter).GetHeaders()
 				loadersCookies[i] = loaderRes.(DataFunctionPropsGetter).GetCookies()
 				loadersRedirects[i] = loaderRes.(DataFunctionPropsGetter).GetRedirect()
+				loadersClientRedirectURLs[i] = loaderRes.(DataFunctionPropsGetter).GetClientRedirectURL()
 				loadersHeadBlocks[i] = loaderRes.(DataFunctionPropsGetter).GetHeadBlocks()
 			}(i, path.DataFunction)
 		}
@@ -155,7 +160,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 		for _, redirect := range loadersRedirects {
 			if redirect != nil && redirect.URL != "" && redirect.Code != 0 {
 				http.Redirect(w, r, redirect.URL, redirect.Code)
-				return nil, true, item.routeType
+				return nil, &redirectStatus{didServerRedirect: true}, item.routeType
 			}
 		}
 
@@ -175,6 +180,13 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 
 		for _, cookie := range cookiesToSet {
 			http.SetCookie(w, cookie)
+		}
+
+		// apply first client redirect and return
+		for _, url := range loadersClientRedirectURLs {
+			if url != "" {
+				return nil, &redirectStatus{clientRedirectURL: url}, item.routeType
+			}
 		}
 	}
 
@@ -210,7 +222,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 		}
 		activePathData.HeadBlocks = locHeadBlocksInner
 
-		return &activePathData, false, item.routeType
+		return &activePathData, nil, item.routeType
 	}
 
 	var activePathData ActivePathData = ActivePathData{}
@@ -229,7 +241,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 	}
 	activePathData.HeadBlocks = locHeadBlocksInner
 
-	return &activePathData, false, item.routeType
+	return &activePathData, nil, item.routeType
 }
 
 func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {

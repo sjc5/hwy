@@ -9,7 +9,7 @@ export async function handleRedirects(props: {
 	didRedirect: boolean;
 	response?: Response;
 }> {
-	let res: any;
+	let res: Response | undefined;
 	const bodyParentObj: RequestInit = {};
 
 	if (

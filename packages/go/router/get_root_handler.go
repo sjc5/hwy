@@ -18,14 +18,14 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		defer outerT.Checkpoint("GetRootHandler")
 
 		mainT := newTimer()
-		routeData, didRedirect, routeType, err := h.GetRouteData(w, r)
+		routeData, redirectStatus, routeType, err := h.GetRouteData(w, r)
 
 		if routeType == RouteTypesEnum.NotFound {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte("Not found"))
 			return
 		}
-		if didRedirect {
+		if redirectStatus != nil && redirectStatus.didServerRedirect {
 			return
 		}
 		if err != nil {

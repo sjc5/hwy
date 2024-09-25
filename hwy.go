@@ -9,10 +9,6 @@ import (
 	"github.com/sjc5/kit/pkg/validate"
 )
 
-// __TODO
-// - add API prefix concept and TS type extractors and client based on prefix
-// - don't revalidate on query, only on mutation
-
 type BuildOptions = router.BuildOptions
 type TSGenOptions = router.TSGenOptions
 type AdHocType = router.AdHocType
@@ -43,11 +39,12 @@ func GetAdHocDataFromContext[T any](r *http.Request) T {
 
 type LoaderRes[O any] struct {
 	// same as ActionRes
-	Data     O
-	ErrMsg   string
-	Headers  http.Header
-	Cookies  []*http.Cookie
-	redirect *Redirect
+	Data              O
+	ErrMsg            string
+	Headers           http.Header
+	Cookies           []*http.Cookie
+	redirect          *Redirect
+	clientRedirectURL string
 
 	// different from ActionRes
 	HeadBlocks []*HeadBlock
@@ -66,6 +63,9 @@ func (f *LoaderRes[O]) ServerError() {
 
 func (f *LoaderRes[O]) Redirect(url string, code int) {
 	f.redirect = &Redirect{URL: url, Code: code}
+}
+func (f *LoaderRes[O]) ClientRedirect(url string) {
+	f.clientRedirectURL = url
 }
 
 type Loader[O any] func(ctx LoaderCtx[O])
@@ -100,11 +100,12 @@ func (f Loader[O]) GetOutputInstance() any {
 
 type ActionRes[O any] struct {
 	// same as LoaderRes
-	Data     O
-	ErrMsg   string
-	Headers  http.Header
-	Cookies  []*http.Cookie
-	redirect *Redirect
+	Data              O
+	ErrMsg            string
+	Headers           http.Header
+	Cookies           []*http.Cookie
+	redirect          *Redirect
+	clientRedirectURL string
 }
 
 type ActionCtx[I any, O any] struct {
@@ -119,6 +120,9 @@ func (f *ActionRes[O]) ServerError() {
 
 func (f *ActionRes[O]) Redirect(url string, code int) {
 	f.redirect = &Redirect{URL: url, Code: code}
+}
+func (f *ActionRes[O]) ClientRedirect(url string) {
+	f.clientRedirectURL = url
 }
 
 type Action[I any, O any] func(ctx ActionCtx[I, O])
@@ -215,6 +219,9 @@ func (f *LoaderRes[O]) GetCookies() []*http.Cookie {
 func (f *LoaderRes[O]) GetRedirect() *Redirect {
 	return f.redirect
 }
+func (f *LoaderRes[O]) GetClientRedirectURL() string {
+	return f.clientRedirectURL
+}
 func (f *LoaderRes[O]) GetHeadBlocks() []*HeadBlock {
 	return f.HeadBlocks
 }
@@ -232,6 +239,9 @@ func (f *ActionRes[O]) GetCookies() []*http.Cookie {
 }
 func (f *ActionRes[O]) GetRedirect() *Redirect {
 	return f.redirect
+}
+func (f *ActionRes[O]) GetClientRedirectURL() string {
+	return f.clientRedirectURL
 }
 func (f *ActionRes[O]) GetHeadBlocks() []*HeadBlock {
 	return nil // noop

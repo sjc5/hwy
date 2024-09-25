@@ -21,12 +21,14 @@ type SSRInnerHTMLInput struct {
 	AdHocData           any
 	Deps                []string
 	CSSBundles          []string
+	ClientRedirectURL   string
 }
 
 // Sadly, must include the script tags so html/template parses this correctly.
 // They are stripped off later in order to get the correct sha256 hash.
 // Then they are added back via htmlutil.RenderElement.
-const ssrInnerHTMLTmplStr = `<script>
+const (
+	ssrInnerHTMLTmplStr = `<script>
 	globalThis[Symbol.for("{{.HwyPrefix}}")] = {};
 	const x = globalThis[Symbol.for("{{.HwyPrefix}}")];
 	x.isDev = {{.IsDev}};
@@ -53,8 +55,15 @@ const ssrInnerHTMLTmplStr = `<script>
 		document.head.appendChild(link);
 	});
 </script>`
+	ssrInnerHTMLTmplClientRedirectStr = `<script>
+	window.location.href = {{.ClientRedirectURL}};
+</script>`
+)
 
-var ssrInnerTmpl = template.Must(template.New("ssr").Parse(ssrInnerHTMLTmplStr))
+var (
+	ssrInnerTmpl                   = template.Must(template.New("ssr").Parse(ssrInnerHTMLTmplStr))
+	ssrInnerHTMLTmplClientRedirect = template.Must(template.New("ssrCR").Parse(ssrInnerHTMLTmplClientRedirectStr))
+)
 
 type GetSSRInnerHTMLOutput struct {
 	Script     *template.HTML
@@ -63,22 +72,29 @@ type GetSSRInnerHTMLOutput struct {
 
 func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*GetSSRInnerHTMLOutput, error) {
 	var htmlBuilder strings.Builder
+	var dto SSRInnerHTMLInput
+	var err error
 
-	var dto = SSRInnerHTMLInput{
-		HwyPrefix:           HwyPrefix,
-		IsDev:               isDev,
-		BuildID:             routeData.BuildID,
-		LoadersData:         routeData.LoadersData,
-		ImportURLs:          routeData.ImportURLs,
-		OutermostErrorIndex: routeData.OutermostErrorIndex,
-		SplatSegments:       routeData.SplatSegments,
-		Params:              routeData.Params,
-		AdHocData:           routeData.AdHocData,
-		Deps:                routeData.Deps,
-		CSSBundles:          routeData.CSSBundles,
+	if routeData.ClientRedirectURL != "" {
+		dto = SSRInnerHTMLInput{ClientRedirectURL: routeData.ClientRedirectURL}
+		err = ssrInnerHTMLTmplClientRedirect.Execute(&htmlBuilder, dto)
+	} else {
+		dto = SSRInnerHTMLInput{
+			HwyPrefix:           HwyPrefix,
+			IsDev:               isDev,
+			BuildID:             routeData.BuildID,
+			LoadersData:         routeData.LoadersData,
+			ImportURLs:          routeData.ImportURLs,
+			OutermostErrorIndex: routeData.OutermostErrorIndex,
+			SplatSegments:       routeData.SplatSegments,
+			Params:              routeData.Params,
+			AdHocData:           routeData.AdHocData,
+			Deps:                routeData.Deps,
+			CSSBundles:          routeData.CSSBundles,
+			ClientRedirectURL:   routeData.ClientRedirectURL,
+		}
+		err = ssrInnerTmpl.Execute(&htmlBuilder, dto)
 	}
-
-	err := ssrInnerTmpl.Execute(&htmlBuilder, dto)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not execute SSR inner HTML template: %v", err)
 		Log.Errorf(errMsg)

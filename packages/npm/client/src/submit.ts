@@ -37,7 +37,7 @@ export async function submit<T = any>(
 			return { success: false, error: error };
 		}
 
-		if (!submitRes.alreadyRevalidated) {
+		if (!submitRes.alreadyRevalidated && !getIsGETRequest(requestInit)) {
 			await revalidate();
 		}
 

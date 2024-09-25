@@ -36,14 +36,14 @@ export async function internalNavigate(props: {
 			url.searchParams.set("dev-revalidation", "1");
 		}
 
-		const { response } = await handleRedirects({
+		const { response, didRedirect } = await handleRedirects({
 			abortController,
 			url,
 		});
 
 		abortControllers.delete(abortControllerKey);
 
-		if (!response || (!response.ok && response.status !== 304)) {
+		if (didRedirect || !response || (!response.ok && response.status !== 304)) {
 			setStatus({ type: props.navigationType, value: false });
 			return;
 		}
