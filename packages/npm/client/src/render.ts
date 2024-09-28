@@ -1,15 +1,15 @@
 import {
-	getHwyClientGlobal,
 	type GetRouteDataOutput,
 	HWY_ROUTE_CHANGE_EVENT_KEY,
 	type HwyClientGlobalKey,
 	type RouteChangeEventDetail,
 	type ScrollState,
+	getHwyClientGlobal,
 } from "../../common/index.mjs";
 import { dispatchBuildIDEvent } from "./build_id.js";
 import { customHistory } from "./custom_history.js";
 import { head } from "./head.js";
-import { navigate, type NavigationType } from "./navigate.js";
+import { type NavigationType, navigate } from "./navigate.js";
 
 const hwyClientGlobal = getHwyClientGlobal();
 

@@ -22,6 +22,8 @@ type Redirect = router.Redirect
 type Params = router.Params
 type SplatSegments = router.SplatSegments
 type RouteType = router.RouteType
+type ResponseHelper = router.ResponseHelper
+type CtxHelper = router.CtxHelper
 
 var Build = router.Build
 var GenerateTypeScript = router.GenerateTypeScript
@@ -32,6 +34,7 @@ var RouteTypesEnum = router.RouteTypesEnum
 var GetAdHocDataContextWithValue = router.GetAdHocDataContextWithValue
 var CreatePublicURLResolverPlugin = router.CreatePublicURLResolverPlugin
 var CreateCSSURLFuncResolverPlugin = router.CreateCSSURLFuncResolverPlugin
+var HwyPathsFileName = router.HwyPathsFileName
 
 func GetAdHocDataFromContext[T any](r *http.Request) T {
 	return router.GetAdHocDataFromContext[T](r)
@@ -57,10 +60,16 @@ type LoaderCtx[O any] struct {
 	Res           *LoaderRes[O]
 }
 
+func (c *LoaderCtx[O]) GetRequest() *http.Request {
+	return c.Req
+}
+func (c *LoaderCtx[O]) GetResponse() ResponseHelper {
+	return c.Res
+}
+
 func (f *LoaderRes[O]) ServerError() {
 	f.ErrMsg = http.StatusText(http.StatusInternalServerError)
 }
-
 func (f *LoaderRes[O]) Redirect(url string, code int) {
 	f.redirect = &Redirect{URL: url, Code: code}
 }
@@ -69,6 +78,10 @@ func (f *LoaderRes[O]) ClientRedirect(url string) {
 }
 
 type Loader[O any] func(ctx LoaderCtx[O])
+
+func NewLoader[O any](f func(ctx LoaderCtx[O])) Loader[O] {
+	return Loader[O](f)
+}
 
 func (f Loader[O]) GetResInstance() any {
 	return &LoaderRes[O]{
@@ -114,10 +127,16 @@ type ActionCtx[I any, O any] struct {
 	Res   *ActionRes[O]
 }
 
+func (c *ActionCtx[I, O]) GetRequest() *http.Request {
+	return c.Req
+}
+func (c *ActionCtx[I, O]) GetResponse() ResponseHelper {
+	return c.Res
+}
+
 func (f *ActionRes[O]) ServerError() {
 	f.ErrMsg = http.StatusText(http.StatusInternalServerError)
 }
-
 func (f *ActionRes[O]) Redirect(url string, code int) {
 	f.redirect = &Redirect{URL: url, Code: code}
 }
@@ -126,6 +145,10 @@ func (f *ActionRes[O]) ClientRedirect(url string) {
 }
 
 type Action[I any, O any] func(ctx ActionCtx[I, O])
+
+func NewAction[I any, O any](f func(ctx ActionCtx[I, O])) Action[I, O] {
+	return Action[I, O](f)
+}
 
 func (f Action[I, O]) GetResInstance() any {
 	return &ActionRes[O]{
@@ -202,7 +225,7 @@ func (f Action[I, O]) GetOutputInstance() any {
 	return x
 }
 
-//////////////////// DataFunctionPropsGetter ////////////////////
+//////////////////// ResponseHelper ////////////////////
 
 func (f *LoaderRes[O]) GetData() any {
 	return f.Data

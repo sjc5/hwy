@@ -145,13 +145,13 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 					loader.Execute(r, inputInstance, loaderRes)
 				}
 
-				loadersData[i] = loaderRes.(DataFunctionPropsGetter).GetData()
-				loadersErrMsgs[i] = loaderRes.(DataFunctionPropsGetter).GetErrMsg()
-				loadersHeaders[i] = loaderRes.(DataFunctionPropsGetter).GetHeaders()
-				loadersCookies[i] = loaderRes.(DataFunctionPropsGetter).GetCookies()
-				loadersRedirects[i] = loaderRes.(DataFunctionPropsGetter).GetRedirect()
-				loadersClientRedirectURLs[i] = loaderRes.(DataFunctionPropsGetter).GetClientRedirectURL()
-				loadersHeadBlocks[i] = loaderRes.(DataFunctionPropsGetter).GetHeadBlocks()
+				loadersData[i] = loaderRes.(ResponseHelper).GetData()
+				loadersErrMsgs[i] = loaderRes.(ResponseHelper).GetErrMsg()
+				loadersHeaders[i] = loaderRes.(ResponseHelper).GetHeaders()
+				loadersCookies[i] = loaderRes.(ResponseHelper).GetCookies()
+				loadersRedirects[i] = loaderRes.(ResponseHelper).GetRedirect()
+				loadersClientRedirectURLs[i] = loaderRes.(ResponseHelper).GetClientRedirectURL()
+				loadersHeadBlocks[i] = loaderRes.(ResponseHelper).GetHeadBlocks()
 			}(i, path.DataFunction)
 		}
 		wg.Wait()

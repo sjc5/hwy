@@ -87,7 +87,15 @@ type Redirect struct {
 	Code int
 }
 
-type DataFunctionPropsGetter interface {
+type CtxHelper interface {
+	GetRequest() *http.Request
+	GetResponse() ResponseHelper
+}
+
+type ResponseHelper interface {
+	ServerError()
+	Redirect(url string, code int)
+	ClientRedirect(url string)
 	GetData() any
 	GetErrMsg() string
 	GetHeaders() http.Header
