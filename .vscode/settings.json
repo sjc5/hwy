@@ -5,8 +5,6 @@
 		"**/.git": true,
 		"**/.DS_Store": true,
 		"**/node_modules": true,
-		"**/dist": true,
-		"**/hwy_paths.json": true,
-		"**/prehashed": true
+		"**/dist": true
 	}
 }

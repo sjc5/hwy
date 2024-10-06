@@ -1,7 +1,6 @@
 package router
 
 import (
-	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -9,10 +8,11 @@ import (
 )
 
 type TSGenOptions struct {
-	DataFuncs         DataFuncs
-	GeneratedTSOutDir string
-	AdHocTypes        []AdHocType
-	ExtraTSCode       string
+	// Path, including filename, where the resulting TypeScript file will be written
+	OutPath     string
+	DataFuncs   DataFuncs
+	AdHocTypes  []AdHocType
+	ExtraTSCode string
 }
 
 func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
@@ -99,7 +99,7 @@ func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
 	}
 
 	err := tsgen.GenerateTSToFile(tsgen.Opts{
-		OutPath:           filepath.Join(opts.GeneratedTSOutDir, "api.ts"),
+		OutPath:           opts.OutPath,
 		Items:             items,
 		ItemsArrayVarName: itemsArrayVarName,
 		ExtraTSCode:       extraTSToUse,

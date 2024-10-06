@@ -9,7 +9,7 @@ import {
 import { dispatchBuildIDEvent } from "./build_id.js";
 import { customHistory } from "./custom_history.js";
 import { head } from "./head.js";
-import type { NavigationType } from "./navigate.js";
+import { type NavigationType, navigate } from "./navigate.js";
 
 const hwyClientGlobal = getHwyClientGlobal();
 
@@ -26,6 +26,10 @@ export async function reRenderApp({
 		replace?: boolean;
 	};
 }) {
+	if (json.clientRedirectURL) {
+		return navigate(json.clientRedirectURL, { replace: true });
+	}
+
 	// Changing the title instantly makes it feel faster
 	// The temp textarea trick is to decode any HTML entities in the title
 	const tempTxt = document.createElement("textarea");

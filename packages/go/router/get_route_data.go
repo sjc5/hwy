@@ -24,27 +24,37 @@ type GetRouteDataOutput struct {
 	CSSBundles           []string      `json:"cssBundles,omitempty"`
 	ActionResData        any           `json:"data,omitempty"`
 	ActionResError       string        `json:"error,omitempty"`
+	ClientRedirectURL    string        `json:"clientRedirectURL,omitempty"`
 }
 
 func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 	*GetRouteDataOutput,
-	didRedirect,
+	*redirectStatus,
 	RouteType,
 	error,
 ) {
-	activePathData, didRedirect, routeType := h.Hwy__internal__getMatchingPathData(w, r)
+	activePathData, redirectStatus, routeType := h.Hwy__internal__getMatchingPathData(w, r)
 	if routeType == RouteTypesEnum.NotFound {
-		return nil, false, routeType, nil
+		return nil, nil, routeType, nil
 	}
-	if didRedirect {
-		return nil, true, routeType, nil
+	var clientRedirectURL string
+	if redirectStatus != nil {
+		if redirectStatus.didServerRedirect {
+			return nil, redirectStatus, routeType, nil
+		}
+		clientRedirectURL = redirectStatus.clientRedirectURL
 	}
 
 	var err error
 	var adHocData any
 	var headBlocks *sortHeadBlocksOutput
 
-	if routeType != RouteTypesEnum.Loader {
+	if clientRedirectURL != "" {
+		return &GetRouteDataOutput{
+			BuildID:           h.buildID,
+			ClientRedirectURL: clientRedirectURL,
+		}, nil, routeType, nil
+	} else if routeType != RouteTypesEnum.Loader {
 		var errMsg string
 		if validate.IsValidationError(errors.New(activePathData.LoadersErrMsgs[0])) {
 			errMsg = "bad request (validation error)"
@@ -55,7 +65,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 			ActionResData:  activePathData.LoadersData[0],
 			ActionResError: errMsg,
 			BuildID:        h.buildID,
-		}, false, routeType, nil
+		}, nil, routeType, nil
 	} else {
 		adHocData = GetAdHocDataFromContext[any](r)
 
@@ -65,7 +75,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 			if err != nil {
 				errMsg := fmt.Sprintf("could not get default head blocks: %v", err)
 				Log.Errorf(errMsg)
-				return nil, false, routeType, errors.New(errMsg)
+				return nil, nil, routeType, errors.New(errMsg)
 			}
 		} else {
 			defaultHeadBlocks = []HeadBlock{}
@@ -75,7 +85,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 		if err != nil {
 			errMsg := fmt.Sprintf("could not get exported head blocks: %v", err)
 			Log.Errorf(errMsg)
-			return nil, false, routeType, errors.New(errMsg)
+			return nil, nil, routeType, errors.New(errMsg)
 		}
 	}
 
@@ -93,7 +103,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 		BuildID:              h.buildID,
 		Deps:                 activePathData.Deps,
 		CSSBundles:           h.getCSSBundles(activePathData.Deps),
-	}, false, routeType, nil
+	}, nil, routeType, nil
 }
 
 func (h *Hwy) getCSSBundles(deps []string) []string {

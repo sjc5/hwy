@@ -1,4 +1,4 @@
-import { HWY_PREFIX_JSON } from "../../common/index.mjs";
+import { HWY_JSON_SEARCH_PARAM_KEY } from "../../common/index.mjs";
 
 export function getAbsoluteURL(href: string): {
 	absoluteURL: string;
@@ -22,7 +22,7 @@ export function getAbsoluteURL(href: string): {
 
 	// Filters out things like "#", "tel:", "mailto:", etc.
 	if (url.protocol.startsWith("http")) {
-		url.searchParams.set(HWY_PREFIX_JSON, "1");
+		url.searchParams.set(HWY_JSON_SEARCH_PARAM_KEY, "1");
 
 		return {
 			absoluteURL: url.href,

@@ -87,16 +87,28 @@ type Redirect struct {
 	Code int
 }
 
-type DataFunctionPropsGetter interface {
+type CtxHelper interface {
+	GetRequest() *http.Request
+	GetResponse() ResponseHelper
+}
+
+type ResponseHelper interface {
+	ServerError()
+	Redirect(url string, code int)
+	ClientRedirect(url string)
 	GetData() any
 	GetErrMsg() string
 	GetHeaders() http.Header
 	GetCookies() []*http.Cookie
 	GetRedirect() *Redirect
+	GetClientRedirectURL() string
 	GetHeadBlocks() []*HeadBlock // only applicable for loaders
 }
 
-const HwyPrefix = "__hwy_internal__"
+const (
+	HwyPrefix             = "__hwy_internal__"
+	HwyJSONSearchParamKey = "hwy_json"
+)
 
 func getIsDebug() bool {
 	return os.Getenv("HWY_ENV") == "development"
