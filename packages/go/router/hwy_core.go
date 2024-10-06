@@ -105,7 +105,10 @@ type ResponseHelper interface {
 	GetHeadBlocks() []*HeadBlock // only applicable for loaders
 }
 
-const HwyPrefix = "__hwy_internal__"
+const (
+	HwyPrefix             = "__hwy_internal__"
+	HwyJSONSearchParamKey = "hwy_json"
+)
 
 func getIsDebug() bool {
 	return os.Getenv("HWY_ENV") == "development"

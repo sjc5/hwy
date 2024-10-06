@@ -1,4 +1,7 @@
-import { HWY_PREFIX_JSON, type ScrollState } from "../../common/index.mjs";
+import {
+	HWY_JSON_SEARCH_PARAM_KEY,
+	type ScrollState,
+} from "../../common/index.mjs";
 import {
 	abortControllers,
 	handleAbortController,
@@ -30,7 +33,7 @@ export async function internalNavigate(props: {
 
 	try {
 		const url = new URL(props.href, window.location.origin);
-		url.searchParams.set(HWY_PREFIX_JSON, "1");
+		url.searchParams.set(HWY_JSON_SEARCH_PARAM_KEY, "1");
 
 		if (props.navigationType === "dev-revalidation") {
 			url.searchParams.set("dev-revalidation", "1");

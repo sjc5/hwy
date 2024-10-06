@@ -145,8 +145,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 }
 
 func GetIsJSONRequest(r *http.Request) bool {
-	queryKey := HwyPrefix + "json"
-	return len(r.URL.Query().Get(queryKey)) > 0
+	return len(r.URL.Query().Get(HwyJSONSearchParamKey)) > 0
 }
 
 func isNotModified(r *http.Request, etag string) bool {

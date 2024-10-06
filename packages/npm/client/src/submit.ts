@@ -1,4 +1,4 @@
-import { HWY_PREFIX_JSON } from "../../common/index.mjs";
+import { HWY_JSON_SEARCH_PARAM_KEY } from "../../common/index.mjs";
 import {
 	abortControllers,
 	handleAbortController,
@@ -72,7 +72,7 @@ async function submitInner(
 		handleAbortController(abortControllerKey);
 
 	const urlToUse = new URL(url, window.location.origin);
-	urlToUse.searchParams.set(HWY_PREFIX_JSON, "1");
+	urlToUse.searchParams.set(HWY_JSON_SEARCH_PARAM_KEY, "1");
 
 	if (!requestInit) {
 		requestInit = {};

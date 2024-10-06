@@ -142,7 +142,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 						loadersErrMsgs[i] = err.Error()
 						return
 					}
-					loader.Execute(r, inputInstance, loaderRes)
+					loader.Execute(r, inputInstance, loaderRes, w)
 				}
 
 				loadersData[i] = loaderRes.(ResponseHelper).GetData()

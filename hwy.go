@@ -122,9 +122,10 @@ type ActionRes[O any] struct {
 }
 
 type ActionCtx[I any, O any] struct {
-	Req   *http.Request
-	Input I
-	Res   *ActionRes[O]
+	Req            *http.Request
+	Input          I
+	Res            *ActionRes[O]
+	ResponseWriter http.ResponseWriter
 }
 
 func (c *ActionCtx[I, O]) GetRequest() *http.Request {
@@ -158,7 +159,11 @@ func (f Action[I, O]) GetResInstance() any {
 	}
 }
 func (f Action[I, O]) Execute(args ...any) (any, error) {
-	x := ActionCtx[I, O]{Req: args[0].(*http.Request), Res: args[2].(*ActionRes[O])}
+	x := ActionCtx[I, O]{
+		Req:            args[0].(*http.Request),
+		Res:            args[2].(*ActionRes[O]),
+		ResponseWriter: args[3].(http.ResponseWriter),
+	}
 	if args[1] != nil {
 		x.Input = args[1].(I)
 	}

@@ -1,5 +1,5 @@
 export const HWY_PREFIX = "__hwy_internal__";
-export const HWY_PREFIX_JSON = `${HWY_PREFIX}json`;
+export const HWY_JSON_SEARCH_PARAM_KEY = "hwy_json";
 export const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
 export const HWY_ROUTE_CHANGE_EVENT_KEY = "hwy:route-change";
 
