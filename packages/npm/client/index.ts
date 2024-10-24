@@ -12,5 +12,9 @@ export {
 	getPrefetchHandlers,
 	prefetch,
 } from "./src/prefetch.js";
-export { addStatusListener, getStatus } from "./src/status.js";
+export {
+	addStatusListener,
+	getStatus,
+	type StatusEvent,
+} from "./src/status.js";
 export { submit } from "./src/submit.js";

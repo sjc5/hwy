@@ -28,7 +28,7 @@ export function setStatus({
 	dispatchStatusEvent();
 }
 
-type StatusEvent = {
+export type StatusEvent = {
 	isNavigating: boolean;
 	isSubmitting: boolean;
 	isRevalidating: boolean;
@@ -52,7 +52,7 @@ function dispatchStatusEvent() {
 	}, 1);
 }
 
-export function getStatus() {
+export function getStatus(): StatusEvent {
 	return {
 		isNavigating,
 		isSubmitting,

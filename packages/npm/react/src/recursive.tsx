@@ -117,7 +117,12 @@ export function HwyRootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
 	}, [idx]);
 
 	if (!CurrentComponent) {
-		return <></>;
+		return (
+			<MaybeWithLayout {...extendedProps}>
+				{/* biome-ignore lint: _ */}
+				<></>
+			</MaybeWithLayout>
+		);
 	}
 
 	try {
