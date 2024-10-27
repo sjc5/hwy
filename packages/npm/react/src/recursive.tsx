@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { jsonDeepEquals } from "@sjc5/__tskpre/jsonutil";
+import { useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import type { RouteChangeEvent, RouteData } from "../../common/index.mjs";
 import {
@@ -35,26 +36,39 @@ export function HwyRootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
 		(ctx.get("loadersData") as any)?.[idx],
 	);
 
-	const listener = useCallback((e: RouteChangeEvent) => {
-		flushSync(() => {
-			setAdHocData(ctx.get("adHocData") ?? props.adHocData);
-			setParams(ctx.get("params") ?? {});
-			setSplatSegments(ctx.get("splatSegments") ?? []);
-			setLoaderData((ctx.get("loadersData") as any)?.[idx]);
-		});
+	useEffect(() => {
+		const listener = (e: RouteChangeEvent) => {
+			const newAdHocData = ctx.get("adHocData") ?? props.adHocData;
+			const newParams = ctx.get("params") ?? {};
+			const newSplatSegments = ctx.get("splatSegments") ?? [];
+			const newLoaderData = (ctx.get("loadersData") as any)?.[idx];
 
-		if (e.detail.scrollState) {
-			shouldScroll = true;
-			window.requestAnimationFrame(() => {
-				if (shouldScroll && e.detail.scrollState) {
-					window.scrollTo(e.detail.scrollState.x, e.detail.scrollState.y);
-					shouldScroll = false;
+			flushSync(() => {
+				if (!jsonDeepEquals(adHocData, newAdHocData)) {
+					setAdHocData(newAdHocData);
+				}
+				if (!jsonDeepEquals(params, newParams)) {
+					setParams(newParams);
+				}
+				if (!jsonDeepEquals(splatSegments, newSplatSegments)) {
+					setSplatSegments(newSplatSegments);
+				}
+				if (!jsonDeepEquals(loaderData, newLoaderData)) {
+					setLoaderData(newLoaderData);
 				}
 			});
-		}
-	}, []);
 
-	useEffect(() => {
+			if (e.detail.scrollState) {
+				shouldScroll = true;
+				window.requestAnimationFrame(() => {
+					if (shouldScroll && e.detail.scrollState) {
+						window.scrollTo(e.detail.scrollState.x, e.detail.scrollState.y);
+						shouldScroll = false;
+					}
+				});
+			}
+		};
+
 		window.addEventListener(
 			HWY_ROUTE_CHANGE_EVENT_KEY,
 			listener as EventListener,
@@ -65,7 +79,7 @@ export function HwyRootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
 				listener as EventListener,
 			);
 		};
-	}, []);
+	}, [adHocData, params, splatSegments, loaderData]);
 
 	const EB = useMemo(
 		() =>

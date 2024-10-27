@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as readline from "node:readline";
 
-const dirsInSlashPackages = ["client", "create", "react", "lit"];
+const dirsInSlashPackages = ["client", "create", "react"];
 const preSuffix = "-pre";
 
 function getCurrentPkgJSONs() {
@@ -31,7 +31,7 @@ function saveNewPkgJSONs(newVersion: string) {
 
 	const newPkgJSONsStringified = pkgJSONs.map((pkgJSON) => {
 		return (
-			JSON.stringify(pkgJSON, null, 2).replace(
+			JSON.stringify(pkgJSON, null, "\t").replace(
 				`"version": "${currentVersion}"`,
 				`"version": "${newVersion}"`,
 			) + "\n"
