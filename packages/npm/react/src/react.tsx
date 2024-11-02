@@ -4,7 +4,7 @@ import {
 	internal_HwyClientGlobal as ctx,
 	getPrefetchHandlers,
 } from "@hwy-js/client";
-import { jsonDeepEquals } from "@sjc5/__tskpre/jsonutil";
+import { jsonDeepEquals } from "@sjc5/kit/json";
 import { type ComponentProps, useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 
@@ -151,10 +151,7 @@ export function HwyRootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
 
 		return (
 			<MaybeWithLayout {...extendedProps}>
-				<>
-					{thisComponentsImportURL}
-					<CurrentComponent {...extendedProps} />
-				</>
+				<CurrentComponent {...extendedProps} />
 			</MaybeWithLayout>
 		);
 	} catch (error) {

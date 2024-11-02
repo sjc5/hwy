@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as readline from "node:readline";
 
-const dirsInSlashPackages = ["client", "create", "react"];
+const dirsInSlashPackages = ["create", "react" /* "client" */];
 const preSuffix = "-pre";
 
 function getCurrentPkgJSONs() {
@@ -71,7 +71,13 @@ function confirmAndGetCurrentVersion(shouldLog = false) {
 }
 
 function versionStrToTypedTuple(version: string): [number, number, number, number | undefined] {
-	let [majorStr, minorStr, patchStr] = version.split(".");
+	const [majorStr, minorStr, patchStr1, patchStr2] = version.split(".");
+
+	let patchStr: string | undefined = undefined;
+	if (patchStr1 && patchStr2) {
+		patchStr = patchStr1 + "." + patchStr2;
+	}
+
 	if (!majorStr || !minorStr || !patchStr) {
 		throw new Error("Version is not in the correct format.");
 	}

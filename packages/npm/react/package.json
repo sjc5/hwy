@@ -1,6 +1,6 @@
 {
 	"name": "@hwy-js/react",
-	"version": "0.16.3-pre.0",
+	"version": "0.16.3-pre.1",
 	"author": {
 		"name": "Samuel J. Cook"
 	},
@@ -21,7 +21,7 @@
 	},
 	"dependencies": {
 		"@hwy-js/client": "workspace:*",
-		"@sjc5/__tskpre": "0.0.0-pre.1"
+		"@sjc5/kit": "0.0.0-pre.0"
 	},
 	"devDependencies": {
 		"@types/react": "^18.3.5",

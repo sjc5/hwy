@@ -57,9 +57,9 @@ importers:
       '@hwy-js/client':
         specifier: workspace:*
         version: link:../client
-      '@sjc5/__tskpre':
-        specifier: 0.0.0-pre.1
-        version: 0.0.0-pre.1
+      '@sjc5/kit':
+        specifier: 0.0.0-pre.0
+        version: 0.0.0-pre.0
     devDependencies:
       '@types/react':
         specifier: ^18.3.5
@@ -415,9 +415,6 @@ packages:
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
-
-  '@sjc5/__tskpre@0.0.0-pre.1':
-    resolution: {integrity: sha512-JQfwP1iPb5s5NpYuj1C8N/gloB9PRfVK2SqoYeyhQa8yS/MAoftYZ1iwgPbbav+T4DpevB3o3p9igZLd4BYTjQ==}
 
   '@sjc5/kit@0.0.0-pre.0':
     resolution: {integrity: sha512-HtQpfyhzn66yyrqfe5B8Yv+RN9RCMp23QjYfeGjsWqwbcZ7U+1vuA51UIfcUuRsgNCmGp7/kGe3RfwDGGwyBcw==}
@@ -1958,8 +1955,6 @@ snapshots:
     optional: true
 
   '@sinclair/typebox@0.27.8': {}
-
-  '@sjc5/__tskpre@0.0.0-pre.1': {}
 
   '@sjc5/kit@0.0.0-pre.0': {}
 
