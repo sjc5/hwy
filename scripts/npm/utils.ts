@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as readline from "node:readline";
 
-const dirsInSlashPackages = ["client", "react" /* "create" */];
+const dirsInSlashPackages = ["client", "react"]; // "create"
 const preSuffix = "-pre";
 
 function getCurrentPkgJSONs() {
@@ -71,12 +71,9 @@ function confirmAndGetCurrentVersion(shouldLog = false) {
 }
 
 function versionStrToTypedTuple(version: string): [number, number, number, number | undefined] {
-	const [majorStr, minorStr, patchStr1, patchStr2] = version.split(".");
+	let [majorStr, minorStr, patchStr, preStr] = version.split(".");
 
-	let patchStr: string | undefined = undefined;
-	if (patchStr1 && patchStr2) {
-		patchStr = patchStr1 + "." + patchStr2;
-	}
+	patchStr = patchStr?.replace(preSuffix, "") ?? patchStr;
 
 	if (!majorStr || !minorStr || !patchStr) {
 		throw new Error("Version is not in the correct format.");
@@ -86,13 +83,6 @@ function versionStrToTypedTuple(version: string): [number, number, number, numbe
 	const minor = Number(minorStr);
 	if (Number.isNaN(major) || Number.isNaN(minor)) {
 		throw new Error("Version is not in the correct format.");
-	}
-
-	let preStr: string | undefined;
-	if (patchStr.includes(preSuffix)) {
-		const x = patchStr.split(preSuffix);
-		patchStr = x[0];
-		preStr = x[1];
 	}
 
 	const patch = Number(patchStr);
@@ -194,7 +184,7 @@ function pkgDirnameToPath(pkgDirname: string) {
 
 const cmdToFnMap = {
 	"--set-pre": setPre,
-	"--rmv-pre": removePre,
+	"--remove-pre": removePre,
 	"--bump-pre": bumpPre,
 	"--bump-patch": bumpToNewPatch,
 	"--bump-minor": bumpToNewMinor,

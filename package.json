@@ -16,7 +16,7 @@
 		"dev:react": "pnpm -r --filter @hwy-js/react run dev",
 		"dev": "npm-run-all --parallel dev:*",
 		"set-pre": "node --experimental-strip-types scripts/npm/utils.ts --set-pre",
-		"rmv-pre": "node --experimental-strip-types scripts/npm/utils.ts --rmv-pre",
+		"remove-pre": "node --experimental-strip-types scripts/npm/utils.ts --remove-pre",
 		"bump-pre": "node --experimental-strip-types scripts/npm/utils.ts --bump-pre",
 		"bump-patch": "node --experimental-strip-types scripts/npm/utils.ts --bump-patch",
 		"bump-minor": "node --experimental-strip-types scripts/npm/utils.ts --bump-minor",
