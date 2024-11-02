@@ -1,6 +1,6 @@
 {
 	"name": "@hwy-js/react",
-	"version": "0.16.2",
+	"version": "0.16.3-pre.0",
 	"author": {
 		"name": "Samuel J. Cook"
 	},
@@ -11,14 +11,16 @@
 	},
 	"files": ["dist"],
 	"scripts": {
-		"build": "rm -rf dist && tsup-node index.ts --format esm --dts",
-		"dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",
-		"publish-pre": "npm publish --access public --tag pre",
-		"publish-non-pre": "npm publish --access public",
+		"build-client": "cd ../client && pnpm build",
+		"build": "pnpm build-client && rm -rf dist && tsup-node index.tsx --format esm --dts",
+		"dev": "pnpm build-client && rm -rf dist && tsup-node index.tsx --format esm --dts --watch",
+		"publish-pre": "pnpm publish --access public --tag pre",
+		"publish-non-pre": "pnpm publish --access public",
 		"update-latest": "pnpm update --latest",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@hwy-js/client": "workspace:*",
 		"@sjc5/__tskpre": "0.0.0-pre.1"
 	},
 	"devDependencies": {

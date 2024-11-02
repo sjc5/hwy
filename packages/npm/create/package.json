@@ -1,6 +1,6 @@
 {
 	"name": "create-hwy",
-	"version": "0.16.2",
+	"version": "0.16.3-pre.0",
 	"author": {
 		"name": "Samuel J. Cook"
 	},
@@ -14,8 +14,8 @@
 		"build": "rm -rf dist && tsup-node index.ts --format esm",
 		"lint": "tsc",
 		"create-hwy": "pnpm run build && node dist/index.js",
-		"publish-pre": "npm publish --access public --tag pre",
-		"publish-non-pre": "npm publish --access public",
+		"publish-pre": "pnpm publish --access public --tag pre",
+		"publish-non-pre": "pnpm publish --access public",
 		"update-latest": "pnpm update --latest",
 		"typecheck": "tsc --noEmit"
 	},

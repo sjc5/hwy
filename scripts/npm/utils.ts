@@ -7,9 +7,7 @@ const preSuffix = "-pre";
 
 function getCurrentPkgJSONs() {
 	return dirsInSlashPackages.map((pkgDirname) => {
-		const parsed = JSON.parse(
-			fs.readFileSync(pkgDirnameToPath(pkgDirname), "utf-8"),
-		);
+		const parsed = JSON.parse(fs.readFileSync(pkgDirnameToPath(pkgDirname), "utf-8"));
 		if (!validateParsedPkgJSONFile(parsed)) {
 			throw new Error("Parsed package.json is invalid.");
 		}
@@ -72,9 +70,7 @@ function confirmAndGetCurrentVersion(shouldLog = false) {
 	return currentVersion;
 }
 
-function versionStrToTypedTuple(
-	version: string,
-): [number, number, number, number | undefined] {
+function versionStrToTypedTuple(version: string): [number, number, number, number | undefined] {
 	let [majorStr, minorStr, patchStr] = version.split(".");
 	if (!majorStr || !minorStr || !patchStr) {
 		throw new Error("Version is not in the correct format.");
@@ -131,7 +127,7 @@ function throwIfAlreadyPre() {
 	}
 }
 
-function addPre() {
+function setPre() {
 	throwIfAlreadyPre();
 	const currentVersion = confirmAndGetCurrentVersion();
 	const [major, minor, patch] = versionStrToTypedTuple(currentVersion);
@@ -187,18 +183,12 @@ function setVersion() {
 }
 
 function pkgDirnameToPath(pkgDirname: string) {
-	return path.join(
-		process.cwd(),
-		"packages",
-		"npm",
-		pkgDirname,
-		"package.json",
-	);
+	return path.join(process.cwd(), "packages", "npm", pkgDirname, "package.json");
 }
 
 const cmdToFnMap = {
-	"--add-pre": addPre,
-	"--remove-pre": removePre,
+	"--set-pre": setPre,
+	"--rmv-pre": removePre,
 	"--bump-pre": bumpPre,
 	"--bump-patch": bumpToNewPatch,
 	"--bump-minor": bumpToNewMinor,
