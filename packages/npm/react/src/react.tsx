@@ -3,6 +3,7 @@ import {
 	addRouteChangeListener,
 	internal_HwyClientGlobal as ctx,
 	getPrefetchHandlers,
+	makeLinkClickListenerFn,
 } from "@hwy-js/client";
 import { jsonDeepEquals } from "@sjc5/kit/json";
 import { type ComponentProps, useEffect, useMemo, useState } from "react";
@@ -214,29 +215,53 @@ export type HwyLayout<T extends RoutePropsTypeArg = DefaultRouteProps> = (
 
 // __TODO add prefetch = "render" and prefetch = "viewport" options, a la Remix
 
-type HwyLinkProps = { prefetch?: "intent"; prefetchTimeout?: number };
+type HwyLinkClickCallback = (
+	e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+) => void | Promise<void>;
+
+type HwyLinkProps = {
+	prefetch?: "intent";
+	prefetchTimeout?: number;
+	beforeBegin?: HwyLinkClickCallback;
+	beforeRender?: HwyLinkClickCallback;
+	afterRender?: HwyLinkClickCallback;
+};
 type LinkProps = ComponentProps<"a"> & HwyLinkProps;
 
 export function Link(props: LinkProps) {
 	const prefetchObj = useMemo(() => {
 		return props.href
-			? getPrefetchHandlers(props.href as string, props.prefetchTimeout)
+			? getPrefetchHandlers({
+					href: props.href,
+					timeout: props.prefetchTimeout,
+					beforeBegin: props.beforeBegin as any,
+					beforeRender: props.beforeRender as any,
+					afterRender: props.afterRender as any,
+				})
 			: undefined;
-	}, [props.href]);
+	}, [props]);
 
 	const conditionalPrefetchObj = props.prefetch === "intent" ? prefetchObj : undefined;
 
+	const sansPrefetchSPAOnClick = useMemo(() => {
+		return makeLinkClickListenerFn({
+			beforeBegin: props.beforeBegin as any,
+			beforeRender: props.beforeRender as any,
+			afterRender: props.afterRender as any,
+			requireDataBoostAttribute: false,
+		});
+	}, [props]);
+
 	return (
 		<a
-			data-boost
 			data-external={prefetchObj?.isExternal || undefined}
 			{...props}
 			onPointerEnter={(e) => {
-				conditionalPrefetchObj?.start();
+				conditionalPrefetchObj?.start(e as any);
 				props.onPointerEnter?.(e);
 			}}
 			onFocus={(e) => {
-				conditionalPrefetchObj?.start();
+				conditionalPrefetchObj?.start(e as any);
 				props.onFocus?.(e);
 			}}
 			onPointerLeave={(e) => {
@@ -248,9 +273,13 @@ export function Link(props: LinkProps) {
 				props.onBlur?.(e);
 			}}
 			// biome-ignore lint:
-			onClick={(e) => {
-				conditionalPrefetchObj?.onClick(e as any);
+			onClick={async (e) => {
 				props.onClick?.(e);
+				if (conditionalPrefetchObj) {
+					await conditionalPrefetchObj.onClick(e as any);
+				} else {
+					await sansPrefetchSPAOnClick(e as any);
+				}
 			}}
 		>
 			{props.children}

@@ -7,6 +7,7 @@ export {
 	getStatus,
 	initClient,
 	internal_HwyClientGlobal,
+	makeLinkClickListenerFn,
 	navigate,
 	revalidate,
 	submit,

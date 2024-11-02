@@ -280,8 +280,13 @@ function handleNavError(error: unknown, props: NavigateProps) {
 // PREFETCH
 /////////////////////////////////////////////////////////////////////
 
-export function getPrefetchHandlers(href: string, timeout = 50) {
-	const hrefDetails = getHrefDetails(href);
+type GetPrefetchHandlersInput<E extends Event> = LinkClickListenerCallbacksBase<E> & {
+	href: string;
+	timeout?: number;
+};
+
+export function getPrefetchHandlers<E extends Event>(input: GetPrefetchHandlersInput<E>) {
+	const hrefDetails = getHrefDetails(input.href);
 	if (!hrefDetails.isHTTP || !hrefDetails.relativeURL || hrefDetails.isExternal) {
 		return;
 	}
@@ -290,16 +295,20 @@ export function getPrefetchHandlers(href: string, timeout = 50) {
 	let currentNav: NavigationControl | null = null;
 	let prerenderResult: NavigationResult | null = null;
 
-	async function finalize() {
+	async function finalize(e: E) {
 		try {
 			if (!prerenderResult && currentNav) {
 				prerenderResult = await currentNav.promise;
 			}
 			if (prerenderResult) {
+				await input.beforeRender?.(e);
+
 				await __completeNavigation({
 					json: prerenderResult.json,
 					props: { ...prerenderResult.props, navigationType: "userNavigation" },
 				});
+
+				await input.afterRender?.(e);
 			}
 		} catch (e) {
 			if (!isAbortError(e)) {
@@ -311,10 +320,12 @@ export function getPrefetchHandlers(href: string, timeout = 50) {
 		}
 	}
 
-	function prefetch() {
+	async function prefetch(e: E) {
 		if (currentNav || !hrefDetails.isHTTP) {
 			return;
 		}
+
+		await input.beforeBegin?.(e);
 
 		currentNav = beginNavigation({
 			href: hrefDetails.relativeURL,
@@ -332,11 +343,11 @@ export function getPrefetchHandlers(href: string, timeout = 50) {
 			});
 	}
 
-	function start() {
+	function start(e: E) {
 		if (currentNav) {
 			return;
 		}
-		timer = window.setTimeout(prefetch, timeout);
+		timer = window.setTimeout(() => prefetch(e), input.timeout);
 	}
 
 	function stop() {
@@ -357,7 +368,7 @@ export function getPrefetchHandlers(href: string, timeout = 50) {
 		prerenderResult = null;
 	}
 
-	async function onClick(e: MouseEvent) {
+	async function onClick(e: E) {
 		if (e.defaultPrevented || !hrefDetails.isHTTP) {
 			return;
 		}
@@ -366,9 +377,11 @@ export function getPrefetchHandlers(href: string, timeout = 50) {
 		setStatus({ type: "userNavigation", value: true });
 
 		if (prerenderResult) {
-			await finalize(); // Use the preloaded result directly
+			await finalize(e); // Use the preloaded result directly
 			return;
 		}
+
+		await input.beforeBegin?.(e);
 
 		const nav = beginNavigation({
 			href: hrefDetails.relativeURL,
@@ -379,7 +392,7 @@ export function getPrefetchHandlers(href: string, timeout = 50) {
 		prerenderResult = null;
 
 		try {
-			await finalize();
+			await finalize(e);
 		} catch (error) {
 			if (!isAbortError(error)) {
 				console.error("Error during navigation", error);
@@ -393,18 +406,18 @@ export function getPrefetchHandlers(href: string, timeout = 50) {
 		stop,
 		onClick,
 		addEventListeners(link: HTMLAnchorElement) {
-			link.addEventListener("pointerenter", start);
-			link.addEventListener("focus", start);
+			link.addEventListener("pointerenter", start as any);
+			link.addEventListener("focus", start as any);
 			link.addEventListener("pointerleave", stop);
 			link.addEventListener("blur", stop);
-			link.addEventListener("click", onClick);
+			link.addEventListener("click", onClick as any);
 		},
 		removeEventListeners(link: HTMLAnchorElement) {
-			link.removeEventListener("pointerenter", start);
-			link.removeEventListener("focus", start);
+			link.removeEventListener("pointerenter", start as any);
+			link.removeEventListener("focus", start as any);
 			link.removeEventListener("pointerleave", stop);
 			link.removeEventListener("blur", stop);
-			link.removeEventListener("click", onClick);
+			link.removeEventListener("click", onClick as any);
 		},
 	};
 }
@@ -1163,7 +1176,7 @@ export async function initClient(renderFn: () => void) {
 	renderFn();
 
 	// INSTANTIATE GLOBAL EVENT LISTENERS
-	__addAnchorClickListenener();
+	__addAnchorClickListener();
 }
 
 function importComponents() {
@@ -1220,30 +1233,64 @@ function makeListenerAdder<T>(key: string) {
 // DATA BOOST LISTENERS
 /////////////////////////////////////////////////////////////////////
 
-function __addAnchorClickListenener() {
-	document.body.addEventListener("click", async (event) => {
+type LinkClickListenerCallback<E extends Event> = (event: E) => void | Promise<void>;
+
+type LinkClickListenerCallbacksBase<E extends Event> = {
+	beforeBegin?: LinkClickListenerCallback<E>;
+	beforeRender?: LinkClickListenerCallback<E>;
+	afterRender?: LinkClickListenerCallback<E>;
+};
+
+type LinkClickListenerCallbacks<E extends Event> = LinkClickListenerCallbacksBase<E> & {
+	requireDataBoostAttribute: boolean;
+};
+
+export function makeLinkClickListenerFn<E extends Event>(callbacks: LinkClickListenerCallbacks<E>) {
+	return async (event: E) => {
 		if (event.defaultPrevented) {
 			return;
 		}
 
-		const anchorDetails = getAnchorDetailsFromEvent(event);
+		const anchorDetails = getAnchorDetailsFromEvent(event as unknown as MouseEvent);
 		if (!anchorDetails) {
 			return;
 		}
 
 		const { anchor, isEligibleForDefaultPrevention, isInternal } = anchorDetails;
 
-		if (!anchor || !anchor.dataset.boost) {
+		if (!anchor || (callbacks.requireDataBoostAttribute && !anchor.dataset.boost)) {
 			return;
 		}
 
 		if (isEligibleForDefaultPrevention && isInternal) {
 			event.preventDefault();
 
-			await __navigate({
+			await callbacks.beforeBegin?.(event);
+
+			const x = beginNavigation({
 				href: anchor.href,
 				navigationType: "userNavigation",
 			});
+			if (!x.promise) {
+				return;
+			}
+
+			const res = await x.promise;
+			if (!res) {
+				return;
+			}
+
+			await callbacks.beforeRender?.(event);
+
+			await __completeNavigation(res);
+
+			await callbacks.afterRender?.(event);
 		}
-	});
+	};
+}
+
+const baseDataBoostListenerFn = makeLinkClickListenerFn({ requireDataBoostAttribute: true });
+
+function __addAnchorClickListener() {
+	document.body.addEventListener("click", baseDataBoostListenerFn);
 }
