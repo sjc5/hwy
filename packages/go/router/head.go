@@ -123,21 +123,57 @@ func dedupeHeadBlocks(els []htmlutil.Element) []*htmlutil.Element {
 }
 
 func headBlockStableHash(el *htmlutil.Element) string {
-	parts := make([]string, 0, len(el.Attributes))
+	// Handle regular attributes
+	parts := make([]string, 0, len(el.Attributes)+len(el.TrustedAttributes)+len(el.BooleanAttributes))
+
+	// Add regular attributes
 	for key, value := range el.Attributes {
-		parts = append(parts, key+"="+value)
+		parts = append(parts, "attr:"+key+"="+value)
 	}
-	sort.Strings(parts) // Ensure attributes are in a consistent order
+
+	// Add trusted attributes with a prefix to distinguish them
+	for key, value := range el.TrustedAttributes {
+		parts = append(parts, "trusted:"+key+"="+value)
+	}
+
+	// Add boolean attributes
+	for _, attr := range el.BooleanAttributes {
+		parts = append(parts, "bool:"+attr)
+	}
+
+	// Sort all attributes for consistency
+	sort.Strings(parts)
+
+	// Calculate initial capacity for string builder
+	// Initial size: tag + separator + innerHTML + separators between attributes
+	initialSize := len(el.Tag) + 1 + len(el.InnerHTML) + (len(parts) * 16)
+
 	var sb strings.Builder
-	sb.Grow(len(el.Tag) + 1 + (len(parts) * 16))
+	sb.Grow(initialSize)
+
+	// Add tag
 	sb.WriteString(el.Tag)
 	sb.WriteString("|")
+
+	// Add all attributes
 	for i, part := range parts {
 		if i > 0 {
 			sb.WriteString("&")
 		}
 		sb.WriteString(part)
 	}
+
+	// Add innerHTML if present
+	if len(el.InnerHTML) > 0 {
+		sb.WriteString("|")
+		sb.WriteString(string(el.InnerHTML))
+	}
+
+	// Add self-closing flag if true
+	if el.SelfClosing {
+		sb.WriteString("|self-closing")
+	}
+
 	return sb.String()
 }
 
