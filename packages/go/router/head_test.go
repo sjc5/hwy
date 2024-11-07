@@ -58,11 +58,35 @@ func TestDedupeHeadBlocks(t *testing.T) {
 			input: []HeadBlock{
 				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
 				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
-				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
 			},
 			expected: []*HeadBlock{
 				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
+			},
+		},
+		{
+			name: "With duplicates TrustedAttributes",
+			input: []HeadBlock{
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", TrustedAttributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", TrustedAttributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", TrustedAttributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
+			},
+		},
+		{
+			name: "With duplicates mixed",
+			input: []HeadBlock{
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
 				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", TrustedAttributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", TrustedAttributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
 			},
 		},
 		{

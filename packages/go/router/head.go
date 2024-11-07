@@ -103,7 +103,9 @@ func dedupeHeadBlocks(els []htmlutil.Element) []*htmlutil.Element {
 			} else {
 				dedupedEls[titleIdx] = &el
 			}
-		} else if el.Tag == "meta" && el.Attributes["name"] == "description" {
+		} else if el.Tag == "meta" &&
+			(el.Attributes["name"] == "description" ||
+				el.TrustedAttributes["name"] == "description") {
 			if descriptionIdx == -1 {
 				descriptionIdx = len(dedupedEls)
 				dedupedEls = append(dedupedEls, &el)
