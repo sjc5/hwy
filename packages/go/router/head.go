@@ -26,7 +26,7 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 	err := htmlutil.RenderElementToBuilder(&htmlutil.Element{Tag: "title", InnerHTML: template.HTML(routeData.Title)}, &htmlBuilder)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not execute title template: %v", err)
-		Log.Errorf(errMsg)
+		Log.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
 
@@ -36,7 +36,7 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 		err := htmlutil.RenderElementToBuilder(el, &htmlBuilder)
 		if err != nil {
 			errMsg := fmt.Sprintf("could not render meta head el: %v", err)
-			Log.Errorf(errMsg)
+			Log.Error(errMsg)
 			return nil, errors.New(errMsg)
 		}
 	}
@@ -48,7 +48,7 @@ func GetHeadElements(routeData *GetRouteDataOutput) (*template.HTML, error) {
 		err := htmlutil.RenderElementToBuilder(el, &htmlBuilder)
 		if err != nil {
 			errMsg := fmt.Sprintf("could not render rest head el: %v", err)
-			Log.Errorf(errMsg)
+			Log.Error(errMsg)
 			return nil, errors.New(errMsg)
 		}
 	}

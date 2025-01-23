@@ -23,7 +23,7 @@ func (h *Hwy) Init() error {
 	pathsFile, err := getBasePaths(h.FS)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get base paths: %v", err)
-		Log.Errorf(errMsg)
+		Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
 	h.buildID = pathsFile.BuildID
@@ -72,7 +72,10 @@ func (h *Hwy) addDataFuncsToPaths() {
 
 	for pattern := range h.Loaders {
 		if !slices.Contains(listOfPatterns, pattern) {
-			Log.Errorf("Warning: no matching path found for pattern %v. Make sure you're writing your patterns correctly and that your client route exists.", pattern)
+			Log.Error(fmt.Sprintf(
+				"Warning: no matching path found for pattern %v. Make sure you're writing your patterns correctly and that your client route exists.",
+				pattern,
+			))
 		}
 	}
 }
@@ -82,7 +85,7 @@ func getBasePaths(FS fs.FS) (*PathsFile, error) {
 	file, err := FS.Open(HwyPathsFileName)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not open %s: %v", HwyPathsFileName, err)
-		Log.Errorf(errMsg)
+		Log.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
 	defer file.Close()
@@ -90,7 +93,7 @@ func getBasePaths(FS fs.FS) (*PathsFile, error) {
 	err = decoder.Decode(&pathsFile)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not decode %s: %v", HwyPathsFileName, err)
-		Log.Errorf(errMsg)
+		Log.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
 	return &pathsFile, nil

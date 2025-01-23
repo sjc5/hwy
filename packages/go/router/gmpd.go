@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 	"sync"
@@ -194,7 +195,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 	outermostErrorIndex := -1
 	for i, errMsg := range loadersErrMsgs {
 		if errMsg != "" {
-			Log.Errorf("ERROR: %s", errMsg)
+			Log.Error(fmt.Sprintf("ERROR: %s", errMsg))
 			thereAreErrors = true
 			outermostErrorIndex = i
 			break

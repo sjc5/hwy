@@ -41,7 +41,8 @@ type BuildOptions struct {
 	StaticPrivateOutDir string
 
 	// esbuild passthroughs
-	ESBuildPlugins []esbuild.Plugin
+	ESBuildPlugins   []esbuild.Plugin
+	ESBuildNodePaths []string
 }
 
 type PathsFile struct {
@@ -201,15 +202,15 @@ func Build(opts *BuildOptions) error {
 
 	buildID, err := id.New(16)
 	if err != nil {
-		Log.Errorf("error generating random ID: %s", err)
+		Log.Error(fmt.Sprintf("error generating random ID: %s", err))
 		return err
 	}
-	Log.Infof("new build id: %s", buildID)
+	Log.Info(fmt.Sprintf("new build id: %s", buildID))
 
 	pathsJSONOut := filepath.Join(opts.StaticPrivateOutDir, HwyPathsFileName)
 	paths, err := opts.writePathsToDisk(opts.PagesSrcDir, pathsJSONOut)
 	if err != nil {
-		Log.Errorf("error writing paths to disk: %s", err)
+		Log.Error(fmt.Sprintf("error writing paths to disk: %s", err))
 		return err
 	}
 
@@ -218,7 +219,7 @@ func Build(opts *BuildOptions) error {
 	// that it would be perceptibly faster.
 	err = cleanStaticPublicOutDir(opts.StaticPublicOutDir)
 	if err != nil {
-		Log.Errorf("error cleaning static public out dir: %s", err)
+		Log.Error(fmt.Sprintf("error cleaning static public out dir: %s", err))
 		return err
 	}
 
@@ -228,17 +229,18 @@ func Build(opts *BuildOptions) error {
 		StaticPublicOutDir: opts.StaticPublicOutDir,
 		EntryPoints:        getEntrypoints(paths, opts),
 		Plugins:            opts.ESBuildPlugins,
+		NodePaths:          opts.ESBuildNodePaths,
 	})
 	if len(result.Errors) > 0 {
 		err = errors.New(result.Errors[0].Text)
-		Log.Errorf("error building: %s", err)
+		Log.Error(fmt.Sprintf("error building: %s", err))
 		return err
 	}
 
 	metafileJSONMap := esbuildutil.ESBuildMetafileSubset{}
 	err = json.Unmarshal([]byte(result.Metafile), &metafileJSONMap)
 	if err != nil {
-		Log.Errorf("error unmarshalling metafile JSON: %s", err)
+		Log.Error(fmt.Sprintf("error unmarshalling metafile JSON: %s", err))
 		return err
 	}
 
@@ -290,17 +292,17 @@ func Build(opts *BuildOptions) error {
 	}
 
 	if err != nil {
-		Log.Errorf("error marshalling paths to JSON: %s", err)
+		Log.Error(fmt.Sprintf("error marshalling paths to JSON: %s", err))
 		return err
 	}
 
 	err = os.WriteFile(pathsJSONOut, pathsAsJSON, os.ModePerm)
 	if err != nil {
-		Log.Errorf("error writing paths to disk: %s", err)
+		Log.Error(fmt.Sprintf("error writing paths to disk: %s", err))
 		return err
 	}
 
-	Log.Infof("build completed in %s", time.Since(startTime))
+	Log.Info(fmt.Sprintf("build completed in %s", time.Since(startTime)))
 	return nil
 }
 
@@ -317,6 +319,7 @@ type runEsbuildOpts struct {
 	StaticPublicOutDir string
 	EntryPoints        []string
 	Plugins            []esbuild.Plugin
+	NodePaths          []string
 }
 
 const (
@@ -333,7 +336,7 @@ func runEsbuild(opts runEsbuildOpts) esbuild.BuildResult {
 	cacheKey := fmt.Sprintf("%v%v%v%v", opts.IsDev, opts.UsePreactCompat, opts.StaticPublicOutDir, opts.EntryPoints)
 
 	if cacheKey == latestCacheKey {
-		Log.Infof("reusing esbuild context")
+		Log.Info("reusing esbuild context")
 		return cachedEsbuildCtx.Rebuild()
 	}
 	latestCacheKey = cacheKey
@@ -355,6 +358,8 @@ func runEsbuild(opts runEsbuildOpts) esbuild.BuildResult {
 	}
 
 	esbuildOpts := esbuild.BuildOptions{
+		NodePaths: opts.NodePaths,
+
 		// totally dynamic, but only changes when you page list changes
 		EntryPoints: opts.EntryPoints,
 
@@ -392,7 +397,7 @@ func runEsbuild(opts runEsbuildOpts) esbuild.BuildResult {
 	}
 	cachedEsbuildCtx = ctx
 
-	Log.Infof("created new esbuild context")
+	Log.Info("created new esbuild context")
 	return ctx.Rebuild()
 }
 
@@ -400,7 +405,7 @@ func cleanStaticPublicOutDir(staticPublicOutDir string) error {
 	fileInfo, err := os.Stat(staticPublicOutDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			Log.Warningf("static public out dir does not exist: %s", staticPublicOutDir)
+			Log.Warn(fmt.Sprintf("static public out dir does not exist: %s", staticPublicOutDir))
 			return nil
 		}
 		return err
@@ -408,7 +413,7 @@ func cleanStaticPublicOutDir(staticPublicOutDir string) error {
 
 	if !fileInfo.IsDir() {
 		errMsg := fmt.Sprintf("%s is not a directory", staticPublicOutDir)
-		Log.Errorf(errMsg)
+		Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
 

@@ -30,7 +30,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		}
 		if err != nil {
 			msg := "Error getting route data"
-			Log.Errorf(msg+": %v\n", err)
+			Log.Error(fmt.Sprintf(msg+": %v\n", err))
 			http.Error(w, msg, http.StatusInternalServerError)
 			return
 		}
@@ -40,7 +40,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			bytes, err := json.Marshal(routeData)
 			if err != nil {
 				msg := "Error marshalling JSON"
-				Log.Errorf(msg+": %v\n", err)
+				Log.Error(fmt.Sprintf(msg+": %v\n", err))
 				http.Error(w, msg, http.StatusInternalServerError)
 				return
 			}
@@ -91,7 +91,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 
 		if err := eg.Wait(); err != nil {
 			msg := "Error getting route data"
-			Log.Errorf(msg+": %v\n", err)
+			Log.Error(fmt.Sprintf(msg+": %v\n", err))
 			http.Error(w, msg, http.StatusInternalServerError)
 			return
 		}
@@ -108,7 +108,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		}
 		if err != nil {
 			msg := "Error getting root template data"
-			Log.Errorf(msg+": %v\n", err)
+			Log.Error(fmt.Sprintf(msg+": %v\n", err))
 			http.Error(w, msg, http.StatusInternalServerError)
 			return
 		}
@@ -126,7 +126,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		err = h.rootTemplate.Execute(&buf, tmplData)
 		if err != nil {
 			msg := "Error executing template"
-			Log.Errorf(msg+": %v\n", err)
+			Log.Error(fmt.Sprintf(msg+": %v\n", err))
 			http.Error(w, msg, http.StatusInternalServerError)
 		}
 		mainT.Checkpoint("Template execution")

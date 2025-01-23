@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"strings"
 	"text/template"
 
@@ -107,7 +108,7 @@ func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
 	})
 
 	if err != nil {
-		Log.Errorf("error generating typescript: %s", err)
+		Log.Error(fmt.Sprintf("error generating typescript: %s", err))
 		return err
 	}
 

@@ -92,9 +92,6 @@ type RouteChangeEventDetail = {
 };
 export type RouteChangeEvent = CustomEvent<RouteChangeEventDetail>;
 
-// __TODO incorporate common into here and just import from react
-// __TODO make react one file too
-// __TODO add comprehensive tests
 // __TODO get rid of any remaining magic strings
 
 /////////////////////////////////////////////////////////////////////

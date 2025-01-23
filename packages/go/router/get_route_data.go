@@ -74,7 +74,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 			defaultHeadBlocks, err = h.GetDefaultHeadBlocks(r)
 			if err != nil {
 				errMsg := fmt.Sprintf("could not get default head blocks: %v", err)
-				Log.Errorf(errMsg)
+				Log.Error(errMsg)
 				return nil, nil, routeType, errors.New(errMsg)
 			}
 		} else {
@@ -84,7 +84,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 		headBlocks, err = getExportedHeadBlocks(activePathData, defaultHeadBlocks)
 		if err != nil {
 			errMsg := fmt.Sprintf("could not get exported head blocks: %v", err)
-			Log.Errorf(errMsg)
+			Log.Error(errMsg)
 			return nil, nil, routeType, errors.New(errMsg)
 		}
 	}
