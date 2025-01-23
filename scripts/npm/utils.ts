@@ -123,7 +123,7 @@ function throwIfAlreadyPre() {
 	}
 }
 
-function setPre() {
+function addPre() {
 	throwIfAlreadyPre();
 	const currentVersion = confirmAndGetCurrentVersion();
 	const [major, minor, patch] = versionStrToTypedTuple(currentVersion);
@@ -183,7 +183,7 @@ function pkgDirnameToPath(pkgDirname: string) {
 }
 
 const cmdToFnMap = {
-	"--set-pre": setPre,
+	"--add-pre": addPre,
 	"--remove-pre": removePre,
 	"--bump-pre": bumpPre,
 	"--bump-patch": bumpToNewPatch,
