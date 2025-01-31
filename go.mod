@@ -5,7 +5,7 @@ go 1.22.0
 require (
 	github.com/evanw/esbuild v0.24.2
 	github.com/go-playground/validator/v10 v10.24.0
-	github.com/sjc5/kit v0.0.72
+	github.com/sjc5/kit v0.0.75
 	golang.org/x/sync v0.10.0
 )
 
@@ -19,5 +19,6 @@ require (
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 )

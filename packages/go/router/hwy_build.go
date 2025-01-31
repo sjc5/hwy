@@ -30,9 +30,9 @@ type DataFuncs struct {
 
 type BuildOptions struct {
 	// inputs
-	IsDev       bool
-	ClientEntry string
-	DataFuncs
+	IsDev           bool
+	ClientEntry     string
+	DataFuncs       *DataFuncs
 	UsePreactCompat bool
 
 	// outputs

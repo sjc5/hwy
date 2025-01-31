@@ -11,7 +11,7 @@ import (
 type TSGenOptions struct {
 	// Path, including filename, where the resulting TypeScript file will be written
 	OutPath     string
-	DataFuncs   DataFuncs
+	DataFuncs   *DataFuncs
 	AdHocTypes  []AdHocType
 	ExtraTSCode string
 }
