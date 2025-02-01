@@ -1,6 +1,7 @@
 package hwy_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -43,42 +44,42 @@ func TestRouter(t *testing.T) {
 
 		// Has expected number of matching paths
 		if len(matchingPathData.MatchingPaths) != len(path.ExpectedOutput.MatchingPaths) {
-			router.Log.Errorf("Path: %s", path.Path)
+			router.Log.Error(fmt.Sprintf("Path: %s", path.Path))
 			t.Errorf("Expected %d matching paths, but got %d", len(path.ExpectedOutput.MatchingPaths), len(matchingPathData.MatchingPaths))
 		}
 
 		for i, matchingPath := range matchingPathData.MatchingPaths {
 			// Each matching path is of the expected type
 			if matchingPath.PathType != path.ExpectedOutput.MatchingPaths[i] {
-				router.Log.Errorf("Path: %s", path.Path)
+				router.Log.Error(fmt.Sprintf("Path: %s", path.Path))
 				t.Errorf("Expected matching path %d to be of type %s, but got %s", i, path.ExpectedOutput.MatchingPaths[i], matchingPath.PathType)
 			}
 		}
 
 		// Has expected number of params
 		if len(matchingPathData.Params) != len(path.ExpectedOutput.Params) {
-			router.Log.Errorf("Path: %s", path.Path)
+			router.Log.Error(fmt.Sprintf("Path: %s", path.Path))
 			t.Errorf("Expected %d params, but got %d", len(path.ExpectedOutput.Params), len(matchingPathData.Params))
 		}
 
 		for key, expectedParam := range path.ExpectedOutput.Params {
 			// Each param has the expected value
 			if matchingPathData.Params[key] != expectedParam {
-				router.Log.Errorf("Path: %s", path.Path)
+				router.Log.Error(fmt.Sprintf("Path: %s", path.Path))
 				t.Errorf("Expected param %s to be %s, but got %s", key, expectedParam, matchingPathData.Params[key])
 			}
 		}
 
 		// Has expected number of splat segments
 		if matchingPathData.SplatSegments != nil && len(matchingPathData.SplatSegments) != len(path.ExpectedOutput.SplatSegments) {
-			router.Log.Errorf("Path: %s", path.Path)
+			router.Log.Error(fmt.Sprintf("Path: %s", path.Path))
 			t.Errorf("Expected %d splat segments, but got %d", len(path.ExpectedOutput.SplatSegments), len(matchingPathData.SplatSegments))
 		}
 
 		for i, expectedSplatSegment := range path.ExpectedOutput.SplatSegments {
 			// Each splat segment has the expected value
 			if matchingPathData.SplatSegments[i] != expectedSplatSegment {
-				router.Log.Errorf("Path: %s", path.Path)
+				router.Log.Error(fmt.Sprintf("Path: %s", path.Path))
 				t.Errorf("Expected splat segment %d to be %s, but got %s", i, expectedSplatSegment, matchingPathData.SplatSegments[i])
 			}
 		}
@@ -266,7 +267,7 @@ var testPaths = []testPath{
 
 func clean() {
 	os.RemoveAll("../tmp")
-	router.Log.Infof("removed temporary fixtures")
+	router.Log.Info("removed temporary fixtures")
 }
 
 var filesToMock = []string{
@@ -324,7 +325,7 @@ func setup() {
 			panic(err)
 		}
 	}
-	router.Log.Infof("created temporary fixtures for testing")
+	router.Log.Info("created temporary fixtures for testing")
 
 	// Write the root template to the temporary directory
 	templateDir := "../tmp/templates"
@@ -389,7 +390,7 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 	loader2 := hwy.Loader[struct{}](
 		func(ctx hwy.LoaderCtx[struct{}]) {
 			time.Sleep(100 * time.Millisecond)
-			router.Log.Infof(`Below should say "ERROR: loader2 error":`)
+			router.Log.Info(`Below should say "ERROR: loader2 error":`)
 			ctx.Res.ErrMsg = "loader2 error"
 		},
 	)

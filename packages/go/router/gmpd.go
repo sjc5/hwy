@@ -1,8 +1,8 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
-	"slices"
 	"sync"
 
 	"github.com/sjc5/kit/pkg/lru"
@@ -194,7 +194,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 	outermostErrorIndex := -1
 	for i, errMsg := range loadersErrMsgs {
 		if errMsg != "" {
-			Log.Errorf("ERROR: %s", errMsg)
+			Log.Error(fmt.Sprintf("ERROR: %s", errMsg))
 			thereAreErrors = true
 			outermostErrorIndex = i
 			break
@@ -296,8 +296,7 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 		}
 
 		// deps
-		deps := h.getDeps(matchingPaths)
-		item.Deps = deps
+		item.Deps = h.getDeps(matchingPaths)
 
 		// cache
 		// isSpam if no matching paths --> avoids cache poisoning while still allowing for cache hits
@@ -321,23 +320,24 @@ func decoratePaths(paths []*MatchingPath) []*DecoratedPath {
 
 func (h *Hwy) getDeps(matchingPaths []*MatchingPath) []string {
 	var deps []string
-	for _, path := range matchingPaths {
-		if path.Deps == nil {
-			continue
-		}
-		for _, dep := range path.Deps {
-			if !slices.Contains(deps, dep) {
-				deps = append(deps, dep)
+	seen := make(map[string]struct{}, len(matchingPaths))
+
+	handleDeps := func(src []string) {
+		for _, d := range src {
+			if _, ok := seen[d]; !ok {
+				deps = append(deps, d)
+				seen[d] = struct{}{}
 			}
 		}
 	}
-	if h.clientEntryDeps == nil {
-		return deps
+
+	if h.clientEntryDeps != nil {
+		handleDeps(h.clientEntryDeps)
 	}
-	for _, dep := range h.clientEntryDeps {
-		if !slices.Contains(deps, dep) {
-			deps = append(deps, dep)
-		}
+
+	for _, path := range matchingPaths {
+		handleDeps(path.Deps)
 	}
+
 	return deps
 }

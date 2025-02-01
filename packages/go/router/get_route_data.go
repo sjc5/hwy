@@ -74,7 +74,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 			defaultHeadBlocks, err = h.GetDefaultHeadBlocks(r)
 			if err != nil {
 				errMsg := fmt.Sprintf("could not get default head blocks: %v", err)
-				Log.Errorf(errMsg)
+				Log.Error(errMsg)
 				return nil, nil, routeType, errors.New(errMsg)
 			}
 		} else {
@@ -84,7 +84,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 		headBlocks, err = getExportedHeadBlocks(activePathData, defaultHeadBlocks)
 		if err != nil {
 			errMsg := fmt.Sprintf("could not get exported head blocks: %v", err)
-			Log.Errorf(errMsg)
+			Log.Error(errMsg)
 			return nil, nil, routeType, errors.New(errMsg)
 		}
 	}
@@ -106,12 +106,21 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 	}, nil, routeType, nil
 }
 
+// order matters
 func (h *Hwy) getCSSBundles(deps []string) []string {
 	cssBundles := make([]string, 0, len(deps))
+
+	// first, client entry CSS
+	if x, exists := h.depToCSSBundleMap[h.clientEntry]; exists {
+		cssBundles = append(cssBundles, x)
+	}
+
+	// then all downstream deps
 	for _, dep := range deps {
 		if x, exists := h.depToCSSBundleMap[dep]; exists {
 			cssBundles = append(cssBundles, x)
 		}
 	}
+
 	return cssBundles
 }

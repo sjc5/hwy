@@ -39,14 +39,14 @@ const (
 	x.splatSegments = {{.SplatSegments}};
 	x.params = {{.Params}};
 	x.adHocData = {{.AdHocData}};
-	const deps = {{.Deps}};
+	const deps = {{.Deps}} ?? [];
 	deps.forEach(x => {
 		const link = document.createElement('link');
 		link.rel = 'modulepreload';
 		link.href = "/public/" + x;
 		document.head.appendChild(link);
 	});
-	const cssBundles = {{.CSSBundles}};
+	const cssBundles = {{.CSSBundles}} ?? [];
 	cssBundles.forEach(x => {
 		const link = document.createElement('link');
 		link.rel = 'stylesheet';
@@ -97,7 +97,7 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*GetSSRInnerHTM
 	}
 	if err != nil {
 		errMsg := fmt.Sprintf("could not execute SSR inner HTML template: %v", err)
-		Log.Errorf(errMsg)
+		Log.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
 
@@ -113,14 +113,14 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*GetSSRInnerHTM
 	sha256Hash, err := htmlutil.AddSha256HashInline(&el, true)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not handle CSP for SSR inner HTML: %v", err)
-		Log.Errorf(errMsg)
+		Log.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
 
 	renderedEl, err := htmlutil.RenderElement(&el)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not render SSR inner HTML: %v", err)
-		Log.Errorf(errMsg)
+		Log.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
 

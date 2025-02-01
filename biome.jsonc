@@ -7,16 +7,12 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": [
-			"node_modules",
-			"dist",
-			"static/public/prehashed",
-			"__generated_ts_api/*"
-		]
+		"ignore": ["node_modules", "dist", "static/public/prehashed", "__generated_ts_api/*"]
 	},
 	"formatter": {
 		"enabled": true,
-		"indentStyle": "tab"
+		"indentStyle": "tab",
+		"lineWidth": 100
 	},
 	"organizeImports": {
 		"enabled": true

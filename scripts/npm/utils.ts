@@ -2,14 +2,12 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as readline from "node:readline";
 
-const dirsInSlashPackages = ["client", "create", "react"];
+const dirsInSlashPackages = ["client", "react"]; // "create"
 const preSuffix = "-pre";
 
 function getCurrentPkgJSONs() {
 	return dirsInSlashPackages.map((pkgDirname) => {
-		const parsed = JSON.parse(
-			fs.readFileSync(pkgDirnameToPath(pkgDirname), "utf-8"),
-		);
+		const parsed = JSON.parse(fs.readFileSync(pkgDirnameToPath(pkgDirname), "utf-8"));
 		if (!validateParsedPkgJSONFile(parsed)) {
 			throw new Error("Parsed package.json is invalid.");
 		}
@@ -72,10 +70,11 @@ function confirmAndGetCurrentVersion(shouldLog = false) {
 	return currentVersion;
 }
 
-function versionStrToTypedTuple(
-	version: string,
-): [number, number, number, number | undefined] {
-	let [majorStr, minorStr, patchStr] = version.split(".");
+function versionStrToTypedTuple(version: string): [number, number, number, number | undefined] {
+	let [majorStr, minorStr, patchStr, preStr] = version.split(".");
+
+	patchStr = patchStr?.replace(preSuffix, "") ?? patchStr;
+
 	if (!majorStr || !minorStr || !patchStr) {
 		throw new Error("Version is not in the correct format.");
 	}
@@ -84,13 +83,6 @@ function versionStrToTypedTuple(
 	const minor = Number(minorStr);
 	if (Number.isNaN(major) || Number.isNaN(minor)) {
 		throw new Error("Version is not in the correct format.");
-	}
-
-	let preStr: string | undefined;
-	if (patchStr.includes(preSuffix)) {
-		const x = patchStr.split(preSuffix);
-		patchStr = x[0];
-		preStr = x[1];
 	}
 
 	const patch = Number(patchStr);
@@ -187,13 +179,7 @@ function setVersion() {
 }
 
 function pkgDirnameToPath(pkgDirname: string) {
-	return path.join(
-		process.cwd(),
-		"packages",
-		"npm",
-		pkgDirname,
-		"package.json",
-	);
+	return path.join(process.cwd(), "packages", "npm", pkgDirname, "package.json");
 }
 
 const cmdToFnMap = {

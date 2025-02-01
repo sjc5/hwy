@@ -4,4 +4,5 @@ export {
 	HwyRootOutlet,
 	HwyRoute,
 	HwyRouteProps,
-} from "./src/recursive.js";
+	Link,
+} from "./src/react.js";

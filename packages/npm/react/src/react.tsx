@@ -1,16 +1,22 @@
-import { jsonDeepEquals } from "@sjc5/__tskpre/jsonutil";
-import { useEffect, useMemo, useState } from "react";
-import { flushSync } from "react-dom";
-import type { RouteChangeEvent, RouteData } from "../../common/index.mjs";
 import {
-	HWY_ROUTE_CHANGE_EVENT_KEY,
-	getHwyClientGlobal,
-} from "../../common/index.mjs";
+	type RouteChangeEvent,
+	addRouteChangeListener,
+	internal_HwyClientGlobal as ctx,
+	getPrefetchHandlers,
+	makeLinkClickListenerFn,
+} from "@hwy-js/client";
+import { jsonDeepEquals } from "@sjc5/kit/json";
+import { type ComponentProps, useEffect, useMemo, useState } from "react";
+import { flushSync } from "react-dom";
+
+/////////////////////////////////////////////////////////////////////
+// RECURSIVE ROUTE COMPONENT
+/////////////////////////////////////////////////////////////////////
 
 type ErrorBoundaryComp = () => JSX.Element;
 
 type BaseProps<AHD = any> = {
-	routeData?: RouteData<AHD>;
+	routeData?: unknown; // RouteData<AHD>;
 	index?: number;
 	fallbackErrorBoundary?: ErrorBoundaryComp;
 	adHocData?: AHD;
@@ -20,30 +26,30 @@ type BaseProps<AHD = any> = {
 let shouldScroll = false;
 
 export function HwyRootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
-	const ctx = getHwyClientGlobal();
 	const idx = props.index ?? 0;
 
-	const CurrentComponent = (ctx.get("activeComponents") as any)?.[idx];
+	const CurrentComponent = ctx.get("activeComponents")?.[idx];
 
-	const [adHocData, setAdHocData] = useState(
-		ctx.get("adHocData") ?? props.adHocData,
+	const [thisComponentsImportURL, setThisComponentsImportURL] = useState(
+		ctx.get("importURLs")?.[idx],
 	);
+	const [adHocData, setAdHocData] = useState(ctx.get("adHocData") ?? props.adHocData);
 	const [params, setParams] = useState(ctx.get("params") ?? {});
-	const [splatSegments, setSplatSegments] = useState(
-		ctx.get("splatSegments") ?? [],
-	);
-	const [loaderData, setLoaderData] = useState(
-		(ctx.get("loadersData") as any)?.[idx],
-	);
+	const [splatSegments, setSplatSegments] = useState(ctx.get("splatSegments") ?? []);
+	const [loaderData, setLoaderData] = useState(ctx.get("loadersData")?.[idx]);
 
 	useEffect(() => {
 		const listener = (e: RouteChangeEvent) => {
+			const newThisComponentsImportURL = ctx.get("importURLs")?.[idx];
 			const newAdHocData = ctx.get("adHocData") ?? props.adHocData;
 			const newParams = ctx.get("params") ?? {};
 			const newSplatSegments = ctx.get("splatSegments") ?? [];
-			const newLoaderData = (ctx.get("loadersData") as any)?.[idx];
+			const newLoaderData = ctx.get("loadersData")?.[idx];
 
 			flushSync(() => {
+				if (!jsonDeepEquals(thisComponentsImportURL, newThisComponentsImportURL)) {
+					setThisComponentsImportURL(newThisComponentsImportURL);
+				}
 				if (!jsonDeepEquals(adHocData, newAdHocData)) {
 					setAdHocData(newAdHocData);
 				}
@@ -69,21 +75,12 @@ export function HwyRootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
 			}
 		};
 
-		window.addEventListener(
-			HWY_ROUTE_CHANGE_EVENT_KEY,
-			listener as EventListener,
-		);
-		return () => {
-			window.removeEventListener(
-				HWY_ROUTE_CHANGE_EVENT_KEY,
-				listener as EventListener,
-			);
-		};
-	}, [adHocData, params, splatSegments, loaderData]);
+		return addRouteChangeListener(listener);
+	}, [thisComponentsImportURL, adHocData, params, splatSegments, loaderData]);
 
 	const EB = useMemo(
 		() =>
-			(ctx.get("activeErrorBoundaries") as any)?.[idx] ??
+			ctx.get("activeErrorBoundaries")?.[idx] ??
 			props.fallbackErrorBoundary ?? <div>Error: No error boundary found.</div>,
 		[idx],
 	);
@@ -91,29 +88,26 @@ export function HwyRootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
 	const Outlet = useMemo(() => {
 		let outlet;
 
-		const nextOutletIsAnErrorBoundary =
-			ctx.get("outermostErrorIndex") === idx + 1;
+		const nextOutletIsAnErrorBoundary = ctx.get("outermostErrorIndex") === idx + 1;
 
 		if (!nextOutletIsAnErrorBoundary) {
 			outlet = (localProps: Record<string, any> | undefined) => {
 				return <HwyRootOutlet {...localProps} {...props} index={idx + 1} />;
 			};
 		} else {
-			outlet =
-				(ctx.get("activeErrorBoundaries") as any)?.[idx + 1] ??
-				props.fallbackErrorBoundary;
+			outlet = ctx.get("activeErrorBoundaries")?.[idx + 1] ?? props.fallbackErrorBoundary;
 			if (!outlet) {
 				outlet = () => <div>Error: No error boundary found.</div>;
 			}
 		}
 		return outlet;
-	}, [(ctx.get("importURLs") as any)?.[idx + 1]]);
+	}, [ctx.get("importURLs")?.[idx + 1]]);
 
 	const extendedProps = useMemo(() => {
 		return {
 			...props,
-			params: params as any,
-			splatSegments: splatSegments as any,
+			params,
+			splatSegments,
 			loaderData,
 			Outlet,
 			adHocData,
@@ -133,7 +127,7 @@ export function HwyRootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
 	if (!CurrentComponent) {
 		return (
 			<MaybeWithLayout {...extendedProps}>
-				{/* biome-ignore lint: _ */}
+				{/* biome-ignore lint: */}
 				<></>
 			</MaybeWithLayout>
 		);
@@ -214,3 +208,81 @@ export type HwyLayoutProps<T extends RoutePropsTypeArg = DefaultRouteProps> = {
 export type HwyLayout<T extends RoutePropsTypeArg = DefaultRouteProps> = (
 	props: HwyLayoutProps<T>,
 ) => JSX.Element;
+
+/////////////////////////////////////////////////////////////////////
+// LINK COMPONENT
+/////////////////////////////////////////////////////////////////////
+
+// __TODO add prefetch = "render" and prefetch = "viewport" options, a la Remix
+
+type HwyLinkClickCallback = (
+	e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+) => void | Promise<void>;
+
+type HwyLinkProps = {
+	prefetch?: "intent";
+	prefetchTimeout?: number;
+	beforeBegin?: HwyLinkClickCallback;
+	beforeRender?: HwyLinkClickCallback;
+	afterRender?: HwyLinkClickCallback;
+};
+type LinkProps = ComponentProps<"a"> & HwyLinkProps;
+
+export function Link(props: LinkProps) {
+	const prefetchObj = useMemo(() => {
+		return props.href
+			? getPrefetchHandlers({
+					href: props.href,
+					timeout: props.prefetchTimeout,
+					beforeBegin: props.beforeBegin as any,
+					beforeRender: props.beforeRender as any,
+					afterRender: props.afterRender as any,
+				})
+			: undefined;
+	}, [props]);
+
+	const conditionalPrefetchObj = props.prefetch === "intent" ? prefetchObj : undefined;
+
+	const sansPrefetchSPAOnClick = useMemo(() => {
+		return makeLinkClickListenerFn({
+			beforeBegin: props.beforeBegin as any,
+			beforeRender: props.beforeRender as any,
+			afterRender: props.afterRender as any,
+			requireDataBoostAttribute: false,
+		});
+	}, [props]);
+
+	return (
+		<a
+			data-external={prefetchObj?.isExternal || undefined}
+			{...props}
+			onPointerEnter={(e) => {
+				conditionalPrefetchObj?.start(e as any);
+				props.onPointerEnter?.(e);
+			}}
+			onFocus={(e) => {
+				conditionalPrefetchObj?.start(e as any);
+				props.onFocus?.(e);
+			}}
+			onPointerLeave={(e) => {
+				conditionalPrefetchObj?.stop();
+				props.onPointerLeave?.(e);
+			}}
+			onBlur={(e) => {
+				conditionalPrefetchObj?.stop();
+				props.onBlur?.(e);
+			}}
+			// biome-ignore lint:
+			onClick={async (e) => {
+				props.onClick?.(e);
+				if (conditionalPrefetchObj) {
+					await conditionalPrefetchObj.onClick(e as any);
+				} else {
+					await sansPrefetchSPAOnClick(e as any);
+				}
+			}}
+		>
+			{props.children}
+		</a>
+	);
+}

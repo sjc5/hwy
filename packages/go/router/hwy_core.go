@@ -70,6 +70,7 @@ type Hwy struct {
 	PublicURLResolver    func(string) string
 
 	paths             []Path
+	clientEntry       string
 	clientEntryURL    string
 	clientEntryDeps   []string
 	buildID           string
@@ -114,7 +115,7 @@ func getIsDebug() bool {
 	return os.Getenv("HWY_ENV") == "development"
 }
 
-var Log = colorlog.Log{Label: "Hwy"}
+var Log = colorlog.New("Hwy")
 
 type hwyContextKey string
 

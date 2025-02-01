@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"strings"
 	"text/template"
 
@@ -10,7 +11,7 @@ import (
 type TSGenOptions struct {
 	// Path, including filename, where the resulting TypeScript file will be written
 	OutPath     string
-	DataFuncs   DataFuncs
+	DataFuncs   *DataFuncs
 	AdHocTypes  []AdHocType
 	ExtraTSCode string
 }
@@ -107,7 +108,7 @@ func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
 	})
 
 	if err != nil {
-		Log.Errorf("error generating typescript: %s", err)
+		Log.Error(fmt.Sprintf("error generating typescript: %s", err))
 		return err
 	}
 

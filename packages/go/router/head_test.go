@@ -58,11 +58,35 @@ func TestDedupeHeadBlocks(t *testing.T) {
 			input: []HeadBlock{
 				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
 				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
-				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
 			},
 			expected: []*HeadBlock{
 				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
+			},
+		},
+		{
+			name: "With duplicates TrustedAttributes",
+			input: []HeadBlock{
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", TrustedAttributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", TrustedAttributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", TrustedAttributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
+			},
+		},
+		{
+			name: "With duplicates mixed",
+			input: []HeadBlock{
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
 				{Tag: "meta", Attributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework."}},
+				{Tag: "meta", TrustedAttributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
+			},
+			expected: []*HeadBlock{
+				{Tag: "title", InnerHTML: "Hwy", Attributes: nil},
+				{Tag: "meta", TrustedAttributes: map[string]string{"name": "description", "content": "Hwy is a simple, lightweight, and flexible web framework. 2"}},
 			},
 		},
 		{
@@ -131,14 +155,136 @@ func TestStableHash(t *testing.T) {
 		expected string
 	}{
 		{
-			name:     "Simple meta tag",
-			input:    HeadBlock{Tag: "meta", Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"}},
-			expected: "meta|content=width=device-width, initial-scale=1&name=viewport",
+			name: "Simple meta tag",
+			input: HeadBlock{
+				Tag:        "meta",
+				Attributes: map[string]string{"name": "viewport", "content": "width=device-width, initial-scale=1"},
+			},
+			expected: "meta|attr:content=width=device-width, initial-scale=1&attr:name=viewport",
 		},
 		{
-			name:     "Title tag",
-			input:    HeadBlock{Tag: "title", InnerHTML: "Test Title", Attributes: nil},
-			expected: "title|",
+			name: "Title tag with innerHTML",
+			input: HeadBlock{
+				Tag:       "title",
+				InnerHTML: "Test Title",
+			},
+			expected: "title||Test Title",
+		},
+		{
+			name: "Empty element",
+			input: HeadBlock{
+				Tag: "div",
+			},
+			expected: "div|",
+		},
+		{
+			name: "Mixed attributes types",
+			input: HeadBlock{
+				Tag: "input",
+				Attributes: map[string]string{
+					"type": "text",
+					"name": "username",
+				},
+				TrustedAttributes: map[string]string{
+					"data-custom": "<safe-value>",
+				},
+				BooleanAttributes: []string{"required", "autofocus"},
+			},
+			expected: "input|attr:name=username&attr:type=text&bool:autofocus&bool:required&trusted:data-custom=<safe-value>",
+		},
+		{
+			name: "Self-closing tag with attributes",
+			input: HeadBlock{
+				Tag:         "img",
+				SelfClosing: true,
+				Attributes: map[string]string{
+					"src": "image.jpg",
+					"alt": "Test Image",
+				},
+			},
+			expected: "img|attr:alt=Test Image&attr:src=image.jpg|self-closing",
+		},
+		{
+			name: "Complex script tag",
+			input: HeadBlock{
+				Tag:       "script",
+				InnerHTML: "console.log('test');",
+				Attributes: map[string]string{
+					"type": "text/javascript",
+				},
+				TrustedAttributes: map[string]string{
+					"nonce": "abc123",
+				},
+			},
+			expected: "script|attr:type=text/javascript&trusted:nonce=abc123|console.log('test');",
+		},
+		{
+			name: "All fields populated",
+			input: HeadBlock{
+				Tag:       "div",
+				InnerHTML: "content",
+				Attributes: map[string]string{
+					"class": "main",
+					"id":    "container",
+				},
+				TrustedAttributes: map[string]string{
+					"data-safe": "<html>",
+				},
+				BooleanAttributes: []string{"hidden", "draggable"},
+				SelfClosing:       true,
+			},
+			expected: "div|attr:class=main&attr:id=container&bool:draggable&bool:hidden&trusted:data-safe=<html>|content|self-closing",
+		},
+		{
+			name: "Special characters in attributes",
+			input: HeadBlock{
+				Tag: "div",
+				Attributes: map[string]string{
+					"data-test": "a|b&c=d",
+				},
+			},
+			expected: "div|attr:data-test=a|b&c=d",
+		},
+		{
+			name: "Only boolean attributes",
+			input: HeadBlock{
+				Tag:               "input",
+				BooleanAttributes: []string{"required", "readonly", "disabled"},
+			},
+			expected: "input|bool:disabled&bool:readonly&bool:required",
+		},
+		{
+			name: "Only trusted attributes",
+			input: HeadBlock{
+				Tag: "div",
+				TrustedAttributes: map[string]string{
+					"data-html":  "<p>safe</p>",
+					"data-html2": "<div>also safe</div>",
+				},
+			},
+			expected: "div|trusted:data-html2=<div>also safe</div>&trusted:data-html=<p>safe</p>",
+		},
+		{
+			name: "Empty attributes but with innerHTML",
+			input: HeadBlock{
+				Tag:               "span",
+				InnerHTML:         "Some content",
+				Attributes:        map[string]string{},
+				TrustedAttributes: map[string]string{},
+				BooleanAttributes: []string{},
+			},
+			expected: "span||Some content",
+		},
+		{
+			name: "Unicode content",
+			input: HeadBlock{
+				Tag:       "p",
+				InnerHTML: "Hello, 世界",
+				Attributes: map[string]string{
+					"lang": "zh",
+				},
+			},
+			expected: "p|attr:lang=zh|Hello, 世界",
 		},
 	}
 
@@ -146,7 +292,7 @@ func TestStableHash(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := headBlockStableHash(&tt.input)
 			if result != tt.expected {
-				t.Errorf("stableHash() = %v, expected %v", result, tt.expected)
+				t.Errorf("stableHash() =\n%v\nexpected:\n%v", result, tt.expected)
 			}
 		})
 	}

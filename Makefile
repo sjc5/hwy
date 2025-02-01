@@ -11,7 +11,7 @@ test-go: test-go-router test-go-general
 # --- PUBLISHING GO ---
 
 publish-go: test-go
-	@./scripts/go/bumper.sh
+	@go run ./scripts/go/bumper
 
 # --- LINTING AND FORMATTING JAVASCRIPT ---
 
