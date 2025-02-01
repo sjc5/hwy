@@ -7,11 +7,14 @@ const preSuffix = "-pre";
 
 function getCurrentPkgJSONs() {
 	return dirsInSlashPackages.map((pkgDirname) => {
-		const parsed = JSON.parse(fs.readFileSync(pkgDirnameToPath(pkgDirname), "utf-8"));
+		const unparsed = fs.readFileSync(pkgDirnameToPath(pkgDirname), "utf-8");
+
+		const parsed = JSON.parse(unparsed);
 		if (!validateParsedPkgJSONFile(parsed)) {
 			throw new Error("Parsed package.json is invalid.");
 		}
-		return parsed;
+
+		return { parsed, unparsed };
 	});
 }
 
@@ -28,12 +31,7 @@ function saveNewPkgJSONs(newVersion: string) {
 	const currentVersion = confirmAndGetCurrentVersion();
 
 	const newPkgJSONsStringified = pkgJSONs.map((pkgJSON) => {
-		return (
-			JSON.stringify(pkgJSON, null, "\t").replace(
-				`"version": "${currentVersion}"`,
-				`"version": "${newVersion}"`,
-			) + "\n"
-		);
+		return pkgJSON.unparsed.replace(`"version": "${currentVersion}"`, `"version": "${newVersion}"`);
 	});
 
 	dirsInSlashPackages.forEach((pkgDirname, i) => {
@@ -44,22 +42,23 @@ function saveNewPkgJSONs(newVersion: string) {
 		fs.writeFileSync(pkgDirnameToPath(pkgDirname), data, "utf-8");
 	});
 
-	console.log(
-		`\nSaved new package versions.\n\n❌ Old versions: ${currentVersion}.\n\n✅ New versions: ${newVersion}.\n`,
-	);
+	console.log("Saved new package version.");
+	console.log(`❌ Old version: ${currentVersion}`);
+	console.log(`✅ New version: ${newVersion}`);
 }
 
 function confirmAndGetCurrentVersion(shouldLog = false) {
 	const pkgJSONs = getCurrentPkgJSONs();
 
-	const versions = pkgJSONs.map((pkgJSON) => pkgJSON.version);
+	const versions = pkgJSONs.map((pkgJSON) => pkgJSON.parsed.version);
 
 	if (versions.some((v) => v !== versions[0])) {
 		throw new Error("Package versions are not all the same.");
 	}
 
 	if (shouldLog) {
-		console.log(`Current version is ${versions[0]}.\n`);
+		console.log(`Current version is ${versions[0]}.`);
+		console.log();
 	}
 
 	const currentVersion = versions[0];
