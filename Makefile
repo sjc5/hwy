@@ -10,7 +10,7 @@ test-go: test-go-router test-go-general
 
 # --- PUBLISHING GO ---
 
-publish-go: test-go
+bumper: test-go
 	@go run ./scripts/go/bumper
 
 # --- LINTING AND FORMATTING JAVASCRIPT ---
