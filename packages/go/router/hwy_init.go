@@ -36,6 +36,7 @@ func (h *Hwy) Init() error {
 		h.paths = append(h.paths, Path{PathBase: pathBase})
 	}
 
+	h.clientEntry = pathsFile.ClientEntry
 	h.clientEntryURL = h.PublicURLResolver(pathsFile.ClientEntry)
 
 	h.addDataFuncsToPaths()

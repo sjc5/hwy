@@ -70,6 +70,7 @@ type Hwy struct {
 	PublicURLResolver    func(string) string
 
 	paths             []Path
+	clientEntry       string
 	clientEntryURL    string
 	clientEntryDeps   []string
 	buildID           string

@@ -905,7 +905,7 @@ async function __reRenderApp({
 	// Now that CSS is preloaded, update the DOM
 	window.requestAnimationFrame(() => {
 		// remove old css bundles
-		const actualRouteStyleSheetsOnPage = document.querySelectorAll("[data-hwy-css-bundle]");
+		const actualRouteStyleSheetsOnPage = document.querySelectorAll(`[${cssBundleDataAttr}]`);
 		actualRouteStyleSheetsOnPage.forEach((x) => {
 			const attr = x.getAttribute(cssBundleDataAttr)!;
 			if (!json.cssBundles?.includes(attr)) {
@@ -913,12 +913,17 @@ async function __reRenderApp({
 			}
 		});
 
-		// add new css bundles
+		// add new css bundles -- order matters
 		json.cssBundles?.forEach((x) => {
 			const href = "/public/" + x;
-			if (document.querySelector(`link[${cssBundleDataAttr}="${x}"]`)) {
+			const existingLink = document.querySelector(`link[${cssBundleDataAttr}="${x}"]`);
+
+			if (existingLink) {
+				// Move existing link to maintain order
+				document.head.appendChild(existingLink);
 				return;
 			}
+
 			const newLink = document.createElement("link");
 			newLink.rel = "stylesheet";
 			newLink.href = href;
