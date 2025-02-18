@@ -1,7 +1,9 @@
 export {
+	addBuildIDListener,
 	addRouteChangeListener,
 	addStatusListener,
 	devRevalidate,
+	getBuildID,
 	getCurrentHwyData,
 	getPrefetchHandlers,
 	getStatus,

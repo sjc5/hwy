@@ -35,7 +35,7 @@ func (h *Hwy) initInner(isDev bool) error {
 		return errors.New("FS is nil")
 	}
 
-	pathsFile, err := getBasePaths(h.FS)
+	pathsFile, err := getBasePaths_StageOneOrTwo(h.FS, isDev)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get base paths: %v", err)
 		Log.Error(errMsg)
@@ -91,11 +91,16 @@ func (h *Hwy) initInner(isDev bool) error {
 	return nil
 }
 
-func getBasePaths(FS fs.FS) (*PathsFile, error) {
+func getBasePaths_StageOneOrTwo(FS fs.FS, isDev bool) (*PathsFile, error) {
+	fileToUse := HwyPathsStageOneJSONFileName
+	if !isDev {
+		fileToUse = HwyPathsStageTwoJSONFileName
+	}
+
 	pathsFile := PathsFile{}
-	file, err := FS.Open(HwyPathsJSONFileName)
+	file, err := FS.Open(fileToUse)
 	if err != nil {
-		errMsg := fmt.Sprintf("could not open %s: %v", HwyPathsJSONFileName, err)
+		errMsg := fmt.Sprintf("could not open %s: %v", fileToUse, err)
 		Log.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
@@ -103,7 +108,7 @@ func getBasePaths(FS fs.FS) (*PathsFile, error) {
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&pathsFile)
 	if err != nil {
-		errMsg := fmt.Sprintf("could not decode %s: %v", HwyPathsJSONFileName, err)
+		errMsg := fmt.Sprintf("could not decode %s: %v", fileToUse, err)
 		Log.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}

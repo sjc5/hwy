@@ -100,11 +100,12 @@ func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
 	}
 
 	err := tsgen.GenerateTSToFile(tsgen.Opts{
-		OutPath:           opts.OutPath,
-		Items:             items,
-		ItemsArrayVarName: itemsArrayVarName,
-		ExtraTSCode:       extraTSToUse,
-		AdHocTypes:        opts.AdHocTypes,
+		OutPath:                       opts.OutPath,
+		Items:                         items,
+		ItemsArrayVarName:             itemsArrayVarName,
+		ExtraTSCode:                   extraTSToUse,
+		AdHocTypes:                    opts.AdHocTypes,
+		ArbitraryPropertyNameToSortBy: "pattern",
 	})
 
 	if err != nil {

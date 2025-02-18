@@ -1207,11 +1207,9 @@ function dispatchBuildIDEvent(detail: BuildIDEvent) {
 	window.dispatchEvent(new CustomEvent(BUILD_ID_EVENT_KEY, { detail }));
 }
 
-// __TODO export these so client can handle (probably just window.reload)
+export const addBuildIDListener = makeListenerAdder<BuildIDEvent>(BUILD_ID_EVENT_KEY);
 
-const addBuildIDListener = makeListenerAdder<BuildIDEvent>(BUILD_ID_EVENT_KEY);
-
-function getBuildID() {
+export function getBuildID() {
 	return internal_HwyClientGlobal.get("buildID");
 }
 

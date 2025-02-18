@@ -10,28 +10,34 @@ import (
 	"github.com/sjc5/kit/pkg/validate"
 )
 
-type BuildOptions = router.BuildOptions
-type TSGenOptions = router.TSGenOptions
-type AdHocType = router.AdHocType
-type DataFuncs = router.DataFuncs
-type Hwy = router.Hwy
-type HeadBlock = router.HeadBlock
-type DataFunctionMap = router.DataFunctionMap
-type Path = router.Path
-type PathsFile = router.PathsFile
-type Redirect = router.Redirect
-type Params = router.Params
-type SplatSegments = router.SplatSegments
-type RouteType = router.RouteType
-type ResponseHelper = router.ResponseHelper
-type CtxHelper = router.CtxHelper
+type (
+	BuildOptions     = router.BuildOptions
+	TSGenOptions     = router.TSGenOptions
+	AdHocType        = router.AdHocType
+	DataFuncs        = router.DataFuncs
+	Hwy              = router.Hwy
+	HeadBlock        = router.HeadBlock
+	DataFunctionMap  = router.DataFunctionMap
+	Path             = router.Path
+	PathsFile        = router.PathsFile
+	Redirect         = router.Redirect
+	Params           = router.Params
+	SplatSegments    = router.SplatSegments
+	RouteType        = router.RouteType
+	ResponseHelper   = router.ResponseHelper
+	CtxHelper        = router.CtxHelper
+	RootTemplateData = router.RootTemplateData
+)
 
-var GenerateTypeScript = router.GenerateTypeScript
-var GetIsJSONRequest = router.GetIsJSONRequest
-var GetHeadElements = router.GetHeadElements
-var RouteTypesEnum = router.RouteTypesEnum
-var HwyPathsJSONFileName = router.HwyPathsJSONFileName
-var HwyViteConfigHelperTSFileName = router.HwyViteConfigHelperTSFileName
+var (
+	GenerateTypeScript            = router.GenerateTypeScript
+	GetIsJSONRequest              = router.GetIsJSONRequest
+	GetHeadElements               = router.GetHeadElements
+	RouteTypesEnum                = router.RouteTypesEnum
+	HwyPathsStageOneJSONFileName  = router.HwyPathsStageOneJSONFileName
+	HwyPathsStageTwoJSONFileName  = router.HwyPathsStageTwoJSONFileName
+	HwyViteConfigHelperTSFileName = router.HwyViteConfigHelperTSFileName
+)
 
 func NewAdHocDataStore[T any]() *contextutil.Store[T] {
 	return router.NewAdHocDataStore[T]()

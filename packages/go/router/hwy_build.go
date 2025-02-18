@@ -19,7 +19,8 @@ import (
 )
 
 const (
-	HwyPathsJSONFileName          = "hwy_paths.json"
+	HwyPathsStageOneJSONFileName  = "hwy_paths_stage_1.json"
+	HwyPathsStageTwoJSONFileName  = "hwy_paths_stage_2.json"
 	HwyViteConfigHelperTSFileName = "hwy_vite_config_helper.ts"
 )
 
@@ -31,6 +32,7 @@ type DataFuncs struct {
 	MutationActions DataFunctionMap
 }
 
+// __TODO shouldn't this just be combined with Base Hwy struct?
 type BuildOptions struct {
 	// inputs
 	IsDev       bool
@@ -44,14 +46,17 @@ type BuildOptions struct {
 }
 
 type PathsFile struct {
-	Stage             string            `json:"stage"`
-	IsDev             bool              `json:"isDev"`
-	Paths             []PathBase        `json:"paths"`
-	ClientEntrySrc    string            `json:"clientEntrySrc"`
-	ClientEntryOut    string            `json:"clientEntryOut"`
-	ClientEntryDeps   []string          `json:"clientEntryDeps"`
-	BuildID           string            `json:"buildID"`
-	DepToCSSBundleMap map[string]string `json:"depToCSSBundleMap"`
+	// both stages one and two
+	Stage          string     `json:"stage"`
+	IsDev          bool       `json:"isDev"`
+	BuildID        string     `json:"buildID"`
+	ClientEntrySrc string     `json:"clientEntrySrc"`
+	Paths          []PathBase `json:"paths"`
+
+	// stage two only
+	ClientEntryOut    string            `json:"clientEntryOut,omitempty"`
+	ClientEntryDeps   []string          `json:"clientEntryDeps,omitempty"`
+	DepToCSSBundleMap map[string]string `json:"depToCSSBundleMap,omitempty"`
 }
 
 type SegmentObj struct {
@@ -177,11 +182,11 @@ func pathBaseFromSegmentsInit(segmentsInit []string) *PathBase {
 	}
 }
 
-// __TODO just use a different file for this intermittent thing
-func (opts *BuildOptions) writePathsToDisk_StageOne(pagesSrcDir string, pathsJSONOut string, buildID string) ([]PathBase, error) {
+func (opts *BuildOptions) writePathsToDisk_StageOne(pagesSrcDir string, buildID string) ([]PathBase, error) {
 	paths := opts.walkPages(pagesSrcDir)
 
-	err := os.MkdirAll(filepath.Dir(pathsJSONOut), os.ModePerm)
+	pathsJSONOut_StageOne := filepath.Join(opts.StaticPrivateOutDir, HwyPathsStageOneJSONFileName)
+	err := os.MkdirAll(filepath.Dir(pathsJSONOut_StageOne), os.ModePerm)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +202,7 @@ func (opts *BuildOptions) writePathsToDisk_StageOne(pagesSrcDir string, pathsJSO
 		return nil, err
 	}
 
-	err = os.WriteFile(pathsJSONOut, pathsAsJSON, os.ModePerm)
+	err = os.WriteFile(pathsJSONOut_StageOne, pathsAsJSON, os.ModePerm)
 	if err != nil {
 		return nil, err
 	}
@@ -260,8 +265,7 @@ func (h *Hwy) Build(opts *BuildOptions) error {
 	}
 	Log.Info(fmt.Sprintf("new build id: %s", buildID))
 
-	pathsJSONOut := filepath.Join(opts.StaticPrivateOutDir, HwyPathsJSONFileName)
-	paths, err := opts.writePathsToDisk_StageOne(opts.PagesSrcDir, pathsJSONOut, buildID)
+	paths, err := opts.writePathsToDisk_StageOne(opts.PagesSrcDir, buildID)
 	if err != nil {
 		Log.Error(fmt.Sprintf("error writing paths to disk: %s", err))
 		return err
@@ -281,8 +285,9 @@ func (h *Hwy) Build(opts *BuildOptions) error {
 		return err
 	}
 
+	splitCommand := strings.Fields(h.JSPackageManagerBaseCmd)
+
 	if opts.IsDev {
-		Log.Info("running vite serve")
 		if h._viteCmd != nil {
 			if err = grace.TerminateProcess(h._viteCmd.Process, 3*time.Second, nil); err != nil {
 				Log.Error(fmt.Sprintf("error terminating vite process: %s", err))
@@ -298,26 +303,29 @@ func (h *Hwy) Build(opts *BuildOptions) error {
 			return err
 		}
 
-		// __TODO make this configurable
-		h._viteCmd = exec.Command("pnpm", "vite", "--port", fmt.Sprintf("%d", vitePort), "--clearScreen", "false", "--strictPort", "true")
+		h._viteCmd = exec.Command(splitCommand[0], splitCommand[1:]...)
+		h._viteCmd.Args = append(h._viteCmd.Args, "vite", "--port", fmt.Sprintf("%d", vitePort), "--clearScreen", "false", "--strictPort", "true")
 
-		// h.viteCmd.Dir = "web" // __TODO
+		Log.Info("Running vite serve (dev)", "command", fmt.Sprintf(`"%s"`, strings.Join(h._viteCmd.Args, " ")))
+
+		if h.JSPackagerManagerCmdDir != "" {
+			h._viteCmd.Dir = h.JSPackagerManagerCmdDir
+		}
+
 		h._viteCmd.Stdout = os.Stdout
 		h._viteCmd.Stderr = os.Stderr
 
 		go h._viteCmd.Run()
 	} else {
-		Log.Info("running vite build")
+		cmd := exec.Command(splitCommand[0], splitCommand[1:]...)
+		cmd.Args = append(cmd.Args, "vite", "build", "--outDir", filepath.Join(opts.StaticPublicOutDir), "--assetsDir", ".", "--manifest")
 
-		// __TODO make this configurable
-		cmd := exec.Command(
-			"pnpm", "vite", "build",
-			"--outDir", filepath.Join(opts.StaticPublicOutDir),
-			"--assetsDir", ".",
-			"--manifest",
-		)
+		Log.Info("Running vite build (prod)", "command", fmt.Sprintf(`"%s"`, strings.Join(cmd.Args, " ")))
 
-		// h.viteCmd.Dir = "web" // __TODO
+		if h.JSPackagerManagerCmdDir != "" {
+			h._viteCmd.Dir = h.JSPackagerManagerCmdDir
+		}
+
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
@@ -342,7 +350,8 @@ func (h *Hwy) Build(opts *BuildOptions) error {
 			return err
 		}
 
-		err = os.WriteFile(pathsJSONOut, pathsAsJSON, os.ModePerm)
+		pathsJSONOut_StageTwo := filepath.Join(opts.StaticPrivateOutDir, HwyPathsStageTwoJSONFileName)
+		err = os.WriteFile(pathsJSONOut_StageTwo, pathsAsJSON, os.ModePerm)
 		if err != nil {
 			Log.Error(fmt.Sprintf("error writing paths to disk: %s", err))
 			return err

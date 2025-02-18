@@ -46,12 +46,15 @@ var RouteTypesEnum = struct {
 }
 
 type PathBase struct {
+	// both stages one and two
 	Pattern  string   `json:"pattern"`
 	Segments []string `json:"segments"`
 	PathType string   `json:"pathType"`
-	OutPath  string   `json:"outPath,omitempty"`
-	SrcPath  string   `json:"srcPath,omitempty"`
-	Deps     []string `json:"deps,omitempty"`
+	SrcPath  string   `json:"srcPath"`
+
+	// stage two only
+	OutPath string   `json:"outPath,omitempty"`
+	Deps    []string `json:"deps,omitempty"`
 }
 
 type Path struct {
@@ -73,16 +76,18 @@ var UIVariants = struct {
 	Solid:  "solid",
 }
 
+type RootTemplateData = map[string]any
+
 type Hwy struct {
-	FS                   fs.FS
-	Loaders              DataFunctionMap
-	QueryActions         DataFunctionMap
-	MutationActions      DataFunctionMap
-	RootTemplateLocation string
-	Validator            *validate.Validate
-	GetDefaultHeadBlocks func(r *http.Request) ([]HeadBlock, error)
-	GetRootTemplateData  func(r *http.Request) (map[string]any, error)
-	UIVariant            UIVariant
+	FS fs.FS
+	*DataFuncs
+	RootTemplateLocation    string
+	GetDefaultHeadBlocks    func(r *http.Request) ([]HeadBlock, error)
+	GetRootTemplateData     func(r *http.Request) (RootTemplateData, error)
+	UIVariant               UIVariant
+	JSPackageManagerBaseCmd string // required -- e.g., "npx", "pnpm", "yarn", etc.
+	JSPackagerManagerCmdDir string // optional -- used for monorepos that need to run commands from higher directories
+	Validator               *validate.Validate
 
 	mu                 sync.Mutex
 	_isDev             bool

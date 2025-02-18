@@ -99,13 +99,11 @@ func (h *Hwy) GetRootHandler() http.Handler {
 
 		mainT.Checkpoint("errGroup")
 
-		tmplData := map[string]any{}
-
-		var rootTemplateData map[string]any
+		var rootTemplateData RootTemplateData
 		if h.GetRootTemplateData != nil {
 			rootTemplateData, err = h.GetRootTemplateData(r)
 		} else {
-			rootTemplateData = map[string]any{}
+			rootTemplateData = RootTemplateData{}
 		}
 		if err != nil {
 			msg := "Error getting root template data"
@@ -114,6 +112,9 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			return
 		}
 
+		tmplData := RootTemplateData{}
+
+		// __TODO is this copy necessary?
 		for key, value := range rootTemplateData {
 			tmplData[key] = value
 		}
