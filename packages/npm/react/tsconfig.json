@@ -8,6 +8,11 @@
 		"skipLibCheck": true,
 		"noEmit": true,
 		"esModuleInterop": true,
+		"noUncheckedIndexedAccess": true,
+		"verbatimModuleSyntax": true,
+		"allowImportingTsExtensions": true,
+
+		// react-specific
 		"jsx": "react-jsx"
 	},
 	"exclude": ["node_modules", "dist"]

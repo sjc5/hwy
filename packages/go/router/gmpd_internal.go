@@ -12,6 +12,7 @@ type MatchingPath struct {
 	PathType           string
 	DataFunction       DataFunction
 	OutPath            string
+	SrcPath            string
 	Params             Params
 	Deps               []string
 }

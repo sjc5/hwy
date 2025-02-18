@@ -257,7 +257,7 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 
 		// matcher
 		var initialMatchingPaths []MatchingPath
-		for _, path := range h.paths {
+		for _, path := range h._paths {
 			matcherOutput := matcher(path.Pattern, realPath)
 
 			if matcherOutput.matches {
@@ -266,6 +266,7 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 					RealSegmentsLength: matcherOutput.realSegmentsLength,
 					PathType:           path.PathType,
 					OutPath:            path.OutPath,
+					SrcPath:            path.SrcPath,
 					Segments:           path.Segments,
 					DataFunction:       path.DataFunction,
 					Params:             matcherOutput.params,
@@ -292,7 +293,11 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 		// import URLs
 		item.ImportURLs = make([]string, 0, len(matchingPaths))
 		for _, path := range matchingPaths {
-			item.ImportURLs = append(item.ImportURLs, "/"+path.OutPath)
+			pathToUse := path.OutPath
+			if h._isDev {
+				pathToUse = path.SrcPath
+			}
+			item.ImportURLs = append(item.ImportURLs, "/"+pathToUse)
 		}
 
 		// deps
@@ -331,8 +336,8 @@ func (h *Hwy) getDeps(matchingPaths []*MatchingPath) []string {
 		}
 	}
 
-	if h.clientEntryDeps != nil {
-		handleDeps(h.clientEntryDeps)
+	if h._clientEntryDeps != nil {
+		handleDeps(h._clientEntryDeps)
 	}
 
 	for _, path := range matchingPaths {

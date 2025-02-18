@@ -6,18 +6,21 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
-	esbuild "github.com/evanw/esbuild/pkg/api"
-	"github.com/sjc5/kit/pkg/esbuildutil"
+	"github.com/sjc5/kit/pkg/grace"
 	"github.com/sjc5/kit/pkg/id"
 	"github.com/sjc5/kit/pkg/rpc"
+	"github.com/sjc5/kit/pkg/stringsutil"
+	"github.com/sjc5/kit/pkg/viteutil"
 )
 
 const (
-	HwyPathsFileName = "hwy_paths.json"
+	HwyPathsJSONFileName          = "hwy_paths.json"
+	HwyViteConfigHelperTSFileName = "hwy_vite_config_helper.ts"
 )
 
 type AdHocType = rpc.AdHocType
@@ -30,24 +33,22 @@ type DataFuncs struct {
 
 type BuildOptions struct {
 	// inputs
-	IsDev           bool
-	ClientEntry     string
-	DataFuncs       *DataFuncs
-	UsePreactCompat bool
+	IsDev       bool
+	ClientEntry string
+	DataFuncs   *DataFuncs
 
 	// outputs
 	PagesSrcDir         string
 	StaticPublicOutDir  string
 	StaticPrivateOutDir string
-
-	// esbuild passthroughs
-	ESBuildPlugins   []esbuild.Plugin
-	ESBuildNodePaths []string
 }
 
 type PathsFile struct {
+	Stage             string            `json:"stage"`
+	IsDev             bool              `json:"isDev"`
 	Paths             []PathBase        `json:"paths"`
-	ClientEntry       string            `json:"clientEntry"`
+	ClientEntrySrc    string            `json:"clientEntrySrc"`
+	ClientEntryOut    string            `json:"clientEntryOut"`
 	ClientEntryDeps   []string          `json:"clientEntryDeps"`
 	BuildID           string            `json:"buildID"`
 	DepToCSSBundleMap map[string]string `json:"depToCSSBundleMap"`
@@ -176,7 +177,8 @@ func pathBaseFromSegmentsInit(segmentsInit []string) *PathBase {
 	}
 }
 
-func (opts *BuildOptions) writePathsToDisk(pagesSrcDir string, pathsJSONOut string) ([]PathBase, error) {
+// __TODO just use a different file for this intermittent thing
+func (opts *BuildOptions) writePathsToDisk_StageOne(pagesSrcDir string, pathsJSONOut string, buildID string) ([]PathBase, error) {
 	paths := opts.walkPages(pagesSrcDir)
 
 	err := os.MkdirAll(filepath.Dir(pathsJSONOut), os.ModePerm)
@@ -184,7 +186,13 @@ func (opts *BuildOptions) writePathsToDisk(pagesSrcDir string, pathsJSONOut stri
 		return nil, err
 	}
 
-	pathsAsJSON, err := json.Marshal(paths)
+	pathsAsJSON, err := json.MarshalIndent(PathsFile{
+		Stage:          "one",
+		IsDev:          opts.IsDev,
+		Paths:          paths,
+		ClientEntrySrc: opts.ClientEntry,
+		BuildID:        buildID,
+	}, "", "\t")
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +205,52 @@ func (opts *BuildOptions) writePathsToDisk(pagesSrcDir string, pathsJSONOut stri
 	return paths, nil
 }
 
-func Build(opts *BuildOptions) error {
+func toRollupOptions(entrypoints []string) string {
+	var sb stringsutil.Builder
+
+	sb.Line("export const rollupOptions = {")
+	sb.Tab().Line("input: [")
+	for i, entrypoint := range entrypoints {
+		if i > 0 {
+			sb.Write(",").Return()
+		}
+		sb.Tab().Tab().Writef(`"%s"`, entrypoint)
+	}
+	sb.Line(",")
+	sb.Tab().Line("] as string[],")
+	sb.Tab().Line(`preserveEntrySignatures: "exports-only",`)
+	sb.Tab().Line("output: {")
+	sb.Tab().Tab().Line(`assetFileNames: "` + hwyPrehashedFilePrefix + `[name]-[hash][extname]",`)
+	sb.Tab().Tab().Line(`chunkFileNames: "` + hwyPrehashedFilePrefix + `[name]-[hash].js",`)
+	sb.Tab().Tab().Line(`entryFileNames: "` + hwyPrehashedFilePrefix + `[name]-[hash].js",`)
+	sb.Tab().Line("},")
+	sb.Line("} as const;")
+
+	return sb.String()
+}
+
+func (h *Hwy) HandleViteConfigHelper(paths []PathBase, opts *BuildOptions) error {
+	entrypoints := getEntrypoints(paths, opts)
+
+	err := os.WriteFile(
+		filepath.Join(opts.StaticPrivateOutDir, HwyViteConfigHelperTSFileName),
+		[]byte(toRollupOptions(entrypoints)),
+		os.ModePerm,
+	)
+	if err != nil {
+		Log.Error(fmt.Sprintf("HandleEntrypoints: error writing entrypoints to disk: %s", err))
+		return err
+	}
+
+	return nil
+}
+
+func (h *Hwy) Build(opts *BuildOptions) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	h._isDev = opts.IsDev
+
 	startTime := time.Now()
 
 	buildID, err := id.New(16)
@@ -207,8 +260,8 @@ func Build(opts *BuildOptions) error {
 	}
 	Log.Info(fmt.Sprintf("new build id: %s", buildID))
 
-	pathsJSONOut := filepath.Join(opts.StaticPrivateOutDir, HwyPathsFileName)
-	paths, err := opts.writePathsToDisk(opts.PagesSrcDir, pathsJSONOut)
+	pathsJSONOut := filepath.Join(opts.StaticPrivateOutDir, HwyPathsJSONFileName)
+	paths, err := opts.writePathsToDisk_StageOne(opts.PagesSrcDir, pathsJSONOut, buildID)
 	if err != nil {
 		Log.Error(fmt.Sprintf("error writing paths to disk: %s", err))
 		return err
@@ -223,183 +276,92 @@ func Build(opts *BuildOptions) error {
 		return err
 	}
 
-	result := runEsbuild(runEsbuildOpts{
-		IsDev:              opts.IsDev,
-		UsePreactCompat:    opts.UsePreactCompat,
-		StaticPublicOutDir: opts.StaticPublicOutDir,
-		EntryPoints:        getEntrypoints(paths, opts),
-		Plugins:            opts.ESBuildPlugins,
-		NodePaths:          opts.ESBuildNodePaths,
-	})
-	if len(result.Errors) > 0 {
-		err = errors.New(result.Errors[0].Text)
-		Log.Error(fmt.Sprintf("error building: %s", err))
+	if err = h.HandleViteConfigHelper(paths, opts); err != nil {
+		// already logged internally in HandleViteConfigHelper
 		return err
 	}
 
-	metafileJSONMap := esbuildutil.ESBuildMetafileSubset{}
-	err = json.Unmarshal([]byte(result.Metafile), &metafileJSONMap)
-	if err != nil {
-		Log.Error(fmt.Sprintf("error unmarshalling metafile JSON: %s", err))
-		return err
-	}
-
-	hwyClientEntry := ""
-	hwyClientEntryDeps := []string{}
-
-	var depToCSSBundleMap = map[string]string{}
-
-	for key, output := range metafileJSONMap.Outputs {
-		cleanKey := filepath.Base(key)
-		if output.CSSBundle != "" {
-			depToCSSBundleMap[cleanKey] = filepath.Base(output.CSSBundle)
-		}
-
-		entryPoint := output.EntryPoint
-		deps := esbuildutil.FindAllDependencies(&metafileJSONMap, key)
-		if opts.ClientEntry == entryPoint {
-			hwyClientEntry = cleanKey
-			depsWithoutClientEntry := make([]string, 0, len(deps)-1)
-			for _, dep := range deps {
-				if dep != hwyClientEntry {
-					depsWithoutClientEntry = append(depsWithoutClientEntry, dep)
-				}
-			}
-			hwyClientEntryDeps = depsWithoutClientEntry
-		} else {
-			for i, path := range paths {
-				if path.SrcPath == entryPoint {
-					paths[i].OutPath = cleanKey
-					paths[i].Deps = deps
-				}
-			}
-		}
-	}
-
-	pf := PathsFile{
-		Paths:             paths,
-		ClientEntry:       hwyClientEntry,
-		ClientEntryDeps:   hwyClientEntryDeps,
-		BuildID:           buildID,
-		DepToCSSBundleMap: depToCSSBundleMap,
-	}
-
-	var pathsAsJSON []byte
 	if opts.IsDev {
-		pathsAsJSON, err = json.MarshalIndent(pf, "", "\t")
+		Log.Info("running vite serve")
+		if h._viteCmd != nil {
+			if err = grace.TerminateProcess(h._viteCmd.Process, 3*time.Second, nil); err != nil {
+				Log.Error(fmt.Sprintf("error terminating vite process: %s", err))
+				return err
+			} else {
+				Log.Info("terminated vite process", "pid", h._viteCmd.Process.Pid)
+			}
+		}
+
+		vitePort, err := viteutil.InitPort(5199)
+		if err != nil {
+			Log.Error(fmt.Sprintf("error initializing vite port: %s", err))
+			return err
+		}
+
+		// __TODO make this configurable
+		h._viteCmd = exec.Command("pnpm", "vite", "--port", fmt.Sprintf("%d", vitePort), "--clearScreen", "false", "--strictPort", "true")
+
+		// h.viteCmd.Dir = "web" // __TODO
+		h._viteCmd.Stdout = os.Stdout
+		h._viteCmd.Stderr = os.Stderr
+
+		go h._viteCmd.Run()
 	} else {
-		pathsAsJSON, err = json.Marshal(pf)
+		Log.Info("running vite build")
+
+		// __TODO make this configurable
+		cmd := exec.Command(
+			"pnpm", "vite", "build",
+			"--outDir", filepath.Join(opts.StaticPublicOutDir),
+			"--assetsDir", ".",
+			"--manifest",
+		)
+
+		// h.viteCmd.Dir = "web" // __TODO
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err = cmd.Run(); err != nil {
+			Log.Error(fmt.Sprintf("error running vite build: %s", err))
+			return err
+		}
+
+		Log.Info(fmt.Sprintf("build completed in %s", time.Since(startTime)))
+
+		// Must come after Vite -- only needed in prod (the stage "one" version is fine in dev)
+		pf, err := toPathsFile_StageTwo(opts, paths, buildID)
+		if err != nil {
+			Log.Error(fmt.Sprintf("error converting paths to paths file: %s", err))
+			return err
+		}
+
+		pathsAsJSON, err := json.MarshalIndent(pf, "", "\t")
+
+		if err != nil {
+			Log.Error(fmt.Sprintf("error marshalling paths to JSON: %s", err))
+			return err
+		}
+
+		err = os.WriteFile(pathsJSONOut, pathsAsJSON, os.ModePerm)
+		if err != nil {
+			Log.Error(fmt.Sprintf("error writing paths to disk: %s", err))
+			return err
+		}
 	}
 
-	if err != nil {
-		Log.Error(fmt.Sprintf("error marshalling paths to JSON: %s", err))
-		return err
-	}
-
-	err = os.WriteFile(pathsJSONOut, pathsAsJSON, os.ModePerm)
-	if err != nil {
-		Log.Error(fmt.Sprintf("error writing paths to disk: %s", err))
-		return err
-	}
-
-	Log.Info(fmt.Sprintf("build completed in %s", time.Since(startTime)))
 	return nil
 }
 
-var preactCompatAlias = map[string]string{
-	"react":                "preact/compat",
-	"react/jsx-runtime":    "preact/jsx-runtime",
-	"react-dom":            "preact/compat",
-	"react-dom/test-utils": "preact/test-utils",
-}
-
-type runEsbuildOpts struct {
-	IsDev              bool
-	UsePreactCompat    bool
-	StaticPublicOutDir string
-	EntryPoints        []string
-	Plugins            []esbuild.Plugin
-	NodePaths          []string
+func (h *Hwy) getViteDevURL() string {
+	if !h._isDev {
+		return ""
+	}
+	return fmt.Sprintf("http://localhost:%s", viteutil.GetVitePortStr())
 }
 
 const (
-	hwyChunkPrefix = "hwy_chunk__"
-	hwyEntryPrefix = "hwy_entry__"
+	hwyPrehashedFilePrefix = "hwy_vite_"
 )
-
-var (
-	cachedEsbuildCtx esbuild.BuildContext
-	latestCacheKey   string
-)
-
-func runEsbuild(opts runEsbuildOpts) esbuild.BuildResult {
-	cacheKey := fmt.Sprintf("%v%v%v%v", opts.IsDev, opts.UsePreactCompat, opts.StaticPublicOutDir, opts.EntryPoints)
-
-	if cacheKey == latestCacheKey {
-		Log.Info("reusing esbuild context")
-		return cachedEsbuildCtx.Rebuild()
-	}
-	latestCacheKey = cacheKey
-
-	// downstream of isDev
-	env := "production"
-	if opts.IsDev {
-		env = "development"
-	}
-	sourcemap := esbuild.SourceMapNone
-	if opts.IsDev {
-		sourcemap = esbuild.SourceMapLinked
-	}
-
-	// downstream of usePreactCompat
-	var alias map[string]string
-	if opts.UsePreactCompat {
-		alias = preactCompatAlias
-	}
-
-	esbuildOpts := esbuild.BuildOptions{
-		NodePaths: opts.NodePaths,
-
-		// totally dynamic, but only changes when you page list changes
-		EntryPoints: opts.EntryPoints,
-
-		// dynamic based on build opts
-		Outdir:            opts.StaticPublicOutDir,
-		Alias:             alias,
-		Sourcemap:         sourcemap,
-		MinifyWhitespace:  !opts.IsDev,
-		MinifyIdentifiers: !opts.IsDev,
-		MinifySyntax:      !opts.IsDev,
-		Define: map[string]string{
-			"process.env.NODE_ENV": "\"" + env + "\"",
-		},
-
-		// static
-		Bundle:      true,
-		Splitting:   true,
-		Write:       true,
-		Metafile:    true,
-		Format:      esbuild.FormatESModule,
-		TreeShaking: esbuild.TreeShakingTrue,
-		Platform:    esbuild.PlatformBrowser,
-		ChunkNames:  hwyChunkPrefix + "[hash]",
-		EntryNames:  hwyEntryPrefix + "[hash]",
-	}
-
-	if opts.Plugins != nil {
-		esbuildOpts.Plugins = opts.Plugins
-	}
-
-	ctx, err := esbuild.Context(esbuildOpts)
-	if err != nil {
-		Log.Error("failed to create esbuild context")
-		panic(err)
-	}
-	cachedEsbuildCtx = ctx
-
-	Log.Info("created new esbuild context")
-	return ctx.Rebuild()
-}
 
 func cleanStaticPublicOutDir(staticPublicOutDir string) error {
 	fileInfo, err := os.Stat(staticPublicOutDir)
@@ -417,11 +379,20 @@ func cleanStaticPublicOutDir(staticPublicOutDir string) error {
 		return errors.New(errMsg)
 	}
 
+	// delete the ".vite" directory
+	err = os.RemoveAll(filepath.Join(staticPublicOutDir, ".vite"))
+	if err != nil {
+		errMsg := fmt.Sprintf("error removing .vite directory: %s", err)
+		Log.Error(errMsg)
+		return errors.New(errMsg)
+	}
+
+	// delete all files starting with hwyPrehashedFilePrefix
 	err = filepath.Walk(staticPublicOutDir, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if strings.HasPrefix(filepath.Base(path), hwyChunkPrefix) || strings.HasPrefix(filepath.Base(path), hwyEntryPrefix) {
+		if strings.HasPrefix(filepath.Base(path), hwyPrehashedFilePrefix) {
 			err = os.Remove(path)
 			if err != nil {
 				return err
@@ -432,6 +403,7 @@ func cleanStaticPublicOutDir(staticPublicOutDir string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -444,4 +416,64 @@ func getEntrypoints(paths []PathBase, opts *BuildOptions) []string {
 		}
 	}
 	return entryPoints
+}
+
+func toPathsFile_StageTwo(opts *BuildOptions, paths []PathBase, buildID string) (*PathsFile, error) {
+	hwyClientEntry := ""
+	hwyClientEntryDeps := []string{}
+	depToCSSBundleMap := make(map[string]string)
+
+	viteManifest, err := viteutil.ReadManifest(filepath.Join(opts.StaticPublicOutDir, ".vite", "manifest.json"))
+	if err != nil {
+		Log.Error(fmt.Sprintf("error reading vite manifest: %s", err))
+		return nil, err
+	}
+
+	// Assuming manifestJSON is your Vite manifest
+	for key, chunk := range viteManifest {
+		cleanKey := filepath.Base(chunk.File)
+
+		// Handle CSS bundles
+		// In Vite, CSS is handled through the CSS array
+		if len(chunk.CSS) > 0 {
+			for _, cssFile := range chunk.CSS {
+				depToCSSBundleMap[cleanKey] = filepath.Base(cssFile)
+			}
+		}
+
+		// Get dependencies
+		deps := viteutil.FindAllDependencies(viteManifest, key)
+
+		// Handle client entry
+		if chunk.IsEntry && opts.ClientEntry == chunk.Src {
+			hwyClientEntry = cleanKey
+			depsWithoutClientEntry := make([]string, 0, len(deps)-1)
+			for _, dep := range deps {
+				if dep != hwyClientEntry {
+					depsWithoutClientEntry = append(depsWithoutClientEntry, dep)
+				}
+			}
+			hwyClientEntryDeps = depsWithoutClientEntry
+		} else {
+			// Handle other paths
+			for i, path := range paths {
+				// Compare with source path instead of entryPoint
+				if path.SrcPath == chunk.Src {
+					paths[i].OutPath = cleanKey
+					paths[i].Deps = deps
+				}
+			}
+		}
+	}
+
+	return &PathsFile{
+		Stage:             "two",
+		IsDev:             opts.IsDev,
+		DepToCSSBundleMap: depToCSSBundleMap,
+		Paths:             paths,
+		ClientEntrySrc:    opts.ClientEntry,
+		ClientEntryOut:    hwyClientEntry,
+		ClientEntryDeps:   hwyClientEntryDeps,
+		BuildID:           buildID,
+	}, nil
 }

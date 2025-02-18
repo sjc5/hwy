@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/sjc5/kit/pkg/cryptoutil"
+	"github.com/sjc5/kit/pkg/viteutil"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -79,7 +80,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 
 		eg.Go(func() error {
 			egInnerT := newTimer()
-			sih, err := GetSSRInnerHTML(routeData, true)
+			sih, err := h.GetSSRInnerHTML(routeData)
 			if err != nil {
 				return fmt.Errorf("error getting SSR inner HTML: %v", err)
 			}
@@ -119,11 +120,33 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		tmplData["HeadElements"] = headElements
 		tmplData["SSRScriptElement"] = ssrScript
 		tmplData["SSRScriptElementSha256Hash"] = ssrScriptSha256Hash
-		tmplData["ClientEntryURL"] = h.clientEntryURL
+
+		if !h._isDev {
+			tmplData["BodyElements"] = template.HTML(
+				fmt.Sprintf(`<script type="module" src="/public/%s"></script>`, h._clientEntryOut),
+			)
+		} else {
+			opts := viteutil.ToDevScriptsOptions{ClientEntry: h._clientEntrySrc}
+			if h.UIVariant == UIVariants.React {
+				opts.Variant = viteutil.Variants.React
+			} else {
+				opts.Variant = viteutil.Variants.Other
+			}
+
+			devScripts, err := viteutil.ToDevScripts(opts)
+			if err != nil {
+				msg := "Error getting dev scripts"
+				Log.Error(fmt.Sprintf(msg+": %v\n", err))
+				http.Error(w, msg, http.StatusInternalServerError)
+				return
+			}
+
+			tmplData["BodyElements"] = devScripts
+		}
 
 		var buf bytes.Buffer
 
-		err = h.rootTemplate.Execute(&buf, tmplData)
+		err = h._rootTemplate.Execute(&buf, tmplData)
 		if err != nil {
 			msg := "Error executing template"
 			Log.Error(fmt.Sprintf(msg+": %v\n", err))

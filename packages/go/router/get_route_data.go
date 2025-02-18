@@ -20,6 +20,7 @@ type GetRouteDataOutput struct {
 	Params               Params        `json:"params,omitempty"`
 	AdHocData            any           `json:"adHocData,omitempty"`
 	BuildID              string        `json:"buildID,omitempty"`
+	ViteDevURL           string        `json:"viteDevURL,omitempty"`
 	Deps                 []string      `json:"deps,omitempty"`
 	CSSBundles           []string      `json:"cssBundles,omitempty"`
 	ActionResData        any           `json:"data,omitempty"`
@@ -51,7 +52,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 
 	if clientRedirectURL != "" {
 		return &GetRouteDataOutput{
-			BuildID:           h.buildID,
+			BuildID:           h._buildID,
 			ClientRedirectURL: clientRedirectURL,
 		}, nil, routeType, nil
 	} else if routeType != RouteTypesEnum.Loader {
@@ -64,10 +65,10 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 		return &GetRouteDataOutput{
 			ActionResData:  activePathData.LoadersData[0],
 			ActionResError: errMsg,
-			BuildID:        h.buildID,
+			BuildID:        h._buildID,
 		}, nil, routeType, nil
 	} else {
-		adHocData = GetAdHocDataFromContext[any](r)
+		adHocData = NewAdHocDataStore[any]().GetValueFromContext(r)
 
 		var defaultHeadBlocks []HeadBlock
 		if h.GetDefaultHeadBlocks != nil {
@@ -100,7 +101,8 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 		SplatSegments:        activePathData.SplatSegments,
 		Params:               activePathData.Params,
 		AdHocData:            adHocData,
-		BuildID:              h.buildID,
+		BuildID:              h._buildID,
+		ViteDevURL:           h.getViteDevURL(),
 		Deps:                 activePathData.Deps,
 		CSSBundles:           h.getCSSBundles(activePathData.Deps),
 	}, nil, routeType, nil
@@ -111,13 +113,13 @@ func (h *Hwy) getCSSBundles(deps []string) []string {
 	cssBundles := make([]string, 0, len(deps))
 
 	// first, client entry CSS
-	if x, exists := h.depToCSSBundleMap[h.clientEntry]; exists {
+	if x, exists := h._depToCSSBundleMap[h._clientEntryOut]; exists {
 		cssBundles = append(cssBundles, x)
 	}
 
 	// then all downstream deps
 	for _, dep := range deps {
-		if x, exists := h.depToCSSBundleMap[dep]; exists {
+		if x, exists := h._depToCSSBundleMap[dep]; exists {
 			cssBundles = append(cssBundles, x)
 		}
 	}

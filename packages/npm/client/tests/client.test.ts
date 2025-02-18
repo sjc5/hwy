@@ -6,7 +6,7 @@ import {
 	__getHwyClientGlobal,
 	beginNavigation,
 	navigationState,
-} from "../src/client.js";
+} from "../src/client.ts";
 
 let dom: JSDOM;
 let mockGlobal: any;

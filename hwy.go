@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/sjc5/hwy/packages/go/router"
+	"github.com/sjc5/kit/pkg/contextutil"
 	"github.com/sjc5/kit/pkg/validate"
 )
 
@@ -25,19 +26,15 @@ type RouteType = router.RouteType
 type ResponseHelper = router.ResponseHelper
 type CtxHelper = router.CtxHelper
 
-var Build = router.Build
 var GenerateTypeScript = router.GenerateTypeScript
 var GetIsJSONRequest = router.GetIsJSONRequest
 var GetHeadElements = router.GetHeadElements
-var GetSSRInnerHTML = router.GetSSRInnerHTML
 var RouteTypesEnum = router.RouteTypesEnum
-var GetAdHocDataContextWithValue = router.GetAdHocDataContextWithValue
-var CreatePublicURLResolverPlugin = router.CreatePublicURLResolverPlugin
-var CreateCSSURLFuncResolverPlugin = router.CreateCSSURLFuncResolverPlugin
-var HwyPathsFileName = router.HwyPathsFileName
+var HwyPathsJSONFileName = router.HwyPathsJSONFileName
+var HwyViteConfigHelperTSFileName = router.HwyViteConfigHelperTSFileName
 
-func GetAdHocDataFromContext[T any](r *http.Request) T {
-	return router.GetAdHocDataFromContext[T](r)
+func NewAdHocDataStore[T any]() *contextutil.Store[T] {
+	return router.NewAdHocDataStore[T]()
 }
 
 type LoaderRes[O any] struct {

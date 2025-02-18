@@ -3,9 +3,8 @@ module github.com/sjc5/hwy
 go 1.22.0
 
 require (
-	github.com/evanw/esbuild v0.24.2
 	github.com/go-playground/validator/v10 v10.24.0
-	github.com/sjc5/kit v0.0.75
+	github.com/sjc5/kit v0.0.84
 	golang.org/x/sync v0.10.0
 )
 

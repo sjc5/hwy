@@ -1,13 +1,16 @@
 package router
 
 import (
-	"context"
 	"html/template"
 	"io/fs"
 	"net/http"
 	"os"
+	"os/exec"
+	"sync"
 
 	"github.com/sjc5/kit/pkg/colorlog"
+	"github.com/sjc5/kit/pkg/contextutil"
+
 	"github.com/sjc5/kit/pkg/timer"
 	"github.com/sjc5/kit/pkg/validate"
 )
@@ -58,6 +61,18 @@ type Path struct {
 
 type DataFunctionMap map[string]DataFunction
 
+type UIVariant string
+
+var UIVariants = struct {
+	React  UIVariant
+	Preact UIVariant
+	Solid  UIVariant
+}{
+	React:  "react",
+	Preact: "preact",
+	Solid:  "solid",
+}
+
 type Hwy struct {
 	FS                   fs.FS
 	Loaders              DataFunctionMap
@@ -67,20 +82,26 @@ type Hwy struct {
 	Validator            *validate.Validate
 	GetDefaultHeadBlocks func(r *http.Request) ([]HeadBlock, error)
 	GetRootTemplateData  func(r *http.Request) (map[string]any, error)
-	PublicURLResolver    func(string) string
+	UIVariant            UIVariant
 
-	paths             []Path
-	clientEntry       string
-	clientEntryURL    string
-	clientEntryDeps   []string
-	buildID           string
-	depToCSSBundleMap map[string]string
-	rootTemplate      *template.Template
+	mu                 sync.Mutex
+	_isDev             bool
+	_paths             []Path
+	_clientEntrySrc    string
+	_clientEntryOut    string
+	_clientEntryDeps   []string
+	_buildID           string
+	_depToCSSBundleMap map[string]string
+	_rootTemplate      *template.Template
+	_viteCmd           *exec.Cmd
 }
 
 // Not for public consumption. Do not use or rely on this.
 func (h *Hwy) Hwy__internal__setPaths(paths []Path) {
-	h.paths = paths
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	h._paths = paths
 }
 
 type Redirect struct {
@@ -117,22 +138,10 @@ func getIsDebug() bool {
 
 var Log = colorlog.New("Hwy")
 
-type hwyContextKey string
+// __TODO remove redundant stuff now that generic aliases are available in 1.24
 
-const adHocDataContextKey hwyContextKey = "adHocData"
-
-func GetAdHocDataContextWithValue(r *http.Request, val any) context.Context {
-	return context.WithValue(r.Context(), adHocDataContextKey, val)
-}
-
-func GetAdHocDataFromContext[T any](r *http.Request) T {
-	ctx := r.Context()
-	val := ctx.Value(adHocDataContextKey)
-	if val == nil {
-		var zeroVal T
-		return zeroVal
-	}
-	return ctx.Value(adHocDataContextKey).(T)
+func NewAdHocDataStore[T any]() *contextutil.Store[T] {
+	return contextutil.NewStore[T]("hwy_ad_hoc_data")
 }
 
 func newTimer() *timer.Timer {

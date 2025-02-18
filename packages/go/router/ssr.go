@@ -13,6 +13,7 @@ type SSRInnerHTMLInput struct {
 	HwyPrefix           string
 	IsDev               bool
 	BuildID             string
+	ViteDevURL          string
 	LoadersData         []any
 	ImportURLs          []string
 	OutermostErrorIndex int
@@ -33,27 +34,30 @@ const (
 	const x = globalThis[Symbol.for("{{.HwyPrefix}}")];
 	x.isDev = {{.IsDev}};
 	x.buildID = {{.BuildID}};
+	x.viteDevURL = {{.ViteDevURL}};
 	x.loadersData = {{.LoadersData}};
 	x.importURLs = {{.ImportURLs}};
 	x.outermostErrorIndex = {{.OutermostErrorIndex}};
 	x.splatSegments = {{.SplatSegments}};
 	x.params = {{.Params}};
 	x.adHocData = {{.AdHocData}};
-	const deps = {{.Deps}} ?? [];
-	deps.forEach(x => {
-		const link = document.createElement('link');
-		link.rel = 'modulepreload';
-		link.href = "/public/" + x;
-		document.head.appendChild(link);
-	});
-	const cssBundles = {{.CSSBundles}} ?? [];
-	cssBundles.forEach(x => {
-		const link = document.createElement('link');
-		link.rel = 'stylesheet';
-		link.href = "/public/" + x;
-		link.setAttribute("data-hwy-css-bundle", x);
-		document.head.appendChild(link);
-	});
+	if (!x.isDev) {
+		const deps = {{.Deps}};
+		deps.forEach(x => {
+			const link = document.createElement('link');
+			link.rel = 'modulepreload';
+			link.href = "/public/" + x;
+			document.head.appendChild(link);
+		});
+		const cssBundles = {{.CSSBundles}};
+		cssBundles.forEach(x => {
+			const link = document.createElement('link');
+			link.rel = 'stylesheet';
+			link.href = "/public/" + x;
+			link.setAttribute("data-hwy-css-bundle", x);
+			document.head.appendChild(link);
+		});
+	}
 </script>`
 	ssrInnerHTMLTmplClientRedirectStr = `<script>
 	window.location.href = {{.ClientRedirectURL}};
@@ -70,7 +74,7 @@ type GetSSRInnerHTMLOutput struct {
 	Sha256Hash string
 }
 
-func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*GetSSRInnerHTMLOutput, error) {
+func (h *Hwy) GetSSRInnerHTML(routeData *GetRouteDataOutput) (*GetSSRInnerHTMLOutput, error) {
 	var htmlBuilder strings.Builder
 	var dto SSRInnerHTMLInput
 	var err error
@@ -81,8 +85,9 @@ func GetSSRInnerHTML(routeData *GetRouteDataOutput, isDev bool) (*GetSSRInnerHTM
 	} else {
 		dto = SSRInnerHTMLInput{
 			HwyPrefix:           HwyPrefix,
-			IsDev:               isDev,
+			IsDev:               h._isDev,
 			BuildID:             routeData.BuildID,
+			ViteDevURL:          routeData.ViteDevURL,
 			LoadersData:         routeData.LoadersData,
 			ImportURLs:          routeData.ImportURLs,
 			OutermostErrorIndex: routeData.OutermostErrorIndex,

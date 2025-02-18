@@ -12,12 +12,27 @@ import (
 	"github.com/sjc5/kit/pkg/validate"
 )
 
-func (h *Hwy) Init() error {
+func (h *Hwy) Init(isDev bool) {
+	if err := h.initInner(isDev); err != nil {
+		errMsg := fmt.Sprintf("Error initializing Hwy: %v", err)
+		if isDev {
+			Log.Error(errMsg)
+		} else {
+			panic(errMsg)
+		}
+	} else {
+		Log.Info("Hwy initialized")
+	}
+}
+
+func (h *Hwy) initInner(isDev bool) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	h._isDev = isDev
+
 	if h.FS == nil {
 		return errors.New("FS is nil")
-	}
-	if h.PublicURLResolver == nil {
-		return errors.New("PublicURLResolver is nil")
 	}
 
 	pathsFile, err := getBasePaths(h.FS)
@@ -26,25 +41,41 @@ func (h *Hwy) Init() error {
 		Log.Error(errMsg)
 		return errors.New(errMsg)
 	}
-	h.buildID = pathsFile.BuildID
+	h._buildID = pathsFile.BuildID
 
-	if h.paths == nil {
-		ip := make([]Path, 0, len(pathsFile.Paths))
-		h.paths = ip
+	if h._paths == nil {
+		h._paths = make([]Path, 0, len(pathsFile.Paths))
 	}
 	for _, pathBase := range pathsFile.Paths {
-		h.paths = append(h.paths, Path{PathBase: pathBase})
+		h._paths = append(h._paths, Path{PathBase: pathBase})
 	}
 
-	h.clientEntry = pathsFile.ClientEntry
-	h.clientEntryURL = h.PublicURLResolver(pathsFile.ClientEntry)
+	h._clientEntrySrc = pathsFile.ClientEntrySrc
+	h._clientEntryOut = pathsFile.ClientEntryOut
 
-	h.addDataFuncsToPaths()
-	h.clientEntryDeps = pathsFile.ClientEntryDeps
+	// add data funcs to paths
+	listOfPatterns := make([]string, 0, len(h._paths))
+	for i, path := range h._paths {
+		if loader, ok := h.Loaders[path.Pattern]; ok {
+			h._paths[i].DataFunction = loader
+		}
 
-	h.depToCSSBundleMap = pathsFile.DepToCSSBundleMap
-	if h.depToCSSBundleMap == nil {
-		h.depToCSSBundleMap = make(map[string]string)
+		listOfPatterns = append(listOfPatterns, path.Pattern)
+	}
+	for pattern := range h.Loaders {
+		if !slices.Contains(listOfPatterns, pattern) {
+			Log.Error(fmt.Sprintf(
+				"Warning: no matching path found for pattern %v. Make sure you're writing your patterns correctly and that your client route exists.",
+				pattern,
+			))
+		}
+	}
+
+	h._clientEntryDeps = pathsFile.ClientEntryDeps
+
+	h._depToCSSBundleMap = pathsFile.DepToCSSBundleMap
+	if h._depToCSSBundleMap == nil {
+		h._depToCSSBundleMap = make(map[string]string)
 	}
 
 	h.Validator = &validate.Validate{
@@ -55,37 +86,16 @@ func (h *Hwy) Init() error {
 	if err != nil {
 		return fmt.Errorf("error parsing root template: %v", err)
 	}
-	h.rootTemplate = tmpl
+	h._rootTemplate = tmpl
 
 	return nil
 }
 
-func (h *Hwy) addDataFuncsToPaths() {
-	listOfPatterns := make([]string, 0, len(h.paths))
-
-	for i, path := range h.paths {
-		if loader, ok := h.Loaders[path.Pattern]; ok {
-			h.paths[i].DataFunction = loader
-		}
-
-		listOfPatterns = append(listOfPatterns, path.Pattern)
-	}
-
-	for pattern := range h.Loaders {
-		if !slices.Contains(listOfPatterns, pattern) {
-			Log.Error(fmt.Sprintf(
-				"Warning: no matching path found for pattern %v. Make sure you're writing your patterns correctly and that your client route exists.",
-				pattern,
-			))
-		}
-	}
-}
-
 func getBasePaths(FS fs.FS) (*PathsFile, error) {
 	pathsFile := PathsFile{}
-	file, err := FS.Open(HwyPathsFileName)
+	file, err := FS.Open(HwyPathsJSONFileName)
 	if err != nil {
-		errMsg := fmt.Sprintf("could not open %s: %v", HwyPathsFileName, err)
+		errMsg := fmt.Sprintf("could not open %s: %v", HwyPathsJSONFileName, err)
 		Log.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
@@ -93,7 +103,7 @@ func getBasePaths(FS fs.FS) (*PathsFile, error) {
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&pathsFile)
 	if err != nil {
-		errMsg := fmt.Sprintf("could not decode %s: %v", HwyPathsFileName, err)
+		errMsg := fmt.Sprintf("could not decode %s: %v", HwyPathsJSONFileName, err)
 		Log.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}

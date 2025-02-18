@@ -16,6 +16,7 @@ const HWY_SYMBOL = Symbol.for(HWY_PREFIX);
 const HWY_ROUTE_CHANGE_EVENT_KEY = "hwy:route-change";
 
 type HwyClientGlobal = {
+	isDev: boolean;
 	loadersData: Array<any>;
 	importURLs: Array<string>;
 	outermostErrorIndex: number;
@@ -25,6 +26,7 @@ type HwyClientGlobal = {
 	activeErrorBoundaries: Array<any>;
 	adHocData: any;
 	buildID: string;
+	viteDevURL: string;
 };
 
 type HwyClientGlobalKey = keyof HwyClientGlobal;
@@ -238,7 +240,7 @@ async function __fetchRouteData(
 		return { json, props };
 	} catch (error) {
 		if (!isAbortError(error)) {
-			console.error("Navigation failed", error);
+			LogError("Navigation failed", error);
 			setStatus({ type: props.navigationType, value: false });
 		}
 	} finally {
@@ -268,7 +270,7 @@ function abortAllNavigationsExcept(excludeHref?: string) {
 
 function handleNavError(error: unknown, props: NavigateProps) {
 	if (!isAbortError(error)) {
-		console.error(error);
+		LogError(error);
 		setStatus({ type: props.navigationType, value: false });
 	}
 }
@@ -309,7 +311,7 @@ export function getPrefetchHandlers<E extends Event>(input: GetPrefetchHandlersI
 			}
 		} catch (e) {
 			if (!isAbortError(e)) {
-				console.error("Error finalizing prefetch", e);
+				LogError("Error finalizing prefetch", e);
 			}
 		} finally {
 			prerenderResult = null;
@@ -335,7 +337,7 @@ export function getPrefetchHandlers<E extends Event>(input: GetPrefetchHandlersI
 			})
 			.catch((error) => {
 				if (!isAbortError(error)) {
-					console.error("Prefetch failed", error);
+					LogError("Prefetch failed", error);
 				}
 			});
 	}
@@ -392,7 +394,7 @@ export function getPrefetchHandlers<E extends Event>(input: GetPrefetchHandlersI
 			await finalize(e);
 		} catch (error) {
 			if (!isAbortError(error)) {
-				console.error("Error during navigation", error);
+				LogError("Error during navigation", error);
 			}
 		}
 	}
@@ -481,7 +483,7 @@ async function handleRedirects(props: {
 		// Recommend returning a JSON instruction to redirect on client
 		// with window.location.href = newURL.href;
 		if (!isAbortError(error)) {
-			console.error(error);
+			LogError(error);
 		}
 	}
 
@@ -516,7 +518,7 @@ export async function submit<T = any>(
 	const submitRes = await submitInner(url, requestInit);
 
 	if (!submitRes.success) {
-		console.error(submitRes.error);
+		LogError(submitRes.error);
 		return { success: false, error: submitRes.error };
 	}
 
@@ -525,7 +527,7 @@ export async function submit<T = any>(
 
 		const error = "error" in json ? json.error : undefined;
 		if (error) {
-			console.error(error);
+			LogError(error);
 			return { success: false, error: error };
 		}
 
@@ -624,7 +626,7 @@ async function submitInner(
 			} as const;
 		}
 
-		console.error(error);
+		LogError(error);
 		setStatus({ type: "submission", value: false });
 
 		return {
@@ -716,6 +718,18 @@ export const addRouteChangeListener = makeListenerAdder<RouteChangeEventDetail>(
 
 export const internal_HwyClientGlobal = __getHwyClientGlobal();
 
+const EXPORTED_ROUTE_COMP_VAR_NAME = "Route";
+
+function resolvePublicHref(href: string): string {
+	let baseURL = internal_HwyClientGlobal.get("viteDevURL");
+	if (!baseURL) {
+		baseURL = window.location.origin + "/public";
+	}
+	const url = baseURL + href;
+	LogInfo("importing:", url);
+	return url;
+}
+
 async function __reRenderApp({
 	json,
 	navigationType,
@@ -786,26 +800,25 @@ async function __reRenderApp({
 	for (let i = 0; i < Math.max(oldList.length, newList.length); i++) {
 		if (i < oldList.length && i < newList.length && oldList[i] === newList[i]) {
 			updatedList.push({
-				importPath: oldList[i],
+				importPath: oldList[i] ?? Panic(),
 				type: "same",
 			});
 		} else if (i < newList.length) {
 			updatedList.push({
-				importPath: newList[i],
+				importPath: newList[i] ?? Panic(),
 				type: "new",
 			});
 		}
 	}
 
 	// get new components only
-	const components = updatedList.map((x: any) => {
+	const components = updatedList.map((x) => {
 		if (x.type === "new") {
-			return import(("." + x.importPath).replace("public/dist/", ""));
+			return import(/* @vite-ignore */ resolvePublicHref(x.importPath));
 		}
-		return undefined;
 	});
 	const awaitedComps = await Promise.all(components);
-	const awaitedDefaults = awaitedComps.map((x) => x?.default);
+	const awaitedDefaults = awaitedComps.map((x) => x?.[EXPORTED_ROUTE_COMP_VAR_NAME]);
 	const awaitedErrorBoundaries = awaitedComps.map((x) => x?.ErrorBoundary);
 
 	// placeholder list based on old list
@@ -854,7 +867,7 @@ async function __reRenderApp({
 
 	let highestIndex: number | undefined;
 	for (let i = 0; i < updatedList.length; i++) {
-		if (updatedList[i].type === "new") {
+		if (updatedList[i]?.type === "new") {
 			highestIndex = i;
 			break;
 		}
@@ -894,39 +907,23 @@ async function __reRenderApp({
 	// Wait for all CSS bundle preloads to complete
 	if (cssBundlePromises.length > 0) {
 		try {
-			console.log("Waiting for CSS bundle preloads to complete...");
+			LogInfo("Waiting for CSS bundle preloads to complete...");
 			await Promise.all(cssBundlePromises);
-			console.log("CSS bundle preloads completed.");
+			LogInfo("CSS bundle preloads completed.");
 		} catch (error) {
-			console.error("Error preloading CSS bundles:", error);
+			LogError("Error preloading CSS bundles:", error);
 		}
 	}
 
-	// Now that CSS is preloaded, update the DOM
+	// Now that CSS is preloaded, update the DOM with any unseen CSS bundles
 	window.requestAnimationFrame(() => {
-		// remove old css bundles
-		const actualRouteStyleSheetsOnPage = document.querySelectorAll(`[${cssBundleDataAttr}]`);
-		actualRouteStyleSheetsOnPage.forEach((x) => {
-			const attr = x.getAttribute(cssBundleDataAttr)!;
-			if (!json.cssBundles?.includes(attr)) {
-				x.remove();
-			}
-		});
-
-		// add new css bundles -- order matters
 		json.cssBundles?.forEach((x) => {
-			const href = "/public/" + x;
-			const existingLink = document.querySelector(`link[${cssBundleDataAttr}="${x}"]`);
-
-			if (existingLink) {
-				// Move existing link to maintain order
-				document.head.appendChild(existingLink);
+			if (document.querySelector(`link[${cssBundleDataAttr}="${x}"]`)) {
 				return;
 			}
-
 			const newLink = document.createElement("link");
 			newLink.rel = "stylesheet";
-			newLink.href = href;
+			newLink.href = "/public/" + x;
 			newLink.setAttribute(cssBundleDataAttr, x);
 			document.head.appendChild(newLink);
 		});
@@ -1020,7 +1017,7 @@ function addBlocks(type: "meta" | "rest", blocks: Array<HeadBlock>) {
 
 		if (block.safeAttributes) {
 			for (const key of Object.keys(block.safeAttributes)) {
-				newEl.setAttribute(key, block.safeAttributes[key]);
+				newEl.setAttribute(key, block.safeAttributes[key] ?? Panic());
 			}
 		}
 
@@ -1090,7 +1087,7 @@ function setScrollStateMapSubKey(key: string, value: ScrollState) {
 	// if new item would brought it over 50 entries, delete the oldest one
 	if (scrollStateMap.size > 50) {
 		const oldestKey = Array.from(scrollStateMap.keys())[0];
-		scrollStateMap.delete(oldestKey);
+		scrollStateMap.delete(oldestKey ?? Panic());
 	}
 
 	setScrollStateMapToLocalStorage(scrollStateMap);
@@ -1167,7 +1164,7 @@ export async function initClient(renderFn: () => void) {
 	const components = await importComponents();
 	internal_HwyClientGlobal.set(
 		"activeComponents",
-		components.map((x) => x.default),
+		components.map((x) => x?.[EXPORTED_ROUTE_COMP_VAR_NAME]),
 	);
 	internal_HwyClientGlobal.set(
 		"activeErrorBoundaries",
@@ -1184,7 +1181,7 @@ export async function initClient(renderFn: () => void) {
 function importComponents() {
 	return Promise.all(
 		internal_HwyClientGlobal.get("importURLs").map((x) => {
-			return import(("." + x).replace("public/dist/", ""));
+			return import(/* @vite-ignore */ resolvePublicHref(x));
 		}),
 	);
 }
@@ -1210,10 +1207,12 @@ function dispatchBuildIDEvent(detail: BuildIDEvent) {
 	window.dispatchEvent(new CustomEvent(BUILD_ID_EVENT_KEY, { detail }));
 }
 
+// __TODO export these so client can handle (probably just window.reload)
+
 const addBuildIDListener = makeListenerAdder<BuildIDEvent>(BUILD_ID_EVENT_KEY);
 
 function getBuildID() {
-	return internal_HwyClientGlobal.get("buildID") as string;
+	return internal_HwyClientGlobal.get("buildID");
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -1295,4 +1294,21 @@ const baseDataBoostListenerFn = makeLinkClickListenerFn({ requireDataBoostAttrib
 
 function __addAnchorClickListener() {
 	document.body.addEventListener("click", baseDataBoostListenerFn);
+}
+
+/////////////////////////////////////////////////////////////////////
+// DUMB LITTLE HELPERS
+/////////////////////////////////////////////////////////////////////
+
+function LogInfo(message?: any, ...optionalParams: any[]) {
+	console.log("HWY:", message, ...optionalParams);
+}
+
+function LogError(message?: any, ...optionalParams: any[]) {
+	console.error("HWY:", message, ...optionalParams);
+}
+
+function Panic(msg?: string): never {
+	LogError("Panic");
+	throw new Error(msg ?? "panic");
 }

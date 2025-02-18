@@ -354,11 +354,10 @@ func setup() {
 	testHwyInstance = router.Hwy{
 		FS:                   os.DirFS("../tmp"),
 		RootTemplateLocation: "templates/root.html",
-		PublicURLResolver:    func(path string) string { return path },
 	}
 
 	// Run the Hwy build
-	err = router.Build(&router.BuildOptions{
+	err = testHwyInstance.Build(&router.BuildOptions{
 		PagesSrcDir:         "../tmp/pages",
 		StaticPublicOutDir:  "../tmp/",
 		StaticPrivateOutDir: "../tmp/",
@@ -368,10 +367,7 @@ func setup() {
 		panic(err)
 	}
 
-	err = testHwyInstance.Init()
-	if err != nil {
-		panic(err)
-	}
+	testHwyInstance.Init(false)
 }
 
 type TestLoaderOutput struct {

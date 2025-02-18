@@ -6,7 +6,7 @@ import {
 	makeLinkClickListenerFn,
 } from "@hwy-js/client";
 import { jsonDeepEquals } from "@sjc5/kit/json";
-import { type ComponentProps, useEffect, useMemo, useState } from "react";
+import { type ComponentProps, type JSX, useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 
 /////////////////////////////////////////////////////////////////////
@@ -156,7 +156,7 @@ export function HwyRootOutlet<AHD>(props: BaseProps<AHD>): JSX.Element {
 			</MaybeWithLayout>
 		);
 	} catch (error) {
-		console.error(error);
+		console.error("HWY:", error);
 
 		return <MaybeWithLayout {...extendedProps} children={ebc} />;
 	}

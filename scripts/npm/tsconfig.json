@@ -9,7 +9,8 @@
 		"noEmit": true,
 		"esModuleInterop": true,
 		"noUncheckedIndexedAccess": true,
-		"verbatimModuleSyntax": true
+		"verbatimModuleSyntax": true,
+		"allowImportingTsExtensions": true
 	},
 	"exclude": ["node_modules", "dist"]
 }
