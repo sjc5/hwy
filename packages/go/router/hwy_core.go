@@ -8,16 +8,17 @@ import (
 	"os"
 
 	"github.com/sjc5/kit/pkg/colorlog"
+	"github.com/sjc5/kit/pkg/matcher"
 	"github.com/sjc5/kit/pkg/timer"
 	"github.com/sjc5/kit/pkg/validate"
 )
 
 const (
-	PathTypeUltimateCatch    = "ultimate-catch"
-	PathTypeIndex            = "index"
-	PathTypeStaticLayout     = "static-layout"
-	PathTypeDynamicLayout    = "dynamic-layout"
-	PathTypeNonUltimateSplat = "non-ultimate-splat"
+	PathTypeUltimateCatch    matcher.PathType = "ultimate-catch"
+	PathTypeIndex            matcher.PathType = "index"
+	PathTypeStaticLayout     matcher.PathType = "static-layout"
+	PathTypeDynamicLayout    matcher.PathType = "dynamic-layout"
+	PathTypeNonUltimateSplat matcher.PathType = "non-ultimate-splat"
 )
 
 type DataFunction interface {
@@ -43,12 +44,10 @@ var RouteTypesEnum = struct {
 }
 
 type PathBase struct {
-	Pattern  string   `json:"pattern"`
-	Segments []string `json:"segments"`
-	PathType string   `json:"pathType"`
-	OutPath  string   `json:"outPath,omitempty"`
-	SrcPath  string   `json:"srcPath,omitempty"`
-	Deps     []string `json:"deps,omitempty"`
+	matcher.RegisteredPath
+	OutPath string   `json:"outPath,omitempty"`
+	SrcPath string   `json:"srcPath,omitempty"`
+	Deps    []string `json:"deps,omitempty"`
 }
 
 type Path struct {
@@ -81,6 +80,10 @@ type Hwy struct {
 // Not for public consumption. Do not use or rely on this.
 func (h *Hwy) Hwy__internal__setPaths(paths []Path) {
 	h.paths = paths
+}
+
+func (h *Hwy) Hwy__internal__getPaths() []Path {
+	return h.paths
 }
 
 type Redirect struct {

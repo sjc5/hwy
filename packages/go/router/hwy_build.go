@@ -13,6 +13,7 @@ import (
 	esbuild "github.com/evanw/esbuild/pkg/api"
 	"github.com/sjc5/kit/pkg/esbuildutil"
 	"github.com/sjc5/kit/pkg/id"
+	"github.com/sjc5/kit/pkg/matcher"
 	"github.com/sjc5/kit/pkg/rpc"
 )
 
@@ -170,9 +171,11 @@ func pathBaseFromSegmentsInit(segmentsInit []string) *PathBase {
 	}
 
 	return &PathBase{
-		Pattern:  patternToUse,
-		Segments: segmentStrs,
-		PathType: pathType,
+		RegisteredPath: matcher.RegisteredPath{
+			Pattern:  patternToUse,
+			Segments: segmentStrs,
+			PathType: pathType,
+		},
 	}
 }
 

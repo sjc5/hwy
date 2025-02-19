@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/sjc5/hwy/packages/go/router"
+	"github.com/sjc5/kit/pkg/matcher"
 	"github.com/sjc5/kit/pkg/validate"
 )
 
@@ -19,7 +20,7 @@ type DataFunctionMap = router.DataFunctionMap
 type Path = router.Path
 type PathsFile = router.PathsFile
 type Redirect = router.Redirect
-type Params = router.Params
+type Params = matcher.Params
 type SplatSegments = router.SplatSegments
 type RouteType = router.RouteType
 type ResponseHelper = router.ResponseHelper

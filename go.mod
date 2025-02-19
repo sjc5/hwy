@@ -1,6 +1,8 @@
 module github.com/sjc5/hwy
 
-go 1.22.0
+go 1.24.0
+
+replace github.com/sjc5/kit => ../go-kit
 
 require (
 	github.com/evanw/esbuild v0.24.2
