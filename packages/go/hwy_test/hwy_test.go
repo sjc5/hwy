@@ -14,21 +14,18 @@ import (
 
 	"github.com/sjc5/hwy"
 	"github.com/sjc5/hwy/packages/go/router"
+	"github.com/sjc5/kit/pkg/matcher"
 )
 
 type expectedOutput struct {
-	MatchingPaths []string
-	Params        router.Params
-	SplatSegments router.SplatSegments
+	MatchingPathTypes []matcher.PathType
+	Params            matcher.Params
+	SplatSegments     router.SplatSegments
 }
 
 type testPath struct {
 	Path           string
-	ExpectedOutput struct {
-		MatchingPaths []string
-		Params        router.Params
-		SplatSegments router.SplatSegments
-	}
+	ExpectedOutput expectedOutput
 }
 
 var testHwyInstance router.Hwy
@@ -43,16 +40,16 @@ func TestRouter(t *testing.T) {
 		matchingPathData := testGetMatchingPathData(path.Path)
 
 		// Has expected number of matching paths
-		if len(matchingPathData.MatchingPaths) != len(path.ExpectedOutput.MatchingPaths) {
+		if len(matchingPathData.MatchingPaths) != len(path.ExpectedOutput.MatchingPathTypes) {
 			router.Log.Error(fmt.Sprintf("Path: %s", path.Path))
-			t.Errorf("Expected %d matching paths, but got %d", len(path.ExpectedOutput.MatchingPaths), len(matchingPathData.MatchingPaths))
+			t.Errorf("Expected %d matching paths, but got %d", len(path.ExpectedOutput.MatchingPathTypes), len(matchingPathData.MatchingPaths))
 		}
 
 		for i, matchingPath := range matchingPathData.MatchingPaths {
 			// Each matching path is of the expected type
-			if matchingPath.PathType != path.ExpectedOutput.MatchingPaths[i] {
+			if matchingPath.PathType != path.ExpectedOutput.MatchingPathTypes[i] {
 				router.Log.Error(fmt.Sprintf("Path: %s", path.Path))
-				t.Errorf("Expected matching path %d to be of type %s, but got %s", i, path.ExpectedOutput.MatchingPaths[i], matchingPath.PathType)
+				t.Errorf("Expected matching path %d to be of type %s, but got %s", i, path.ExpectedOutput.MatchingPathTypes[i], matchingPath.PathType)
 			}
 		}
 
@@ -90,177 +87,177 @@ var testPaths = []testPath{
 	{
 		Path: "/does-not-exist",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeUltimateCatch},
-			SplatSegments: router.SplatSegments{"does-not-exist"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.UltimateCatch},
+			SplatSegments:     router.SplatSegments{"does-not-exist"},
 		},
 	},
 	{
 		Path: "/this-should-be-ignored",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeUltimateCatch},
-			SplatSegments: router.SplatSegments{"this-should-be-ignored"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.UltimateCatch},
+			SplatSegments:     router.SplatSegments{"this-should-be-ignored"},
 		},
 	},
 	{
 		Path: "/",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeIndex},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.Index},
 		},
 	},
 	{
 		Path: "/lion",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeIndex},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.Index},
 		},
 	},
 	{
 		Path: "/lion/123",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeNonUltimateSplat},
-			SplatSegments: router.SplatSegments{"123"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.NonUltimateSplat},
+			SplatSegments:     router.SplatSegments{"123"},
 		},
 	},
 	{
 		Path: "/lion/123/456",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeNonUltimateSplat},
-			SplatSegments: router.SplatSegments{"123", "456"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.NonUltimateSplat},
+			SplatSegments:     router.SplatSegments{"123", "456"},
 		},
 	},
 	{
 		Path: "/lion/123/456/789",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeNonUltimateSplat},
-			SplatSegments: router.SplatSegments{"123", "456", "789"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.NonUltimateSplat},
+			SplatSegments:     router.SplatSegments{"123", "456", "789"},
 		},
 	},
 	{
 		Path: "/tiger",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeIndex},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.Index},
 		},
 	},
 	{
 		Path: "/tiger/123",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeDynamicLayout, router.PathTypeIndex},
-			Params:        router.Params{"tiger_id": "123"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.Index},
+			Params:            matcher.Params{"tiger_id": "123"},
 		},
 	},
 	{
 		Path: "/tiger/123/456",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeDynamicLayout, router.PathTypeDynamicLayout},
-			Params:        router.Params{"tiger_id": "123", "tiger_cub_id": "456"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.DynamicLayout},
+			Params:            matcher.Params{"tiger_id": "123", "tiger_cub_id": "456"},
 		},
 	},
 	{
 		Path: "/tiger/123/456/789",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeDynamicLayout, router.PathTypeNonUltimateSplat},
-			Params:        router.Params{"tiger_id": "123"},
-			SplatSegments: router.SplatSegments{"456", "789"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.NonUltimateSplat},
+			Params:            matcher.Params{"tiger_id": "123"},
+			SplatSegments:     router.SplatSegments{"456", "789"},
 		},
 	},
 	{
 		Path: "/bear",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeIndex},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.Index},
 		},
 	},
 	{
 		Path: "/bear/123",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeDynamicLayout},
-			Params:        router.Params{"bear_id": "123"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout},
+			Params:            matcher.Params{"bear_id": "123"},
 		},
 	},
 	{
 		Path: "/bear/123/456",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeDynamicLayout, router.PathTypeNonUltimateSplat},
-			Params:        router.Params{"bear_id": "123"},
-			SplatSegments: router.SplatSegments{"456"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.NonUltimateSplat},
+			Params:            matcher.Params{"bear_id": "123"},
+			SplatSegments:     router.SplatSegments{"456"},
 		},
 	},
 	{
 		Path: "/bear/123/456/789",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeDynamicLayout, router.PathTypeNonUltimateSplat},
-			Params:        router.Params{"bear_id": "123"},
-			SplatSegments: router.SplatSegments{"456", "789"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.NonUltimateSplat},
+			Params:            matcher.Params{"bear_id": "123"},
+			SplatSegments:     router.SplatSegments{"456", "789"},
 		},
 	},
 	{
 		Path: "/dashboard",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeIndex},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.Index},
 		},
 	},
 	{
 		Path: "/dashboard/asdf",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeNonUltimateSplat},
-			SplatSegments: router.SplatSegments{"asdf"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.NonUltimateSplat},
+			SplatSegments:     router.SplatSegments{"asdf"},
 		},
 	},
 	{
 		Path: "/dashboard/customers",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeStaticLayout, router.PathTypeIndex},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.StaticLayout, matcher.PathTypes.Index},
 		},
 	},
 	{
 		Path: "/dashboard/customers/123",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeStaticLayout, router.PathTypeDynamicLayout, router.PathTypeIndex},
-			Params:        router.Params{"customer_id": "123"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.Index},
+			Params:            matcher.Params{"customer_id": "123"},
 		},
 	},
 	{
 		Path: "/dashboard/customers/123/orders",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeStaticLayout, router.PathTypeDynamicLayout, router.PathTypeStaticLayout, router.PathTypeIndex},
-			Params:        router.Params{"customer_id": "123"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.StaticLayout, matcher.PathTypes.Index},
+			Params:            matcher.Params{"customer_id": "123"},
 		},
 	},
 	{
 		Path: "/dashboard/customers/123/orders/456",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout, router.PathTypeStaticLayout, router.PathTypeDynamicLayout, router.PathTypeStaticLayout, router.PathTypeDynamicLayout},
-			Params:        router.Params{"customer_id": "123", "order_id": "456"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout},
+			Params:            matcher.Params{"customer_id": "123", "order_id": "456"},
 		},
 	},
 	{
 		Path: "/articles",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeIndex},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.Index},
 		},
 	},
 	{
 		Path: "/articles/bob",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeUltimateCatch},
-			SplatSegments: router.SplatSegments{"articles", "bob"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.UltimateCatch},
+			SplatSegments:     router.SplatSegments{"articles", "bob"},
 		},
 	},
 	{
 		Path: "/articles/test",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeUltimateCatch},
-			SplatSegments: router.SplatSegments{"articles", "test"},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.UltimateCatch},
+			SplatSegments:     router.SplatSegments{"articles", "test"},
 		},
 	},
 	{
 		Path: "/articles/test/articles",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeIndex},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.Index},
 		},
 	},
 	{
 		Path: "/dynamic-index/index",
 		ExpectedOutput: expectedOutput{
-			MatchingPaths: []string{router.PathTypeStaticLayout},
+			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout},
 		},
 	},
 }
@@ -393,8 +390,8 @@ func TestGetMatchingPathDataConcurrency(t *testing.T) {
 
 	// Define test paths with these loaders
 	testHwyInstance.Hwy__internal__setPaths([]router.Path{
-		{PathBase: router.PathBase{Pattern: "/test1", Segments: []string{""}}, DataFunction: loader1},
-		{PathBase: router.PathBase{Pattern: "/test2", Segments: []string{""}}, DataFunction: loader2},
+		{PathBase: router.PathBase{RegisteredPath: &matcher.RegisteredPath{Pattern: "/test1", Segments: []string{""}}}, DataFunction: loader1},
+		{PathBase: router.PathBase{RegisteredPath: &matcher.RegisteredPath{Pattern: "/test2", Segments: []string{""}}}, DataFunction: loader2},
 	})
 
 	// Create a WaitGroup to manage concurrency

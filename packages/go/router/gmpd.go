@@ -6,14 +6,14 @@ import (
 	"sync"
 
 	"github.com/sjc5/kit/pkg/lru"
+	"github.com/sjc5/kit/pkg/matcher"
 )
 
-type Params map[string]string
 type SplatSegments []string
 
 type DecoratedPath struct {
 	DataFunction DataFunction
-	PathType     string // technically only needed for testing
+	PathType     matcher.PathType // technically only needed for testing
 }
 
 type ActivePathData struct {
@@ -24,13 +24,13 @@ type ActivePathData struct {
 	ImportURLs          []string
 	OutermostErrorIndex int
 	SplatSegments       SplatSegments
-	Params              Params
+	Params              matcher.Params
 	Deps                []string
 }
 
 type gmpdItem struct {
 	SplatSegments               SplatSegments
-	Params                      Params
+	Params                      matcher.Params
 	FullyDecoratedMatchingPaths []*DecoratedPath
 	ImportURLs                  []string
 	Deps                        []string
@@ -245,76 +245,84 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 }
 
 func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
-	cachedItem, cachedItemExists := gmpdCache.Get(realPath)
-
-	var item *gmpdItem
-
-	if cachedItemExists {
-		item = cachedItem
-	} else {
-		// init
-		item = &gmpdItem{}
-
-		// matcher
-		var initialMatchingPaths []MatchingPath
-		for _, path := range h._paths {
-			matcherOutput := matcher(path.Pattern, realPath)
-
-			if matcherOutput.matches {
-				initialMatchingPaths = append(initialMatchingPaths, MatchingPath{
-					Score:              matcherOutput.score,
-					RealSegmentsLength: matcherOutput.realSegmentsLength,
-					PathType:           path.PathType,
-					OutPath:            path.OutPath,
-					SrcPath:            path.SrcPath,
-					Segments:           path.Segments,
-					DataFunction:       path.DataFunction,
-					Params:             matcherOutput.params,
-					Deps:               path.Deps,
-				})
-			}
-		}
-
-		// get matching paths internal
-		splatSegments, matchingPaths := getMatchingPathsInternal(initialMatchingPaths, realPath)
-
-		// last path
-		var lastPath = &MatchingPath{}
-		if len(matchingPaths) > 0 {
-			lastPath = matchingPaths[len(matchingPaths)-1]
-		}
-
-		// miscellanenous
-		item.FullyDecoratedMatchingPaths = decoratePaths(matchingPaths)
-		item.SplatSegments = splatSegments
-		item.Params = lastPath.Params
-		item.routeType = RouteTypesEnum.Loader
-
-		// import URLs
-		item.ImportURLs = make([]string, 0, len(matchingPaths))
-		for _, path := range matchingPaths {
-			pathToUse := path.OutPath
-			if h._isDev {
-				pathToUse = path.SrcPath
-			}
-			item.ImportURLs = append(item.ImportURLs, "/"+pathToUse)
-		}
-
-		// deps
-		item.Deps = h.getDeps(matchingPaths)
-
-		// cache
-		// isSpam if no matching paths --> avoids cache poisoning while still allowing for cache hits
-		isSpam := len(matchingPaths) == 0
-		gmpdCache.Set(realPath, item, isSpam)
+	if cachedItem, cachedItemExists := gmpdCache.Get(realPath); cachedItemExists {
+		return cachedItem
 	}
+
+	item := &gmpdItem{}
+
+	// __TODO make this more efficient later
+	var registeredPaths matcher.RegisteredPaths
+	for _, path := range h._paths {
+		registeredPaths = append(registeredPaths, &matcher.RegisteredPath{
+			Pattern:  path.Pattern,
+			Segments: path.Segments,
+			PathType: path.PathType,
+		})
+	}
+
+	// get matching paths
+	splatSegments, matchingPaths := matcher.GetMatchingPaths(registeredPaths, realPath)
+
+	// last path
+	var lastPath = &matcher.Match{}
+	if len(matchingPaths) > 0 {
+		lastPath = matchingPaths[len(matchingPaths)-1]
+	}
+
+	// miscellanenous
+	item.FullyDecoratedMatchingPaths = h.decoratePaths(matchingPaths)
+	item.SplatSegments = splatSegments
+	item.Params = lastPath.Params
+	item.routeType = RouteTypesEnum.Loader
+
+	// import URLs
+	item.ImportURLs = make([]string, 0, len(matchingPaths))
+	for _, path := range matchingPaths {
+
+		// find the path to use
+		foundPath := h.findPathByPattern(path.Pattern)
+		if foundPath == nil {
+			continue
+		}
+
+		pathToUse := foundPath.OutPath
+		if h._isDev {
+			pathToUse = foundPath.SrcPath
+		}
+
+		item.ImportURLs = append(item.ImportURLs, "/"+pathToUse)
+	}
+
+	// deps
+	item.Deps = h.getDeps(matchingPaths)
+
+	// cache
+	// isSpam if no matching paths --> avoids cache poisoning while still allowing for cache hits
+	isSpam := len(matchingPaths) == 0
+	gmpdCache.Set(realPath, item, isSpam)
 
 	return item
 }
 
-func decoratePaths(paths []*MatchingPath) []*DecoratedPath {
+func (h *Hwy) findPathByPattern(pattern string) *Path {
+	// __TODO change h._paths to a map so this is more efficient
+	for _, path := range h._paths {
+		if path.Pattern == pattern {
+			return &path
+		}
+	}
+	return nil
+}
+
+func (h *Hwy) decoratePaths(paths []*matcher.Match) []*DecoratedPath {
 	decoratedPaths := make([]*DecoratedPath, 0, len(paths))
-	for _, path := range paths {
+	for _, pathBase := range paths {
+		path := h.findPathByPattern(pathBase.Pattern)
+		if path == nil {
+			continue
+		}
+
 		decoratedPaths = append(decoratedPaths, &DecoratedPath{
 			DataFunction: path.DataFunction,
 			PathType:     path.PathType,
@@ -323,7 +331,7 @@ func decoratePaths(paths []*MatchingPath) []*DecoratedPath {
 	return decoratedPaths
 }
 
-func (h *Hwy) getDeps(matchingPaths []*MatchingPath) []string {
+func (h *Hwy) getDeps(matchingPaths []*matcher.Match) []string {
 	var deps []string
 	seen := make(map[string]struct{}, len(matchingPaths))
 
@@ -341,6 +349,10 @@ func (h *Hwy) getDeps(matchingPaths []*MatchingPath) []string {
 	}
 
 	for _, path := range matchingPaths {
+		path := h.findPathByPattern(path.Pattern)
+		if path == nil {
+			continue
+		}
 		handleDeps(path.Deps)
 	}
 

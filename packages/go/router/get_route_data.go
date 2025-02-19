@@ -5,27 +5,28 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/sjc5/kit/pkg/matcher"
 	"github.com/sjc5/kit/pkg/validate"
 )
 
 type GetRouteDataOutput struct {
-	Title                string        `json:"title,omitempty"`
-	MetaHeadBlocks       []*HeadBlock  `json:"metaHeadBlocks,omitempty"`
-	RestHeadBlocks       []*HeadBlock  `json:"restHeadBlocks,omitempty"`
-	LoadersData          []any         `json:"loadersData,omitempty"`
-	LoadersErrorMessages []string      `json:"loadersErrorMessages,omitempty"`
-	ImportURLs           []string      `json:"importURLs,omitempty"`
-	OutermostErrorIndex  int           `json:"outermostErrorIndex,omitempty"`
-	SplatSegments        SplatSegments `json:"splatSegments,omitempty"`
-	Params               Params        `json:"params,omitempty"`
-	AdHocData            any           `json:"adHocData,omitempty"`
-	BuildID              string        `json:"buildID,omitempty"`
-	ViteDevURL           string        `json:"viteDevURL,omitempty"`
-	Deps                 []string      `json:"deps,omitempty"`
-	CSSBundles           []string      `json:"cssBundles,omitempty"`
-	ActionResData        any           `json:"data,omitempty"`
-	ActionResError       string        `json:"error,omitempty"`
-	ClientRedirectURL    string        `json:"clientRedirectURL,omitempty"`
+	Title                string         `json:"title,omitempty"`
+	MetaHeadBlocks       []*HeadBlock   `json:"metaHeadBlocks,omitempty"`
+	RestHeadBlocks       []*HeadBlock   `json:"restHeadBlocks,omitempty"`
+	LoadersData          []any          `json:"loadersData,omitempty"`
+	LoadersErrorMessages []string       `json:"loadersErrorMessages,omitempty"`
+	ImportURLs           []string       `json:"importURLs,omitempty"`
+	OutermostErrorIndex  int            `json:"outermostErrorIndex,omitempty"`
+	SplatSegments        SplatSegments  `json:"splatSegments,omitempty"`
+	Params               matcher.Params `json:"params,omitempty"`
+	AdHocData            any            `json:"adHocData,omitempty"`
+	BuildID              string         `json:"buildID,omitempty"`
+	ViteDevURL           string         `json:"viteDevURL,omitempty"`
+	Deps                 []string       `json:"deps,omitempty"`
+	CSSBundles           []string       `json:"cssBundles,omitempty"`
+	ActionResData        any            `json:"data,omitempty"`
+	ActionResError       string         `json:"error,omitempty"`
+	ClientRedirectURL    string         `json:"clientRedirectURL,omitempty"`
 }
 
 func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (

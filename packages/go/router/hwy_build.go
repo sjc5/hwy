@@ -13,6 +13,7 @@ import (
 
 	"github.com/sjc5/kit/pkg/grace"
 	"github.com/sjc5/kit/pkg/id"
+	"github.com/sjc5/kit/pkg/matcher"
 	"github.com/sjc5/kit/pkg/rpc"
 	"github.com/sjc5/kit/pkg/stringsutil"
 	"github.com/sjc5/kit/pkg/viteutil"
@@ -59,11 +60,6 @@ type PathsFile struct {
 	DepToCSSBundleMap map[string]string `json:"depToCSSBundleMap,omitempty"`
 }
 
-type SegmentObj struct {
-	SegmentType string
-	Segment     string
-}
-
 func (opts *BuildOptions) walkPages(pagesSrcDir string) []PathBase {
 	var paths []PathBase
 
@@ -83,103 +79,16 @@ func (opts *BuildOptions) walkPages(pagesSrcDir string) []PathBase {
 
 			pattern := strings.TrimSuffix(cleanPatternArg, preExtDelineator+ext)
 
-			segmentsInit := segmentsInitFromPattern(pattern)
-
-			pathBase := pathBaseFromSegmentsInit(segmentsInit)
-			pathBase.SrcPath = filepath.Join(pagesSrcDir, pattern) + preExtDelineator + ext
-
-			paths = append(paths, *pathBase)
+			paths = append(paths, PathBase{
+				RegisteredPath: matcher.PatternToRegisteredPath(pattern),
+				SrcPath:        filepath.Join(pagesSrcDir, pattern) + preExtDelineator + ext,
+			})
 
 			return nil
 		},
 	)
 
 	return paths
-}
-
-func segmentsInitFromPattern(pattern string) []string {
-	patternToSplit := strings.TrimPrefix(pattern, "/")
-
-	// Clean out double underscore segments
-	segmentsInitWithDubUnderscores := strings.Split(patternToSplit, "/")
-	segmentsInit := make([]string, 0, len(segmentsInitWithDubUnderscores))
-	for _, segment := range segmentsInitWithDubUnderscores {
-		if strings.HasPrefix(segment, "__") {
-			continue
-		}
-		segmentsInit = append(segmentsInit, segment)
-	}
-
-	return segmentsInit
-}
-
-func pathBaseFromSegmentsInit(segmentsInit []string) *PathBase {
-	isIndex := false
-	segments := make([]SegmentObj, len(segmentsInit))
-
-	for i, segmentStr := range segmentsInit {
-		isSplat := false
-		if segmentStr == "$" {
-			isSplat = true
-		}
-		if segmentStr == "_index" {
-			segmentStr = ""
-			isIndex = true
-		}
-		segmentType := "normal"
-		if isSplat {
-			segmentType = "splat"
-		} else if strings.HasPrefix(segmentStr, "$") {
-			segmentType = "dynamic"
-		} else if isIndex {
-			segmentType = "index"
-		}
-		segments[i] = SegmentObj{
-			SegmentType: segmentType,
-			Segment:     segmentStr,
-		}
-	}
-
-	segmentStrs := make([]string, len(segments))
-	for i, segment := range segments {
-		segmentStrs[i] = segment.Segment
-	}
-
-	truthySegments := []string{}
-	for _, segment := range segmentStrs {
-		if segment != "" {
-			truthySegments = append(truthySegments, segment)
-		}
-	}
-
-	patternToUse := "/" + strings.Join(truthySegments, "/")
-	if patternToUse != "/" && strings.HasSuffix(patternToUse, "/") {
-		patternToUse = strings.TrimSuffix(patternToUse, "/")
-	}
-
-	pathType := PathTypeStaticLayout
-	if isIndex {
-		pathType = PathTypeIndex
-		if patternToUse == "/" {
-			patternToUse += "_index"
-		} else {
-			patternToUse += "/_index"
-		}
-	} else if segments[len(segments)-1].SegmentType == "splat" {
-		pathType = PathTypeNonUltimateSplat
-	} else if segments[len(segments)-1].SegmentType == "dynamic" {
-		pathType = PathTypeDynamicLayout
-	}
-
-	if patternToUse == "/$" {
-		pathType = PathTypeUltimateCatch
-	}
-
-	return &PathBase{
-		Pattern:  patternToUse,
-		Segments: segmentStrs,
-		PathType: pathType,
-	}
 }
 
 func (opts *BuildOptions) writePathsToDisk_StageOne(pagesSrcDir string, buildID string) ([]PathBase, error) {
