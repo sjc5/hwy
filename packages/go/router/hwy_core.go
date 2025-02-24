@@ -12,7 +12,7 @@ import (
 
 	"github.com/sjc5/kit/pkg/colorlog"
 	"github.com/sjc5/kit/pkg/contextutil"
-	"github.com/sjc5/kit/pkg/matcher"
+	"github.com/sjc5/kit/pkg/router"
 
 	"github.com/sjc5/kit/pkg/timer"
 	"github.com/sjc5/kit/pkg/validate"
@@ -42,7 +42,7 @@ var RouteTypesEnum = struct {
 
 type PathBase struct {
 	// both stages one and two
-	*matcher.RegisteredPath
+	Pattern string `json:"pattern"`
 	SrcPath string `json:"srcPath"`
 
 	// stage two only
@@ -52,6 +52,7 @@ type PathBase struct {
 
 type Path struct {
 	PathBase
+	*router.RegisteredPattern
 	DataFunction DataFunction `json:",omitempty"`
 }
 
@@ -85,6 +86,7 @@ type Hwy struct {
 	mu                 sync.Mutex
 	_isDev             bool
 	_paths             []Path
+	_matcher           *router.Matcher
 	_clientEntrySrc    string
 	_clientEntryOut    string
 	_clientEntryDeps   []string
@@ -163,7 +165,7 @@ type LoaderRes[O any] struct {
 
 type LoaderCtx[O any] struct {
 	Req           *http.Request
-	Params        matcher.Params
+	Params        router.Params
 	SplatSegments SplatSegments
 	Res           *LoaderRes[O]
 }
@@ -202,7 +204,7 @@ func (f Loader[O]) GetResInstance() any {
 func (f Loader[O]) Execute(args ...any) (any, error) {
 	f(LoaderCtx[O]{
 		Req:           args[0].(*http.Request),
-		Params:        args[1].(matcher.Params),
+		Params:        args[1].(router.Params),
 		SplatSegments: args[2].(SplatSegments),
 		Res:           args[3].(*LoaderRes[O]),
 	})

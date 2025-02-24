@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/sjc5/kit/pkg/htmlutil"
-	"github.com/sjc5/kit/pkg/matcher"
+	"github.com/sjc5/kit/pkg/router"
 )
 
 type SSRInnerHTMLInput struct {
@@ -19,7 +19,7 @@ type SSRInnerHTMLInput struct {
 	ImportURLs          []string
 	OutermostErrorIndex int
 	SplatSegments       SplatSegments
-	Params              matcher.Params
+	Params              router.Params
 	AdHocData           any
 	Deps                []string
 	CSSBundles          []string

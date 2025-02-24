@@ -6,14 +6,14 @@ import (
 	"sync"
 
 	"github.com/sjc5/kit/pkg/lru"
-	"github.com/sjc5/kit/pkg/matcher"
+	"github.com/sjc5/kit/pkg/router"
 )
 
 type SplatSegments []string
 
 type DecoratedPath struct {
 	DataFunction DataFunction
-	PathType     matcher.PathType // technically only needed for testing
+	PathType     string // technically only needed for testing
 }
 
 type ActivePathData struct {
@@ -24,13 +24,13 @@ type ActivePathData struct {
 	ImportURLs          []string
 	OutermostErrorIndex int
 	SplatSegments       SplatSegments
-	Params              matcher.Params
+	Params              router.Params
 	Deps                []string
 }
 
 type gmpdItem struct {
 	SplatSegments               SplatSegments
-	Params                      matcher.Params
+	Params                      router.Params
 	FullyDecoratedMatchingPaths []*DecoratedPath
 	ImportURLs                  []string
 	Deps                        []string
@@ -251,28 +251,22 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 
 	item := &gmpdItem{}
 
-	// __TODO make this more efficient later
-	var registeredPaths matcher.RegisteredPaths
-	for _, path := range h._paths {
-		registeredPaths = append(registeredPaths, &matcher.RegisteredPath{
-			Pattern:  path.Pattern,
-			Segments: path.Segments,
-			PathType: path.PathType,
-		})
+	// get matching paths
+	matchingPaths, ok := h._matcher.FindNestedMatches(realPath)
+	if !ok {
+		gmpdCache.Set(realPath, item, true)
+		return item
 	}
 
-	// get matching paths
-	splatSegments, matchingPaths := matcher.GetMatchingPaths(registeredPaths, realPath)
-
 	// last path
-	var lastPath = &matcher.Match{}
+	var lastPath *router.Match
 	if len(matchingPaths) > 0 {
 		lastPath = matchingPaths[len(matchingPaths)-1]
 	}
 
 	// miscellanenous
 	item.FullyDecoratedMatchingPaths = h.decoratePaths(matchingPaths)
-	item.SplatSegments = splatSegments
+	item.SplatSegments = lastPath.SplatValues
 	item.Params = lastPath.Params
 	item.routeType = RouteTypesEnum.Loader
 
@@ -281,7 +275,7 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 	for _, path := range matchingPaths {
 
 		// find the path to use
-		foundPath := h.findPathByPattern(path.Pattern)
+		foundPath := h.findPathByPattern(path.Pattern())
 		if foundPath == nil {
 			continue
 		}
@@ -308,30 +302,30 @@ func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
 func (h *Hwy) findPathByPattern(pattern string) *Path {
 	// __TODO change h._paths to a map so this is more efficient
 	for _, path := range h._paths {
-		if path.Pattern == pattern {
+		if path.PathBase.Pattern == pattern {
 			return &path
 		}
 	}
 	return nil
 }
 
-func (h *Hwy) decoratePaths(paths []*matcher.Match) []*DecoratedPath {
+func (h *Hwy) decoratePaths(paths []*router.Match) []*DecoratedPath {
 	decoratedPaths := make([]*DecoratedPath, 0, len(paths))
 	for _, pathBase := range paths {
-		path := h.findPathByPattern(pathBase.Pattern)
+		path := h.findPathByPattern(pathBase.Pattern())
 		if path == nil {
 			continue
 		}
 
 		decoratedPaths = append(decoratedPaths, &DecoratedPath{
 			DataFunction: path.DataFunction,
-			PathType:     path.PathType,
+			// PathType:     path.__TODO,
 		})
 	}
 	return decoratedPaths
 }
 
-func (h *Hwy) getDeps(matchingPaths []*matcher.Match) []string {
+func (h *Hwy) getDeps(matchingPaths []*router.Match) []string {
 	var deps []string
 	seen := make(map[string]struct{}, len(matchingPaths))
 
@@ -349,7 +343,7 @@ func (h *Hwy) getDeps(matchingPaths []*matcher.Match) []string {
 	}
 
 	for _, path := range matchingPaths {
-		path := h.findPathByPattern(path.Pattern)
+		path := h.findPathByPattern(path.Pattern())
 		if path == nil {
 			continue
 		}

@@ -13,7 +13,7 @@ import (
 
 	"github.com/sjc5/kit/pkg/grace"
 	"github.com/sjc5/kit/pkg/id"
-	"github.com/sjc5/kit/pkg/matcher"
+	"github.com/sjc5/kit/pkg/router"
 	"github.com/sjc5/kit/pkg/rpc"
 	"github.com/sjc5/kit/pkg/stringsutil"
 	"github.com/sjc5/kit/pkg/viteutil"
@@ -79,9 +79,18 @@ func (opts *BuildOptions) walkPages(pagesSrcDir string) []PathBase {
 
 			pattern := strings.TrimSuffix(cleanPatternArg, preExtDelineator+ext)
 
+			segments := router.ParseSegments(pattern)
+			cleanSegments := make([]string, 0, len(segments))
+			for _, segment := range segments {
+				if strings.HasPrefix(segment, "__") {
+					continue
+				}
+				cleanSegments = append(cleanSegments, segment)
+			}
+
 			paths = append(paths, PathBase{
-				RegisteredPath: matcher.PatternToRegisteredPath(pattern),
-				SrcPath:        filepath.Join(pagesSrcDir, pattern) + preExtDelineator + ext,
+				Pattern: "/" + strings.Join(cleanSegments, "/"),
+				SrcPath: filepath.Join(pagesSrcDir, pattern) + preExtDelineator + ext,
 			})
 
 			return nil
