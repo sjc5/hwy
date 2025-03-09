@@ -97,6 +97,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 		hb = append(hb, defaultHeadBlocks...)
 		hb = append(hb, activePathData.HeadBlocks...)
 
+		// dedupe and organize into HeadBlocks struct
 		headBlocks = headblocks.ToHeadBlocks(hb)
 	}
 

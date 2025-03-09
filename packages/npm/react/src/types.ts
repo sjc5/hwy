@@ -1,17 +1,13 @@
 import type { JSX } from "react";
 
 import type {
-	DefaultRouteProps,
+	DefaultRoutePropsTypeArg,
 	RoutePropsTypeArg,
 	Shared,
 } from "../../client/src/impl_helpers.ts";
 
-export type HwyRouteProps<T extends RoutePropsTypeArg = DefaultRouteProps> = Shared<
-	JSX.Element,
-	T
->["HwyRouteProps"];
+type S<T extends RoutePropsTypeArg> = Shared<JSX.Element, T>;
+type D = DefaultRoutePropsTypeArg;
 
-export type HwyRoute<T extends RoutePropsTypeArg = DefaultRouteProps> = Shared<
-	JSX.Element,
-	T
->["HwyRoute"];
+export type HwyRouteProps<T extends RoutePropsTypeArg = D> = S<T>["RouteProps"];
+export type HwyRoute<T extends RoutePropsTypeArg = D> = S<T>["Route"];

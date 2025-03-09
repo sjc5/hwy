@@ -5,3 +5,6 @@ dist
 .env.local
 **/*/tmp
 __logs
+
+*.local
+*.local.*
