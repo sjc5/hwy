@@ -1,9 +1,9 @@
 import {
+	type RouteChangeEvent,
 	addRouteChangeListener,
 	internal_HwyClientGlobal as ctx,
-	type RouteChangeEvent,
 } from "@hwy-js/client";
-import { createEffect, createMemo, createSignal, ErrorBoundary, Show, type JSX } from "solid-js";
+import { ErrorBoundary, type JSX, Show, createEffect, createMemo, createSignal } from "solid-js";
 import type { RootOutletProps } from "../../client/src/impl_helpers.ts";
 
 let shouldScroll = false;

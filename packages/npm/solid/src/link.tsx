@@ -1,5 +1,5 @@
-import { createMemo, type JSX } from "solid-js";
-import { makeFinalLinkProps, type LinkPropsBase } from "../../client/src/impl_helpers.ts";
+import { type JSX, createMemo } from "solid-js";
+import { type LinkPropsBase, makeFinalLinkProps } from "../../client/src/impl_helpers.ts";
 
 export function Link(
 	props: JSX.AnchorHTMLAttributes<HTMLAnchorElement> &

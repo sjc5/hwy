@@ -1,5 +1,5 @@
-import { useMemo, type ComponentProps } from "react";
-import { makeFinalLinkProps, type HwyLinkPropsBase } from "../../client/src/impl_helpers.ts";
+import { type ComponentProps, useMemo } from "react";
+import { type HwyLinkPropsBase, makeFinalLinkProps } from "../../client/src/impl_helpers.ts";
 
 export function Link(
 	props: ComponentProps<"a"> &
