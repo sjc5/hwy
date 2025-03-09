@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
-	"slices"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/sjc5/kit/pkg/router"
+	"github.com/sjc5/kit/pkg/mux"
 	"github.com/sjc5/kit/pkg/validate"
 )
 
@@ -45,34 +44,26 @@ func (h *Hwy) initInner(isDev bool) error {
 	h._buildID = pathsFile.BuildID
 
 	if h._paths == nil {
-		h._paths = make([]Path, 0, len(pathsFile.Paths))
+		h._paths = make(map[string]*Path, len(pathsFile.Paths))
 	}
-	m := router.NewMatcher(&router.MatcherOptions{
-		DynamicParamPrefixRune:   '$',
-		SplatSegmentRune:         '$',
-		NestedIndexSignifier:     "_index",
-		ShouldExcludeSegmentFunc: nil, // __TODO delete this concept from router pkg
-	})
-	for _, pathBase := range pathsFile.Paths {
-		h._paths = append(h._paths, Path{PathBase: pathBase})
-		m.RegisterPattern(pathBase.Pattern)
+
+	if h.NestedRouter == nil {
+		panic("hwy.NestedRouter is nil")
 	}
-	h._matcher = m
+
+	for _, p := range pathsFile.Paths {
+		h._paths[p.Pattern] = p
+		_is_already_registered := h.NestedRouter.IsRegistered(p.Pattern)
+		if !_is_already_registered {
+			mux.RegisterNestedPatternWithoutHandler(h.NestedRouter, p.Pattern)
+		}
+	}
 
 	h._clientEntrySrc = pathsFile.ClientEntrySrc
 	h._clientEntryOut = pathsFile.ClientEntryOut
 
-	// add data funcs to paths
-	listOfPatterns := make([]string, 0, len(h._paths))
-	for i, path := range h._paths {
-		if loader, ok := h.Loaders[path.PathBase.Pattern]; ok {
-			h._paths[i].DataFunction = loader
-		}
-
-		listOfPatterns = append(listOfPatterns, path.PathBase.Pattern)
-	}
-	for pattern := range h.Loaders {
-		if !slices.Contains(listOfPatterns, pattern) {
+	for pattern := range h.NestedRouter.AllRoutes() {
+		if _, exists := h._paths[pattern]; !exists {
 			Log.Error(fmt.Sprintf(
 				"Warning: no matching path found for pattern %v. Make sure you're writing your patterns correctly and that your client route exists.",
 				pattern,

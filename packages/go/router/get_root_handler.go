@@ -9,9 +9,12 @@ import (
 	"strings"
 
 	"github.com/sjc5/kit/pkg/cryptoutil"
+	"github.com/sjc5/kit/pkg/headblocks"
 	"github.com/sjc5/kit/pkg/viteutil"
 	"golang.org/x/sync/errgroup"
 )
+
+var headblocksInstance = headblocks.New("hwy")
 
 func (h *Hwy) GetRootHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -63,13 +66,17 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		var eg errgroup.Group
 		var ssrScript *template.HTML
 		var ssrScriptSha256Hash string
-		var headElements *template.HTML
+		var headElements template.HTML
 
 		mainT.Reset()
 
 		eg.Go(func() error {
 			egInnerT := newTimer()
-			he, err := GetHeadElements(routeData)
+			he, err := headblocksInstance.Render(&headblocks.HeadBlocks{
+				Title: routeData.Title,
+				Meta:  routeData.Meta,
+				Rest:  routeData.Rest,
+			})
 			if err != nil {
 				return fmt.Errorf("error getting head elements: %v", err)
 			}
@@ -103,7 +110,7 @@ func (h *Hwy) GetRootHandler() http.Handler {
 		if h.GetRootTemplateData != nil {
 			rootTemplateData, err = h.GetRootTemplateData(r)
 		} else {
-			rootTemplateData = RootTemplateData{}
+			rootTemplateData = make(RootTemplateData)
 		}
 		if err != nil {
 			msg := "Error getting root template data"
@@ -112,18 +119,12 @@ func (h *Hwy) GetRootHandler() http.Handler {
 			return
 		}
 
-		tmplData := RootTemplateData{}
-
-		// __TODO is this copy necessary?
-		for key, value := range rootTemplateData {
-			tmplData[key] = value
-		}
-		tmplData["HeadElements"] = headElements
-		tmplData["SSRScriptElement"] = ssrScript
-		tmplData["SSRScriptElementSha256Hash"] = ssrScriptSha256Hash
+		rootTemplateData["HeadElements"] = headElements
+		rootTemplateData["SSRScriptElement"] = ssrScript
+		rootTemplateData["SSRScriptElementSha256Hash"] = ssrScriptSha256Hash
 
 		if !h._isDev {
-			tmplData["BodyElements"] = template.HTML(
+			rootTemplateData["BodyElements"] = template.HTML(
 				fmt.Sprintf(`<script type="module" src="/public/%s"></script>`, h._clientEntryOut),
 			)
 		} else {
@@ -142,12 +143,12 @@ func (h *Hwy) GetRootHandler() http.Handler {
 				return
 			}
 
-			tmplData["BodyElements"] = devScripts
+			rootTemplateData["BodyElements"] = devScripts
 		}
 
 		var buf bytes.Buffer
 
-		err = h._rootTemplate.Execute(&buf, tmplData)
+		err = h._rootTemplate.Execute(&buf, rootTemplateData)
 		if err != nil {
 			msg := "Error executing template"
 			Log.Error(fmt.Sprintf(msg+": %v\n", err))

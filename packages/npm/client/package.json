@@ -7,9 +7,9 @@
 	"description": "Browser-targeted utilities for Hwy framework",
 	"type": "module",
 	"exports": {
-		".": "./dist/index.js"
+		".": "./index.ts"
 	},
-	"files": ["dist"],
+	"files": ["./index.ts"],
 	"scripts": {
 		"build": "rm -rf dist && tsup-node index.ts --format esm --dts",
 		"dev": "rm -rf dist && tsup-node index.ts --format esm --dts --watch",

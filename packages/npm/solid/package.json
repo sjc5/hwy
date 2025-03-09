@@ -1,10 +1,10 @@
 {
-	"name": "@hwy-js/react",
+	"name": "@hwy-js/solid",
 	"version": "0.16.3",
 	"author": {
 		"name": "Samuel J. Cook"
 	},
-	"description": "React utilities for Hwy framework",
+	"description": "Solid utilities for Hwy framework",
 	"type": "module",
 	"exports": {
 		".": "./index.tsx"
@@ -24,16 +24,13 @@
 		"@sjc5/kit": "0.0.0-pre.0"
 	},
 	"devDependencies": {
-		"@types/react": "^19.0.9",
-		"@types/react-dom": "^19.0.3",
-		"react": "^19.0.0",
-		"react-dom": "^19.0.0",
+		"solid-js": "^1.9.5",
 		"typescript": "^5.4.4"
 	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/sjc5/hwy",
-		"directory": "packages/npm/react"
+		"directory": "packages/npm/solid"
 	},
 	"homepage": "https://hwy.dev",
 	"bugs": "https://github.com/sjc5/hwy/issues",

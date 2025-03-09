@@ -20,16 +20,20 @@ type HwyClientGlobal = {
 	loadersData: Array<any>;
 	importURLs: Array<string>;
 	outermostErrorIndex: number;
-	splatSegments: Array<string>;
+	splatValues: Array<string>;
 	params: Record<string, string>;
 	activeComponents: Array<any>;
 	activeErrorBoundaries: Array<any>;
-	adHocData: any;
+	coreData: any;
 	buildID: string;
 	viteDevURL: string;
 };
 
 type HwyClientGlobalKey = keyof HwyClientGlobal;
+
+export function getRawCtx() {
+	return (globalThis as any)[HWY_SYMBOL];
+}
 
 export function __getHwyClientGlobal() {
 	const dangerousGlobalThis = globalThis as any;
@@ -53,16 +57,16 @@ type HeadBlock = {
 	innerHTML?: string;
 };
 
-type GetRouteDataOutput<AHD = any> = {
+type GetRouteDataOutput<RD = any> = {
 	title: string;
 	metaHeadBlocks: Array<HeadBlock>;
 	restHeadBlocks: Array<HeadBlock>;
 	loadersData: Array<any>;
 	importURLs: Array<string>;
 	outermostErrorIndex: number;
-	splatSegments: Array<string>;
+	splatValues: Array<string>;
 	params: Record<string, string>;
-	adHocData: AHD;
+	coreData: RD;
 	buildID: string;
 	deps: Array<string>;
 	cssBundles: Array<string>;
@@ -71,20 +75,6 @@ type GetRouteDataOutput<AHD = any> = {
 	// SSR Only
 	activeErrorBoundaries: Array<any> | null;
 	activeComponents: Array<any> | null;
-};
-
-type RouteData<AHD = any> = {
-	response: Response | null;
-	data: GetRouteDataOutput<AHD> | null;
-	mergedResponseInit: ResponseInit | null;
-	ssrData?: {
-		ssrInnerHTML: string;
-		clientEntryURL: string;
-		devRefreshScript: string;
-		criticalCSSElementID: string;
-		criticalCSS: string;
-		bundledCSSURL: string;
-	};
 };
 
 type ScrollState = { x: number; y: number };
@@ -849,9 +839,9 @@ async function __reRenderApp({
 		"loadersData",
 		"importURLs",
 		"outermostErrorIndex",
-		"splatSegments",
+		"splatValues",
 		"params",
-		"adHocData",
+		"coreData",
 	] as const satisfies ReadonlyArray<HwyClientGlobalKey>;
 
 	for (const key of identicalKeysToSet) {
@@ -1148,7 +1138,7 @@ async function customHistoryListener({ action, location }: Update) {
 	lastKnownCustomLocation = location;
 }
 
-export function getCustomHistory() {
+export function getHistoryInstance() {
 	return customHistory;
 }
 
@@ -1157,6 +1147,8 @@ export function getCustomHistory() {
 /////////////////////////////////////////////////////////////////////
 
 export async function initClient(renderFn: () => void) {
+	console.log("RUNNING INIT CLIENT");
+
 	// HANDLE HISTORY STUFF
 	initCustomHistory();
 
@@ -1189,9 +1181,9 @@ function importComponents() {
 export function getCurrentHwyData<T = any>() {
 	return {
 		buildID: internal_HwyClientGlobal.get("buildID") || "",
-		splatSegments: internal_HwyClientGlobal.get("splatSegments") || [],
+		splatValues: internal_HwyClientGlobal.get("splatValues") || [],
 		params: internal_HwyClientGlobal.get("params") || {},
-		adHocData: (internal_HwyClientGlobal.get("adHocData") || null) as T | null,
+		coreData: (internal_HwyClientGlobal.get("coreData") || null) as T | null,
 	};
 }
 
@@ -1310,3 +1302,5 @@ function Panic(msg?: string): never {
 	LogError("Panic");
 	throw new Error(msg ?? "panic");
 }
+
+(globalThis as any).__debug = getRawCtx();

@@ -5,6 +5,7 @@ export {
 	devRevalidate,
 	getBuildID,
 	getCurrentHwyData,
+	getHistoryInstance,
 	getPrefetchHandlers,
 	getStatus,
 	initClient,

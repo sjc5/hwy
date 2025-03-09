@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/sjc5/kit/pkg/htmlutil"
-	"github.com/sjc5/kit/pkg/router"
+	"github.com/sjc5/kit/pkg/mux"
 )
 
 type SSRInnerHTMLInput struct {
@@ -18,9 +18,9 @@ type SSRInnerHTMLInput struct {
 	LoadersData         []any
 	ImportURLs          []string
 	OutermostErrorIndex int
-	SplatSegments       SplatSegments
-	Params              router.Params
-	AdHocData           any
+	SplatValues         SplatValues
+	Params              mux.Params
+	CoreData            any
 	Deps                []string
 	CSSBundles          []string
 	ClientRedirectURL   string
@@ -39,9 +39,9 @@ const (
 	x.loadersData = {{.LoadersData}};
 	x.importURLs = {{.ImportURLs}};
 	x.outermostErrorIndex = {{.OutermostErrorIndex}};
-	x.splatSegments = {{.SplatSegments}};
+	x.splatValues = {{.SplatValues}};
 	x.params = {{.Params}};
-	x.adHocData = {{.AdHocData}};
+	x.coreData = {{.CoreData}};
 	if (!x.isDev) {
 		const deps = {{.Deps}};
 		deps.forEach(x => {
@@ -93,9 +93,9 @@ func (h *Hwy) GetSSRInnerHTML(routeData *GetRouteDataOutput) (*GetSSRInnerHTMLOu
 			LoadersData:         routeData.LoadersData,
 			ImportURLs:          routeData.ImportURLs,
 			OutermostErrorIndex: routeData.OutermostErrorIndex,
-			SplatSegments:       routeData.SplatSegments,
+			SplatValues:         routeData.SplatValues,
 			Params:              routeData.Params,
-			AdHocData:           routeData.AdHocData,
+			CoreData:            routeData.CoreData,
 			Deps:                routeData.Deps,
 			CSSBundles:          routeData.CSSBundles,
 			ClientRedirectURL:   routeData.ClientRedirectURL,

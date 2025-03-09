@@ -12,8 +12,8 @@ import (
 
 	"github.com/sjc5/kit/pkg/colorlog"
 	"github.com/sjc5/kit/pkg/contextutil"
-	"github.com/sjc5/kit/pkg/router"
-
+	"github.com/sjc5/kit/pkg/htmlutil"
+	"github.com/sjc5/kit/pkg/mux"
 	"github.com/sjc5/kit/pkg/timer"
 	"github.com/sjc5/kit/pkg/validate"
 )
@@ -40,7 +40,10 @@ var RouteTypesEnum = struct {
 	NotFound:       "not-found",
 }
 
-type PathBase struct {
+type Path struct {
+	DataFunction DataFunction
+	NestedRoute  mux.AnyNestedRoute
+
 	// both stages one and two
 	Pattern string `json:"pattern"`
 	SrcPath string `json:"srcPath"`
@@ -48,12 +51,6 @@ type PathBase struct {
 	// stage two only
 	OutPath string   `json:"outPath,omitempty"`
 	Deps    []string `json:"deps,omitempty"`
-}
-
-type Path struct {
-	PathBase
-	*router.RegisteredPattern
-	DataFunction DataFunction `json:",omitempty"`
 }
 
 type DataFunctionMap map[string]DataFunction
@@ -73,10 +70,11 @@ var UIVariants = struct {
 type RootTemplateData = map[string]any
 
 type Hwy struct {
-	FS fs.FS
+	FS           fs.FS
+	NestedRouter *mux.NestedRouter
 	*DataFuncs
 	RootTemplateLocation    string
-	GetDefaultHeadBlocks    func(r *http.Request) ([]HeadBlock, error)
+	GetDefaultHeadBlocks    func(r *http.Request) ([]*htmlutil.Element, error)
 	GetRootTemplateData     func(r *http.Request) (RootTemplateData, error)
 	UIVariant               UIVariant
 	JSPackageManagerBaseCmd string // required -- e.g., "npx", "pnpm", "yarn", etc.
@@ -85,8 +83,7 @@ type Hwy struct {
 
 	mu                 sync.Mutex
 	_isDev             bool
-	_paths             []Path
-	_matcher           *router.Matcher
+	_paths             map[string]*Path
 	_clientEntrySrc    string
 	_clientEntryOut    string
 	_clientEntryDeps   []string
@@ -97,10 +94,9 @@ type Hwy struct {
 }
 
 // Not for public consumption. Do not use or rely on this.
-func (h *Hwy) Hwy__internal__setPaths(paths []Path) {
+func (h *Hwy) Hwy__internal__setPaths(paths map[string]*Path) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
-
 	h._paths = paths
 }
 
@@ -124,7 +120,7 @@ type ResponseHelper interface {
 	GetCookies() []*http.Cookie
 	GetRedirect() *Redirect
 	GetClientRedirectURL() string
-	GetHeadBlocks() []*HeadBlock // only applicable for loaders
+	GetHeadBlocks() []*htmlutil.Element // only applicable for loaders
 }
 
 const (
@@ -138,10 +134,8 @@ func getIsDebug() bool {
 
 var Log = colorlog.New("Hwy")
 
-// __TODO remove redundant stuff now that generic aliases are available in 1.24
-
-func NewAdHocDataStore[T any]() *contextutil.Store[T] {
-	return contextutil.NewStore[T]("hwy_ad_hoc_data")
+func NewCoreDataStore[T any]() *contextutil.Store[T] {
+	return contextutil.NewStore[T]("hwy_root_data")
 }
 
 func newTimer() *timer.Timer {
@@ -160,14 +154,14 @@ type LoaderRes[O any] struct {
 	clientRedirectURL string
 
 	// different from ActionRes
-	HeadBlocks []*HeadBlock
+	HeadBlocks []*htmlutil.Element
 }
 
 type LoaderCtx[O any] struct {
-	Req           *http.Request
-	Params        router.Params
-	SplatSegments SplatSegments
-	Res           *LoaderRes[O]
+	Req         *http.Request
+	Params      mux.Params
+	SplatValues SplatValues
+	Res         *LoaderRes[O]
 }
 
 func (c *LoaderCtx[O]) GetRequest() *http.Request {
@@ -185,40 +179,6 @@ func (f *LoaderRes[O]) Redirect(url string, code int) {
 }
 func (f *LoaderRes[O]) ClientRedirect(url string) {
 	f.clientRedirectURL = url
-}
-
-type Loader[O any] func(ctx LoaderCtx[O])
-
-func NewLoader[O any](f func(ctx LoaderCtx[O])) Loader[O] {
-	return Loader[O](f)
-}
-
-func (f Loader[O]) GetResInstance() any {
-	return &LoaderRes[O]{
-		redirect:   &Redirect{},
-		Headers:    http.Header{},
-		Cookies:    []*http.Cookie{},
-		HeadBlocks: []*HeadBlock{},
-	}
-}
-func (f Loader[O]) Execute(args ...any) (any, error) {
-	f(LoaderCtx[O]{
-		Req:           args[0].(*http.Request),
-		Params:        args[1].(router.Params),
-		SplatSegments: args[2].(SplatSegments),
-		Res:           args[3].(*LoaderRes[O]),
-	})
-	return nil, nil
-}
-func (f Loader[O]) GetInputInstance() any {
-	return nil
-}
-func (f Loader[O]) ValidateInput(v *validate.Validate, r *http.Request, actionType RouteType) (any, error) {
-	return nil, nil
-}
-func (f Loader[O]) GetOutputInstance() any {
-	var x O
-	return x
 }
 
 type ActionRes[O any] struct {
@@ -307,7 +267,7 @@ func (f Action[I, O]) ValidateInput(v *validate.Validate, r *http.Request, actio
 		if isQuery {
 			err = v.URLSearchParamsInto(r, &x)
 		} else {
-			err = v.JSONBodyInto(r.Body, &x)
+			err = v.JSONBodyInto(r, &x)
 		}
 		if err != nil {
 			return nil, err
@@ -325,7 +285,7 @@ func (f Action[I, O]) ValidateInput(v *validate.Validate, r *http.Request, actio
 		if isQuery {
 			err = v.URLSearchParamsInto(r, x)
 		} else {
-			err = v.JSONBodyInto(r.Body, x)
+			err = v.JSONBodyInto(r, x)
 		}
 		if err != nil {
 			return nil, err
@@ -360,7 +320,7 @@ func (f *LoaderRes[O]) GetRedirect() *Redirect {
 func (f *LoaderRes[O]) GetClientRedirectURL() string {
 	return f.clientRedirectURL
 }
-func (f *LoaderRes[O]) GetHeadBlocks() []*HeadBlock {
+func (f *LoaderRes[O]) GetHeadBlocks() []*htmlutil.Element {
 	return f.HeadBlocks
 }
 func (f *ActionRes[O]) GetData() any {
@@ -381,6 +341,6 @@ func (f *ActionRes[O]) GetRedirect() *Redirect {
 func (f *ActionRes[O]) GetClientRedirectURL() string {
 	return f.clientRedirectURL
 }
-func (f *ActionRes[O]) GetHeadBlocks() []*HeadBlock {
+func (f *ActionRes[O]) GetHeadBlocks() []*htmlutil.Element {
 	return nil // noop
 }

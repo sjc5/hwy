@@ -2,47 +2,41 @@ package router
 
 import (
 	"fmt"
+	"maps"
 	"net/http"
-	"sync"
 
+	"github.com/sjc5/kit/pkg/htmlutil"
 	"github.com/sjc5/kit/pkg/lru"
-	"github.com/sjc5/kit/pkg/router"
+	"github.com/sjc5/kit/pkg/matcher"
+	"github.com/sjc5/kit/pkg/mux"
+	"github.com/sjc5/kit/pkg/tasks"
 )
 
-type SplatSegments []string
-
-type DecoratedPath struct {
-	DataFunction DataFunction
-	PathType     string // technically only needed for testing
-}
+type SplatValues []string
 
 type ActivePathData struct {
-	MatchingPaths       []*DecoratedPath
-	HeadBlocks          []*HeadBlock
-	LoadersData         []any
-	LoadersErrMsgs      []string
+	HeadBlocks  []*htmlutil.Element
+	LoadersData []any
+	// LoadersErrMsgs      []string
+	LoadersErrs         []error
 	ImportURLs          []string
 	OutermostErrorIndex int
-	SplatSegments       SplatSegments
-	Params              router.Params
+	SplatValues         SplatValues
+	Params              mux.Params
 	Deps                []string
 }
 
 type gmpdItem struct {
-	SplatSegments               SplatSegments
-	Params                      router.Params
-	FullyDecoratedMatchingPaths []*DecoratedPath
-	ImportURLs                  []string
-	Deps                        []string
-	routeType                   RouteType
+	_match_results *matcher.FindNestedMatchesResults
+	Params         mux.Params
+	SplatValues    SplatValues
+	DataFunctions  []DataFunction
+	ImportURLs     []string
+	Deps           []string
+	routeType      RouteType
 }
 
 var gmpdCache = lru.NewCache[string, *gmpdItem](500_000)
-
-var (
-	QueryAcceptedMethods    = map[string]int{"GET": 0, "HEAD": 0}
-	MutationAcceptedMethods = map[string]int{"POST": 0, "PUT": 0, "PATCH": 0, "DELETE": 0}
-)
 
 func (h *Hwy) getMaybeActionAndRouteType(realPath string, r *http.Request) (DataFunction, RouteType) {
 	if !getIsHwyAPISubmit(r) {
@@ -58,13 +52,13 @@ func (h *Hwy) getMaybeActionAndRouteType(realPath string, r *http.Request) (Data
 	var mutationMethodIsPermitted bool
 
 	if queryAction, queryActionExists = h.QueryActions[realPath]; queryActionExists {
-		if _, queryMethodIsPermitted = QueryAcceptedMethods[r.Method]; queryMethodIsPermitted {
+		if _, queryMethodIsPermitted = QueryMethods[r.Method]; queryMethodIsPermitted {
 			return queryAction, RouteTypesEnum.QueryAction
 		}
 	}
 
 	if mutationAction, mutationActionExists = h.MutationActions[realPath]; mutationActionExists {
-		if _, mutationMethodIsPermitted = MutationAcceptedMethods[r.Method]; mutationMethodIsPermitted {
+		if _, mutationMethodIsPermitted = MutationMethods[r.Method]; mutationMethodIsPermitted {
 			return mutationAction, RouteTypesEnum.MutationAction
 		}
 	}
@@ -81,12 +75,7 @@ type redirectStatus struct {
 	clientRedirectURL string
 }
 
-// Not for public consumption. Do not use or rely on this.
-func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.Request) (
-	*ActivePathData,
-	*redirectStatus,
-	RouteType,
-) {
+func (h *Hwy) getMatchingPathData(tasksCtx *tasks.TasksCtx, w http.ResponseWriter, r *http.Request) (*ActivePathData, *redirectStatus, RouteType) {
 	realPath := r.URL.Path
 	if realPath != "/" && realPath[len(realPath)-1] == '/' {
 		realPath = realPath[:len(realPath)-1]
@@ -95,66 +84,118 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 	var item *gmpdItem
 
 	action, routeType := h.getMaybeActionAndRouteType(realPath, r)
+
+	// IF NOT FOUND
 	if routeType == RouteTypesEnum.NotFound {
 		return nil, nil, routeType
 	}
+
+	// IF QUERY OR MUTATION
 	if action != nil {
+
 		item = &gmpdItem{
-			routeType:                   routeType,
-			FullyDecoratedMatchingPaths: []*DecoratedPath{{DataFunction: action}},
+			routeType:     routeType,
+			DataFunctions: []DataFunction{action},
 		}
+
 	} else {
-		item = h.getGMPDItem(realPath)
+		// IF LOADER
+
+		// IF CACHE HIT
+		if cachedItem, cachedItemExists := gmpdCache.Get(realPath); cachedItemExists {
+
+			item = cachedItem
+
+		} else {
+
+			// IF NOT CACHE HIT
+			item = new(gmpdItem)
+
+			_match_results, ok := mux.FindNestedMatches(h.NestedRouter, r)
+
+			if !ok {
+
+				// NOT FOUND, SET CACHE (AS SPAM) AND MOVE ON
+				gmpdCache.Set(realPath, item, true)
+
+			} else {
+
+				// IF WE GET HERE, IT MEANS WE FOUND MATCHES BUT THEY ARE NOT IN THE CACHE YET,
+				// AND WE NEED TO PROCESS THEM
+
+				item._match_results = _match_results
+
+				_matches := _match_results.Matches
+				_matches_len := len(_matches)
+
+				item.SplatValues = _match_results.SplatValues
+				item.Params = _match_results.Params
+				item.routeType = RouteTypesEnum.Loader
+
+				item.ImportURLs = make([]string, 0, _matches_len)
+				for _, path := range _matches {
+					// find the path to use
+					foundPath := h._paths[path.OriginalPattern()]
+					if foundPath == nil {
+						continue
+					}
+					pathToUse := foundPath.OutPath
+					if h._isDev {
+						pathToUse = foundPath.SrcPath
+					}
+
+					item.ImportURLs = append(item.ImportURLs, "/"+pathToUse)
+				}
+
+				item.Deps = h.getDeps(_matches)
+
+				// cache
+				// isSpam if no matching paths --> avoids cache poisoning while still allowing for cache hits
+				isSpam := _matches_len == 0
+				gmpdCache.Set(realPath, item, isSpam)
+			}
+		}
+
 	}
 
-	numberOfLoaders := len(item.FullyDecoratedMatchingPaths)
+	_tasks_results := mux.RunNestedTasks(h.NestedRouter, tasksCtx, r, item._match_results)
+
+	// __TODO fix this upstream
+
+	var numberOfLoaders int
+	if item._match_results != nil {
+		numberOfLoaders = len(item._match_results.Matches)
+	}
 
 	// loaders data
 	loadersData := make([]any, numberOfLoaders)
-	loadersErrMsgs := make([]string, numberOfLoaders)
+	// loadersErrMsgs := make([]string, numberOfLoaders)
+	loadersErrs := make([]error, numberOfLoaders)
+
 	loadersHeaders := make([]http.Header, numberOfLoaders)
 	loadersCookies := make([][]*http.Cookie, numberOfLoaders)
 	loadersRedirects := make([]*Redirect, numberOfLoaders)
 	loadersClientRedirectURLs := make([]string, numberOfLoaders)
-	loadersHeadBlocks := make([][]*HeadBlock, numberOfLoaders)
+	loadersHeadBlocks := make([][]*htmlutil.Element, numberOfLoaders)
 
 	if r.URL.Query().Get("dev-revalidation") != "1" {
-		var wg sync.WaitGroup
 
-		// run loaders in parallel
-		for i, path := range item.FullyDecoratedMatchingPaths {
-			wg.Add(1)
-			go func(i int, loader DataFunction) {
-				defer wg.Done()
+		// __TODO this used to share the same for both loaders and actions,
+		// and it would validate input for actions (no need for loaders)
+		// need to re-create all that but in a cleaner way
 
-				if loader == nil {
-					loadersData[i], loadersErrMsgs[i] = nil, ""
-					return
+		// should deprecate the DataFunction concept altogether, and instead do
+		// action handling at the nestedrouter package level I think -- same as
+		// for all this cookie merging stuff
+
+		if numberOfLoaders > 0 {
+			for i, result := range _tasks_results.Slice {
+				if result != nil {
+					loadersData[i] = result.Data()
+					loadersErrs[i] = result.Err()
 				}
-
-				loaderRes := loader.GetResInstance()
-
-				if item.routeType == RouteTypesEnum.Loader {
-					loader.Execute(r, item.Params, item.SplatSegments, loaderRes)
-				} else {
-					inputInstance, err := loader.ValidateInput(h.Validator, r, item.routeType)
-					if err != nil {
-						loadersErrMsgs[i] = err.Error()
-						return
-					}
-					loader.Execute(r, inputInstance, loaderRes, w)
-				}
-
-				loadersData[i] = loaderRes.(ResponseHelper).GetData()
-				loadersErrMsgs[i] = loaderRes.(ResponseHelper).GetErrMsg()
-				loadersHeaders[i] = loaderRes.(ResponseHelper).GetHeaders()
-				loadersCookies[i] = loaderRes.(ResponseHelper).GetCookies()
-				loadersRedirects[i] = loaderRes.(ResponseHelper).GetRedirect()
-				loadersClientRedirectURLs[i] = loaderRes.(ResponseHelper).GetClientRedirectURL()
-				loadersHeadBlocks[i] = loaderRes.(ResponseHelper).GetHeadBlocks()
-			}(i, path.DataFunction)
+			}
 		}
-		wg.Wait()
 
 		// apply first redirect and return
 		for _, redirect := range loadersRedirects {
@@ -169,9 +210,7 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 		// Merge headers and cookies
 		for i := range numberOfLoaders {
 			if loadersHeaders[i] != nil {
-				for k, v := range loadersHeaders[i] {
-					w.Header()[k] = v
-				}
+				maps.Copy(w.Header(), loadersHeaders[i])
 			}
 			if loadersCookies[i] != nil {
 				cookiesToSet = append(cookiesToSet, loadersCookies[i]...)
@@ -192,9 +231,9 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 
 	var thereAreErrors bool
 	outermostErrorIndex := -1
-	for i, errMsg := range loadersErrMsgs {
-		if errMsg != "" {
-			Log.Error(fmt.Sprintf("ERROR: %s", errMsg))
+	for i, err := range loadersErrs {
+		if err != nil {
+			Log.Error(fmt.Sprintf("ERROR: %s", err))
 			thereAreErrors = true
 			outermostErrorIndex = i
 			break
@@ -202,132 +241,45 @@ func (h *Hwy) Hwy__internal__getMatchingPathData(w http.ResponseWriter, r *http.
 	}
 
 	if thereAreErrors && item.routeType == RouteTypesEnum.Loader {
-		var activePathData ActivePathData = ActivePathData{}
-		locMatchingPaths := item.FullyDecoratedMatchingPaths[:outermostErrorIndex+1]
-		activePathData.MatchingPaths = locMatchingPaths
-		locLoadersData := loadersData[:outermostErrorIndex]
-		activePathData.LoadersData = locLoadersData
-		locImportURLs := item.ImportURLs[:outermostErrorIndex+1]
-		activePathData.ImportURLs = locImportURLs
-		activePathData.OutermostErrorIndex = outermostErrorIndex
-		activePathData.SplatSegments = item.SplatSegments
-		activePathData.Params = item.Params
-		locErrors := loadersErrMsgs[:outermostErrorIndex+1]
-		activePathData.LoadersErrMsgs = locErrors
-
-		locHeadBlocksOuter := loadersHeadBlocks[:outermostErrorIndex]
-		locHeadBlocksInner := make([]*HeadBlock, 0, len(locHeadBlocksOuter))
-		for _, headBlocks := range locHeadBlocksOuter {
-			locHeadBlocksInner = append(locHeadBlocksInner, headBlocks...)
+		headBlocksDoubleSlice := loadersHeadBlocks[:outermostErrorIndex]
+		headblocks := make([]*htmlutil.Element, 0, len(headBlocksDoubleSlice))
+		for _, slice := range headBlocksDoubleSlice {
+			headblocks = append(headblocks, slice...)
 		}
-		activePathData.HeadBlocks = locHeadBlocksInner
 
-		return &activePathData, nil, item.routeType
+		return &ActivePathData{
+			LoadersData:         loadersData[:outermostErrorIndex],
+			ImportURLs:          item.ImportURLs[:outermostErrorIndex+1],
+			OutermostErrorIndex: outermostErrorIndex,
+			SplatValues:         item.SplatValues,
+			Params:              item.Params,
+			// LoadersErrMsgs:      loadersErrs[:outermostErrorIndex+1],
+			LoadersErrs: loadersErrs[:outermostErrorIndex+1],
+			HeadBlocks:  headblocks,
+		}, nil, item.routeType
 	}
 
-	var activePathData ActivePathData = ActivePathData{}
-	activePathData.MatchingPaths = item.FullyDecoratedMatchingPaths
-	activePathData.LoadersData = loadersData
-	activePathData.ImportURLs = item.ImportURLs
-	activePathData.OutermostErrorIndex = outermostErrorIndex
-	activePathData.SplatSegments = item.SplatSegments
-	activePathData.Params = item.Params
-	activePathData.Deps = item.Deps
-	activePathData.LoadersErrMsgs = loadersErrMsgs
-
-	locHeadBlocksInner := make([]*HeadBlock, 0, len(loadersHeadBlocks))
-	for _, headBlocks := range loadersHeadBlocks {
-		locHeadBlocksInner = append(locHeadBlocksInner, headBlocks...)
+	headblocks := make([]*htmlutil.Element, 0, len(loadersHeadBlocks))
+	for _, slice := range loadersHeadBlocks {
+		headblocks = append(headblocks, slice...)
 	}
-	activePathData.HeadBlocks = locHeadBlocksInner
 
-	return &activePathData, nil, item.routeType
+	return &ActivePathData{
+		LoadersData:         loadersData,
+		ImportURLs:          item.ImportURLs,
+		OutermostErrorIndex: outermostErrorIndex,
+		SplatValues:         item.SplatValues,
+		Params:              item.Params,
+		Deps:                item.Deps,
+		// LoadersErrMsgs:      loadersErrMsgs,
+		LoadersErrs: loadersErrs,
+		HeadBlocks:  headblocks,
+	}, nil, item.routeType
 }
 
-func (h *Hwy) getGMPDItem(realPath string) *gmpdItem {
-	if cachedItem, cachedItemExists := gmpdCache.Get(realPath); cachedItemExists {
-		return cachedItem
-	}
-
-	item := &gmpdItem{}
-
-	// get matching paths
-	matchingPaths, ok := h._matcher.FindNestedMatches(realPath)
-	if !ok {
-		gmpdCache.Set(realPath, item, true)
-		return item
-	}
-
-	// last path
-	var lastPath *router.Match
-	if len(matchingPaths) > 0 {
-		lastPath = matchingPaths[len(matchingPaths)-1]
-	}
-
-	// miscellanenous
-	item.FullyDecoratedMatchingPaths = h.decoratePaths(matchingPaths)
-	item.SplatSegments = lastPath.SplatValues
-	item.Params = lastPath.Params
-	item.routeType = RouteTypesEnum.Loader
-
-	// import URLs
-	item.ImportURLs = make([]string, 0, len(matchingPaths))
-	for _, path := range matchingPaths {
-
-		// find the path to use
-		foundPath := h.findPathByPattern(path.Pattern())
-		if foundPath == nil {
-			continue
-		}
-
-		pathToUse := foundPath.OutPath
-		if h._isDev {
-			pathToUse = foundPath.SrcPath
-		}
-
-		item.ImportURLs = append(item.ImportURLs, "/"+pathToUse)
-	}
-
-	// deps
-	item.Deps = h.getDeps(matchingPaths)
-
-	// cache
-	// isSpam if no matching paths --> avoids cache poisoning while still allowing for cache hits
-	isSpam := len(matchingPaths) == 0
-	gmpdCache.Set(realPath, item, isSpam)
-
-	return item
-}
-
-func (h *Hwy) findPathByPattern(pattern string) *Path {
-	// __TODO change h._paths to a map so this is more efficient
-	for _, path := range h._paths {
-		if path.PathBase.Pattern == pattern {
-			return &path
-		}
-	}
-	return nil
-}
-
-func (h *Hwy) decoratePaths(paths []*router.Match) []*DecoratedPath {
-	decoratedPaths := make([]*DecoratedPath, 0, len(paths))
-	for _, pathBase := range paths {
-		path := h.findPathByPattern(pathBase.Pattern())
-		if path == nil {
-			continue
-		}
-
-		decoratedPaths = append(decoratedPaths, &DecoratedPath{
-			DataFunction: path.DataFunction,
-			// PathType:     path.__TODO,
-		})
-	}
-	return decoratedPaths
-}
-
-func (h *Hwy) getDeps(matchingPaths []*router.Match) []string {
+func (h *Hwy) getDeps(_matches []*matcher.Match) []string {
 	var deps []string
-	seen := make(map[string]struct{}, len(matchingPaths))
+	seen := make(map[string]struct{}, len(_matches))
 
 	handleDeps := func(src []string) {
 		for _, d := range src {
@@ -342,8 +294,8 @@ func (h *Hwy) getDeps(matchingPaths []*router.Match) []string {
 		handleDeps(h._clientEntryDeps)
 	}
 
-	for _, path := range matchingPaths {
-		path := h.findPathByPattern(path.Pattern())
+	for _, match := range _matches {
+		path := h._paths[match.OriginalPattern()]
 		if path == nil {
 			continue
 		}

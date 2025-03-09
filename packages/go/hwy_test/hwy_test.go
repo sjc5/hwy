@@ -20,7 +20,7 @@ package hwy_test
 // type expectedOutput struct {
 // 	MatchingPathTypes []matcher.PathType
 // 	Params            matcher.Params
-// 	SplatSegments     router.SplatSegments
+// 	SplatValues     router.SplatValues
 // }
 
 // type testPath struct {
@@ -68,16 +68,16 @@ package hwy_test
 // 		}
 
 // 		// Has expected number of splat segments
-// 		if matchingPathData.SplatSegments != nil && len(matchingPathData.SplatSegments) != len(path.ExpectedOutput.SplatSegments) {
+// 		if matchingPathData.SplatValues != nil && len(matchingPathData.SplatValues) != len(path.ExpectedOutput.SplatValues) {
 // 			router.Log.Error(fmt.Sprintf("Path: %s", path.Path))
-// 			t.Errorf("Expected %d splat segments, but got %d", len(path.ExpectedOutput.SplatSegments), len(matchingPathData.SplatSegments))
+// 			t.Errorf("Expected %d splat segments, but got %d", len(path.ExpectedOutput.SplatValues), len(matchingPathData.SplatValues))
 // 		}
 
-// 		for i, expectedSplatSegment := range path.ExpectedOutput.SplatSegments {
+// 		for i, expectedSplatValue := range path.ExpectedOutput.SplatValues {
 // 			// Each splat segment has the expected value
-// 			if matchingPathData.SplatSegments[i] != expectedSplatSegment {
+// 			if matchingPathData.SplatValues[i] != expectedSplatValue {
 // 				router.Log.Error(fmt.Sprintf("Path: %s", path.Path))
-// 				t.Errorf("Expected splat segment %d to be %s, but got %s", i, expectedSplatSegment, matchingPathData.SplatSegments[i])
+// 				t.Errorf("Expected splat segment %d to be %s, but got %s", i, expectedSplatValue, matchingPathData.SplatValues[i])
 // 			}
 // 		}
 // 	}
@@ -88,14 +88,14 @@ package hwy_test
 // 		Path: "/does-not-exist",
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.Splat},
-// 			SplatSegments:     router.SplatSegments{"does-not-exist"},
+// 			SplatValues:     router.SplatValues{"does-not-exist"},
 // 		},
 // 	},
 // 	{
 // 		Path: "/this-should-be-ignored",
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.Splat},
-// 			SplatSegments:     router.SplatSegments{"this-should-be-ignored"},
+// 			SplatValues:     router.SplatValues{"this-should-be-ignored"},
 // 		},
 // 	},
 // 	{
@@ -114,21 +114,21 @@ package hwy_test
 // 		Path: "/lion/123",
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.Splat},
-// 			SplatSegments:     router.SplatSegments{"123"},
+// 			SplatValues:     router.SplatValues{"123"},
 // 		},
 // 	},
 // 	{
 // 		Path: "/lion/123/456",
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.Splat},
-// 			SplatSegments:     router.SplatSegments{"123", "456"},
+// 			SplatValues:     router.SplatValues{"123", "456"},
 // 		},
 // 	},
 // 	{
 // 		Path: "/lion/123/456/789",
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.Splat},
-// 			SplatSegments:     router.SplatSegments{"123", "456", "789"},
+// 			SplatValues:     router.SplatValues{"123", "456", "789"},
 // 		},
 // 	},
 // 	{
@@ -156,7 +156,7 @@ package hwy_test
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.Splat},
 // 			Params:            matcher.Params{"tiger_id": "123"},
-// 			SplatSegments:     router.SplatSegments{"456", "789"},
+// 			SplatValues:     router.SplatValues{"456", "789"},
 // 		},
 // 	},
 // 	{
@@ -177,7 +177,7 @@ package hwy_test
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.Splat},
 // 			Params:            matcher.Params{"bear_id": "123"},
-// 			SplatSegments:     router.SplatSegments{"456"},
+// 			SplatValues:     router.SplatValues{"456"},
 // 		},
 // 	},
 // 	{
@@ -185,7 +185,7 @@ package hwy_test
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.DynamicLayout, matcher.PathTypes.Splat},
 // 			Params:            matcher.Params{"bear_id": "123"},
-// 			SplatSegments:     router.SplatSegments{"456", "789"},
+// 			SplatValues:     router.SplatValues{"456", "789"},
 // 		},
 // 	},
 // 	{
@@ -198,7 +198,7 @@ package hwy_test
 // 		Path: "/dashboard/asdf",
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.StaticLayout, matcher.PathTypes.Splat},
-// 			SplatSegments:     router.SplatSegments{"asdf"},
+// 			SplatValues:     router.SplatValues{"asdf"},
 // 		},
 // 	},
 // 	{
@@ -238,14 +238,14 @@ package hwy_test
 // 		Path: "/articles/bob",
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.Splat},
-// 			SplatSegments:     router.SplatSegments{"articles", "bob"},
+// 			SplatValues:     router.SplatValues{"articles", "bob"},
 // 		},
 // 	},
 // 	{
 // 		Path: "/articles/test",
 // 		ExpectedOutput: expectedOutput{
 // 			MatchingPathTypes: []matcher.PathType{matcher.PathTypes.Splat},
-// 			SplatSegments:     router.SplatSegments{"articles", "test"},
+// 			SplatValues:     router.SplatValues{"articles", "test"},
 // 		},
 // 	},
 // 	{

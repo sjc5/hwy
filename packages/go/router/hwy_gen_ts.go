@@ -5,21 +5,35 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/sjc5/kit/pkg/mux"
 	"github.com/sjc5/kit/pkg/tsgen"
 )
 
 type TSGenOptions struct {
 	// Path, including filename, where the resulting TypeScript file will be written
-	OutPath     string
-	DataFuncs   *DataFuncs
-	AdHocTypes  []AdHocType
-	ExtraTSCode string
+	OutPath      string
+	DataFuncs    *DataFuncs
+	NestedRouter *mux.NestedRouter
+	AdHocTypes   []AdHocType
+	ExtraTSCode  string
+}
+
+func improveTypeName(pattern string) string {
+	if strings.HasSuffix(pattern, "/$") {
+		return strings.ReplaceAll(pattern, "/$", "Catch")
+	}
+	if strings.Contains(pattern, "/$") {
+		return strings.ReplaceAll(pattern, "/$", "/Dynamic/")
+	}
+	return pattern
 }
 
 func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
 	var items []tsgen.Item
 
-	for pattern, loader := range opts.DataFuncs.Loaders {
+	allLoaders := opts.NestedRouter.AllRoutes()
+
+	for pattern, loader := range allLoaders {
 		item := tsgen.Item{
 			ArbitraryProperties: []tsgen.ArbitraryProperty{
 				{Name: "pattern", Value: pattern},
@@ -29,8 +43,11 @@ func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
 
 		if loader != nil {
 			item.PhantomTypes = []tsgen.PhantomType{
-				{PropertyName: "phantomInputType", TypeInstance: loader.GetInputInstance(), TSTypeName: pattern + "Input"},
-				{PropertyName: "phantomOutputType", TypeInstance: loader.GetOutputInstance(), TSTypeName: pattern + "Output"},
+				{
+					PropertyName: "phantomOutputType",
+					TypeInstance: loader.O(),
+					TSTypeName:   improveTypeName(pattern) + "Output",
+				},
 			}
 		}
 
@@ -47,8 +64,16 @@ func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
 
 		if queryAction != nil {
 			item.PhantomTypes = []tsgen.PhantomType{
-				{PropertyName: "phantomInputType", TypeInstance: queryAction.GetInputInstance(), TSTypeName: pattern + "Input"},
-				{PropertyName: "phantomOutputType", TypeInstance: queryAction.GetOutputInstance(), TSTypeName: pattern + "Output"},
+				{
+					PropertyName: "phantomInputType",
+					TypeInstance: queryAction.GetInputInstance(),
+					TSTypeName:   improveTypeName(pattern) + "Input",
+				},
+				{
+					PropertyName: "phantomOutputType",
+					TypeInstance: queryAction.GetOutputInstance(),
+					TSTypeName:   improveTypeName(pattern) + "Output",
+				},
 			}
 		}
 
@@ -65,8 +90,16 @@ func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
 
 		if mutationQuery != nil {
 			item.PhantomTypes = []tsgen.PhantomType{
-				{PropertyName: "phantomInputType", TypeInstance: mutationQuery.GetInputInstance(), TSTypeName: pattern + "Input"},
-				{PropertyName: "phantomOutputType", TypeInstance: mutationQuery.GetOutputInstance(), TSTypeName: pattern + "Output"},
+				{
+					PropertyName: "phantomInputType",
+					TypeInstance: mutationQuery.GetInputInstance(),
+					TSTypeName:   improveTypeName(pattern) + "Input",
+				},
+				{
+					PropertyName: "phantomOutputType",
+					TypeInstance: mutationQuery.GetOutputInstance(),
+					TSTypeName:   improveTypeName(pattern) + "Output",
+				},
 			}
 		}
 
@@ -74,7 +107,7 @@ func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
 	}
 
 	categoryList := []category{}
-	if len(opts.DataFuncs.Loaders) > 0 {
+	if len(allLoaders) > 0 {
 		categoryList = append(categoryList, category{Prefix: "Loader", RouteType: RouteTypesEnum.Loader})
 	}
 	if len(opts.DataFuncs.QueryActions) > 0 {
@@ -126,33 +159,45 @@ type category struct {
 func getExtraTSCode(categories []category) string {
 	var extraTSBuilder strings.Builder
 
-	for i, c := range categories {
-		err := extraTSTmpl.Execute(&extraTSBuilder, map[string]string{
+	for _, c := range categories {
+		arg := map[string]string{
 			"Prefix":            c.Prefix,
 			"RouteType":         c.RouteType,
 			"ItemsArrayVarName": itemsArrayVarName,
-		})
-		if err != nil {
-			panic(err)
 		}
 
-		if i == 0 {
-			extraTSBuilder.WriteString("\n")
+		if err := extraTSTmpl1.Execute(&extraTSBuilder, arg); err != nil {
+			panic(err)
+		}
+		if c.RouteType != RouteTypesEnum.Loader {
+			if err := extraTSTmpl2.Execute(&extraTSBuilder, arg); err != nil {
+				panic(err)
+			}
+		}
+		if err := extraTSTmpl3.Execute(&extraTSBuilder, arg); err != nil {
+			panic(err)
 		}
 	}
 
 	return extraTSBuilder.String()
 }
 
-var extraTSTmpl = template.Must(template.New("extraTS").Parse(extraTSTmplStr))
+var (
+	extraTSTmpl1 = template.Must(template.New("extraTS_1").Parse(extraTSTmplStr1))
+	extraTSTmpl2 = template.Must(template.New("extraTS_2").Parse(extraTSTmplStr2))
+	extraTSTmpl3 = template.Must(template.New("extraTS_3").Parse(extraTSTmplStr3))
+)
 
-const extraTSTmplStr = `export type {{ .Prefix }} = Extract<(typeof {{ .ItemsArrayVarName }})[number], { routeType: "{{ .RouteType }}" }>;
+const (
+	extraTSTmplStr1 = `export type {{ .Prefix }} = Extract<(typeof {{ .ItemsArrayVarName }})[number], { routeType: "{{ .RouteType }}" }>;
 export type {{ .Prefix }}Pattern = {{ .Prefix }}["pattern"];
-export type {{ .Prefix }}Input<T extends {{ .Prefix }}Pattern> = Extract<
+`
+	extraTSTmplStr2 = `export type {{ .Prefix }}Input<T extends {{ .Prefix }}Pattern> = Extract<
 	{{ .Prefix }},
 	{ pattern: T }
 >["phantomInputType"];
-export type {{ .Prefix }}Output<T extends {{ .Prefix }}Pattern> = Extract<
+`
+	extraTSTmplStr3 = `export type {{ .Prefix }}Output<T extends {{ .Prefix }}Pattern> = Extract<
 	{{ .Prefix }},
 	{ pattern: T }
 >["phantomOutputType"];
@@ -160,3 +205,4 @@ export type {{ .Prefix }}s = {
 	[K in {{ .Prefix }}Pattern]: Extract<{{ .Prefix }}, { pattern: K }>;
 };
 `
+)

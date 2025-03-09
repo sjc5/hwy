@@ -3,20 +3,21 @@ package hwy
 import (
 	"github.com/sjc5/hwy/packages/go/router"
 	"github.com/sjc5/kit/pkg/contextutil"
+	"github.com/sjc5/kit/pkg/htmlutil"
 )
 
 type (
 	Hwy             = router.Hwy
 	DataFuncs       = router.DataFuncs
 	DataFunctionMap = router.DataFunctionMap
-	HeadBlock       = router.HeadBlock
+	HeadBlock       = htmlutil.Element
 
 	BuildOptions     = router.BuildOptions
 	TSGenOptions     = router.TSGenOptions
 	AdHocType        = router.AdHocType
 	RootTemplateData = router.RootTemplateData
 
-	Loader[O any]        = router.Loader[O]
+	// Loader[O any]        = router.Loader[O]
 	Action[I any, O any] = router.Action[I, O]
 
 	CtxHelper               = router.CtxHelper
@@ -33,17 +34,10 @@ var (
 	HwyPathsStageOneJSONFileName  = router.HwyPathsStageOneJSONFileName
 	HwyPathsStageTwoJSONFileName  = router.HwyPathsStageTwoJSONFileName
 	HwyViteConfigHelperTSFileName = router.HwyViteConfigHelperTSFileName
-
-	// GetHeadElements               = router.GetHeadElements
-	// RouteTypesEnum                = router.RouteTypesEnum
 )
 
-func NewAdHocDataStore[T any]() *contextutil.Store[T] {
-	return router.NewAdHocDataStore[T]()
-}
-
-func NewLoader[O any](f Loader[O]) Loader[O] {
-	return Loader[O](f)
+func NewCoreDataStore[T any]() *contextutil.Store[T] {
+	return router.NewCoreDataStore[T]()
 }
 
 func NewAction[I any, O any](f Action[I, O]) Action[I, O] {

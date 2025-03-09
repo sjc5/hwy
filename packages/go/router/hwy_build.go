@@ -13,7 +13,7 @@ import (
 
 	"github.com/sjc5/kit/pkg/grace"
 	"github.com/sjc5/kit/pkg/id"
-	"github.com/sjc5/kit/pkg/router"
+	"github.com/sjc5/kit/pkg/matcher"
 	"github.com/sjc5/kit/pkg/rpc"
 	"github.com/sjc5/kit/pkg/stringsutil"
 	"github.com/sjc5/kit/pkg/viteutil"
@@ -28,7 +28,6 @@ const (
 type AdHocType = rpc.AdHocType
 
 type DataFuncs struct {
-	Loaders         DataFunctionMap
 	QueryActions    DataFunctionMap
 	MutationActions DataFunctionMap
 }
@@ -48,11 +47,11 @@ type BuildOptions struct {
 
 type PathsFile struct {
 	// both stages one and two
-	Stage          string     `json:"stage"`
-	IsDev          bool       `json:"isDev"`
-	BuildID        string     `json:"buildID"`
-	ClientEntrySrc string     `json:"clientEntrySrc"`
-	Paths          []PathBase `json:"paths"`
+	Stage          string           `json:"stage"`
+	IsDev          bool             `json:"isDev"`
+	BuildID        string           `json:"buildID"`
+	ClientEntrySrc string           `json:"clientEntrySrc"`
+	Paths          map[string]*Path `json:"paths"`
 
 	// stage two only
 	ClientEntryOut    string            `json:"clientEntryOut,omitempty"`
@@ -60,47 +59,44 @@ type PathsFile struct {
 	DepToCSSBundleMap map[string]string `json:"depToCSSBundleMap,omitempty"`
 }
 
-func (opts *BuildOptions) walkPages(pagesSrcDir string) []PathBase {
-	var paths []PathBase
+func (opts *BuildOptions) walkPages(pagesSrcDir string) map[string]*Path {
+	paths := make(map[string]*Path)
 
-	filepath.WalkDir(
-		pagesSrcDir,
+	filepath.WalkDir(pagesSrcDir, func(patternArg string, _ fs.DirEntry, err error) error {
+		cleanPatternArg := filepath.Clean(strings.TrimPrefix(patternArg, pagesSrcDir))
 
-		func(patternArg string, _ fs.DirEntry, err error) error {
-			cleanPatternArg := filepath.Clean(strings.TrimPrefix(patternArg, pagesSrcDir))
-
-			isPageFile := strings.Contains(cleanPatternArg, ".route.")
-			if !isPageFile {
-				return nil
-			}
-
-			ext := filepath.Ext(cleanPatternArg)
-			preExtDelineator := ".route"
-
-			pattern := strings.TrimSuffix(cleanPatternArg, preExtDelineator+ext)
-
-			segments := router.ParseSegments(pattern)
-			cleanSegments := make([]string, 0, len(segments))
-			for _, segment := range segments {
-				if strings.HasPrefix(segment, "__") {
-					continue
-				}
-				cleanSegments = append(cleanSegments, segment)
-			}
-
-			paths = append(paths, PathBase{
-				Pattern: "/" + strings.Join(cleanSegments, "/"),
-				SrcPath: filepath.Join(pagesSrcDir, pattern) + preExtDelineator + ext,
-			})
-
+		isPageFile := strings.Contains(cleanPatternArg, ".route.")
+		if !isPageFile {
 			return nil
-		},
-	)
+		}
+
+		ext := filepath.Ext(cleanPatternArg)
+		preExtDelineator := ".route"
+
+		pattern := strings.TrimSuffix(cleanPatternArg, preExtDelineator+ext)
+
+		segments := matcher.ParseSegments(pattern)
+		cleanSegments := make([]string, 0, len(segments))
+		for _, segment := range segments {
+			if strings.HasPrefix(segment, "__") {
+				continue
+			}
+			cleanSegments = append(cleanSegments, segment)
+		}
+
+		finalPattern := "/" + strings.Join(cleanSegments, "/")
+		paths[finalPattern] = &Path{
+			Pattern: finalPattern,
+			SrcPath: filepath.Join(pagesSrcDir, pattern) + preExtDelineator + ext,
+		}
+
+		return nil
+	})
 
 	return paths
 }
 
-func (opts *BuildOptions) writePathsToDisk_StageOne(pagesSrcDir string, buildID string) ([]PathBase, error) {
+func (opts *BuildOptions) writePathsToDisk_StageOne(pagesSrcDir string, buildID string) (map[string]*Path, error) {
 	paths := opts.walkPages(pagesSrcDir)
 
 	pathsJSONOut_StageOne := filepath.Join(opts.StaticPrivateOutDir, HwyPathsStageOneJSONFileName)
@@ -149,10 +145,19 @@ func toRollupOptions(entrypoints []string) string {
 	sb.Tab().Line("},")
 	sb.Line("} as const;")
 
+	sb.Return()
+
+	// Now do a helper that is a function that inside calls await import(x) for each of the input files
+	// sb.Line("export async function loadEntrypoints() {")
+	// for _, entrypoint := range entrypoints {
+	// 	sb.Tab().Linef(`import("../../%s");`, entrypoint)
+	// }
+	// sb.Line("}")
+
 	return sb.String()
 }
 
-func (h *Hwy) HandleViteConfigHelper(paths []PathBase, opts *BuildOptions) error {
+func (h *Hwy) HandleViteConfigHelper(paths map[string]*Path, opts *BuildOptions) error {
 	entrypoints := getEntrypoints(paths, opts)
 
 	err := os.WriteFile(
@@ -334,7 +339,7 @@ func cleanStaticPublicOutDir(staticPublicOutDir string) error {
 	return nil
 }
 
-func getEntrypoints(paths []PathBase, opts *BuildOptions) []string {
+func getEntrypoints(paths map[string]*Path, opts *BuildOptions) []string {
 	entryPoints := make([]string, 0, len(paths)+1)
 	entryPoints = append(entryPoints, opts.ClientEntry)
 	for _, path := range paths {
@@ -345,7 +350,7 @@ func getEntrypoints(paths []PathBase, opts *BuildOptions) []string {
 	return entryPoints
 }
 
-func toPathsFile_StageTwo(opts *BuildOptions, paths []PathBase, buildID string) (*PathsFile, error) {
+func toPathsFile_StageTwo(opts *BuildOptions, paths map[string]*Path, buildID string) (*PathsFile, error) {
 	hwyClientEntry := ""
 	hwyClientEntryDeps := []string{}
 	depToCSSBundleMap := make(map[string]string)
