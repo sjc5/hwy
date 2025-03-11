@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/sjc5/kit/pkg/colorlog"
-	"github.com/sjc5/kit/pkg/contextutil"
+	"github.com/sjc5/kit/pkg/genericsutil"
 	"github.com/sjc5/kit/pkg/htmlutil"
 	"github.com/sjc5/kit/pkg/mux"
 	"github.com/sjc5/kit/pkg/timer"
@@ -69,9 +69,8 @@ var UIVariants = struct {
 
 type RootTemplateData = map[string]any
 
-type Hwy struct {
-	FS           fs.FS
-	NestedRouter *mux.NestedRouter
+type Hwy[C any] struct {
+	FS fs.FS
 	*DataFuncs
 	RootTemplateLocation    string
 	GetDefaultHeadBlocks    func(r *http.Request) ([]*htmlutil.Element, error)
@@ -81,7 +80,7 @@ type Hwy struct {
 	JSPackagerManagerCmdDir string // optional -- used for monorepos that need to run commands from higher directories
 	Validator               *validate.Validate
 
-	mu                 sync.Mutex
+	mu                 sync.RWMutex
 	_isDev             bool
 	_paths             map[string]*Path
 	_clientEntrySrc    string
@@ -93,8 +92,14 @@ type Hwy struct {
 	_viteCmd           *exec.Cmd
 }
 
+type HwyAny interface{ _get_core_data_zero() any }
+
+func (h *Hwy[C]) _get_core_data_zero() any {
+	return genericsutil.Zero[C]()
+}
+
 // Not for public consumption. Do not use or rely on this.
-func (h *Hwy) Hwy__internal__setPaths(paths map[string]*Path) {
+func (h *Hwy[C]) Hwy__internal__setPaths(paths map[string]*Path) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h._paths = paths
@@ -133,10 +138,6 @@ func getIsDebug() bool {
 }
 
 var Log = colorlog.New("Hwy")
-
-func NewCoreDataStore[T any]() *contextutil.Store[T] {
-	return contextutil.NewStore[T]("hwy_root_data")
-}
 
 func newTimer() *timer.Timer {
 	return timer.Conditional(getIsDebug())

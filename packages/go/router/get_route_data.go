@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/sjc5/kit/pkg/genericsutil"
 	"github.com/sjc5/kit/pkg/headblocks"
 	"github.com/sjc5/kit/pkg/htmlutil"
 	"github.com/sjc5/kit/pkg/mux"
+	"github.com/sjc5/kit/pkg/tasks"
 	"github.com/sjc5/kit/pkg/validate"
 )
 
@@ -32,15 +34,20 @@ type GetRouteDataOutput struct {
 	ClientRedirectURL   string      `json:"clientRedirectURL,omitempty"`
 }
 
-func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
+func (h *Hwy[C]) getRouteData(
+	w http.ResponseWriter,
+	r *http.Request,
+	nestedRouter *mux.NestedRouter,
+	coreDataTask *tasks.RegisteredTask[genericsutil.None, C],
+) (
 	*GetRouteDataOutput,
 	*redirectStatus,
 	RouteType,
 	error,
 ) {
-	tasksCtx := h.NestedRouter.TasksRegistry().NewCtxFromRequest(r)
+	tasksCtx := nestedRouter.TasksRegistry().NewCtxFromRequest(r)
 
-	activePathData, redirectStatus, routeType := h.getMatchingPathData(tasksCtx, w, r)
+	activePathData, redirectStatus, routeType := h.getMatchingPathData(w, r, nestedRouter, tasksCtx)
 	if routeType == RouteTypesEnum.NotFound {
 		return nil, nil, routeType, nil
 	}
@@ -78,7 +85,16 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 
 		return rdo, nil, routeType, nil
 	} else {
-		coreData = NewCoreDataStore[any]().GetValueFromContext(r.Context())
+		// __TODO this should run parallel with the loaders
+		// if any loader relies on it, the tasks package
+		// will handle that gracefully and put in the
+		// correct order
+		coreData, err = coreDataTask.GetNoInput(tasksCtx)
+		if err != nil {
+			errMsg := fmt.Sprintf("could not get core data: %v", err)
+			Log.Error(errMsg)
+			return nil, nil, routeType, errors.New(errMsg)
+		}
 
 		var defaultHeadBlocks []*htmlutil.Element
 		if h.GetDefaultHeadBlocks != nil {
@@ -121,7 +137,7 @@ func (h *Hwy) GetRouteData(w http.ResponseWriter, r *http.Request) (
 }
 
 // order matters
-func (h *Hwy) getCSSBundles(deps []string) []string {
+func (h *Hwy[C]) getCSSBundles(deps []string) []string {
 	cssBundles := make([]string, 0, len(deps))
 
 	// first, client entry CSS

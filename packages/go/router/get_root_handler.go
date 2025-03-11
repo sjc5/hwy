@@ -9,20 +9,28 @@ import (
 	"strings"
 
 	"github.com/sjc5/kit/pkg/cryptoutil"
+	"github.com/sjc5/kit/pkg/genericsutil"
 	"github.com/sjc5/kit/pkg/headblocks"
+	"github.com/sjc5/kit/pkg/mux"
+	"github.com/sjc5/kit/pkg/tasks"
 	"github.com/sjc5/kit/pkg/viteutil"
 	"golang.org/x/sync/errgroup"
 )
 
 var headblocksInstance = headblocks.New("hwy")
 
-func (h *Hwy) GetRootHandler() http.Handler {
+func (h *Hwy[C]) GetRootHandler(
+	nestedRouter *mux.NestedRouter,
+	coreDataTask *tasks.RegisteredTask[genericsutil.None, C],
+) http.Handler {
+	h.validateAndDecorateNestedRouter(nestedRouter)
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		outerT := newTimer()
 		defer outerT.Checkpoint("GetRootHandler")
 
 		mainT := newTimer()
-		routeData, redirectStatus, routeType, err := h.GetRouteData(w, r)
+		routeData, redirectStatus, routeType, err := h.getRouteData(w, r, nestedRouter, coreDataTask)
 
 		if routeType == RouteTypesEnum.NotFound {
 			w.WriteHeader(http.StatusNotFound)

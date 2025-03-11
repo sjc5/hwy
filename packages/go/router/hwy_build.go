@@ -1,19 +1,21 @@
 package router
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/sjc5/kit/pkg/grace"
 	"github.com/sjc5/kit/pkg/id"
-	"github.com/sjc5/kit/pkg/matcher"
 	"github.com/sjc5/kit/pkg/rpc"
 	"github.com/sjc5/kit/pkg/stringsutil"
 	"github.com/sjc5/kit/pkg/viteutil"
@@ -59,36 +61,104 @@ type PathsFile struct {
 	DepToCSSBundleMap map[string]string `json:"depToCSSBundleMap,omitempty"`
 }
 
-func (opts *BuildOptions) walkPages(pagesSrcDir string) map[string]*Path {
+/////////////////////////////////////////////////////////////////////
+/////// FILE CONTENT ELIGIBILITY
+/////////////////////////////////////////////////////////////////////
+
+/*
+EXAMPLE HITS:
+- `/// @route /foo`
+- `/// @route /foo/bar some optional comment`
+- `	/// @route /foo/bar`
+- `	///	@route	/foo/bar		some optional comment`
+*/
+func checkFileForRouteSig(path string) string {
+	file, err := os.Open(path)
+	if err != nil {
+		return ""
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		trimmedLine := strings.TrimSpace(scanner.Text())
+
+		if !strings.HasPrefix(trimmedLine, "///") {
+			continue
+		}
+
+		parts := strings.Fields(trimmedLine)
+
+		if len(parts) < 3 {
+			continue
+		}
+		if parts[0] != "///" {
+			continue
+		}
+		if parts[1] != "@route" {
+			continue
+		}
+		if parts[2][0] != '/' {
+			continue
+		}
+
+		return parts[2]
+
+	}
+	return ""
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// FILE NAME ELIGIBILITY
+/////////////////////////////////////////////////////////////////////
+
+// __TODO get deeper integration with kiruna here and ignore
+// the static and dist folders too
+// maybe hook into .gitignore and ignore all dirs in there too
+
+// __TODO validate pattern
+
+// Filename must end with ".{r,route}.{tsx,jsx}"
+// e.g., "foo.r.tsx", "foo.route.tsx", "foo.r.jsx", "foo.route.jsx"
+func isEligible(path string) bool {
+	base := filepath.Base(path)
+
+	if base == "r.tsx" || base == "route.tsx" || base == "r.jsx" || base == "route.jsx" {
+		return true
+	}
+
+	for _, ending := range [4]string{".r.tsx", ".route.tsx", ".r.jsx", ".route.jsx"} {
+		if strings.HasSuffix(base, ending) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (opts *BuildOptions) walkPages(outermostDirToCheckForRoutes string) map[string]*Path {
 	paths := make(map[string]*Path)
 
-	filepath.WalkDir(pagesSrcDir, func(patternArg string, _ fs.DirEntry, err error) error {
-		cleanPatternArg := filepath.Clean(strings.TrimPrefix(patternArg, pagesSrcDir))
+	filepath.WalkDir(outermostDirToCheckForRoutes, func(path string, dirEntry fs.DirEntry, err error) error {
+		if dirEntry.IsDir() && path == "node_modules" {
+			return filepath.SkipDir
+		}
 
-		isPageFile := strings.Contains(cleanPatternArg, ".route.")
-		if !isPageFile {
+		if dirEntry.IsDir() {
 			return nil
 		}
 
-		ext := filepath.Ext(cleanPatternArg)
-		preExtDelineator := ".route"
-
-		pattern := strings.TrimSuffix(cleanPatternArg, preExtDelineator+ext)
-
-		segments := matcher.ParseSegments(pattern)
-		cleanSegments := make([]string, 0, len(segments))
-		for _, segment := range segments {
-			if strings.HasPrefix(segment, "__") {
-				continue
-			}
-			cleanSegments = append(cleanSegments, segment)
+		if !isEligible(path) {
+			return nil
 		}
 
-		finalPattern := "/" + strings.Join(cleanSegments, "/")
-		paths[finalPattern] = &Path{
-			Pattern: finalPattern,
-			SrcPath: filepath.Join(pagesSrcDir, pattern) + preExtDelineator + ext,
+		pattern := checkFileForRouteSig(path)
+		if pattern == "" {
+			return nil
 		}
+
+		log.Printf("registering pattern '%s' for path '%s'", pattern, path)
+		paths[pattern] = &Path{Pattern: pattern, SrcPath: path}
 
 		return nil
 	})
@@ -145,8 +215,6 @@ func toRollupOptions(entrypoints []string) string {
 	sb.Tab().Line("},")
 	sb.Line("} as const;")
 
-	sb.Return()
-
 	// Now do a helper that is a function that inside calls await import(x) for each of the input files
 	// sb.Line("export async function loadEntrypoints() {")
 	// for _, entrypoint := range entrypoints {
@@ -157,7 +225,7 @@ func toRollupOptions(entrypoints []string) string {
 	return sb.String()
 }
 
-func (h *Hwy) HandleViteConfigHelper(paths map[string]*Path, opts *BuildOptions) error {
+func (h *Hwy[C]) HandleViteConfigHelper(paths map[string]*Path, opts *BuildOptions) error {
 	entrypoints := getEntrypoints(paths, opts)
 
 	err := os.WriteFile(
@@ -173,7 +241,7 @@ func (h *Hwy) HandleViteConfigHelper(paths map[string]*Path, opts *BuildOptions)
 	return nil
 }
 
-func (h *Hwy) Build(opts *BuildOptions) error {
+func (h *Hwy[C]) Build(opts *BuildOptions) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
@@ -284,7 +352,7 @@ func (h *Hwy) Build(opts *BuildOptions) error {
 	return nil
 }
 
-func (h *Hwy) getViteDevURL() string {
+func (h *Hwy[C]) getViteDevURL() string {
 	if !h._isDev {
 		return ""
 	}
@@ -347,6 +415,7 @@ func getEntrypoints(paths map[string]*Path, opts *BuildOptions) []string {
 			entryPoints = append(entryPoints, path.SrcPath)
 		}
 	}
+	slices.SortStableFunc(entryPoints, strings.Compare)
 	return entryPoints
 }
 

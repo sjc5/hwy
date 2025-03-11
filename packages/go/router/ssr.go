@@ -76,7 +76,7 @@ type GetSSRInnerHTMLOutput struct {
 	Sha256Hash string
 }
 
-func (h *Hwy) GetSSRInnerHTML(routeData *GetRouteDataOutput) (*GetSSRInnerHTMLOutput, error) {
+func (h *Hwy[C]) GetSSRInnerHTML(routeData *GetRouteDataOutput) (*GetSSRInnerHTMLOutput, error) {
 	var htmlBuilder strings.Builder
 	var dto SSRInnerHTMLInput
 	var err error

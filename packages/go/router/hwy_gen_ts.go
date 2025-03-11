@@ -28,7 +28,7 @@ func improveTypeName(pattern string) string {
 	return pattern
 }
 
-func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
+func GenerateTypeScript(hwy HwyAny, opts *TSGenOptions, extraTSCode ...string) error {
 	var items []tsgen.Item
 
 	allLoaders := opts.NestedRouter.AllRoutes()
@@ -132,12 +132,14 @@ func GenerateTypeScript(opts *TSGenOptions, extraTSCode ...string) error {
 		extraTSToUse += "\n" + opts.ExtraTSCode
 	}
 
+	adHocTypes := append(opts.AdHocTypes, AdHocType{Struct: hwy._get_core_data_zero(), TSTypeName: "CoreData"})
+
 	err := tsgen.GenerateTSToFile(tsgen.Opts{
 		OutPath:                       opts.OutPath,
 		Items:                         items,
 		ItemsArrayVarName:             itemsArrayVarName,
 		ExtraTSCode:                   extraTSToUse,
-		AdHocTypes:                    opts.AdHocTypes,
+		AdHocTypes:                    adHocTypes,
 		ArbitraryPropertyNameToSortBy: "pattern",
 	})
 

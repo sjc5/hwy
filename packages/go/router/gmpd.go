@@ -38,30 +38,30 @@ type gmpdItem struct {
 
 var gmpdCache = lru.NewCache[string, *gmpdItem](500_000)
 
-func (h *Hwy) getMaybeActionAndRouteType(realPath string, r *http.Request) (DataFunction, RouteType) {
+func (h *Hwy[C]) getMaybeActionAndRouteType(realPath string, r *http.Request) (DataFunction, RouteType) {
 	if !getIsHwyAPISubmit(r) {
 		return nil, RouteTypesEnum.Loader
 	}
 
-	var queryAction DataFunction
-	var queryActionExists bool
-	var queryMethodIsPermitted bool
+	// var queryAction DataFunction
+	// var queryActionExists bool
+	// var queryMethodIsPermitted bool
 
-	var mutationAction DataFunction
-	var mutationActionExists bool
-	var mutationMethodIsPermitted bool
+	// var mutationAction DataFunction
+	// var mutationActionExists bool
+	// var mutationMethodIsPermitted bool
 
-	if queryAction, queryActionExists = h.QueryActions[realPath]; queryActionExists {
-		if _, queryMethodIsPermitted = QueryMethods[r.Method]; queryMethodIsPermitted {
-			return queryAction, RouteTypesEnum.QueryAction
-		}
-	}
+	// if queryAction, queryActionExists = h.QueryActions[realPath]; queryActionExists {
+	// 	if _, queryMethodIsPermitted = QueryMethods[r.Method]; queryMethodIsPermitted {
+	// 		return queryAction, RouteTypesEnum.QueryAction
+	// 	}
+	// }
 
-	if mutationAction, mutationActionExists = h.MutationActions[realPath]; mutationActionExists {
-		if _, mutationMethodIsPermitted = MutationMethods[r.Method]; mutationMethodIsPermitted {
-			return mutationAction, RouteTypesEnum.MutationAction
-		}
-	}
+	// if mutationAction, mutationActionExists = h.MutationActions[realPath]; mutationActionExists {
+	// 	if _, mutationMethodIsPermitted = MutationMethods[r.Method]; mutationMethodIsPermitted {
+	// 		return mutationAction, RouteTypesEnum.MutationAction
+	// 	}
+	// }
 
 	return nil, RouteTypesEnum.NotFound
 }
@@ -75,7 +75,9 @@ type redirectStatus struct {
 	clientRedirectURL string
 }
 
-func (h *Hwy) getMatchingPathData(tasksCtx *tasks.TasksCtx, w http.ResponseWriter, r *http.Request) (*ActivePathData, *redirectStatus, RouteType) {
+func (h *Hwy[C]) getMatchingPathData(
+	w http.ResponseWriter, r *http.Request, nestedRouter *mux.NestedRouter, tasksCtx *tasks.TasksCtx,
+) (*ActivePathData, *redirectStatus, RouteType) {
 	realPath := r.URL.Path
 	if realPath != "/" && realPath[len(realPath)-1] == '/' {
 		realPath = realPath[:len(realPath)-1]
@@ -111,7 +113,7 @@ func (h *Hwy) getMatchingPathData(tasksCtx *tasks.TasksCtx, w http.ResponseWrite
 			// IF NOT CACHE HIT
 			item = new(gmpdItem)
 
-			_match_results, ok := mux.FindNestedMatches(h.NestedRouter, r)
+			_match_results, ok := mux.FindNestedMatches(nestedRouter, r)
 
 			if !ok {
 
@@ -158,9 +160,7 @@ func (h *Hwy) getMatchingPathData(tasksCtx *tasks.TasksCtx, w http.ResponseWrite
 
 	}
 
-	_tasks_results := mux.RunNestedTasks(h.NestedRouter, tasksCtx, r, item._match_results)
-
-	// __TODO fix this upstream
+	_tasks_results := mux.RunNestedTasks(nestedRouter, tasksCtx, r, item._match_results)
 
 	var numberOfLoaders int
 	if item._match_results != nil {
@@ -277,7 +277,7 @@ func (h *Hwy) getMatchingPathData(tasksCtx *tasks.TasksCtx, w http.ResponseWrite
 	}, nil, item.routeType
 }
 
-func (h *Hwy) getDeps(_matches []*matcher.Match) []string {
+func (h *Hwy[C]) getDeps(_matches []*matcher.Match) []string {
 	var deps []string
 	seen := make(map[string]struct{}, len(_matches))
 
