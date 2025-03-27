@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/sjc5/river/x/kit/tsgen/tsgencore"
+	"github.com/sjc5/river/kit/tsgen/tsgencore"
 )
 
 // Basic types

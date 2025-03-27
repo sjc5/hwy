@@ -30,13 +30,13 @@ importers:
         specifier: ^3.0.8
         version: 3.0.9(@types/node@22.13.14)(jsdom@26.0.0)
 
-  typescript/hwy/client:
+  internal/framework/_typescript/client:
     dependencies:
       history:
         specifier: ^5.3.0
         version: 5.3.0
 
-  typescript/hwy/react:
+  internal/framework/_typescript/react:
     devDependencies:
       '@types/react':
         specifier: '>=19.0.9'
@@ -54,11 +54,17 @@ importers:
         specifier: '>=19.0.0'
         version: 19.0.0(react@19.0.0)
 
-  typescript/hwy/solid:
+  internal/framework/_typescript/solid:
     devDependencies:
       solid-js:
         specifier: '>=1.9.5'
         version: 1.9.5
+
+  internal/scripts/_typescript:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.5.5
+        version: 22.13.14
 
 packages:
 

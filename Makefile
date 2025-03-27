@@ -9,9 +9,9 @@ gotestloud:
 	@go test -v ./...
 
 gobump: gotest
-	@go run ./scripts/bumper
+	@go run ./internal/scripts/bumper
 
-# call with `make gobench pkg=./x/kit/mux` (or whatever)
+# call with `make gobench pkg=./kit/mux` (or whatever)
 gobench:
 	@go test -bench=. $(pkg)
 
@@ -31,19 +31,19 @@ tsreset:
 tslint:
 	@pnpm biome check .
 
-tscheck: tscheck-kit tscheck-hwy-client tscheck-hwy-react tscheck-hwy-solid
+tscheck: tscheck-kit tscheck-fw-client tscheck-fw-react tscheck-fw-solid
 
 tscheck-kit:
-	@pnpm tsc --noEmit --project ./typescript/kit
+	@pnpm tsc --noEmit --project ./kit/_typescript
 
-tscheck-hwy-client:
-	@pnpm tsc --noEmit --project ./typescript/hwy/client
+tscheck-fw-client:
+	@pnpm tsc --noEmit --project ./internal/framework/_typescript/client
 
-tscheck-hwy-react:
-	@pnpm tsc --noEmit --project ./typescript/hwy/react
+tscheck-fw-react:
+	@pnpm tsc --noEmit --project ./internal/framework/_typescript/react
 
-tscheck-hwy-solid:
-	@pnpm tsc --noEmit --project ./typescript/hwy/solid
+tscheck-fw-solid:
+	@pnpm tsc --noEmit --project ./internal/framework/_typescript/solid
 
 tsprepforpub: tsreset tstest tslint tscheck
 

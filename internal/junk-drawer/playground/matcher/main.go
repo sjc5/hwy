@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/sjc5/river/x/kit/matcher"
+	"github.com/sjc5/river/kit/matcher"
 )
 
 var m = matcher.New(&matcher.Options{
