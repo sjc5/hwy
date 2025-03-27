@@ -1,9 +1,37 @@
 #!/bin/sh
 
-make check
+#####################################################################
+#
+# You must initialize this pre-commit hook by running the following
+# commands:
+#
+# ```sh
+# git config core.hooksPath .hooks
+# chmod +x .hooks/pre-commit
+# ```
+#
+# After running the above, this pre-commit hook will run before
+# every commit, and if it returns a non-zero exit code, the commit
+# will be aborted. You can test the script's behavior by executing
+# it directly: `.hooks/pre-commit`.
+#
+#####################################################################
 
-# If the tests fail, prevent the commit
-if [ $? -ne 0 ]; then
-  echo "Tests failed. Commit aborted."
-  exit 1
-fi
+set -e
+
+run_test() {
+  echo "[pre-commit]  INFO   Running cmd '$1'."
+  $1
+  if [ $? -ne 0 ]; then
+    echo "[pre-commit]  ERROR  Cmd '$1' failed. Commit aborted."
+    exit 1
+  fi
+  echo "[pre-commit]  OK     Cmd '$1' passed."
+}
+
+run_test "make gotest"
+run_test "make tstest"
+run_test "make tslint"
+run_test "make tscheck"
+
+echo "[pre-commit]  OK     Done."

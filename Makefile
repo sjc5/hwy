@@ -1,22 +1,54 @@
-# --- TESTS ---
+#####################################################################
+####### GO
+#####################################################################
 
-test-go-router:
-	@cd packages/go/router && go test
+gotest:
+	@go test ./...
 
-test-go-general:
-	@cd packages/go/hwy_test && go test
+gotestloud:
+	@go test -v ./...
 
-test-go: test-go-router test-go-general
+gobump: gotest
+	@go run ./scripts/bumper
 
-# --- PUBLISHING GO ---
+# call with `make gobench pkg=./x/kit/mux` (or whatever)
+gobench:
+	@go test -bench=. $(pkg)
 
-bumper: test-go
-	@go run ./scripts/go/bumper
+#####################################################################
+####### TS
+#####################################################################
 
-# --- LINTING AND FORMATTING JAVASCRIPT ---
+tstest:
+	@pnpm vitest run
 
-check:
-	@pnpm biome check --write .
+tstestwatch:
+	@pnpm vitest
 
-setup-pre-commit-hook:
-	@git config core.hooksPath .hooks
+tsreset:
+	@rm -rf node_modules **/node_modules && pnpm i
+
+tslint:
+	@pnpm biome check .
+
+tscheck: tscheck-kit tscheck-hwy-client tscheck-hwy-react tscheck-hwy-solid
+
+tscheck-kit:
+	@pnpm tsc --noEmit --project ./typescript/kit
+
+tscheck-hwy-client:
+	@pnpm tsc --noEmit --project ./typescript/hwy/client
+
+tscheck-hwy-react:
+	@pnpm tsc --noEmit --project ./typescript/hwy/react
+
+tscheck-hwy-solid:
+	@pnpm tsc --noEmit --project ./typescript/hwy/solid
+
+tsprepforpub: tsreset tstest tslint tscheck
+
+tspublishpre: tsprepforpub
+	@npm publish --access public --tag pre
+
+tspublishnonpre: tsprepforpub
+	@npm publish --access public

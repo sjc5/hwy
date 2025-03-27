@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.0/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.0.0-beta.1/schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
@@ -7,42 +7,57 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": ["node_modules", "dist", "static/public/prehashed", "__generated_ts_api/*"]
+		"includes": ["**", "!**/node_modules"]
 	},
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab",
-		"lineWidth": 100
+		"lineWidth": 100,
+		"includes": ["**"]
 	},
-	"organizeImports": {
-		"enabled": true
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
 	},
 	"linter": {
 		"enabled": true,
+		"includes": ["**"],
 		"rules": {
-			"recommended": true,
-			"style": {
-				"useTemplate": "off",
-				"noNonNullAssertion": "off", // __TEMP__
-				"noParameterAssign": "off" // __TEMP__
+			"nursery": {
+				"noImportCycles": "error"
 			},
-			"suspicious": {
-				"noExplicitAny": "off",
-				"noImplicitAnyLet": "off" // __TEMP__
+			"style": {
+				"useTemplate": "off", // permit string concatenation
+				"useLiteralEnumMembers": "error",
+				"noCommaOperator": "error",
+				"useNodejsImportProtocol": "error",
+				"useAsConstAssertion": "error",
+				"useNumericLiterals": "error",
+				"useEnumInitializers": "error",
+				"useSelfClosingElements": "error",
+				"useConst": "error",
+				"useSingleVarDeclarator": "error",
+				"noUnusedTemplateLiteral": "error",
+				"useNumberNamespace": "error",
+				"noInferrableTypes": "error",
+				"useExponentiationOperator": "error",
+				"noParameterAssign": "error",
+				"noNonNullAssertion": "error",
+				"useDefaultParameterLast": "error",
+				"noArguments": "error",
+				"useImportType": "error",
+				"useExportType": "error",
+				"noUselessElse": "error",
+				"useShorthandFunctionType": "error"
 			},
 			"correctness": {
-				"useExhaustiveDependencies": "off", // __TEMP__
-				"noChildrenProp": "off" // __TEMP__
+				"useImportExtensions": "error" // require ".ts", etc. in import statements
 			},
-			"a11y": {
-				"useButtonType": "off", // __TEMP__
-				"noSvgWithoutTitle": "off" // __TEMP__
-			},
-			"complexity": {
-				"noForEach": "off" // __TEMP__
-			},
-			"security": {
-				"noDangerouslySetInnerHtml": "off" // __TEMP__
+			"suspicious": {
+				"noExplicitAny": "off" // permit explicit any
 			}
 		}
 	},

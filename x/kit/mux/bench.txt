@@ -1,0 +1,8 @@
+cpu: Apple M3 Max
+BenchmarkRouter/SimpleStaticRoute-14            12368881                81.66 ns/op          368 B/op          2 allocs/op
+BenchmarkRouter/DynamicRoute-14                  6190022               190.9 ns/op           736 B/op          5 allocs/op
+BenchmarkRouter/WithMiddleware-14               11278684               104.5 ns/op           392 B/op          3 allocs/op
+BenchmarkRouter/RESTfulAPI-14                    4418270               260.1 ns/op           423 B/op          5 allocs/op
+BenchmarkRouter/LargeRouterMatch-14              5015697               241.9 ns/op           197 B/op          5 allocs/op
+BenchmarkRouter/WorstCaseMatch-14                5758496               204.2 ns/op           158 B/op          5 allocs/op
+BenchmarkRouter/NestedDynamicRoute-14            3932948               296.6 ns/op           832 B/op          5 allocs/op

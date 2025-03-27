@@ -1,0 +1,26 @@
+{
+	"editor.codeActionsOnSave": {
+		"source.organizeImports.biome": "explicit",
+		"source.fixAll.biome": "explicit"
+	},
+
+	"search.exclude": {
+		"**/node_modules": true
+	},
+
+	"javascript.preferences.importModuleSpecifierEnding": "js",
+	"typescript.preferences.importModuleSpecifierEnding": "js",
+
+	"[go]": {
+		"editor.defaultFormatter": "golang.go"
+	},
+
+	"[html][css][json][jsonc][javascript][typescript][javascriptreact][typescriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+
+	"[markdown]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode",
+		"prettier.proseWrap": "always"
+	}
+}

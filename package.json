@@ -1,48 +1,26 @@
 {
-	"name": "hwy-monorepo",
-	"version": "0.0.0",
+	"name": "@sjc5/river",
+	"version": "0.17.0-pre.0",
 	"type": "module",
-	"private": true,
-	"author": {
-		"name": "Samuel J. Cook"
-	},
-	"description": "Monorepo for Hwy framework",
-	"scripts": {
-		"build:client": "pnpm -r --filter @hwy-js/client run build",
-		"build:react": "pnpm -r --filter @hwy-js/react run build",
-		"build:solid": "pnpm -r --filter @hwy-js/solid run build",
-		"build": "pnpm build:client && pnpm build:react && pnpm build:solid",
-		"dev:test": "npx vitest",
-		"dev:client": "pnpm -r --filter @hwy-js/client run dev",
-		"dev:react": "pnpm -r --filter @hwy-js/react run dev",
-		"dev:solid": "pnpm -r --filter @hwy-js/solid run dev",
-		"dev": "npm-run-all --parallel dev:*",
-		"add-pre": "node --experimental-strip-types scripts/npm/utils.ts --add-pre",
-		"remove-pre": "node --experimental-strip-types scripts/npm/utils.ts --remove-pre",
-		"bump-pre": "node --experimental-strip-types scripts/npm/utils.ts --bump-pre",
-		"bump-patch": "node --experimental-strip-types scripts/npm/utils.ts --bump-patch",
-		"bump-minor": "node --experimental-strip-types scripts/npm/utils.ts --bump-minor",
-		"bump-major": "node --experimental-strip-types scripts/npm/utils.ts --bump-major",
-		"current-version": "node --experimental-strip-types scripts/npm/utils.ts --current-version",
-		"set-version": "node --experimental-strip-types scripts/npm/utils.ts --set-version",
-		"test": "pnpm build && npx vitest run",
-		"typecheck:client": "pnpm -r --filter @hwy-js/client run typecheck",
-		"typecheck:react": "pnpm -r --filter @hwy-js/react run typecheck",
-		"typecheck:solid": "pnpm -r --filter @hwy-js/solid run typecheck",
-		"typecheck": "npm-run-all --parallel typecheck:*",
-		"run-before-publishing": "pnpm typecheck && make check && pnpm test",
-		"publish-pre": "pnpm run-before-publishing && pnpm -r publish-pre",
-		"publish-non-pre": "pnpm run-before-publishing && pnpm -r publish-non-pre",
-		"update-latest": "pnpm update --latest && pnpm -r update-latest && pnpm i"
+	"exports": {
+		"./x/hwy/client": "./typescript/hwy/client/index.ts",
+		"./x/hwy/react": "./typescript/hwy/react/index.tsx",
+		"./x/hwy/solid": "./typescript/hwy/solid/index.tsx",
+		"./x/kit/converters": "./typescript/kit/converters/converters.ts",
+		"./x/kit/debounce": "./typescript/kit/debounce/debounce.ts",
+		"./x/kit/fmt": "./typescript/kit/fmt/fmt.ts",
+		"./x/kit/json": "./typescript/kit/json/json.ts",
+		"./x/kit/listeners": "./typescript/kit/listeners/listeners.ts",
+		"./x/kit/theme": "./typescript/kit/theme/theme.ts",
+		"./x/kit/url": "./typescript/kit/url/url.ts"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^1.9.0",
-		"npm-run-all": "^4.1.5",
-		"tsup": "^8.3.6",
-		"typescript": "^5.4.4",
-		"vitest": "^1.4.0"
-	},
-	"engines": {
-		"node": ">=22.8.0"
+		"@biomejs/biome": "2.0.0-beta.1",
+		"@types/jsdom": "^21.1.7",
+		"jsdom": "^26.0.0",
+		"prettier": "^3.5.3",
+		"typescript": "^5.8.2",
+		"vite": "^6.2.2",
+		"vitest": "^3.0.8"
 	}
 }
