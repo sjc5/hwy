@@ -4,10 +4,9 @@
 
 ## Explainer
 
-River is a library of tools for writing modern, type-safe web applications with
-Go and TypeScript. River provides the benefits of modern web development
-frameworks without the downsides of isomorphic JavaScript and component
-hydration patterns.
+River is a framework for writing modern, type-safe web applications with Go and
+TypeScript. River provides the benefits of modern web development frameworks
+without the downsides of isomorphic JavaScript and component hydration patterns.
 
 Core Features:
 
