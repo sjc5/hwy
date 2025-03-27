@@ -58,12 +58,12 @@ The fourth item (client-rendered document body) is what will make many of you
 skeptical about this architecture. That's OK! We welcome skepticism.
 
 We feel that once you try it out and deploy an app or two using the River
-Library hybrid-SSR architecture, you'll realize that as long as you have items
-1-3 in place, item 4 is not actually a real-world problem. We think you'll be
-reminded that client-side rendering is really nice, actually, as long as it sits
-on top of the appropriate dynamic scaffolding to really let it shine. It greatly
-simplifies your application architecture, frees you up to use cheaper and more
-performant backend languages, and rids you of those annoying hydration errors.
+hybrid-SSR architecture, you'll realize that as long as you have items 1-3 in
+place, item 4 is not actually a real-world problem. We think you'll be reminded
+that client-side rendering is really nice, actually (especially when it sits on
+top of the dynamic scaffolding you get with River). It greatly simplifies your
+application architecture, frees you up to use cheaper and more performant
+backend languages, and rids you of those annoying hydration errors.
 Win-win-win-win-win. You get the _actual_ benefits of full SSR without the
 downsides.
 
@@ -72,9 +72,9 @@ Well, we just do the same thing, except with a smaller JSON payload.
 
 We know all your dependencies (including both JS and CSS) at a route level, so
 it's trivial to preload it all and block navigations for a few milliseconds
-milliseconds until everything is loaded and ready. And if you choose to use Link
-pre-fetching on hover, the route transition will feel instant for most users on
-a decent internet connection.
+until everything is loaded and ready. And if you choose to use link pre-fetching
+on hover, the route transition will feel instant for anyone with a decent
+internet connection.
 
 Additionally, all navigations are performed using a single request. No
 waterfalls or jank. No request-per-route-segment model. Just a fast navigation
