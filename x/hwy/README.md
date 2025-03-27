@@ -1,6 +1,6 @@
 # Hwy
 
-<img src="banner.webp" alt="Hwy logo banner">
+<img src="hwy-banner.webp" alt="Hwy logo banner">
 
 Hwy is a fullstack web framework for driving a React, Preact, or Solid frontend
 with a Go backend. Includes end-to-end typesafety, file-based nested UI routing,

@@ -3,7 +3,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/sjc5/river/x/kiruna.svg)](https://pkg.go.dev/github.com/sjc5/river/x/kiruna)
 [![Go Report Card](https://goreportcard.com/badge/github.com/sjc5/river/x/kiruna)](https://goreportcard.com/report/github.com/sjc5/river/x/kiruna)
 
-<img src="banner.webp" alt="Kiruna logo banner">
+<img src="kiruna-banner.webp" alt="Kiruna logo banner">
 
 Kiruna is a simple, powerful library for building and optimizing fullstack Go
 applications, with live browser refresh and excellent dev-prod parity. It's sort

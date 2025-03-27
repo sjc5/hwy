@@ -1,4 +1,6 @@
-# River
+# River 🛶
+
+<img src="river-banner.webp" alt="River logo banner">
 
 ## Explainer
 
