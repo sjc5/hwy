@@ -1,7 +1,12 @@
 node_modules
-dist
+
 .DS_Store
+
+*.local
+*.local.*
+
 .env
-.env.local
-**/*/tmp
-__logs
+.env.*
+!env.example
+
+.vscode/settings.json

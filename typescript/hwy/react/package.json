@@ -1,0 +1,10 @@
+{
+	"type": "module",
+	"devDependencies": {
+		"@types/react": ">=19.0.9",
+		"@types/react-dom": ">=19.0.3",
+		"jotai": "^2.12.2",
+		"react": ">=19.0.0",
+		"react-dom": ">=19.0.0"
+	}
+}
