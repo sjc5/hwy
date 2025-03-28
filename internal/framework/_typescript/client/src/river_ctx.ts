@@ -12,6 +12,7 @@ type Meta = { title: string; metaHeadBlocks: Array<HeadBlock>; restHeadBlocks: A
 type shared = {
 	loadersData: Array<any>;
 	importURLs: Array<string>;
+	exportKeys: Array<string>;
 	outermostErrorIndex: number;
 	params: Record<string, string>;
 	splatValues: Array<string>;

@@ -36,7 +36,7 @@ var (
 
 func New(c *ki.Config) *Kiruna {
 	if c.Logger == nil {
-		c.Logger = colorlog.New("[Kiruna]", 9)
+		c.Logger = colorlog.New("kiruna", 9)
 
 	}
 	c.Private_CommonInitOnce_OnlyCallInNewFunc()

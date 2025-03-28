@@ -15,21 +15,19 @@ export type DefaultRoutePropsTypeArg = {
 };
 
 export type Shared<JSXElement, T extends RoutePropsTypeArg = DefaultRoutePropsTypeArg> = {
-	RouteProps: RouteProps<JSXElement, T>;
+	RouteProps: RouteProps<JSXElement>;
 	Route: Route<JSXElement, T>;
 };
 
-type RouteProps<JSXElement, T extends RoutePropsTypeArg> = {
-	depth: number;
+type RouteProps<JSXElement> = {
+	idx: number;
 	Outlet: (...props: any) => JSXElement;
 } & Record<string, any>;
 
-type Route<JSXElement, T extends RoutePropsTypeArg> = (
-	props: RouteProps<JSXElement, T>,
-) => JSXElement;
+type Route<JSXElement, T extends RoutePropsTypeArg> = (props: RouteProps<JSXElement>) => JSXElement;
 
-export type RootOutletProps<JSXElement, RD = any> = {
-	index?: number;
+export type RootOutletProps<JSXElement> = {
+	idx?: number;
 	defaultServerErrorComponent?: () => JSXElement;
 };
 

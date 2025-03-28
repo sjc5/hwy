@@ -14,6 +14,7 @@ type (
 )
 
 var (
+	UIVariants                      = framework.UIVariants
 	GenerateTypeScript              = framework.GenerateTypeScript
 	GetIsJSONRequest                = framework.GetIsJSONRequest
 	RiverPathsStageOneJSONFileName  = framework.RiverPathsStageOneJSONFileName

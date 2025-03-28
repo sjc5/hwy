@@ -17,6 +17,7 @@ type SSRInnerHTMLInput struct {
 	ViteDevURL          string
 	LoadersData         []any
 	ImportURLs          []string
+	ExportKeys          []string
 	OutermostErrorIndex int
 	SplatValues         SplatValues
 	Params              mux.Params
@@ -36,6 +37,7 @@ const ssrInnerHTMLTmplStr = `<script>
 	x.viteDevURL = {{.ViteDevURL}};
 	x.loadersData = {{.LoadersData}};
 	x.importURLs = {{.ImportURLs}};
+	x.exportKeys = {{.ExportKeys}};
 	x.outermostErrorIndex = {{.OutermostErrorIndex}};
 	x.splatValues = {{.SplatValues}};
 	x.params = {{.Params}};
@@ -76,6 +78,7 @@ func (h *River[C]) GetSSRInnerHTML(routeData *UIRouteOutput) (*GetSSRInnerHTMLOu
 		ViteDevURL:          routeData.ViteDevURL,
 		LoadersData:         routeData.LoadersData,
 		ImportURLs:          routeData.ImportURLs,
+		ExportKeys:          routeData.ExportKeys,
 		OutermostErrorIndex: routeData.OutermostErrorIndex,
 		SplatValues:         routeData.SplatValues,
 		Params:              routeData.Params,

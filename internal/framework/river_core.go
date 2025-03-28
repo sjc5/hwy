@@ -16,7 +16,7 @@ const (
 	RiverSymbolStr = "__river_internal__"
 )
 
-var Log = colorlog.New("[River]", 9)
+var Log = colorlog.New("river", 9)
 
 type RouteType = string
 
@@ -33,11 +33,12 @@ var RouteTypes = struct {
 }
 
 type Path struct {
-	NestedRoute mux.AnyNestedRoute
+	NestedRoute mux.AnyNestedRoute `json:"-"`
 
 	// both stages one and two
-	Pattern string `json:"pattern"`
-	SrcPath string `json:"srcPath"`
+	Pattern   string `json:"pattern"`
+	SrcPath   string `json:"srcPath"`
+	ExportKey string `json:"exportKey"`
 
 	// stage two only
 	OutPath string   `json:"outPath,omitempty"`
@@ -60,7 +61,7 @@ type RootTemplateData = map[string]any
 
 type River[C any] struct {
 	FS                      fs.FS
-	RootTemplateLocation    string
+	RootTemplateLocation    string // Relative to the FS root
 	GetDefaultHeadBlocks    func(r *http.Request) ([]*htmlutil.Element, error)
 	GetRootTemplateData     func(r *http.Request) (RootTemplateData, error)
 	UIVariant               UIVariant
@@ -68,6 +69,9 @@ type River[C any] struct {
 
 	// optional -- used for monorepos that need to run commands from ancestor directories
 	JSPackageManagerCmdDir string
+
+	// optional
+	ViteConfigFile string
 
 	// If set to true, UI route responses will automatically include a strong ETag
 	// (SHA-256 hash) derived from the applicable nested route data, and will
@@ -80,10 +84,7 @@ type River[C any] struct {
 	ClientRoutesFile string
 
 	// BUILD OPTIONS
-	// inputs
-	ClientEntry string
-	PagesSrcDir string
-	// outputs
+	ClientEntry         string
 	StaticPublicOutDir  string
 	StaticPrivateOutDir string
 

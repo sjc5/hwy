@@ -13,7 +13,7 @@ import (
 	"github.com/sjc5/river/kit/grace"
 )
 
-var Log = colorlog.New("[viteutil]", 9)
+var Log = colorlog.New("viteutil", 9)
 
 type BuildCtx struct {
 	mu   *sync.Mutex
@@ -31,6 +31,8 @@ type BuildCtxOptions struct {
 	ManifestOutDir string
 	// optional -- default is 5173
 	DefaultPort int
+	// optional
+	ViteConfigFile string
 }
 
 func NewBuildCtx(opts *BuildCtxOptions) *BuildCtx {
@@ -78,6 +80,10 @@ func (c *BuildCtx) Build(isDev bool) error {
 			"--clearScreen", "false",
 			"--strictPort", "true",
 		)
+
+		if c.opts.ViteConfigFile != "" {
+			c.cmd.Args = append(c.cmd.Args, "--config", c.opts.ViteConfigFile)
+		}
 
 		Log.Info("Running vite (dev)",
 			"command", fmt.Sprintf(`"%s"`, strings.Join(c.cmd.Args, " ")),

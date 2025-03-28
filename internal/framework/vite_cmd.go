@@ -14,6 +14,7 @@ func (h *River[C]) Vite(isDev bool) error {
 		JSPackageManagerBaseCmd: h.JSPackageManagerBaseCmd,
 		JSPackageManagerCmdDir:  h.JSPackageManagerCmdDir,
 		ManifestOutDir:          h.StaticPublicOutDir,
+		ViteConfigFile:          h.ViteConfigFile,
 	})
 
 	if err := ctx.Build(isDev); err != nil {

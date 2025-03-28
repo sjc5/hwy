@@ -37,6 +37,7 @@ type UIRouteOutput struct {
 	OutermostErrorIndex int `json:"outermostErrorIndex,omitempty"`
 
 	ImportURLs []string `json:"importURLs,omitempty"`
+	ExportKeys []string `json:"exportKeys,omitempty"`
 	Deps       []string `json:"deps,omitempty"`
 	CSSBundles []string `json:"cssBundles,omitempty"`
 
@@ -124,6 +125,7 @@ func (h *River[C]) getUIRouteData(w http.ResponseWriter, r *http.Request,
 		OutermostErrorIndex: activePathData.OutermostErrorIndex,
 
 		ImportURLs: activePathData.ImportURLs,
+		ExportKeys: activePathData.ExportKeys,
 		Deps:       activePathData.Deps,
 		CSSBundles: h.getCSSBundles(activePathData.Deps),
 

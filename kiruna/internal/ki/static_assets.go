@@ -65,7 +65,7 @@ func (c *Config) getInitialPublicURL(originalPublicURL string) (string, error) {
 		c.Logger.Error(fmt.Sprintf(
 			"error getting public file map from gob for originalPublicURL %s: %v", originalPublicURL, err,
 		))
-		return "/" + PUBLIC + "/" + originalPublicURL, err
+		return "/" + filepath.Join(PUBLIC, originalPublicURL), err
 	}
 
 	return c.getInitialPublicURLInner(originalPublicURL, fileMapFromGob)
@@ -77,7 +77,7 @@ func (c *Config) getInitialPublicURLInner(originalPublicURL string, fileMapFromG
 	}
 
 	if hashedURL, existsInFileMap := fileMapFromGob[cleanURL(originalPublicURL)]; existsInFileMap {
-		return "/" + PUBLIC + "/" + hashedURL.Val, nil
+		return "/" + filepath.Join(PUBLIC, hashedURL.Val), nil
 	}
 
 	// If no hashed URL found, return the original URL
@@ -86,7 +86,7 @@ func (c *Config) getInitialPublicURLInner(originalPublicURL string, fileMapFromG
 		originalPublicURL,
 	))
 
-	return "/" + PUBLIC + "/" + originalPublicURL, nil
+	return "/" + filepath.Join(PUBLIC, originalPublicURL), nil
 }
 
 func publicURLsKeyMaker(x string) string { return x }

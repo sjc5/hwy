@@ -116,5 +116,5 @@ func TerminateProcess(process *os.Process, timeToWait time.Duration, logger *slo
 }
 
 func newDefaultLogger() *slog.Logger {
-	return colorlog.New("[Grace]", 9)
+	return colorlog.New("grace", 9)
 }

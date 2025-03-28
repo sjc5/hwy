@@ -12,8 +12,8 @@ export function makeTypedUseLoaderData<
 	T extends { _type: string; pattern: string; phantomOutputType: any },
 >() {
 	return function useLoaderData<Pattern extends T["pattern"]>(props: {
-		depth: number;
+		idx: number;
 	}): Extract<T, { pattern: Pattern }>["phantomOutputType"] | undefined {
-		return loadersData()?.[props.depth];
+		return loadersData()?.[props.idx];
 	};
 }

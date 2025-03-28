@@ -18,21 +18,27 @@ const splatValuesAtom = atom(ctx.get("splatValues") ?? []);
 export const loadersDataAtom = atom(ctx.get("loadersData"));
 export const currentRiverDataAtom = atom(getCurrentRiverData());
 
-export function RiverRootOutlet<RD>(props: RootOutletProps<JSX.Element, RD>): JSX.Element {
-	const idx = props.index ?? 0;
+export function RiverRootOutlet(props: RootOutletProps<JSX.Element>): JSX.Element {
+	const idx = props.idx ?? 0;
 	const [currentImportURL, setCurrentImportURL] = useState(ctx.get("importURLs")?.[idx]);
+	const [currentExportKey, setCurrentExportKey] = useState(ctx.get("exportKeys")?.[idx]);
 	const [nextImportURL, setNextImportURL] = useState(ctx.get("importURLs")?.[idx + 1]);
+	const [nextExportKey, setNextExportKey] = useState(ctx.get("exportKeys")?.[idx + 1]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: nope
 	useEffect(() => {
 		return addRouteChangeListener(() => {
 			const newCurrentImportURL = ctx.get("importURLs")?.[idx];
+			const newCurrentExportKey = ctx.get("exportKeys")?.[idx];
 			const newNextImportURL = ctx.get("importURLs")?.[idx + 1];
+			const newNextExportKey = ctx.get("exportKeys")?.[idx + 1];
 
 			if (currentImportURL !== newCurrentImportURL) setCurrentImportURL(newCurrentImportURL);
+			if (currentExportKey !== newCurrentExportKey) setCurrentExportKey(newCurrentExportKey);
 			if (nextImportURL !== newNextImportURL) setNextImportURL(newNextImportURL);
+			if (nextExportKey !== newNextExportKey) setNextExportKey(newNextExportKey);
 		});
-	}, [currentImportURL]);
+	}, [currentImportURL, currentExportKey]);
 
 	const [importURLs, setImportURLs] = useAtom(importURLsAtom);
 	const [coreData, setCoreData] = useAtom(coreDataAtom);
@@ -76,17 +82,20 @@ export function RiverRootOutlet<RD>(props: RootOutletProps<JSX.Element, RD>): JS
 	}, [idx]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: nope
-	const CurrentComp = useMemo(() => ctx.get("activeComponents")?.[idx], [currentImportURL]);
+	const CurrentComp = useMemo(
+		() => ctx.get("activeComponents")?.[idx],
+		[currentImportURL, currentExportKey],
+	);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: nope
 	const Outlet = useMemo(
 		() => (localProps: Record<string, any> | undefined) => {
-			return <RiverRootOutlet {...localProps} {...props} index={idx + 1} />;
+			return <RiverRootOutlet {...localProps} {...props} idx={idx + 1} />;
 		},
-		[nextImportURL],
+		[nextImportURL, nextExportKey],
 	);
 
 	if (!CurrentComp) return <></>;
 
-	return <CurrentComp depth={idx} Outlet={Outlet} />;
+	return <CurrentComp idx={idx} Outlet={Outlet} />;
 }

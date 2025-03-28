@@ -112,7 +112,7 @@ func (h *River[C]) handleViteConfigHelper() error {
 }
 
 var nodeScript = `
-const path = await import('node:path');
+const path = await import("node:path");
 const importPath = path.resolve(".", process.argv.slice(1)[0]);
 const routesFile = await import(importPath);
 console.log(JSON.stringify(routesFile.default.__all_routes()));
@@ -224,7 +224,7 @@ const routes = RoutesBuilder();
 
 	output, err := cmd.Output()
 	if err != nil {
-		Log.Error(fmt.Sprintf("error running node script: %s", err))
+		Log.Error(fmt.Sprintf("error running node script: %s | output: %s", err, string(output)))
 		return err
 	}
 
@@ -233,12 +233,16 @@ const routes = RoutesBuilder();
 		Log.Error(fmt.Sprintf("error unmarshalling node script output: %s", err))
 	}
 
-	Log.Info("Completed walk for route files", "found", len(nodeScriptResult))
+	Log.Info("Interpreted TypeScript route definitions",
+		"src", h.ClientRoutesFile,
+		"found", len(nodeScriptResult),
+		"duration", time.Since(startTime),
+	)
 
 	h._paths = make(map[string]*Path)
 
 	for _, item := range nodeScriptResult {
-		h._paths[item.Pattern] = &Path{Pattern: item.Pattern, SrcPath: item.Module}
+		h._paths[item.Pattern] = &Path{Pattern: item.Pattern, SrcPath: item.Module, ExportKey: item.Key}
 	}
 
 	if err = h.writePathsToDisk_StageOne(); err != nil {
@@ -259,8 +263,6 @@ const routes = RoutesBuilder();
 		// already logged internally in handleViteConfigHelper
 		return err
 	}
-
-	Log.Info("Done interpreting TypeScript route definitions", "file", h.ClientRoutesFile, "duration", time.Since(startTime))
 
 	return nil
 }

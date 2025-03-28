@@ -20,6 +20,7 @@ type ActivePathData struct {
 	// LoadersErrMsgs      []string
 	LoadersErrs         []error
 	ImportURLs          []string
+	ExportKeys          []string
 	OutermostErrorIndex int
 	SplatValues         SplatValues
 	Params              mux.Params
@@ -32,6 +33,7 @@ type gmpdItem struct {
 	Params         mux.Params
 	SplatValues    SplatValues
 	ImportURLs     []string
+	ExportKeys     []string
 	Deps           []string
 	routeType      RouteType
 }
@@ -71,6 +73,7 @@ func (h *River[C]) getUIRoutesData(
 		item.Params = _match_results.Params
 		item.routeType = RouteTypes.Loader
 		item.ImportURLs = make([]string, 0, _matches_len)
+		item.ExportKeys = make([]string, 0, _matches_len)
 		for _, path := range _matches {
 			foundPath := h._paths[path.OriginalPattern()]
 			if foundPath == nil {
@@ -81,6 +84,7 @@ func (h *River[C]) getUIRoutesData(
 				pathToUse = foundPath.SrcPath
 			}
 			item.ImportURLs = append(item.ImportURLs, "/"+pathToUse)
+			item.ExportKeys = append(item.ExportKeys, foundPath.ExportKey)
 		}
 		item.Deps = h.getDeps(_matches)
 		gmpdCache.Set(realPath, item, false)
@@ -151,6 +155,7 @@ func (h *River[C]) getUIRoutesData(
 		apd := &ActivePathData{
 			LoadersData:         loadersData[:outermostErrorIndex],
 			ImportURLs:          item.ImportURLs[:outermostErrorIndex+1],
+			ExportKeys:          item.ExportKeys[:outermostErrorIndex+1],
 			OutermostErrorIndex: outermostErrorIndex,
 			SplatValues:         item.SplatValues,
 			Params:              item.Params,
@@ -170,6 +175,7 @@ func (h *River[C]) getUIRoutesData(
 	apd := &ActivePathData{
 		LoadersData:         loadersData,
 		ImportURLs:          item.ImportURLs,
+		ExportKeys:          item.ExportKeys,
 		OutermostErrorIndex: outermostErrorIndex,
 		SplatValues:         item.SplatValues,
 		Params:              item.Params,

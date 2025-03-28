@@ -10,7 +10,7 @@ export function Link(
 	return (
 		<a
 			data-external={finalLinkProps.dataExternal}
-			{...props}
+			{...(props as any)}
 			onPointerEnter={finalLinkProps.onPointerEnter}
 			onFocus={finalLinkProps.onFocus}
 			onPointerLeave={finalLinkProps.onPointerLeave}

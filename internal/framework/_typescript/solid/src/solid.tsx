@@ -17,10 +17,10 @@ addRouteChangeListener((e) => {
 	setLoadersData(ctx.get("loadersData"));
 });
 
-export function RiverRootOutlet<RD>(props: RootOutletProps<JSX.Element, RD>): JSX.Element {
-	const idx = props.index ?? 0;
+export function RiverRootOutlet(props: RootOutletProps<JSX.Element>): JSX.Element {
+	const idx = props.idx ?? 0;
 	const [currentImportURL, setCurrentImportURL] = createSignal(ctx.get("importURLs")?.[idx]);
-	const [nextImportURL, setNextImportURL] = createSignal(ctx.get("importURLs")?.[idx + 1]);
+	const [currentExportKey, setCurrentExportKey] = createSignal(ctx.get("exportKeys")?.[idx]);
 
 	if (currentImportURL) {
 		createEffect(() => {
@@ -28,10 +28,10 @@ export function RiverRootOutlet<RD>(props: RootOutletProps<JSX.Element, RD>): JS
 			if (!e) return;
 
 			const newCurrentImportURL = ctx.get("importURLs")?.[idx];
-			const newNextImportURL = ctx.get("importURLs")?.[idx + 1];
+			const newCurrentExportKey = ctx.get("exportKeys")?.[idx];
 
 			if (currentImportURL() !== newCurrentImportURL) setCurrentImportURL(newCurrentImportURL);
-			if (nextImportURL() !== newNextImportURL) setNextImportURL(newNextImportURL);
+			if (currentExportKey() !== newCurrentExportKey) setCurrentExportKey(newCurrentExportKey);
 
 			if (idx === 0 && e.detail.scrollState) {
 				shouldScroll = true;
@@ -47,6 +47,7 @@ export function RiverRootOutlet<RD>(props: RootOutletProps<JSX.Element, RD>): JS
 
 	const currentCompMemo = createMemo(() => {
 		currentImportURL();
+		currentExportKey();
 		return ctx.get("activeComponents")?.[idx];
 	});
 
@@ -54,9 +55,9 @@ export function RiverRootOutlet<RD>(props: RootOutletProps<JSX.Element, RD>): JS
 		<ErrorBoundary fallback={<div>ERROR</div>}>
 			<Show when={currentCompMemo()}>
 				{currentCompMemo()({
-					depth: idx,
+					idx: idx,
 					Outlet: (localProps: Record<string, any> | undefined) => {
-						return <RiverRootOutlet {...localProps} {...props} index={idx + 1} />;
+						return <RiverRootOutlet {...localProps} {...props} idx={idx + 1} />;
 					},
 				})}
 			</Show>

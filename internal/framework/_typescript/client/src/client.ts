@@ -675,8 +675,6 @@ export const addRouteChangeListener = makeListenerAdder<RouteChangeEventDetail>(
 // RE-RENDER APP
 /////////////////////////////////////////////////////////////////////
 
-const EXPORTED_ROUTE_COMP_VAR_NAME = "Route";
-
 function resolvePublicHref(href: string): string {
 	let baseURL = internal_RiverClientGlobal.get("viteDevURL");
 	if (!baseURL) {
@@ -742,37 +740,51 @@ async function __reRenderApp({
 	}
 
 	const oldList = internal_RiverClientGlobal.get("importURLs");
+	const oldListExportKeys = internal_RiverClientGlobal.get("exportKeys");
 	const newList = json.importURLs ?? [];
+	const newListExportKeys = json.exportKeys ?? [];
 
 	const updatedList: {
 		importPath: string;
 		type: "new" | "same";
+		newIdx: number;
 	}[] = [];
 
 	// compare and populate updatedList
 	for (let i = 0; i < Math.max(oldList.length, newList.length); i++) {
-		if (i < oldList.length && i < newList.length && oldList[i] === newList[i]) {
+		if (
+			i < oldList.length &&
+			i < newList.length &&
+			oldList[i] === newList[i] &&
+			oldListExportKeys[i] === newListExportKeys[i]
+		) {
 			updatedList.push({
 				importPath: oldList[i] ?? Panic(),
 				type: "same",
+				newIdx: i,
 			});
 		} else if (i < newList.length) {
 			updatedList.push({
 				importPath: newList[i] ?? Panic(),
 				type: "new",
+				newIdx: i,
 			});
 		}
 	}
 
 	// get new components only
+	const componentsToLoad = updatedList.filter((x) => x.type === "new");
 	const components = updatedList.map((x) => {
-		if (x.type === "new") {
-			return import(/* @vite-ignore */ resolvePublicHref(x.importPath));
-		}
+		return import(/* @vite-ignore */ resolvePublicHref(x.importPath));
 	});
 	const awaitedComps = await Promise.all(components);
-	const awaitedDefaults = awaitedComps.map((x) => x?.[EXPORTED_ROUTE_COMP_VAR_NAME]);
-	const awaitedErrorBoundaries = awaitedComps.map((x) => x?.ErrorBoundary);
+	const awaitedDefaultsWithIdxs = componentsToLoad.map((x, i) => {
+		return {
+			comp: awaitedComps[i]?.[json.exportKeys[x.newIdx] ?? "default"] ?? null,
+			idx: x.newIdx,
+			errorBoundary: awaitedComps[i]?.ErrorBoundary,
+		};
+	});
 
 	// placeholder list based on old list
 	let newActiveComps = internal_RiverClientGlobal.get("activeComponents");
@@ -783,12 +795,12 @@ async function __reRenderApp({
 	}
 
 	// replace stale components with new ones where applicable
-	for (let i = 0; i < awaitedDefaults.length; i++) {
-		if (awaitedDefaults[i]) {
-			newActiveComps[i] = awaitedDefaults[i];
+	for (const { comp, idx, errorBoundary } of awaitedDefaultsWithIdxs) {
+		if (comp) {
+			newActiveComps[idx] = comp;
 		}
-		if (awaitedErrorBoundaries[i]) {
-			newActiveErrorBoundaries[i] = awaitedErrorBoundaries[i];
+		if (errorBoundary) {
+			newActiveErrorBoundaries[idx] = errorBoundary;
 		}
 	}
 
@@ -805,6 +817,7 @@ async function __reRenderApp({
 	const identicalKeysToSet = [
 		"loadersData",
 		"importURLs",
+		"exportKeys",
 		"outermostErrorIndex",
 		"splatValues",
 		"params",
@@ -1111,9 +1124,10 @@ export async function initClient(renderFn: () => void) {
 
 	// HANDLE COMPONENTS
 	const components = await importComponents();
+	const exportKeys = internal_RiverClientGlobal.get("exportKeys") ?? [];
 	internal_RiverClientGlobal.set(
 		"activeComponents",
-		components.map((x) => x?.[EXPORTED_ROUTE_COMP_VAR_NAME]),
+		components.map((x, i) => x?.[exportKeys[i] ?? "default"] ?? null),
 	);
 	internal_RiverClientGlobal.set(
 		"activeErrorBoundaries",
