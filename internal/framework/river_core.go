@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/sjc5/river/kiruna"
 	"github.com/sjc5/river/kit/colorlog"
 	"github.com/sjc5/river/kit/genericsutil"
 	"github.com/sjc5/river/kit/htmlutil"
@@ -60,7 +61,12 @@ var UIVariants = struct {
 type RootTemplateData = map[string]any
 
 type River[C any] struct {
-	FS                      fs.FS
+	Kiruna *kiruna.Kiruna
+
+	PublicPrefix      string // e.g., "/public", "/static", "/assets", etc.
+	PublicURLFuncName string // e.g., "publicURL", "withHash", etc.
+	VitePluginOutpath string // e.g., "./frontend/gen/river.vite-plugin.ts"
+
 	RootTemplateLocation    string // Relative to the FS root
 	GetDefaultHeadBlocks    func(r *http.Request) ([]*htmlutil.Element, error)
 	GetRootTemplateData     func(r *http.Request) (RootTemplateData, error)
@@ -84,9 +90,7 @@ type River[C any] struct {
 	ClientRoutesFile string
 
 	// BUILD OPTIONS
-	ClientEntry         string
-	StaticPublicOutDir  string
-	StaticPrivateOutDir string
+	ClientEntry string
 
 	mu                 sync.RWMutex
 	_isDev             bool
@@ -97,6 +101,7 @@ type River[C any] struct {
 	_buildID           string
 	_depToCSSBundleMap map[string]string
 	_rootTemplate      *template.Template
+	_privateFS         fs.FS
 }
 
 type RiverAny interface{ _get_core_data_zero() any }

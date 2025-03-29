@@ -19,7 +19,9 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
-var noHashPublicDirsByVersion = map[uint8]string{0: "__nohash", 1: "prehashed"}
+const PrehashedDirname = "prehashed"
+
+var noHashPublicDirsByVersion = map[uint8]string{0: "__nohash", 1: PrehashedDirname}
 
 func (c *Config) Build(recompileBinary bool, shouldBeGranular bool) error {
 	enforceProperInstantiation(c)

@@ -13,7 +13,7 @@ func (h *River[C]) Vite(isDev bool) error {
 	ctx := viteutil.NewBuildCtx(&viteutil.BuildCtxOptions{
 		JSPackageManagerBaseCmd: h.JSPackageManagerBaseCmd,
 		JSPackageManagerCmdDir:  h.JSPackageManagerCmdDir,
-		ManifestOutDir:          h.StaticPublicOutDir,
+		ManifestOutDir:          h.toStaticPublicOutDir(),
 		ViteConfigFile:          h.ViteConfigFile,
 	})
 
@@ -36,7 +36,7 @@ func (h *River[C]) Vite(isDev bool) error {
 			return err
 		}
 
-		pathsJSONOut_StageTwo := filepath.Join(h.StaticPrivateOutDir, RiverPathsStageTwoJSONFileName)
+		pathsJSONOut_StageTwo := filepath.Join(h.Kiruna.GetPrivateStaticDir(), RiverPathsStageTwoJSONFileName)
 		err = os.WriteFile(pathsJSONOut_StageTwo, pathsAsJSON, os.ModePerm)
 		if err != nil {
 			Log.Error(fmt.Sprintf("error writing paths to disk: %s", err))

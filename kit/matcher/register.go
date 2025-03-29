@@ -36,22 +36,24 @@ func (rp *RegisteredPattern) OriginalPattern() string {
 	return rp.originalPattern
 }
 
+func HasLeadingSlash(pattern string) bool {
+	return len(pattern) > 0 && pattern[0] == '/'
+}
 func HasTrailingSlash(pattern string) bool {
 	return len(pattern) > 0 && pattern[len(pattern)-1] == '/'
 }
 
-func StripTrailingSlashIfNotRoot(pattern string) string {
-	if pattern == "/" {
-		return pattern
+func StripLeadingSlash(pattern string) string {
+	if HasLeadingSlash(pattern) {
+		return pattern[1:]
 	}
+	return pattern
+}
+func StripTrailingSlash(pattern string) string {
 	if HasTrailingSlash(pattern) {
 		return pattern[:len(pattern)-1]
 	}
 	return pattern
-}
-
-func HasLeadingSlash(pattern string) bool {
-	return len(pattern) > 0 && pattern[0] == '/'
 }
 
 func JoinPatterns(rp *RegisteredPattern, pattern string) string {

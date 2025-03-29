@@ -26,6 +26,7 @@ const (
 	OnChangeStrategyConcurrent       = ki.OnChangeStrategyConcurrent
 	OnChangeStrategyConcurrentNoWait = ki.OnChangeStrategyConcurrentNoWait
 	OnChangeStrategyPost             = ki.OnChangeStrategyPost
+	PrehashedDirname                 = ki.PrehashedDirname
 )
 
 var (
@@ -141,4 +142,13 @@ func (k Kiruna) GetPublicFileMapURL() string {
 }
 func (k Kiruna) SetupDistDir() {
 	k.c.SetupDistDir()
+}
+func (k Kiruna) GetSimplePublicFileMapBuildtime() (map[string]string, error) {
+	return k.c.GetSimplePublicFileMapBuildtime()
+}
+func (k Kiruna) GetPrivateStaticDir() string {
+	return k.c.PrivateStaticDir
+}
+func (k Kiruna) GetPublicStaticDir() string {
+	return k.c.PublicStaticDir
 }

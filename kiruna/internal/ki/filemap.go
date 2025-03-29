@@ -195,3 +195,17 @@ func (c *Config) GetPublicFileMapKeysBuildtime() ([]string, error) {
 	sort.Strings(keys)
 	return keys, nil
 }
+
+func (c *Config) GetSimplePublicFileMapBuildtime() (map[string]string, error) {
+	filemap, err := c.getInitialPublicFileMapFromGobBuildtime()
+	if err != nil {
+		return nil, err
+	}
+	simpleStrMap := make(map[string]string, len(filemap))
+	for k, v := range filemap {
+		if !v.IsPrehashed {
+			simpleStrMap[k] = v.Val
+		}
+	}
+	return simpleStrMap, nil
+}

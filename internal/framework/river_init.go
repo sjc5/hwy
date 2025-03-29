@@ -46,9 +46,13 @@ func (h *River[C]) initInner(isDev bool) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h._isDev = isDev
-	if h.FS == nil {
-		return errors.New("FS is nil")
+	privateFS, err := h.Kiruna.GetPrivateFS()
+	if err != nil {
+		errMsg := fmt.Sprintf("could not get private fs: %v", err)
+		Log.Error(errMsg)
+		return errors.New(errMsg)
 	}
+	h._privateFS = privateFS
 	pathsFile, err := h.getBasePaths_StageOneOrTwo(isDev)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get base paths: %v", err)
@@ -69,7 +73,7 @@ func (h *River[C]) initInner(isDev bool) error {
 	if h._depToCSSBundleMap == nil {
 		h._depToCSSBundleMap = make(map[string]string)
 	}
-	tmpl, err := template.ParseFS(h.FS, h.RootTemplateLocation)
+	tmpl, err := template.ParseFS(h._privateFS, h.RootTemplateLocation)
 	if err != nil {
 		return fmt.Errorf("error parsing root template: %v", err)
 	}
@@ -83,7 +87,7 @@ func (h *River[C]) getBasePaths_StageOneOrTwo(isDev bool) (*PathsFile, error) {
 		fileToUse = RiverPathsStageTwoJSONFileName
 	}
 	pathsFile := PathsFile{}
-	file, err := h.FS.Open(fileToUse)
+	file, err := h._privateFS.Open(fileToUse)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not open %s: %v", fileToUse, err)
 		Log.Error(errMsg)

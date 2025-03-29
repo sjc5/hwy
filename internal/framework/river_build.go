@@ -13,8 +13,10 @@ import (
 	"time"
 
 	esbuild "github.com/evanw/esbuild/pkg/api"
+	"github.com/sjc5/river/kiruna"
 	"github.com/sjc5/river/kit/esbuildutil"
 	"github.com/sjc5/river/kit/id"
+	"github.com/sjc5/river/kit/matcher"
 	"github.com/sjc5/river/kit/stringsutil"
 	"github.com/sjc5/river/kit/viteutil"
 )
@@ -40,7 +42,7 @@ type PathsFile struct {
 }
 
 func (h *River[C]) writePathsToDisk_StageOne() error {
-	pathsJSONOut_StageOne := filepath.Join(h.StaticPrivateOutDir, RiverPathsStageOneJSONFileName)
+	pathsJSONOut_StageOne := filepath.Join(h.Kiruna.GetPrivateStaticDir(), RiverPathsStageOneJSONFileName)
 	err := os.MkdirAll(filepath.Dir(pathsJSONOut_StageOne), os.ModePerm)
 	if err != nil {
 		return err
@@ -64,10 +66,43 @@ func (h *River[C]) writePathsToDisk_StageOne() error {
 	return nil
 }
 
-func toRollupOptions(entrypoints []string) string {
+// 0 = func name, 1,2 = backtick literal, 3 = public dir, 4 = backtick literal
+const vitePluginTemplateStr = `
+export function riverVitePlugin(): Plugin {
+	return {
+		name: "river-vite-plugin",
+		config(c) {
+			return { ...c, build: { ...c.build, rollupOptions } };
+		},
+		transform(code, id) {
+			const isNodeModules = /node_modules/.test(id);
+			if (isNodeModules) return null;
+			const assetRegex = /%s\s*\(\s*(["'%s])(.*?)\1\s*\)/g;
+			const needsReplacement = assetRegex.test(code);
+			if (!needsReplacement) return null;
+			const replacedCode = code.replace(assetRegex, (original, _, _assetPath) => {
+				let assetPath = _assetPath;
+				if (assetPath.startsWith("/")) {
+					assetPath = assetPath.slice(1);
+				}
+				const hashed = (publicFileMap as any)[assetPath];
+				if (!hashed) return original;
+				return %s"/%s/${hashed}"%s;
+			});
+			if (replacedCode === code) return null;
+			return replacedCode;
+		},
+	};
+}
+`
+
+func (h *River[C]) toRollupOptions(entrypoints []string, fileMap map[string]string) (string, error) {
 	var sb stringsutil.Builder
 
-	sb.Line("export const rollupOptions = {")
+	sb.Line("import type { Plugin } from \"vite\";")
+	sb.Return()
+
+	sb.Line("const rollupOptions = {")
 	sb.Tab().Line("input: [")
 	for i, entrypoint := range entrypoints {
 		if i > 0 {
@@ -85,25 +120,47 @@ func toRollupOptions(entrypoints []string) string {
 	sb.Tab().Line("},")
 	sb.Line("} as const;")
 
-	// Now do a helper that is a function that inside calls await import(x) for each of the input files
-	// sb.Line("export async function loadEntrypoints() {")
-	// for _, entrypoint := range entrypoints {
-	// 	sb.Tab().Linef(`import("../../%s");`, entrypoint)
-	// }
-	// sb.Line("}")
+	sb.Return()
+	sb.Write("const publicFileMap = ")
+	mapAsJSON, err := json.MarshalIndent(fileMap, "", "\t")
+	if err != nil {
+		return "", fmt.Errorf("error marshalling map to JSON: %v", err)
+	}
+	sb.Line(string(mapAsJSON) + ";")
 
-	return sb.String()
+	publicPrefixToUse := filepath.Clean(h.PublicPrefix)
+	publicPrefixToUse = matcher.StripLeadingSlash(publicPrefixToUse)
+	publicPrefixToUse = matcher.StripTrailingSlash(publicPrefixToUse)
+	tick := "`"
+	sb.Write(fmt.Sprintf(vitePluginTemplateStr, h.PublicURLFuncName, tick, tick, publicPrefixToUse, tick))
+
+	return sb.String(), nil
 }
 
 func (h *River[C]) handleViteConfigHelper() error {
 	entrypoints := h.getEntrypoints()
 
-	err := os.WriteFile(
-		filepath.Join(h.StaticPrivateOutDir, RiverViteConfigHelperTSFileName),
-		[]byte(toRollupOptions(entrypoints)),
-		os.ModePerm,
-	)
+	publicFileMap, err := h.Kiruna.GetSimplePublicFileMapBuildtime()
 	if err != nil {
+		Log.Error(fmt.Sprintf("HandleEntrypoints: error getting public file map: %s", err))
+		return err
+	}
+
+	rollupOptions, err := h.toRollupOptions(entrypoints, publicFileMap)
+	if err != nil {
+		Log.Error(fmt.Sprintf("HandleEntrypoints: error converting entrypoints to rollup options: %s", err))
+		return err
+	}
+
+	target := filepath.Join(".", h.VitePluginOutpath)
+
+	err = os.MkdirAll(filepath.Dir(target), os.ModePerm)
+	if err != nil {
+		Log.Error(fmt.Sprintf("HandleEntrypoints: error creating directory: %s", err))
+		return err
+	}
+
+	if err = os.WriteFile(target, []byte(rollupOptions), os.ModePerm); err != nil {
 		Log.Error(fmt.Sprintf("HandleEntrypoints: error writing entrypoints to disk: %s", err))
 		return err
 	}
@@ -251,9 +308,7 @@ const routes = RoutesBuilder();
 	}
 
 	// Remove all files in StaticPublicOutDir starting with riverChunkPrefix or riverEntryPrefix.
-	// This could theoretically be done in parallel with the esbuild step, but it's unlikely
-	// that it would be perceptibly faster.
-	err = cleanStaticPublicOutDir(h.StaticPublicOutDir)
+	err = cleanStaticPublicOutDir(h.toStaticPublicOutDir())
 	if err != nil {
 		Log.Error(fmt.Sprintf("error cleaning static public out dir: %s", err))
 		return err
@@ -265,6 +320,10 @@ const routes = RoutesBuilder();
 	}
 
 	return nil
+}
+
+func (h *River[C]) toStaticPublicOutDir() string {
+	return filepath.Join(h.Kiruna.GetPublicStaticDir(), kiruna.PrehashedDirname)
 }
 
 func (h *River[C]) getViteDevURL() string {
@@ -327,15 +386,19 @@ func cleanStaticPublicOutDir(staticPublicOutDir string) error {
 /////////////////////////////////////////////////////////////////////
 
 func (h *River[C]) getEntrypoints() []string {
-	entryPoints := make([]string, 0, len(h._paths)+1)
-	entryPoints = append(entryPoints, h.ClientEntry)
+	entryPoints := make(map[string]struct{}, len(h._paths)+1)
+	entryPoints[h.ClientEntry] = struct{}{}
 	for _, path := range h._paths {
 		if path.SrcPath != "" {
-			entryPoints = append(entryPoints, path.SrcPath)
+			entryPoints[path.SrcPath] = struct{}{}
 		}
 	}
-	slices.SortStableFunc(entryPoints, strings.Compare)
-	return entryPoints
+	keys := make([]string, 0, len(entryPoints))
+	for key := range entryPoints {
+		keys = append(keys, key)
+	}
+	slices.SortStableFunc(keys, strings.Compare)
+	return keys
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -347,7 +410,7 @@ func (h *River[C]) toPathsFile_StageTwo() (*PathsFile, error) {
 	riverClientEntryDeps := []string{}
 	depToCSSBundleMap := make(map[string]string)
 
-	viteManifest, err := viteutil.ReadManifest(filepath.Join(h.StaticPublicOutDir, ".vite", "manifest.json"))
+	viteManifest, err := viteutil.ReadManifest(filepath.Join(h.toStaticPublicOutDir(), ".vite", "manifest.json"))
 	if err != nil {
 		Log.Error(fmt.Sprintf("error reading vite manifest: %s", err))
 		return nil, err

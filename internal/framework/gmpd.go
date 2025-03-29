@@ -52,7 +52,10 @@ func (h *River[C]) getUIRoutesData(
 	w http.ResponseWriter, r *http.Request, nestedRouter *mux.NestedRouter, tasksCtx *tasks.TasksCtx,
 ) *uiRoutesData {
 
-	realPath := matcher.StripTrailingSlashIfNotRoot(r.URL.Path)
+	realPath := matcher.StripTrailingSlash(r.URL.Path)
+	if realPath == "" {
+		realPath = "/"
+	}
 
 	var itemIsCached bool
 	var item *gmpdItem
