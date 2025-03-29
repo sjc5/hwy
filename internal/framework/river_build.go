@@ -129,6 +129,13 @@ func (h *River[C]) toRollupOptions(entrypoints []string, fileMap map[string]stri
 	sb.Return()
 	sb.Line("export type StaticPublicAsset = keyof typeof publicFileMap;")
 
+	sb.Return()
+
+	sb.Line(fmt.Sprintf(
+		"declare global {\n\tfunction %s(staticPublicAsset: StaticPublicAsset): string;\n}",
+		h.PublicURLFuncName,
+	))
+
 	publicPrefixToUse := filepath.Clean(h.PublicPrefix)
 	publicPrefixToUse = matcher.StripLeadingSlash(publicPrefixToUse)
 	publicPrefixToUse = matcher.StripTrailingSlash(publicPrefixToUse)

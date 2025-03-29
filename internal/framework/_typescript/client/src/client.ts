@@ -16,6 +16,10 @@ import {
 } from "./river_ctx.ts";
 import { isAbortError, LogError, LogInfo, Panic } from "./utils.ts";
 
+if (import.meta.env.MODE === "development") {
+	(window as any).__kirunaRevalidate = devRevalidate;
+}
+
 /////////////////////////////////////////////////////////////////////
 // COMMON
 /////////////////////////////////////////////////////////////////////
