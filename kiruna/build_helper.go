@@ -13,7 +13,7 @@ type BuildHelper struct {
 	Kiruna        *Kiruna    // REQUIRED
 	DevConfig     *DevConfig // REQUIRED
 	FilesToVendor [][2]string
-	GenHook       func(MutateStatements) error
+	GenHook       func() error
 	BuildHook     func(isDev bool) error
 }
 
@@ -46,7 +46,7 @@ func (inst *BuildHelper) Gen(isDev bool) {
 	if inst.GenHook == nil {
 		panic("kiruna: buildhelper: GenHook is nil")
 	}
-	if err := inst.GenHook(inst.mutateStatements); err != nil {
+	if err := inst.GenHook(); err != nil {
 		panic(fmt.Errorf("kiruna: buildhelper: Gen: %w", err))
 	}
 }
@@ -137,19 +137,16 @@ func (inst *BuildHelper) Tasks() {
 	}
 }
 
-// If you pass nil to this function, it will return a
-// pointer to a new Statements object. If you pass a
-// pointer to an existing Statements object, it will
-// mutate that object and return it.
-type MutateStatements func(statements *tsgen.Statements) *tsgen.Statements
-
-func (inst *BuildHelper) mutateStatements(statements *tsgen.Statements) *tsgen.Statements {
+// If you pass nil to this function, it will return a pointer to a new Statements
+// object. If you pass a pointer to an existing Statements object, it will mutate
+// that object and return it.
+func (k Kiruna) AddPublicAssetKeys(statements *tsgen.Statements) *tsgen.Statements {
 	a := statements
 	if a == nil {
 		a = &tsgen.Statements{}
 	}
 
-	keys, err := inst.Kiruna.GetPublicFileMapKeysBuildtime()
+	keys, err := k.GetPublicFileMapKeysBuildtime()
 	if err != nil {
 		panic(err)
 	}
