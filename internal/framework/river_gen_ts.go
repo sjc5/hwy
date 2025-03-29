@@ -1,7 +1,6 @@
 package framework
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/sjc5/river/kit/mux"
@@ -12,8 +11,6 @@ import (
 type AdHocType = rpc.AdHocType
 
 type TSGenOptions struct {
-	// Path, including filename, where the resulting TypeScript file will be written
-	OutPath       string
 	UIRouter      *mux.NestedRouter
 	ActionsRouter *mux.Router
 	AdHocTypes    []*AdHocType
@@ -33,7 +30,7 @@ var mutationMethods = map[string]struct{}{
 	http.MethodPost: {}, http.MethodPut: {}, http.MethodPatch: {}, http.MethodDelete: {},
 }
 
-func GenerateTypeScript(h RiverAny, opts *TSGenOptions, extraTSCode ...string) error {
+func GenerateTypeScript(h RiverAny, opts *TSGenOptions) (string, error) {
 	var collection []tsgen.CollectionItem
 
 	allLoaders := opts.UIRouter.AllRoutes()
@@ -122,15 +119,6 @@ func GenerateTypeScript(h RiverAny, opts *TSGenOptions, extraTSCode ...string) e
 
 	extraTSToUse := rpc.BuildFromCategories(categories)
 
-	if len(extraTSCode) > 0 {
-		for i, code := range extraTSCode {
-			extraTSToUse += code
-			if i < len(extraTSCode)-1 {
-				extraTSToUse += "\n"
-			}
-		}
-	}
-
 	if opts.ExtraTSCode != "" {
 		extraTSToUse += "\n" + opts.ExtraTSCode
 	}
@@ -140,18 +128,10 @@ func GenerateTypeScript(h RiverAny, opts *TSGenOptions, extraTSCode ...string) e
 		TSTypeName:   "CoreData",
 	})
 
-	err := tsgen.GenerateTSToFile(tsgen.Opts{
-		OutPath:           opts.OutPath,
+	return tsgen.GenerateTSContent(tsgen.Opts{
 		Collection:        collection,
 		CollectionVarName: base.CollectionVarName,
 		AdHocTypes:        adHocTypes,
 		ExtraTSCode:       extraTSToUse,
 	})
-
-	if err != nil {
-		Log.Error(fmt.Sprintf("error generating typescript: %s", err))
-		return err
-	}
-
-	return nil
 }

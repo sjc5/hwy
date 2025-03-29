@@ -17,6 +17,7 @@ import (
 	"github.com/sjc5/river/kit/esbuildutil"
 	"github.com/sjc5/river/kit/id"
 	"github.com/sjc5/river/kit/matcher"
+	"github.com/sjc5/river/kit/mux"
 	"github.com/sjc5/river/kit/stringsutil"
 	"github.com/sjc5/river/kit/viteutil"
 )
@@ -98,6 +99,7 @@ export function riverVitePlugin(): Plugin {
 func (h *River[C]) toRollupOptions(entrypoints []string, fileMap map[string]string) (string, error) {
 	var sb stringsutil.Builder
 
+	sb.Return()
 	sb.Line("import type { Plugin } from \"vite\";")
 	sb.Return()
 
@@ -145,7 +147,7 @@ func (h *River[C]) toRollupOptions(entrypoints []string, fileMap map[string]stri
 	return sb.String(), nil
 }
 
-func (h *River[C]) handleViteConfigHelper() error {
+func (h *River[C]) handleViteConfigHelper(extraTS string) error {
 	entrypoints := h.getEntrypoints()
 
 	publicFileMap, err := h.Kiruna.GetSimplePublicFileMapBuildtime()
@@ -159,6 +161,8 @@ func (h *River[C]) handleViteConfigHelper() error {
 		Log.Error(fmt.Sprintf("HandleEntrypoints: error converting entrypoints to rollup options: %s", err))
 		return err
 	}
+
+	rollupOptions = extraTS + rollupOptions
 
 	target := filepath.Join(".", h.VitePluginOutpath)
 
@@ -191,11 +195,11 @@ type NodeScriptResultItem struct {
 
 type NodeScriptResult []NodeScriptResultItem
 
-func (h *River[C]) Build(isDev bool) error {
+func (h *River[C]) Build(opts *BuildOptions) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	h._isDev = isDev
+	h._isDev = opts.IsDev
 
 	startTime := time.Now()
 
@@ -322,7 +326,18 @@ const routes = RoutesBuilder();
 		return err
 	}
 
-	if err = h.handleViteConfigHelper(); err != nil {
+	tsgenOutput, err := GenerateTypeScript(h, &TSGenOptions{
+		UIRouter:      opts.UIRouter,
+		ActionsRouter: opts.ActionsRouter,
+		AdHocTypes:    opts.AdHocTypes,
+		ExtraTSCode:   opts.ExtraTSCode,
+	})
+	if err != nil {
+		Log.Error(fmt.Sprintf("error generating TypeScript: %s", err))
+		return err
+	}
+
+	if err = h.handleViteConfigHelper(tsgenOutput); err != nil {
 		// already logged internally in handleViteConfigHelper
 		return err
 	}
@@ -470,4 +485,12 @@ func (h *River[C]) toPathsFile_StageTwo() (*PathsFile, error) {
 		ClientEntryDeps:   riverClientEntryDeps,
 		BuildID:           h._buildID,
 	}, nil
+}
+
+type BuildOptions struct {
+	IsDev         bool
+	UIRouter      *mux.NestedRouter
+	ActionsRouter *mux.Router
+	AdHocTypes    []*AdHocType
+	ExtraTSCode   string
 }

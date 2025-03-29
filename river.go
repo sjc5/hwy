@@ -8,9 +8,9 @@ import (
 type (
 	River[C any]     = framework.River[C]
 	HeadBlock        = htmlutil.Element
-	TSGenOptions     = framework.TSGenOptions
 	AdHocType        = framework.AdHocType
 	RootTemplateData = framework.RootTemplateData
+	BuildOptions     = framework.BuildOptions
 )
 
 var (

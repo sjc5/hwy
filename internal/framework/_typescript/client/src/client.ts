@@ -743,8 +743,8 @@ async function __reRenderApp({
 		cssBundlePromises.push(preloadPromise);
 	}
 
-	const oldList = internal_RiverClientGlobal.get("importURLs");
-	const oldListExportKeys = internal_RiverClientGlobal.get("exportKeys");
+	const oldList = internal_RiverClientGlobal.get("importURLs") ?? [];
+	const oldListExportKeys = internal_RiverClientGlobal.get("exportKeys") ?? [];
 	const newList = json.importURLs ?? [];
 	const newListExportKeys = json.exportKeys ?? [];
 
