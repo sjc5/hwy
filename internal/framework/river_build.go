@@ -23,10 +23,9 @@ import (
 )
 
 const (
-	riverPrehashedFilePrefix        = "river_vite_"
-	RiverPathsStageOneJSONFileName  = "river_paths_stage_1.json"
-	RiverPathsStageTwoJSONFileName  = "river_paths_stage_2.json"
-	RiverViteConfigHelperTSFileName = "river_vite_config_helper.ts"
+	riverPrehashedFilePrefix       = "river_vite_"
+	RiverPathsStageOneJSONFileName = "river_paths_stage_1.json"
+	RiverPathsStageTwoJSONFileName = "river_paths_stage_2.json"
 )
 
 type PathsFile struct {

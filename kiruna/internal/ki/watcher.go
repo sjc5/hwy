@@ -7,18 +7,22 @@ import (
 )
 
 func (c *Config) mustSetupWatcher() {
+	fmt.Println()
+	fmt.Println("Setting up watcher...")
+	fmt.Println()
+
 	defer c.mustKillAppDev()
 
 	// Loop through all WatchedFiles...
-	for i, wfc := range c.devConfig.WatchedFiles {
+	for i, wfc := range c._current_parsed_dev_config.WatchedFiles {
 		// and make each WatchedFile's Pattern relative to cleanWatchRoot...
-		c.devConfig.WatchedFiles[i].Pattern = filepath.Join(c.cleanWatchRoot, wfc.Pattern)
+		c._current_parsed_dev_config.WatchedFiles[i].Pattern = filepath.Join(c.cleanWatchRoot, wfc.Pattern)
 
 		// then loop through such WatchedFile's OnChangeCallbacks...
 		for j, oc := range wfc.OnChangeCallbacks {
 			// and make each such OnChangeCallback's ExcludedPatterns also relative to cleanWatchRoot
 			for k, p := range oc.ExcludedPatterns {
-				c.devConfig.WatchedFiles[i].OnChangeCallbacks[j].ExcludedPatterns[k] = filepath.Join(c.cleanWatchRoot, p)
+				c._current_parsed_dev_config.WatchedFiles[i].OnChangeCallbacks[j].ExcludedPatterns[k] = filepath.Join(c.cleanWatchRoot, p)
 			}
 		}
 	}

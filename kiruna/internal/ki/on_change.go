@@ -2,7 +2,9 @@ package ki
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/sjc5/river/kit/executil"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -61,7 +63,8 @@ func (c *Config) runConcurrentOnChangeCallbacks(onChanges *[]OnChange, evtName s
 				continue
 			}
 			eg.Go(func() error {
-				err := o.Func()
+				fmt.Printf("Running on-change callback: %s\n", o.Command)
+				err := executil.RunCmd(strings.Fields(o.Command)...)
 				if err != nil {
 					c.Logger.Error(fmt.Sprintf("error running on-change callback: %v", err))
 					return err
@@ -90,7 +93,8 @@ func (c *Config) simpleRunOnChangeCallbacks(onChanges *[]OnChange, evtName strin
 		if c.getIsIgnored(evtName, &o.ExcludedPatterns) {
 			continue
 		}
-		err := o.Func()
+		fmt.Printf("Running on-change callback: %s\n", o.Command)
+		err := executil.RunCmd(strings.Fields(o.Command)...)
 		if err != nil {
 			c.Logger.Error(fmt.Sprintf("error running on-change callback: %v", err))
 			return err

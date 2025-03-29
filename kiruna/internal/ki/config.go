@@ -14,10 +14,13 @@ type Config struct {
 	runtime
 	initializedWithNew bool
 	commonInitOnce     sync.Once
-	devConfig          *DevConfig
 	cleanSources       CleanSources
 	cleanWatchRoot     string
 	__dist             *dirs.Dir[Dist]
+
+	ConfigFile                 string
+	_prior_dev_config_bytes    []byte
+	_current_parsed_dev_config *DevConfig
 
 	// If not nil, the embedded file system will be used in production builds.
 	// If nil, the disk file system will be used in production builds.
@@ -72,17 +75,17 @@ type DevConfig struct {
 	// you're running commands from.
 	WatchRoot           string
 	HealthcheckEndpoint string // e.g., "/healthz" -- should return 200 OK if healthy -- defaults to "/"
-	WatchedFiles        WatchedFiles
 	IgnorePatterns      IgnorePatterns
+	WatchedFiles        WatchedFiles
 }
 
 type WatchedFile struct {
-	Pattern string // Glob pattern (set relative to Config.RootDir)
+	Pattern string // Glob pattern (set relative to WatchRoot)
 
 	// By default, OnChange runs before any Kiruna processing. As long as "SkipRebuildingNotification"
 	// is false (default), Kiruna will send a signal to the browser to show the
-	// "Rebuilding..." status message first. You can also change the OnChange strategy to
-	// "post" or "concurrent" if desired.
+	// "Rebuilding..." status message first. The default strategy is "pre". You can also change the
+	// strategy to "post", "concurrent", or  if desired.
 	OnChangeCallbacks []OnChange
 
 	// Use this if your onChange saves a file that will trigger another reload process,
@@ -125,8 +128,8 @@ type OnChangeFunc func() error
 
 type OnChange struct {
 	Strategy         string
-	Func             OnChangeFunc
-	ExcludedPatterns []string // Glob patterns (set relative to Config.RootDir)
+	Command          string
+	ExcludedPatterns []string // Glob patterns (set relative to WatchRoot)
 }
 
 type WatchedFiles []WatchedFile

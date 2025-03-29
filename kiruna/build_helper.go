@@ -4,14 +4,12 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/sjc5/river/kit/executil"
 	"github.com/sjc5/river/kit/fsutil"
 	"github.com/sjc5/river/kit/tsgen"
 )
 
 type BuildHelper struct {
-	Kiruna        *Kiruna    // REQUIRED
-	DevConfig     *DevConfig // REQUIRED
+	Kiruna        *Kiruna // REQUIRED
 	FilesToVendor [][2]string
 	GenHook       func() error
 	BuildHook     func(isDev bool, isInit bool) error
@@ -21,7 +19,7 @@ func (inst *BuildHelper) Dev(isInit bool) {
 	SetModeToDev()
 	inst.mustCommonBuild(true, isInit)
 	if isInit {
-		inst.Kiruna.MustStartDev(inst.DevConfig)
+		inst.Kiruna.MustStartDev()
 	}
 }
 
@@ -76,25 +74,25 @@ func (inst *BuildHelper) mustCommonBuild(isDev bool, isInit bool) {
 	}
 }
 
-// These should be used when you need to run tasks from
-// inside an OnChangeCallback in your Kiruna.DevConfig. Why
-// is this pattern necessary? Because the dev server is
-// instantiated only once, not every time you save a .go file.
-// So, in order for inputs to actually be re-evaluated, we need
-// to run these as fresh scripts according to the trigger in
-// your kiruna.DevConfig.
-func (k Kiruna) DevOnChange() error {
-	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-dev", "-onchange")()
-}
-func (k Kiruna) ProdBuildOnChange() error {
-	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-gen", "-onchange")()
-}
-func (k Kiruna) ProdBuildNonGoOnChange() error {
-	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-prod-build-non-go", "-onchange")()
-}
-func (k Kiruna) GenOnChange() error {
-	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-gen", "-onchange")()
-}
+// // These should be used when you need to run tasks from
+// // inside an OnChangeCallback in your Kiruna.DevConfig. Why
+// // is this pattern necessary? Because the dev server is
+// // instantiated only once, not every time you save a .go file.
+// // So, in order for inputs to actually be re-evaluated, we need
+// // to run these as fresh scripts according to the trigger in
+// // your kiruna.DevConfig.
+// func (k Kiruna) DevOnChange() error {
+// 	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-dev", "-onchange")()
+// }
+// func (k Kiruna) ProdBuildOnChange() error {
+// 	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-gen", "-onchange")()
+// }
+// func (k Kiruna) ProdBuildNonGoOnChange() error {
+// 	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-prod-build-non-go", "-onchange")()
+// }
+// func (k Kiruna) GenOnChange() error {
+// 	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-gen", "-onchange")()
+// }
 
 const (
 	flagDev            = "dev"

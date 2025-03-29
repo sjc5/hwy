@@ -82,8 +82,8 @@ func (k Kiruna) GetPublicURL(originalPublicURL string) string {
 func (k Kiruna) MustGetPublicURLBuildtime(originalPublicURL string) string {
 	return k.c.MustGetPublicURLBuildtime(originalPublicURL)
 }
-func (k Kiruna) MustStartDev(devConfig *DevConfig) {
-	k.c.MustStartDev(devConfig)
+func (k Kiruna) MustStartDev() {
+	k.c.MustStartDev()
 }
 func (k Kiruna) GetCriticalCSS() template.CSS {
 	return template.CSS(k.c.GetCriticalCSS())

@@ -24,7 +24,7 @@ type dev struct {
 	ignoredDirPatterns     *[]string
 	ignoredFilePatterns    *[]string
 	naiveIgnoreDirPatterns *[]string
-	defaultWatchedFile     *WatchedFile
+	defaultWFC             *WatchedFile
 	defaultWatchedFiles    *[]WatchedFile
 	lastBuildCmd           withMu[*exec.Cmd]
 	matchResults           *safecache.CacheMap[potentialMatch, string, bool]
@@ -61,15 +61,15 @@ func (c *Config) devInitOnce() {
 		for _, p := range *c.naiveIgnoreDirPatterns {
 			*c.ignoredDirPatterns = append(*c.ignoredDirPatterns, filepath.Join(c.cleanWatchRoot, p))
 		}
-		for _, p := range c.devConfig.IgnorePatterns.Dirs {
+		for _, p := range c._current_parsed_dev_config.IgnorePatterns.Dirs {
 			*c.ignoredDirPatterns = append(*c.ignoredDirPatterns, filepath.Join(c.cleanWatchRoot, p))
 		}
-		for _, p := range c.devConfig.IgnorePatterns.Files {
+		for _, p := range c._current_parsed_dev_config.IgnorePatterns.Files {
 			*c.ignoredFilePatterns = append(*c.ignoredFilePatterns, filepath.Join(c.cleanWatchRoot, p))
 		}
 
 		// default watched files
-		c.defaultWatchedFile = &WatchedFile{}
+		c.defaultWFC = &WatchedFile{}
 		c.defaultWatchedFiles = &[]WatchedFile{
 			{Pattern: filepath.Join(c.cleanSources.PrivateStatic, "**/*"), RestartApp: true},
 			{Pattern: filepath.Join(c.cleanSources.PublicStatic, "**/*"), RestartApp: true},

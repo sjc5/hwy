@@ -2,6 +2,7 @@ package ki
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -23,22 +24,33 @@ const (
 	healthCheckWarning  = healthCheckWarningA + "\n" + healthCheckWarningB
 )
 
-func (c *Config) MustStartDev(devConfig *DevConfig) {
+func (c *Config) MustStartDev() {
 	enforceProperInstantiation(c)
 
-	// Short circuit if no dev config
-	if devConfig == nil {
-		errMsg := "error: no dev config found"
+	// read dev config
+	file, err := os.ReadFile(c.ConfigFile)
+	if err != nil {
+		errMsg := fmt.Sprintf("error: failed to read dev config file: %v", err)
 		c.Logger.Error(errMsg)
 		panic(errMsg)
 	}
 
-	c.devConfig = devConfig
-	c.cleanWatchRoot = filepath.Clean(c.devConfig.WatchRoot)
+	c._prior_dev_config_bytes = file
 
-	if len(c.devConfig.HealthcheckEndpoint) == 0 {
+	devConfig := &DevConfig{}
+	if err = json.Unmarshal(file, devConfig); err != nil {
+		errMsg := fmt.Sprintf("error: failed to unmarshal dev config: %v", err)
+		c.Logger.Error(errMsg)
+		panic(errMsg)
+	}
+
+	c._current_parsed_dev_config = devConfig
+
+	c.cleanWatchRoot = filepath.Clean(c._current_parsed_dev_config.WatchRoot)
+
+	if len(c._current_parsed_dev_config.HealthcheckEndpoint) == 0 {
 		c.Logger.Warn(healthCheckWarning)
-		c.devConfig.HealthcheckEndpoint = "/"
+		c._current_parsed_dev_config.HealthcheckEndpoint = "/"
 	}
 
 	SetModeToDev()
@@ -61,7 +73,7 @@ func (c *Config) MustStartDev(devConfig *DevConfig) {
 		panic(err)
 	}
 
-	err := c.Build(false, false)
+	err = c.Build(false, false)
 	if err != nil {
 		errMsg := fmt.Sprintf("error: failed to build app: %v", err)
 		c.Logger.Error(errMsg)
@@ -154,6 +166,15 @@ func (c *Config) mustHandleWatcherEmissions() {
 }
 
 func (c *Config) processBatchedEvents(events []fsnotify.Event) {
+	// Check if config file was modified
+	for _, evt := range events {
+		if filepath.Base(evt.Name) == filepath.Base(c.ConfigFile) &&
+			(evt.Has(fsnotify.Write) || evt.Has(fsnotify.Create)) {
+			c.reloadDevSetup(c.ConfigFile)
+			return // Stop processing other events
+		}
+	}
+
 	fileChanges := make(map[string]fsnotify.Event)
 	for _, evt := range events {
 		fileChanges[evt.Name] = evt
@@ -183,7 +204,8 @@ func (c *Config) processBatchedEvents(events []fsnotify.Event) {
 
 		wfc := evtDetails.wfc
 		if wfc == nil {
-			wfc = c.defaultWatchedFile
+			return
+			// wfc = c.defaultWFC
 		}
 
 		if _, alreadyHandled := wfcsAlreadyHandled[wfc.Pattern]; alreadyHandled {
@@ -283,8 +305,11 @@ func (c *Config) mustHandleFileChange(
 ) error {
 	wfc := evtDetails.wfc
 	if wfc == nil {
-		wfc = c.defaultWatchedFile
+		return nil
+		// wfc = c.defaultWFC
 	}
+
+	fmt.Println(wfc.OnChangeCallbacks)
 
 	if !c.ServerOnly && !wfc.SkipRebuildingNotification && !evtDetails.isKirunaCSS && !isPartOfBatch {
 		c.manager.broadcast <- refreshFilePayload{

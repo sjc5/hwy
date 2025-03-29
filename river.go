@@ -14,10 +14,9 @@ type (
 )
 
 var (
-	UIVariants                      = framework.UIVariants
-	GenerateTypeScript              = framework.GenerateTypeScript
-	GetIsJSONRequest                = framework.GetIsJSONRequest
-	RiverPathsStageOneJSONFileName  = framework.RiverPathsStageOneJSONFileName
-	RiverPathsStageTwoJSONFileName  = framework.RiverPathsStageTwoJSONFileName
-	RiverViteConfigHelperTSFileName = framework.RiverViteConfigHelperTSFileName
+	UIVariants                     = framework.UIVariants
+	GenerateTypeScript             = framework.GenerateTypeScript
+	GetIsJSONRequest               = framework.GetIsJSONRequest
+	RiverPathsStageOneJSONFileName = framework.RiverPathsStageOneJSONFileName
+	RiverPathsStageTwoJSONFileName = framework.RiverPathsStageTwoJSONFileName
 )
