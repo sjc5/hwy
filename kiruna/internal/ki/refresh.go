@@ -137,29 +137,32 @@ const refreshScriptFmt = `
 
 		if (changeType == "rebuilding") {
 			console.log("KIRUNA DEV: Rebuilding server...");
-			const el = document.createElement("div");
-			el.innerHTML = "Rebuilding...";
-			el.id = "kiruna-refreshscript-rebuilding";
-			el.style.display = "flex";
-			el.style.position = "fixed";
-			el.style.inset = "0";
-			el.style.width = "100%%";
-			el.style.backgroundColor = "#333a";
-			el.style.color = "white";
-			el.style.textAlign = "center";
-			el.style.padding = "10px";
-			el.style.zIndex = "1000";
-			el.style.fontSize = "7vw";
-			el.style.fontWeight = "bold";
-			el.style.textShadow = "2px 2px 2px #000";
-			el.style.justifyContent = "center";
-			el.style.alignItems = "center";
-			el.style.opacity = "0";
-			el.style.transition = "opacity 0.05s";
-			document.body.appendChild(el);
-			setTimeout(() => {
-				el.style.opacity = "1";
-			}, 10);
+			const currentEl = document.getElementById("kiruna-refreshscript-rebuilding");
+			if (!currentEl) {
+				const el = document.createElement("div");
+				el.innerHTML = "Rebuilding...";
+				el.id = "kiruna-refreshscript-rebuilding";
+				el.style.display = "flex";
+				el.style.position = "fixed";
+				el.style.inset = "0";
+				el.style.width = "100%%";
+				el.style.backgroundColor = "#333a";
+				el.style.color = "white";
+				el.style.textAlign = "center";
+				el.style.padding = "10px";
+				el.style.zIndex = "1000";
+				el.style.fontSize = "7vw";
+				el.style.fontWeight = "bold";
+				el.style.textShadow = "2px 2px 2px #000";
+				el.style.justifyContent = "center";
+				el.style.alignItems = "center";
+				el.style.opacity = "0";
+				el.style.transition = "opacity 0.05s";
+				document.body.appendChild(el);
+				setTimeout(() => {
+					el.style.opacity = "1";
+				}, 10);
+			}
 		}
 
 		if (changeType == "other") {

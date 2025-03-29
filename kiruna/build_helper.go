@@ -14,25 +14,27 @@ type BuildHelper struct {
 	DevConfig     *DevConfig // REQUIRED
 	FilesToVendor [][2]string
 	GenHook       func() error
-	BuildHook     func(isDev bool) error
+	BuildHook     func(isDev bool, isInit bool) error
 }
 
-func (inst *BuildHelper) Dev() {
+func (inst *BuildHelper) Dev(isInit bool) {
 	SetModeToDev()
-	inst.mustCommonBuild(true)
-	inst.Kiruna.MustStartDev(inst.DevConfig)
+	inst.mustCommonBuild(true, isInit)
+	if isInit {
+		inst.Kiruna.MustStartDev(inst.DevConfig)
+	}
 }
 
-func (inst *BuildHelper) ProdBuild() {
-	inst.mustCommonBuild(false)
+func (inst *BuildHelper) ProdBuild(isInit bool) {
+	inst.mustCommonBuild(false, isInit)
 
 	if err := inst.Kiruna.Build(); err != nil {
 		panic(fmt.Errorf("kiruna: buildhelper: ProdBuild: %w", err))
 	}
 }
 
-func (inst *BuildHelper) ProdBuildNonGo() {
-	inst.mustCommonBuild(false)
+func (inst *BuildHelper) ProdBuildNonGo(isInit bool) {
+	inst.mustCommonBuild(false, isInit)
 
 	if err := inst.Kiruna.BuildWithoutCompilingGo(); err != nil {
 		panic(fmt.Errorf("kiruna: buildhelper: ProdBuildNonGo: %w", err))
@@ -51,7 +53,7 @@ func (inst *BuildHelper) Gen(isDev bool) {
 	}
 }
 
-func (inst *BuildHelper) mustCommonBuild(isDev bool) {
+func (inst *BuildHelper) mustCommonBuild(isDev bool, isInit bool) {
 	if err := vendorFiles(inst.FilesToVendor); err != nil {
 		panic(fmt.Errorf("kiruna: buildhelper: mustCommonBuild: %w", err))
 	}
@@ -68,22 +70,30 @@ func (inst *BuildHelper) mustCommonBuild(isDev bool) {
 	}
 
 	if inst.BuildHook != nil {
-		if err := inst.BuildHook(isDev); err != nil {
+		if err := inst.BuildHook(isDev, isInit); err != nil {
 			panic(fmt.Errorf("kiruna: buildhelper: mustCommonBuild: %w", err))
 		}
 	}
 }
 
-// This should be used when you need to run the TS gen from
+// These should be used when you need to run tasks from
 // inside an OnChangeCallback in your Kiruna.DevConfig. Why
-// is this pattern necessary? Because TS is generated from
-// within the dev server, and the dev server is instantiated
-// only once, not every time you save a .go file. So, in
-// order for the types to actually be re-evaluated, we need
-// to run this file as a fresh script every time we save a
-// .go file.
-func TSGenOnChange(tasksPath string) error {
-	return executil.MakeCmdRunner("go", "run", tasksPath, "-gen")()
+// is this pattern necessary? Because the dev server is
+// instantiated only once, not every time you save a .go file.
+// So, in order for inputs to actually be re-evaluated, we need
+// to run these as fresh scripts according to the trigger in
+// your kiruna.DevConfig.
+func (k Kiruna) DevOnChange() error {
+	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-dev", "-onchange")()
+}
+func (k Kiruna) ProdBuildOnChange() error {
+	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-gen", "-onchange")()
+}
+func (k Kiruna) ProdBuildNonGoOnChange() error {
+	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-prod-build-non-go", "-onchange")()
+}
+func (k Kiruna) GenOnChange() error {
+	return executil.MakeCmdRunner("go", "run", k.c.TasksPath, "-gen", "-onchange")()
 }
 
 const (
@@ -91,6 +101,7 @@ const (
 	flagProdBuild      = "prod-build"
 	flagProdBuildNonGo = "prod-build-non-go"
 	flagGen            = "gen"
+	onChange           = "onchange"
 )
 
 func (inst *BuildHelper) Tasks() {
@@ -98,6 +109,7 @@ func (inst *BuildHelper) Tasks() {
 	buildFlag := flag.Bool(flagProdBuild, false, "Run ProdBuild() function")
 	buildWithoutGoFlag := flag.Bool(flagProdBuildNonGo, false, "Run ProdBuildNonGo() function")
 	genFlag := flag.Bool(flagGen, false, "Run Gen() function")
+	onChangeFlag := flag.Bool(onChange, false, "Signify that this is an onchange task")
 
 	flag.Parse()
 
@@ -124,14 +136,19 @@ func (inst *BuildHelper) Tasks() {
 		))
 	}
 
+	var isOnChange bool
+	if onChangeFlag != nil && *onChangeFlag {
+		isOnChange = true
+	}
+
 	// Run the appropriate function based on the flag
 	switch {
 	case *devFlag:
-		inst.Dev()
+		inst.Dev(!isOnChange)
 	case *buildFlag:
-		inst.ProdBuild()
+		inst.ProdBuild(!isOnChange)
 	case *buildWithoutGoFlag:
-		inst.ProdBuildNonGo()
+		inst.ProdBuildNonGo(!isOnChange)
 	case *genFlag:
 		inst.Gen(false)
 	}

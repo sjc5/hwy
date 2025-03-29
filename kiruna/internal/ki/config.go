@@ -50,6 +50,9 @@ type Config struct {
 	// Set this relative to the directory you're running commands from (e.g., "./main.css").
 	NormalCSSEntry string
 
+	// Set this relative to the directory you're running commands from (e.g., "./backend/cmd/tasks").
+	TasksPath string
+
 	Logger     *slog.Logger
 	ServerOnly bool // If true, skips static asset processing/serving and browser reloading.
 }
