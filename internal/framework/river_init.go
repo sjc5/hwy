@@ -68,12 +68,6 @@ func (h *River[C]) initInner(isDev bool) error {
 		return errors.New(errMsg)
 	}
 	h._privateFS = privateFS
-
-	fmt.Println("Private FS:", h._privateFS)
-
-	publicFS, _ := h.Kiruna.GetPublicFS()
-	fmt.Println("Public FS:", publicFS)
-
 	pathsFile, err := h.getBasePaths_StageOneOrTwo(isDev)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get base paths: %v", err)

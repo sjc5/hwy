@@ -449,8 +449,6 @@ func (c *Config) processFile(
 	oldFileMap *typed.SyncMap[string, fileVal],
 	distDir string,
 ) error {
-	fmt.Println(fi.path)
-
 	if err := c.fileSemaphore.Acquire(context.Background(), 1); err != nil {
 		return fmt.Errorf("error acquiring semaphore: %v", err)
 	}
@@ -479,6 +477,8 @@ func (c *Config) processFile(
 			return nil
 		}
 	}
+
+	// fmt.Println(fi.path)
 
 	var distPath string
 	if opts.writeWithHash {
