@@ -9,6 +9,9 @@ import (
 
 func MakeCmdRunner(commands ...string) func() error {
 	return func() error {
+		if len(commands) == 0 {
+			return fmt.Errorf("no commands provided")
+		}
 		cmd := exec.Command(commands[0], commands[1:]...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr

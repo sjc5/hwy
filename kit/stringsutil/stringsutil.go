@@ -34,6 +34,10 @@ func (b *Builder) Linef(format string, a ...any) *Builder {
 	return b.Writef(format, a...).Return()
 }
 
+func (b *Builder) Space() *Builder {
+	return b.Write(" ")
+}
+
 func (b *Builder) String() string {
 	return b.sb.String()
 }

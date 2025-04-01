@@ -17,7 +17,7 @@ const (
 	RiverSymbolStr = "__river_internal__"
 )
 
-var Log = colorlog.New("river", 9)
+var Log = colorlog.New("river")
 
 type RouteType = string
 
@@ -63,21 +63,13 @@ type RootTemplateData = map[string]any
 type River[C any] struct {
 	Kiruna *kiruna.Kiruna
 
-	PublicPrefix      string // e.g., "/public", "/static", "/assets", etc.
 	PublicURLFuncName string // e.g., "publicURL", "withHash", etc.
 	VitePluginOutpath string // e.g., "./frontend/gen/river.vite-plugin.ts"
 
-	RootTemplateLocation    string // Relative to the FS root
-	GetDefaultHeadBlocks    func(r *http.Request) ([]*htmlutil.Element, error)
-	GetRootTemplateData     func(r *http.Request) (RootTemplateData, error)
-	UIVariant               UIVariant
-	JSPackageManagerBaseCmd string // required -- e.g., "npx", "pnpm", "yarn", etc.
-
-	// optional -- used for monorepos that need to run commands from ancestor directories
-	JSPackageManagerCmdDir string
-
-	// optional
-	ViteConfigFile string
+	RootTemplateLocation string // Relative to the FS root
+	GetDefaultHeadBlocks func(r *http.Request) ([]*htmlutil.Element, error)
+	GetRootTemplateData  func(r *http.Request) (RootTemplateData, error)
+	UIVariant            UIVariant
 
 	// If set to true, UI route responses will automatically include a strong ETag
 	// (SHA-256 hash) derived from the applicable nested route data, and will

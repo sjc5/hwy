@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	defaultFreePort = 10_000
+	default_refresh_server_port = 10_000
 )
 
-func MustGetPort() int {
+func MustGetAppPort() int {
 	isDev := GetIsDev()
 	portHasBeenSet := getPortHasBeenSet()
 	defaultPort := getPort()

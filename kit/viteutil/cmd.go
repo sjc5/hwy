@@ -13,7 +13,7 @@ import (
 	"github.com/sjc5/river/kit/grace"
 )
 
-var Log = colorlog.New("viteutil", 9)
+var Log = colorlog.New("viteutil")
 
 type BuildCtx struct {
 	mu   *sync.Mutex
@@ -46,63 +46,85 @@ func NewBuildCtx(opts *BuildCtxOptions) *BuildCtx {
 	}
 }
 
-func (c *BuildCtx) Build(isDev bool) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
+type DevInfo struct {
+	Port int
+	PID  int
+}
 
-	splitCommand := strings.Fields(c.opts.JSPackageManagerBaseCmd)
+func (c *BuildCtx) prep_cmd() {
+	split_cmd := strings.Fields(c.opts.JSPackageManagerBaseCmd)
 
-	c.cmd = exec.Command(splitCommand[0], splitCommand[1:]...)
+	c.cmd = exec.Command(split_cmd[0], split_cmd[1:]...)
 	c.cmd.Stdout, c.cmd.Stderr = os.Stdout, os.Stderr
 
 	if c.opts.JSPackageManagerCmdDir != "" {
 		c.cmd.Dir = c.opts.JSPackageManagerCmdDir
 	}
+}
 
-	if isDev {
-		if c.cmd != nil && c.cmd.Process != nil {
-			if err := grace.TerminateProcess(c.cmd.Process, 3*time.Second, nil); err != nil {
-				Log.Warn(fmt.Sprintf("Error terminating vite process: %s", err))
-				return err
-			} else {
-				Log.Info("Terminated vite process", "pid", c.cmd.Process.Pid)
-			}
+func (c *BuildCtx) DevBuild() (*DevInfo, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.cmd != nil && c.cmd.Process != nil {
+		if err := grace.TerminateProcess(c.cmd.Process, 3*time.Second, nil); err != nil {
+			Log.Warn(fmt.Sprintf("Error terminating vite process: %s", err))
+			return nil, err
+		} else {
+			Log.Info("Terminated vite process", "pid", c.cmd.Process.Pid)
 		}
-
-		vitePort, err := InitPort(c.port)
-		if err != nil {
-			Log.Error(fmt.Sprintf("Error initializing vite port: %s", err))
-			return err
-		}
-
-		c.cmd.Args = append(c.cmd.Args, "vite",
-			"--port", fmt.Sprintf("%d", vitePort),
-			"--clearScreen", "false",
-			"--strictPort", "true",
-		)
-
-		if c.opts.ViteConfigFile != "" {
-			c.cmd.Args = append(c.cmd.Args, "--config", c.opts.ViteConfigFile)
-		}
-
-		Log.Info("Running vite (dev)",
-			"command", fmt.Sprintf(`"%s"`, strings.Join(c.cmd.Args, " ")),
-		)
-
-		go func() {
-			if err := c.cmd.Run(); err != nil {
-				Log.Error(fmt.Sprintf("Error running vite (dev): %s", err))
-			}
-		}()
-
-		return nil
 	}
+
+	c.prep_cmd()
+
+	vitePort, err := InitPort(c.port)
+	if err != nil {
+		Log.Error(fmt.Sprintf("Error initializing vite port: %s", err))
+		return nil, err
+	}
+
+	c.cmd.Args = append(c.cmd.Args, "vite",
+		"--port", fmt.Sprintf("%d", vitePort),
+		"--clearScreen", "false",
+		"--strictPort", "true",
+	)
+
+	if c.opts.ViteConfigFile != "" {
+		c.cmd.Args = append(c.cmd.Args, "--config", c.opts.ViteConfigFile)
+	}
+
+	Log.Info("Running vite (dev)",
+		"command", fmt.Sprintf(`"%s"`, strings.Join(c.cmd.Args, " ")),
+	)
+
+	if err := c.cmd.Start(); err != nil {
+		Log.Error(fmt.Sprintf("Error running vite (dev): %s", err))
+	}
+
+	go func() {
+		if err := c.cmd.Wait(); err != nil {
+			Log.Error(fmt.Sprintf("Error running vite (dev): %s", err))
+		}
+	}()
+
+	return &DevInfo{Port: vitePort, PID: c.cmd.Process.Pid}, nil
+}
+
+func (c *BuildCtx) ProdBuild() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.prep_cmd()
 
 	c.cmd.Args = append(c.cmd.Args, "vite", "build",
 		"--outDir", filepath.Join(".", c.opts.ManifestOutDir),
 		"--assetsDir", filepath.Join("."),
 		"--manifest",
 	)
+
+	if c.opts.ViteConfigFile != "" {
+		c.cmd.Args = append(c.cmd.Args, "--config", c.opts.ViteConfigFile)
+	}
 
 	Log.Info("Running vite build (prod)",
 		"command", fmt.Sprintf(`"%s"`, strings.Join(c.cmd.Args, " ")),

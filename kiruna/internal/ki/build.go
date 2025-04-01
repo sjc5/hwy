@@ -9,39 +9,29 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	esbuild "github.com/evanw/esbuild/pkg/api"
 	"github.com/sjc5/river/kit/errutil"
 	"github.com/sjc5/river/kit/esbuildutil"
+	"github.com/sjc5/river/kit/executil"
 	"github.com/sjc5/river/kit/fsutil"
 	"github.com/sjc5/river/kit/typed"
 	"golang.org/x/sync/errgroup"
-	"golang.org/x/sync/semaphore"
 )
 
 const PrehashedDirname = "prehashed"
 
 var noHashPublicDirsByVersion = map[uint8]string{0: "__nohash", 1: PrehashedDirname}
 
-func (c *Config) Build(recompileBinary bool, shouldBeGranular bool) error {
-	enforceProperInstantiation(c)
+type BuildOptions struct {
+	IsDev             bool
+	RecompileGoBinary bool
+	is_dev_rebuild    bool
+}
 
-	c.fileSemaphore = semaphore.NewWeighted(100)
-
-	if !shouldBeGranular {
-
-		// nuke the dist/kiruna directory
-		if err := os.RemoveAll(c.__dist.S().Kiruna.FullPath()); err != nil {
-			return fmt.Errorf("error removing dist/kiruna directory: %v", err)
-		}
-
-		// re-make required directories
-		if err := c.SetupDistDir(); err != nil {
-			return fmt.Errorf("error making requisite directories: %v", err)
-		}
-	}
-
-	if !c.ServerOnly {
+func (c *Config) do_build_time_file_processing(shouldBeGranular bool) error {
+	if c.is_using_browser() {
 		// Must be complete before BuildCSS in case the CSS references any public files
 		if err := c.handlePublicFiles(shouldBeGranular); err != nil {
 			return fmt.Errorf("error handling public files: %v", err)
@@ -58,12 +48,57 @@ func (c *Config) Build(recompileBinary bool, shouldBeGranular bool) error {
 			return err
 		}
 	}
+	return nil
+}
 
-	if recompileBinary {
-		if err := c.compileBinary(); err != nil {
+func (c *Config) Build(opts BuildOptions) error {
+	a := time.Now()
+	c.Logger.Info("Building...",
+		"recompile_go_binary", opts.RecompileGoBinary,
+		"is_dev_rebuild", opts.is_dev_rebuild,
+	)
+	defer func() {
+		c.Logger.Info("DONE building",
+			"duration", time.Since(a),
+			"recompile_go_binary", opts.RecompileGoBinary,
+			"is_dev_rebuild", opts.is_dev_rebuild,
+		)
+	}()
+
+	if !opts.is_dev_rebuild {
+		// nuke the dist/kiruna directory
+		if err := os.RemoveAll(c._dist.S().Kiruna.FullPath()); err != nil {
+			return fmt.Errorf("error removing dist/kiruna directory: %v", err)
+		}
+
+		// re-make required directories
+		if err := c.SetupDistDir(); err != nil {
+			return fmt.Errorf("error making requisite directories: %v", err)
+		}
+	}
+
+	c.do_build_time_file_processing(opts.is_dev_rebuild) // once before build hook
+
+	if opts.IsDev && c._uc.Core.DevBuildHook != "" {
+		if err := executil.RunCmd(strings.Fields(c._uc.Core.DevBuildHook)...); err != nil {
+			return fmt.Errorf("error running dev build command: %v", err)
+		}
+	}
+
+	if !opts.IsDev && c._uc.Core.ProdBuildHook != "" {
+		if err := executil.RunCmd(strings.Fields(c._uc.Core.ProdBuildHook)...); err != nil {
+			return fmt.Errorf("error running prod build command: %v", err)
+		}
+	}
+
+	c.do_build_time_file_processing(true) // and once again after
+
+	if opts.RecompileGoBinary {
+		if err := c.compile_go_binary(); err != nil {
 			return fmt.Errorf("error compiling binary: %v", err)
 		}
 	}
+
 	return nil
 }
 
@@ -195,9 +230,9 @@ func (c *Config) __processCSS(nature string) error {
 
 	switch nature {
 	case "critical":
-		outputPath = c.__dist.S().Kiruna.S().Internal.FullPath()
+		outputPath = c._dist.S().Kiruna.S().Internal.FullPath()
 	case "normal":
-		outputPath = c.__dist.S().Kiruna.S().Static.S().Public.FullPath()
+		outputPath = c._dist.S().Kiruna.S().Static.S().Public.FullPath()
 	}
 
 	outputFileName := nature + ".css" // Default for 'critical'
@@ -229,7 +264,7 @@ func (c *Config) __processCSS(nature string) error {
 
 	// If normal, also write to a file called normal_css_ref.txt with the hash
 	if nature == "normal" {
-		hashFile := c.__dist.S().Kiruna.S().Internal.S().NormalCSSFileRefDotTXT.FullPath()
+		hashFile := c._dist.S().Kiruna.S().Internal.S().NormalCSSFileRefDotTXT.FullPath()
 		if err := os.WriteFile(hashFile, []byte(outputFileName), 0644); err != nil {
 			return fmt.Errorf("error writing to file: %v", err)
 		}
@@ -239,22 +274,22 @@ func (c *Config) __processCSS(nature string) error {
 }
 
 type staticFileProcessorOpts struct {
-	basename         string
-	srcDir           string
-	distDir          string
-	mapName          string
-	shouldBeGranular bool
-	getIsNoHashDir   func(string) (bool, uint8)
-	writeWithHash    bool
+	basename       string
+	srcDir         string
+	distDir        string
+	mapName        string
+	is_dev_rebuild bool
+	getIsNoHashDir func(string) (bool, uint8)
+	writeWithHash  bool
 }
 
-func (c *Config) handlePublicFiles(shouldBeGranular bool) error {
+func (c *Config) handlePublicFiles(isDevRebuild bool) error {
 	return c.processStaticFiles(&staticFileProcessorOpts{
-		basename:         PUBLIC,
-		srcDir:           c.cleanSources.PublicStatic,
-		distDir:          c.__dist.S().Kiruna.S().Static.S().Public.FullPath(),
-		mapName:          PublicFileMapGobName,
-		shouldBeGranular: shouldBeGranular,
+		basename:       PUBLIC,
+		srcDir:         c.cleanSources.PublicStatic,
+		distDir:        c._dist.S().Kiruna.S().Static.S().Public.FullPath(),
+		mapName:        PublicFileMapGobName,
+		is_dev_rebuild: isDevRebuild,
 		getIsNoHashDir: func(path string) (bool, uint8) {
 			if strings.HasPrefix(path, noHashPublicDirsByVersion[1]) {
 				return true, 1
@@ -268,13 +303,13 @@ func (c *Config) handlePublicFiles(shouldBeGranular bool) error {
 	})
 }
 
-func (c *Config) copyPrivateFiles(shouldBeGranular bool) error {
+func (c *Config) copyPrivateFiles(is_dev_rebuild bool) error {
 	return c.processStaticFiles(&staticFileProcessorOpts{
-		basename:         PRIVATE,
-		srcDir:           c.cleanSources.PrivateStatic,
-		distDir:          c.__dist.S().Kiruna.S().Static.S().Private.FullPath(),
-		mapName:          PrivateFileMapGobName,
-		shouldBeGranular: shouldBeGranular,
+		basename:       PRIVATE,
+		srcDir:         c.cleanSources.PrivateStatic,
+		distDir:        c._dist.S().Kiruna.S().Static.S().Private.FullPath(),
+		mapName:        PrivateFileMapGobName,
+		is_dev_rebuild: is_dev_rebuild,
 		getIsNoHashDir: func(path string) (bool, uint8) {
 			return false, 0
 		},
@@ -302,7 +337,7 @@ func (c *Config) processStaticFiles(opts *staticFileProcessorOpts) error {
 	oldFileMap := typed.SyncMap[string, fileVal]{}
 
 	// Load old file map if granular updates are enabled
-	if opts.shouldBeGranular {
+	if opts.is_dev_rebuild {
 		var err error
 		oldMap, err := c.loadMapFromGob(opts.mapName, true)
 		if err != nil {
@@ -371,7 +406,7 @@ func (c *Config) processStaticFiles(opts *staticFileProcessorOpts) error {
 	}
 
 	// Cleanup old moot files if granular updates are enabled
-	if opts.shouldBeGranular {
+	if opts.is_dev_rebuild {
 		var oldMapErr error
 		oldFileMap.Range(func(k string, v fileVal) bool {
 			if newHash, exists := newFileMap.Load(k); !exists || newHash != v {
@@ -392,13 +427,13 @@ func (c *Config) processStaticFiles(opts *staticFileProcessorOpts) error {
 	}
 
 	// Save the updated file map
-	err := c.saveMapToGob(toStdMap(&newFileMap), opts.mapName)
+	err := c.saveMapToGob(to_std_map(&newFileMap), opts.mapName)
 	if err != nil {
 		return fmt.Errorf("error saving file map: %v", err)
 	}
 
 	if opts.basename == PUBLIC {
-		err = c.savePublicFileMapJSToInternalPublicDir(toStdMap(&newFileMap))
+		err = c.savePublicFileMapJSToInternalPublicDir(to_std_map(&newFileMap))
 		if err != nil {
 			return fmt.Errorf("error saving public file map JSON: %v", err)
 		}
@@ -414,6 +449,8 @@ func (c *Config) processFile(
 	oldFileMap *typed.SyncMap[string, fileVal],
 	distDir string,
 ) error {
+	fmt.Println(fi.path)
+
 	if err := c.fileSemaphore.Acquire(context.Background(), 1); err != nil {
 		return fmt.Errorf("error acquiring semaphore: %v", err)
 	}
@@ -437,7 +474,7 @@ func (c *Config) processFile(
 	newFileMap.Store(fi.relativePath, fileIdentifier)
 
 	// Skip unchanged files if granular updates are enabled
-	if opts.shouldBeGranular {
+	if opts.is_dev_rebuild {
 		if oldHash, exists := oldFileMap.Load(fi.relativePath); exists && oldHash == fileIdentifier {
 			return nil
 		}
@@ -463,7 +500,7 @@ func (c *Config) processFile(
 	return nil
 }
 
-func toStdMap(sm *typed.SyncMap[string, fileVal]) map[string]fileVal {
+func to_std_map(sm *typed.SyncMap[string, fileVal]) map[string]fileVal {
 	m := make(map[string]fileVal)
 	sm.Range(func(k string, v fileVal) bool {
 		m[k] = v

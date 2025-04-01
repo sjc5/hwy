@@ -10,6 +10,8 @@ import (
 	"github.com/sjc5/river/kit/mux"
 )
 
+// __TODO pull the "/public/" from the kiruna instance instead
+
 type SSRInnerHTMLInput struct {
 	RiverSymbolStr      string
 	IsDev               bool

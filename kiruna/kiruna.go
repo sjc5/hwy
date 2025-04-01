@@ -6,19 +6,14 @@ import (
 	"net/http"
 
 	"github.com/sjc5/river/kiruna/internal/ki"
-	"github.com/sjc5/river/kit/colorlog"
 )
 
 type (
-	Kiruna         struct{ c *Config }
-	Config         = ki.Config
-	DevConfig      = ki.DevConfig
-	FileMap        = ki.FileMap
-	WatchedFile    = ki.WatchedFile
-	WatchedFiles   = ki.WatchedFiles
-	OnChange       = ki.OnChange
-	OnChangeFunc   = ki.OnChangeFunc
-	IgnorePatterns = ki.IgnorePatterns
+	Kiruna      struct{ c *Config }
+	Config      = ki.Config
+	FileMap     = ki.FileMap
+	WatchedFile = ki.WatchedFile
+	OnChangeCmd = ki.OnChangeHook
 )
 
 const (
@@ -30,18 +25,13 @@ const (
 )
 
 var (
-	MustGetPort  = ki.MustGetPort
+	MustGetPort  = ki.MustGetAppPort
 	GetIsDev     = ki.GetIsDev
 	SetModeToDev = ki.SetModeToDev
 )
 
 func New(c *ki.Config) *Kiruna {
-	if c.Logger == nil {
-		c.Logger = colorlog.New("kiruna", 9)
-
-	}
-	c.Private_CommonInitOnce_OnlyCallInNewFunc()
-	c.Private_RuntimeInitOnce_OnlyCallInNewFunc()
+	c.MainInit(ki.MainInitOptions{}, "kiruna.New")
 	return &Kiruna{c}
 }
 
@@ -50,10 +40,10 @@ func New(c *ki.Config) *Kiruna {
 // and then you can control your build yourself afterwards.
 
 func (k Kiruna) Build() error {
-	return k.c.Build(true, false)
+	return k.c.Build(ki.BuildOptions{RecompileGoBinary: true})
 }
 func (k Kiruna) BuildWithoutCompilingGo() error {
-	return k.c.Build(false, false)
+	return k.c.Build(ki.BuildOptions{})
 }
 
 func (k Kiruna) GetPublicFS() (fs.FS, error) {
@@ -115,11 +105,11 @@ func (k Kiruna) GetCriticalCSSStyleElementSha256Hash() string {
 func (k Kiruna) GetStyleSheetLinkElement() template.HTML {
 	return k.c.GetStyleSheetLinkElement()
 }
-func (k Kiruna) GetServeStaticHandler(pathPrefix string, addImmutableCacheHeaders bool) (http.Handler, error) {
-	return k.c.GetServeStaticHandler(pathPrefix, addImmutableCacheHeaders)
+func (k Kiruna) GetServeStaticHandler(addImmutableCacheHeaders bool) (http.Handler, error) {
+	return k.c.GetServeStaticHandler(addImmutableCacheHeaders)
 }
-func (k Kiruna) MustGetServeStaticHandler(pathPrefix string, addImmutableCacheHeaders bool) http.Handler {
-	handler, err := k.c.GetServeStaticHandler(pathPrefix, addImmutableCacheHeaders)
+func (k Kiruna) MustGetServeStaticHandler(addImmutableCacheHeaders bool) http.Handler {
+	handler, err := k.c.GetServeStaticHandler(addImmutableCacheHeaders)
 	if err != nil {
 		panic(err)
 	}
@@ -147,8 +137,14 @@ func (k Kiruna) GetSimplePublicFileMapBuildtime() (map[string]string, error) {
 	return k.c.GetSimplePublicFileMapBuildtime()
 }
 func (k Kiruna) GetPrivateStaticDir() string {
-	return k.c.PrivateStaticDir
+	return k.c.GetPrivateStaticDir()
 }
 func (k Kiruna) GetPublicStaticDir() string {
-	return k.c.PublicStaticDir
+	return k.c.GetPublicStaticDir()
+}
+func (k Kiruna) GetPublicPathPrefix() string {
+	return k.c.GetPublicPathPrefix()
+}
+func (k Kiruna) ViteProdBuild() error {
+	return k.c.ViteProdBuild()
 }

@@ -15,7 +15,7 @@ type fileVal struct {
 
 type FileMap map[string]fileVal
 
-func (c *Config) GetServeStaticHandler(pathPrefix string, addImmutableCacheHeaders bool) (http.Handler, error) {
+func (c *Config) GetServeStaticHandler(addImmutableCacheHeaders bool) (http.Handler, error) {
 	publicFS, err := c.GetPublicFS()
 	if err != nil {
 		errMsg := fmt.Sprintf("error getting public FS: %v", err)
@@ -25,10 +25,10 @@ func (c *Config) GetServeStaticHandler(pathPrefix string, addImmutableCacheHeade
 	if addImmutableCacheHeaders {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-			http.StripPrefix(pathPrefix, http.FileServer(http.FS(publicFS))).ServeHTTP(w, r)
+			http.StripPrefix(c.GetPublicPathPrefix(), http.FileServer(http.FS(publicFS))).ServeHTTP(w, r)
 		}), nil
 	}
-	return http.StripPrefix(pathPrefix, http.FileServer(http.FS(publicFS))), nil
+	return http.StripPrefix(c.GetPublicPathPrefix(), http.FileServer(http.FS(publicFS))), nil
 }
 
 func (c *Config) getInitialPublicFileMapFromGobBuildtime() (FileMap, error) {
@@ -60,7 +60,7 @@ func (c *Config) MustGetPublicURLBuildtime(originalPublicURL string) string {
 }
 
 func (c *Config) getInitialPublicURL(originalPublicURL string) (string, error) {
-	fileMapFromGob, err := c.runtimeCache.publicFileMapFromGob.Get()
+	fileMapFromGob, err := c.runtime_cache.public_filemap_from_gob.Get()
 	if err != nil {
 		c.Logger.Error(fmt.Sprintf(
 			"error getting public file map from gob for originalPublicURL %s: %v", originalPublicURL, err,
@@ -92,7 +92,7 @@ func (c *Config) getInitialPublicURLInner(originalPublicURL string, fileMapFromG
 func publicURLsKeyMaker(x string) string { return x }
 
 func (c *Config) GetPublicURL(originalPublicURL string) string {
-	url, _ := c.runtimeCache.publicURLs.Get(originalPublicURL)
+	url, _ := c.runtime_cache.public_urls.Get(originalPublicURL)
 	return url
 }
 

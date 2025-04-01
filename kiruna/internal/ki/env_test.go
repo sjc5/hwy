@@ -51,7 +51,7 @@ func TestPortFunctions(t *testing.T) {
 func TestRefreshServerPort(t *testing.T) {
 	resetEnv()
 
-	setRefreshServerPort(3000)
+	set_refresh_server_port(3000)
 	if got := getRefreshServerPort(); got != 3000 {
 		t.Errorf("getRefreshServerPort() = %v, want %v", got, 3000)
 	}

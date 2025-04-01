@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/sjc5/river/kit/bytesutil"
@@ -33,7 +32,6 @@ type refreshFilePayload struct {
 	ChangeType   changeType `json:"changeType"`
 	CriticalCSS  Base64     `json:"criticalCSS"`
 	NormalCSSURL string     `json:"normalCSSURL"`
-	At           time.Time  `json:"at"`
 }
 
 type changeType string
@@ -79,16 +77,6 @@ func (manager *clientManager) start() {
 	}
 }
 
-func (c *Config) mustReloadBroadcast(rfp refreshFilePayload) {
-	if c.waitForAppReadiness() {
-		c.manager.broadcast <- rfp
-		return
-	}
-	errMsg := fmt.Sprintf("error: app never became ready: %v", rfp.ChangeType)
-	c.Logger.Error(errMsg)
-	panic(errMsg)
-}
-
 func (c *Config) GetRefreshScriptSha256Hash() string {
 	if !GetIsDev() {
 		return ""
@@ -119,6 +107,10 @@ const refreshScriptFmt = `
 		const bytes = Uint8Array.from(atob(base64), (m) => m.codePointAt(0) || 0);
 		return new TextDecoder().decode(bytes);
 	}
+	
+	function getCurrentEl() {
+		return document.getElementById("kiruna-refreshscript-rebuilding");
+	}
 
 	const scrollYKey = "__kiruna_internal__devScrollY";
 	const scrollY = localStorage.getItem(scrollYKey);
@@ -133,11 +125,11 @@ const refreshScriptFmt = `
 	const ws = new WebSocket("ws://localhost:%d/events");
 
 	ws.onmessage = (e) => {
-		const { changeType, criticalCSS, normalCSSURL, at } = JSON.parse(e.data);
+		const { changeType, criticalCSS, normalCSSURL } = JSON.parse(e.data);
 
 		if (changeType == "rebuilding") {
 			console.log("KIRUNA DEV: Rebuilding server...");
-			const currentEl = document.getElementById("kiruna-refreshscript-rebuilding");
+			const currentEl = getCurrentEl();
 			if (!currentEl) {
 				const el = document.createElement("div");
 				el.innerHTML = "Rebuilding...";
@@ -193,15 +185,15 @@ const refreshScriptFmt = `
 			
 		if (changeType == "revalidate") {
 			console.log("KIRUNA DEV: Revalidating...");
-			const el = document.getElementById("kiruna-refreshscript-rebuilding");
+			const el = getCurrentEl();
 			if ("__kirunaRevalidate" in window) {
 				__kirunaRevalidate().then(() => {
 					console.log("KIRUNA DEV: Revalidated");
-					if (el) el.remove();
+					el?.remove();
 				});
 			} else {
 				console.error("No __kirunaRevalidate() found");
-				if (el) el.remove();
+				el?.remove();
 			}
 		}
 	};

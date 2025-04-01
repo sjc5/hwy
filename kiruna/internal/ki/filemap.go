@@ -27,7 +27,7 @@ func (c *Config) loadMapFromGob(gobFileName string, isBuildTime bool) (FileMap, 
 		return nil, fmt.Errorf("error getting FS: %v", err)
 	}
 
-	distKirunaInternal := c.__dist.S().Kiruna.S().Internal
+	distKirunaInternal := c._dist.S().Kiruna.S().Internal
 
 	// __LOCATION_ASSUMPTION: Inside "dist/kiruna"
 	file, err := appropriateFS.Open(filepath.Join(distKirunaInternal.LastSegment(), gobFileName))
@@ -47,13 +47,13 @@ func (c *Config) loadMapFromGob(gobFileName string, isBuildTime bool) (FileMap, 
 
 func (c *Config) getAppropriateFSMaybeBuildTime(isBuildTime bool) (fs.FS, error) {
 	if isBuildTime {
-		return c.runtimeCache.baseDirFS.Get()
+		return c.runtime_cache.base_dir_fs.Get()
 	}
 	return c.GetBaseFS()
 }
 
 func (c *Config) saveMapToGob(mapToSave FileMap, dest string) error {
-	file, err := os.Create(filepath.Join(c.__dist.S().Kiruna.S().Internal.FullPath(), dest))
+	file, err := os.Create(filepath.Join(c._dist.S().Kiruna.S().Internal.FullPath(), dest))
 	if err != nil {
 		return fmt.Errorf("error creating file: %v", err)
 	}
@@ -77,13 +77,13 @@ func (c *Config) savePublicFileMapJSToInternalPublicDir(mapToSave FileMap) error
 
 	hashedFilename := getHashedFilenameFromBytes(bytes, PublicFileMapJSName)
 
-	hashedFileRefPath := c.__dist.S().Kiruna.S().Internal.S().PublicFileMapFileRefDotTXT.FullPath()
+	hashedFileRefPath := c._dist.S().Kiruna.S().Internal.S().PublicFileMapFileRefDotTXT.FullPath()
 	if err := os.WriteFile(hashedFileRefPath, []byte(hashedFilename), 0644); err != nil {
 		return fmt.Errorf("error writing to file: %v", err)
 	}
 
 	return os.WriteFile(filepath.Join(
-		c.__dist.S().Kiruna.S().Static.S().Public.S().PublicInternal.FullPath(),
+		c._dist.S().Kiruna.S().Static.S().Public.S().PublicInternal.FullPath(),
 		hashedFilename,
 	), bytes, 0644)
 }
@@ -145,7 +145,7 @@ func (c *Config) getInitialPublicFileMapURL() (string, error) {
 		return "", err
 	}
 
-	distKirunaInternal := c.__dist.S().Kiruna.S().Internal
+	distKirunaInternal := c._dist.S().Kiruna.S().Internal
 
 	// __LOCATION_ASSUMPTION: Inside "dist/kiruna"
 	content, err := fs.ReadFile(baseFS,
@@ -160,24 +160,24 @@ func (c *Config) getInitialPublicFileMapURL() (string, error) {
 
 	return "/" + filepath.Join(
 		PUBLIC,
-		c.__dist.S().Kiruna.S().Static.S().Public.S().PublicInternal.LastSegment(),
+		c._dist.S().Kiruna.S().Static.S().Public.S().PublicInternal.LastSegment(),
 		string(content),
 	), nil
 }
 
 func (c *Config) GetPublicFileMapURL() string {
-	url, _ := c.runtimeCache.publicFileMapURL.Get()
+	url, _ := c.runtime_cache.public_filemap_url.Get()
 	return url
 }
 func (c *Config) GetPublicFileMap() (FileMap, error) {
-	return c.runtimeCache.publicFileMapFromGob.Get()
+	return c.runtime_cache.public_filemap_from_gob.Get()
 }
 func (c *Config) GetPublicFileMapElements() template.HTML {
-	details, _ := c.runtimeCache.publicFileMapDetails.Get()
+	details, _ := c.runtime_cache.public_filemap_details.Get()
 	return details.Elements
 }
 func (c *Config) GetPublicFileMapScriptSha256Hash() string {
-	details, _ := c.runtimeCache.publicFileMapDetails.Get()
+	details, _ := c.runtime_cache.public_filemap_details.Get()
 	return details.Sha256Hash
 }
 

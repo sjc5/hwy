@@ -16,14 +16,11 @@ type debouncer struct {
 	callback func(events []fsnotify.Event)
 }
 
-func newDebouncer(duration time.Duration, callback func(events []fsnotify.Event)) *debouncer {
-	return &debouncer{
-		duration: duration,
-		callback: callback,
-	}
+func new_debouncer(duration time.Duration, callback func(events []fsnotify.Event)) *debouncer {
+	return &debouncer{duration: duration, callback: callback}
 }
 
-func (d *debouncer) addEvent(event fsnotify.Event) {
+func (d *debouncer) add_evt(event fsnotify.Event) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 

@@ -10,12 +10,8 @@ const (
 )
 
 type Dist struct {
-	Bin    *dirs.Dir[DistBin]
+	Binary *dirs.File
 	Kiruna *dirs.Dir[DistKiruna]
-}
-
-type DistBin struct {
-	Main *dirs.File
 }
 
 type DistKiruna struct {
@@ -41,9 +37,7 @@ type DistKirunaInternal struct {
 
 func toDistLayout(cleanDistDir string) *dirs.Dir[Dist] {
 	x := dirs.Build(cleanDistDir, dirs.ToRoot(Dist{
-		Bin: dirs.ToDir("bin", DistBin{
-			Main: dirs.ToFile("main"),
-		}),
+		Binary: dirs.ToFile("main"),
 		Kiruna: dirs.ToDir("kiruna", DistKiruna{
 			Static: dirs.ToDir("static", DistKirunaStatic{
 				Public: dirs.ToDir(PUBLIC, DistKirunaStaticPublic{

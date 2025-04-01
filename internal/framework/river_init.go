@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io/fs"
 
 	"github.com/sjc5/river/kit/mux"
 )
@@ -42,6 +43,20 @@ func (h *River[C]) validateAndDecorateNestedRouter(nestedRouter *mux.NestedRoute
 	}
 }
 
+func PrettyPrintFS(fsys fs.FS) error {
+	return fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			fmt.Println(path)
+		} else {
+			fmt.Printf("%s (%s)\n", path, d.Type())
+		}
+		return nil
+	})
+}
+
 func (h *River[C]) initInner(isDev bool) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -53,6 +68,12 @@ func (h *River[C]) initInner(isDev bool) error {
 		return errors.New(errMsg)
 	}
 	h._privateFS = privateFS
+
+	fmt.Println("Private FS:", h._privateFS)
+
+	publicFS, _ := h.Kiruna.GetPublicFS()
+	fmt.Println("Public FS:", publicFS)
+
 	pathsFile, err := h.getBasePaths_StageOneOrTwo(isDev)
 	if err != nil {
 		errMsg := fmt.Sprintf("could not get base paths: %v", err)

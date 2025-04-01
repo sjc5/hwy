@@ -137,7 +137,7 @@ func (h *River[C]) toRollupOptions(entrypoints []string, fileMap map[string]stri
 		h.PublicURLFuncName,
 	))
 
-	publicPrefixToUse := filepath.Clean(h.PublicPrefix)
+	publicPrefixToUse := filepath.Clean(h.Kiruna.GetPublicPathPrefix())
 	publicPrefixToUse = matcher.StripLeadingSlash(publicPrefixToUse)
 	publicPrefixToUse = matcher.StripTrailingSlash(publicPrefixToUse)
 	tick := "`"
@@ -207,8 +207,16 @@ func (h *River[C]) Build(opts *BuildOptions) error {
 		Log.Error(fmt.Sprintf("error generating random ID: %s", err))
 		return err
 	}
-	Log.Info("Starting new River build", "buildID", buildID)
 	h._buildID = buildID
+
+	a := time.Now()
+	Log.Info("Building...", "buildID", h._buildID)
+	defer func() {
+		Log.Info("DONE building",
+			"buildID", h._buildID,
+			"duration", time.Since(a),
+		)
+	}()
 
 	esbuildResult := esbuild.Build(esbuild.BuildOptions{
 		EntryPoints: []string{h.ClientRoutesFile},
@@ -302,7 +310,6 @@ const routes = RoutesBuilder();
 	}
 
 	Log.Info("Interpreted TypeScript route definitions",
-		"src", h.ClientRoutesFile,
 		"found", len(nodeScriptResult),
 		"duration", time.Since(startTime),
 	)
@@ -339,6 +346,18 @@ const routes = RoutesBuilder();
 	if err = h.handleViteConfigHelper(tsgenOutput); err != nil {
 		// already logged internally in handleViteConfigHelper
 		return err
+	}
+
+	if !h._isDev {
+		if err := h.Kiruna.ViteProdBuild(); err != nil {
+			Log.Error(fmt.Sprintf("error running vite prod build: %s", err))
+			return err
+		}
+
+		if err := h.PostViteProdBuild(); err != nil {
+			Log.Error(fmt.Sprintf("error running post vite prod build: %s", err))
+			return err
+		}
 	}
 
 	return nil
@@ -438,6 +457,8 @@ func (h *River[C]) toPathsFile_StageTwo() (*PathsFile, error) {
 		return nil, err
 	}
 
+	cleanClientEntry := filepath.Clean(h.ClientEntry)
+
 	// Assuming manifestJSON is your Vite manifest
 	for key, chunk := range viteManifest {
 		cleanKey := filepath.Base(chunk.File)
@@ -454,7 +475,7 @@ func (h *River[C]) toPathsFile_StageTwo() (*PathsFile, error) {
 		deps := viteutil.FindAllDependencies(viteManifest, key)
 
 		// Handle client entry
-		if chunk.IsEntry && h.ClientEntry == chunk.Src {
+		if chunk.IsEntry && cleanClientEntry == chunk.Src {
 			riverClientEntry = cleanKey
 			depsWithoutClientEntry := make([]string, 0, len(deps)-1)
 			for _, dep := range deps {

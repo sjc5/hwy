@@ -134,13 +134,13 @@ func TestGetIsUsingEmbeddedFS(t *testing.T) {
 	defer teardownTestEnv(t)
 
 	// Test when DistFS is set (default in setupTestEnv)
-	if !env.config.getIsUsingEmbeddedFS() {
+	if !env.config.get_is_using_embedded_fs() {
 		t.Errorf("getIsUsingEmbeddedFS() = false, want true when DistFS is set")
 	}
 
 	// Test when DistFS is nil
 	env.config.DistFS = nil
-	if env.config.getIsUsingEmbeddedFS() {
+	if env.config.get_is_using_embedded_fs() {
 		t.Errorf("getIsUsingEmbeddedFS() = true, want false when DistFS is nil")
 	}
 }

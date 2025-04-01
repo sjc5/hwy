@@ -6,7 +6,6 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"strings"
 )
 
 const (
@@ -16,6 +15,7 @@ const (
 	colorYellow = "\033[33m" // Yellow
 	colorRed    = "\033[31m" // Red
 	colorCyan   = "\033[36m" // Cyan
+	colorBlue   = "\033[34m" // Blue
 )
 
 type ColorLogHandler struct {
@@ -23,19 +23,9 @@ type ColorLogHandler struct {
 	output io.Writer
 }
 
-func New(label string, padRightToLen ...int) *slog.Logger {
-	if len(padRightToLen) > 0 {
-		label = padStrRight(label, padRightToLen[0])
-	}
+func New(label string) *slog.Logger {
 	handler := &ColorLogHandler{label: label, output: os.Stdout}
 	return slog.New(handler)
-}
-
-func padStrRight(s string, width int) string {
-	if len(s) > width {
-		return s
-	}
-	return s + strings.Repeat(" ", width-len(s))
 }
 
 func (h *ColorLogHandler) Enabled(_ context.Context, level slog.Level) bool {
@@ -74,9 +64,9 @@ func (h *ColorLogHandler) Handle(_ context.Context, r slog.Record) error {
 	// Format the message with attributes
 	var msg string
 	if !hasAttrs {
-		msg = fmt.Sprintf("%s  %s  %s\n", finalTime, h.label, finalMessage)
+		msg = fmt.Sprintf("%s  (%s)  %s\n", finalTime, wrapInColor(colorBlue, h.label), finalMessage)
 	} else {
-		msg = fmt.Sprintf("%s  %s  %s  %s\n", finalTime, h.label, finalMessage, attrsStr)
+		msg = fmt.Sprintf("%s  (%s)  %s  %s\n", finalTime, wrapInColor(colorBlue, h.label), finalMessage, attrsStr)
 	}
 
 	_, err := fmt.Fprint(h.output, msg)

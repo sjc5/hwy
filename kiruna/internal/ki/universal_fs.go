@@ -10,12 +10,12 @@ import (
 	"github.com/sjc5/river/kit/executil"
 )
 
-func (c *Config) getIsUsingEmbeddedFS() bool {
+func (c *Config) get_is_using_embedded_fs() bool {
 	return c.DistFS != nil
 }
 
-func (c *Config) getInitialBaseDirFS() (fs.FS, error) {
-	return os.DirFS(c.__dist.S().Kiruna.FullPath()), nil
+func (c *Config) get_initial_base_dir_fs() (fs.FS, error) {
+	return os.DirFS(c._dist.S().Kiruna.FullPath()), nil
 }
 
 func (c *Config) getSubFSPrivate() (fs.FS, error) { return c.__getSubFS(PRIVATE) }
@@ -24,7 +24,7 @@ func (c *Config) getSubFSPublic() (fs.FS, error)  { return c.__getSubFS(PUBLIC) 
 // subDir = "public" or "private"
 func (c *Config) __getSubFS(subDir string) (fs.FS, error) {
 	// __LOCATION_ASSUMPTION: Inside "dist/kiruna"
-	path := filepath.Join(c.__dist.S().Kiruna.S().Static.LastSegment(), subDir)
+	path := filepath.Join(c._dist.S().Kiruna.S().Static.LastSegment(), subDir)
 
 	baseFS, err := c.GetBaseFS()
 	if err != nil {
@@ -42,44 +42,50 @@ func (c *Config) __getSubFS(subDir string) (fs.FS, error) {
 }
 
 func (c *Config) GetPublicFS() (fs.FS, error) {
-	return c.runtimeCache.publicFS.Get()
+	return c.runtime_cache.public_fs.Get()
 }
 
 func (c *Config) GetPrivateFS() (fs.FS, error) {
-	return c.runtimeCache.privateFS.Get()
+	return c.runtime_cache.private_fs.Get()
 }
 
 // GetBaseFS returns a filesystem interface that works across different environments (dev/prod)
 // and supports both embedded and non-embedded filesystems.
 func (c *Config) GetBaseFS() (fs.FS, error) {
-	return c.runtimeCache.baseFS.Get()
+	return c.runtime_cache.base_fs.Get()
 }
 
-func (c *Config) getInitialBaseFS() (fs.FS, error) {
-	useVerboseLogs := getUseVerboseLogs()
-
+func (c *Config) get_initial_base_fs() (fs.FS, error) {
 	// DEV
 	// There is an expectation that you run the dev server from the root of your project,
 	// where your go.mod file is.
 	if GetIsDev() {
-		if useVerboseLogs {
-			c.Logger.Info("using disk filesystem (dev)")
-		}
+		c.Logger.Info("using dev filesystem")
 
-		return os.DirFS(c.__dist.S().Kiruna.FullPath()), nil
+		return os.DirFS(c._dist.S().Kiruna.FullPath()), nil
 	}
 
 	// If we are using the embedded file system, we should use the dist file system
-	if c.getIsUsingEmbeddedFS() {
-		if useVerboseLogs {
-			c.Logger.Info("using embedded filesystem (prod)")
+	if c.get_is_using_embedded_fs() {
+		c.Logger.Info("using embedded filesystem (prod)")
+
+		directive := c.EmbedDirective
+
+		if directive == "" {
+			c.Logger.Warn("no embed directive set in Kiruna.New -- assuming 'kiruna'")
+			directive = c._dist.S().Kiruna.LastSegment()
+		}
+
+		// if first 4 are "all:", strip
+		if len(directive) > 4 && directive[:4] == "all:" {
+			directive = directive[4:]
 		}
 
 		// Assuming the embed directive looks like this:
 		// //go:embed kiruna
 		// That means that the kiruna folder itself (not just its contents) is embedded.
 		// So we have to drop down into the kiruna folder here.
-		embeddedFS, err := fs.Sub(c.DistFS, c.__dist.S().Kiruna.LastSegment())
+		embeddedFS, err := fs.Sub(c.DistFS, directive)
 		if err != nil {
 			return nil, err
 		}
@@ -87,9 +93,7 @@ func (c *Config) getInitialBaseFS() (fs.FS, error) {
 		return embeddedFS, nil
 	}
 
-	if useVerboseLogs {
-		c.Logger.Info("using disk filesystem (prod)")
-	}
+	c.Logger.Info("using os filesystem (prod)")
 
 	// If we are not using the embedded file system, we should use the os file system,
 	// and assume that the executable is a sibling to the kiruna-outputted "kiruna" directory
@@ -98,5 +102,5 @@ func (c *Config) getInitialBaseFS() (fs.FS, error) {
 		return nil, err
 	}
 
-	return os.DirFS(execDir), nil
+	return os.DirFS(filepath.Join(execDir, c._dist.S().Kiruna.LastSegment())), nil
 }

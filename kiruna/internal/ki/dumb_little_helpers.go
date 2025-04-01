@@ -1,0 +1,219 @@
+package ki
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
+	"time"
+
+	"github.com/sjc5/river/kit/grace"
+)
+
+/////////////////////////////////////////////////////////////////////
+/////// PANIC
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) panic(msg string, err error) {
+	errMsg := fmt.Sprintf("error: %s: %v", msg, err)
+	c.Logger.Error(errMsg)
+	panic(err)
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// IS USING BROWSER
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) is_using_browser() bool {
+	return !c._uc.Core.ServerOnlyMode
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// SETUP BROWSER REFRESH MUX
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) setup_browser_refresh_mux() {
+	c.Logger.Info("Initializing sidecar refresh server", "port", getRefreshServerPort())
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		websocketHandler(c.browserTabManager)(w, r)
+	})
+
+	mux.HandleFunc("/get-refresh-script-inner", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "text/javascript")
+		w.Write([]byte(GetRefreshScriptInner(getRefreshServerPort())))
+	})
+
+	server := &http.Server{Addr: ":" + strconv.Itoa(getRefreshServerPort()), Handler: mux}
+
+	shutdownComplete := make(chan struct{})
+
+	go func() {
+		c.Logger.Info("Starting refresh server")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			c.panic("failed to start refresh server", err)
+		}
+		close(shutdownComplete)
+	}()
+
+	<-c._rebuild_cleanup_chan
+	c.Logger.Info("Rebuild cleanup signal received, shutting down server")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		c.panic("failed to shutdown refresh server", err)
+	}
+
+	<-shutdownComplete
+	c.Logger.Info("Refresh server shutdown complete")
+}
+
+func (c *Config) kill_browser_refresh_mux() {
+	if c._rebuild_cleanup_chan != nil {
+		close(c._rebuild_cleanup_chan)
+		c._rebuild_cleanup_chan = nil
+	}
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// ADD DIRECTORY TO WATCHER
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) add_directory_to_watcher(path string) error {
+	return filepath.Walk(path, func(walkedPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("error walking path: %v", err)
+		}
+		if info.IsDir() {
+			if c.get_is_ignored(walkedPath, c.ignoredDirPatterns) {
+				return filepath.SkipDir
+			}
+			err := c.watcher.Add(walkedPath)
+			if err != nil {
+				return fmt.Errorf("error adding directory to watcher: %v", err)
+			}
+		}
+		return nil
+	})
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// WAIT FOR APP READINESS
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) wait_for_app_readiness() bool {
+	maxReadinessAttempts := 100
+	baseReadinessDelay := 20 * time.Millisecond
+
+	for attempts := range maxReadinessAttempts {
+		url := fmt.Sprintf(
+			"http://localhost:%d%s",
+			MustGetAppPort(),
+			c._uc.Watch.HealthcheckEndpoint,
+		)
+
+		resp, err := http.Get(url)
+		if err == nil && resp.StatusCode == http.StatusOK {
+			return true
+		}
+
+		delay := baseReadinessDelay + time.Duration(attempts)*baseReadinessDelay
+		time.Sleep(delay)
+	}
+	return false
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// KILL RUNNING GO BINARY
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) kill_running_go_binary() {
+	c.dev.mu.Lock()
+	defer c.dev.mu.Unlock()
+	if c.lastBuildCmd != nil {
+		if err := grace.TerminateProcess(c.lastBuildCmd.Process, 5*time.Second, c.Logger); err != nil {
+			c.panic("failed to terminate process", err)
+		}
+		c.Logger.Info("Terminated previous process", "pid", c.lastBuildCmd.Process.Pid)
+		c.lastBuildCmd = nil
+	}
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// RUN GO BINARY
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) run_go_binary() {
+	c.dev.mu.Lock()
+	defer c.dev.mu.Unlock()
+	c.lastBuildCmd = exec.Command(c.get_binary_output_path())
+	c.lastBuildCmd.Stdout = os.Stdout
+	c.lastBuildCmd.Stderr = os.Stderr
+	if err := c.lastBuildCmd.Start(); err != nil {
+		c.panic("failed to start app binary", err)
+	}
+	c.Logger.Info("Running app binary...", "pid", c.lastBuildCmd.Process.Pid)
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// SEND REBUILDING SIGNAL
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) send_rebuilding_signal() {
+	if c.is_using_browser() {
+		c.browserTabManager.broadcast <- refreshFilePayload{
+			ChangeType: changeTypeRebuilding,
+		}
+	}
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// MUST RELOAD BROADCAST
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) must_reload_broadcast(rfp refreshFilePayload) {
+	if !c.is_using_browser() {
+		return
+	}
+	if c.wait_for_app_readiness() {
+		c.browserTabManager.broadcast <- rfp
+		return
+	}
+	c.panic("app never became ready", nil)
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// GET BINARY OUTPUT PATH
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) get_binary_output_path() string {
+	return c._dist.S().Binary.FullPath()
+}
+
+/////////////////////////////////////////////////////////////////////
+/////// COMPILE GO BINARY
+/////////////////////////////////////////////////////////////////////
+
+func (c *Config) compile_go_binary() error {
+	a := time.Now()
+	c.Logger.Info("Compiling Go binary...")
+	buildDest := c.get_binary_output_path()
+	buildCmd := exec.Command("go", "build", "-o", buildDest, c._uc.Core.AppEntry)
+	buildCmd.Stdout = os.Stdout
+	buildCmd.Stderr = os.Stderr
+	err := buildCmd.Run()
+	if err != nil {
+		return fmt.Errorf("error compiling binary: %v", err)
+	}
+	c.Logger.Info("DONE compiling Go binary", "duration", time.Since(a))
+	return nil
+}
