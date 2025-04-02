@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"path/filepath"
 
 	"github.com/sjc5/river/kit/mux"
 )
@@ -102,7 +103,7 @@ func (h *River[C]) getBasePaths_StageOneOrTwo(isDev bool) (*PathsFile, error) {
 		fileToUse = RiverPathsStageTwoJSONFileName
 	}
 	pathsFile := PathsFile{}
-	file, err := h._privateFS.Open(fileToUse)
+	file, err := h._privateFS.Open(filepath.Join("river_out", fileToUse))
 	if err != nil {
 		errMsg := fmt.Sprintf("could not open %s: %v", fileToUse, err)
 		Log.Error(errMsg)

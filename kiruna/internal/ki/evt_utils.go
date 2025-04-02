@@ -31,7 +31,7 @@ func (c *Config) getEvtDetails(evt fsnotify.Event) *EvtDetails {
 	cssImportURLsMu.RUnlock()
 
 	isCriticalCSS := evt.Name == c.cleanSources.CriticalCSSEntry || isImportedCritical
-	isNormalCSS := evt.Name == c.cleanSources.NormalCSSEntry || isImportedNormal
+	isNormalCSS := evt.Name == c.cleanSources.NonCriticalCSSEntry || isImportedNormal
 
 	isKirunaCSS := isCriticalCSS || isNormalCSS
 

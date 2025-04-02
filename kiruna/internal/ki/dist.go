@@ -11,21 +11,21 @@ const (
 
 type Dist struct {
 	Binary *dirs.File
-	Kiruna *dirs.Dir[DistKiruna]
+	Static *dirs.Dir[DistStatic]
 }
 
-type DistKiruna struct {
-	Static   *dirs.Dir[DistKirunaStatic]
+type DistStatic struct {
+	Assets   *dirs.Dir[DistStaticAssets]
 	Internal *dirs.Dir[DistKirunaInternal]
-	X        *dirs.File
+	Keep     *dirs.File
 }
 
-type DistKirunaStatic struct {
-	Public  *dirs.Dir[DistKirunaStaticPublic]
+type DistStaticAssets struct {
+	Public  *dirs.Dir[DistStaticAssetsPublic]
 	Private *dirs.DirEmpty
 }
 
-type DistKirunaStaticPublic struct {
+type DistStaticAssetsPublic struct {
 	PublicInternal *dirs.DirEmpty
 }
 
@@ -38,10 +38,10 @@ type DistKirunaInternal struct {
 func toDistLayout(cleanDistDir string) *dirs.Dir[Dist] {
 	x := dirs.Build(cleanDistDir, dirs.ToRoot(Dist{
 		Binary: dirs.ToFile("main"),
-		Kiruna: dirs.ToDir("kiruna", DistKiruna{
-			Static: dirs.ToDir("static", DistKirunaStatic{
-				Public: dirs.ToDir(PUBLIC, DistKirunaStaticPublic{
-					PublicInternal: dirs.ToDirEmpty("kiruna_internal__"),
+		Static: dirs.ToDir("static", DistStatic{
+			Assets: dirs.ToDir("assets", DistStaticAssets{
+				Public: dirs.ToDir(PUBLIC, DistStaticAssetsPublic{
+					PublicInternal: dirs.ToDirEmpty("internal"),
 				}),
 				Private: dirs.ToDirEmpty(PRIVATE),
 			}),
@@ -50,7 +50,7 @@ func toDistLayout(cleanDistDir string) *dirs.Dir[Dist] {
 				NormalCSSFileRefDotTXT:     dirs.ToFile("normal_css_file_ref.txt"),
 				PublicFileMapFileRefDotTXT: dirs.ToFile("public_file_map_file_ref.txt"),
 			}),
-			X: dirs.ToFile("x"),
+			Keep: dirs.ToFile(".keep"),
 		}),
 	}))
 

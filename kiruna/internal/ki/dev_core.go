@@ -42,7 +42,12 @@ func (c *Config) MustStartDev(_isRebuild ...bool) {
 	}
 
 	if !is_rebuild {
-		go c.viteDevBuild()
+		vite_ctx, err := c.viteDevBuild()
+		if err != nil {
+			c.panic("failed to start vite dev server", err)
+		}
+		defer vite_ctx.Cleanup()
+		go vite_ctx.Wait()
 	}
 
 	if err := c.compile_go_binary(); err != nil { // compile go binary because we didn't above
@@ -52,7 +57,7 @@ func (c *Config) MustStartDev(_isRebuild ...bool) {
 	go c.run_go_binary()
 	go c.setup_browser_refresh_mux()
 
-	c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeOther})
+	c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeOther}, true)
 
 	if is_rebuild {
 		return

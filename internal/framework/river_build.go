@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	riverPrehashedFilePrefix       = "river_vite_"
+	riverPrehashedFilePrefix       = "river_out_"
 	RiverPathsStageOneJSONFileName = "river_paths_stage_1.json"
 	RiverPathsStageTwoJSONFileName = "river_paths_stage_2.json"
 )
@@ -42,7 +42,7 @@ type PathsFile struct {
 }
 
 func (h *River[C]) writePathsToDisk_StageOne() error {
-	pathsJSONOut_StageOne := filepath.Join(h.Kiruna.GetPrivateStaticDir(), RiverPathsStageOneJSONFileName)
+	pathsJSONOut_StageOne := filepath.Join(h.Kiruna.GetPrivateStaticDir(), "river_out", RiverPathsStageOneJSONFileName)
 	err := os.MkdirAll(filepath.Dir(pathsJSONOut_StageOne), os.ModePerm)
 	if err != nil {
 		return err
@@ -163,7 +163,7 @@ func (h *River[C]) handleViteConfigHelper(extraTS string) error {
 
 	rollupOptions = extraTS + rollupOptions
 
-	target := filepath.Join(".", h.VitePluginOutpath)
+	target := filepath.Join(".", h.RiverGenOutPath)
 
 	err = os.MkdirAll(filepath.Dir(target), os.ModePerm)
 	if err != nil {
@@ -195,12 +195,12 @@ type NodeScriptResultItem struct {
 type NodeScriptResult []NodeScriptResultItem
 
 func (h *River[C]) Build(opts *BuildOptions) error {
+	a := time.Now()
+
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
 	h._isDev = opts.IsDev
-
-	startTime := time.Now()
 
 	buildID, err := id.New(16)
 	if err != nil {
@@ -209,17 +209,10 @@ func (h *River[C]) Build(opts *BuildOptions) error {
 	}
 	h._buildID = buildID
 
-	a := time.Now()
-	Log.Info("Building...", "buildID", h._buildID)
-	defer func() {
-		Log.Info("DONE building",
-			"buildID", h._buildID,
-			"duration", time.Since(a),
-		)
-	}()
+	Log.Info("Building River...", "buildID", h._buildID)
 
 	esbuildResult := esbuild.Build(esbuild.BuildOptions{
-		EntryPoints: []string{h.ClientRoutesFile},
+		EntryPoints: []string{h.ClientRouteDefs},
 		Bundle:      false,
 		Write:       false,
 		Format:      esbuild.FormatESModule,
@@ -270,7 +263,7 @@ func (h *River[C]) Build(opts *BuildOptions) error {
 const routes = RoutesBuilder();
 ` + code
 
-	routesSrcFile := filepath.Join(".", h.ClientRoutesFile)
+	routesSrcFile := filepath.Join(".", h.ClientRouteDefs)
 	routesDir := filepath.Dir(routesSrcFile)
 
 	for _, imp := range imports {
@@ -308,11 +301,6 @@ const routes = RoutesBuilder();
 	if err := json.Unmarshal(output, &nodeScriptResult); err != nil {
 		Log.Error(fmt.Sprintf("error unmarshalling node script output: %s", err))
 	}
-
-	Log.Info("Interpreted TypeScript route definitions",
-		"found", len(nodeScriptResult),
-		"duration", time.Since(startTime),
-	)
 
 	h._paths = make(map[string]*Path)
 
@@ -359,6 +347,12 @@ const routes = RoutesBuilder();
 			return err
 		}
 	}
+
+	Log.Info("DONE building River",
+		"buildID", h._buildID,
+		"routes found", len(nodeScriptResult),
+		"duration", time.Since(a),
+	)
 
 	return nil
 }
@@ -451,7 +445,7 @@ func (h *River[C]) toPathsFile_StageTwo() (*PathsFile, error) {
 	riverClientEntryDeps := []string{}
 	depToCSSBundleMap := make(map[string]string)
 
-	viteManifest, err := viteutil.ReadManifest(filepath.Join(h.toStaticPublicOutDir(), ".vite", "manifest.json"))
+	viteManifest, err := viteutil.ReadManifest(h.Kiruna.GetViteManifestLocation())
 	if err != nil {
 		Log.Error(fmt.Sprintf("error reading vite manifest: %s", err))
 		return nil, err

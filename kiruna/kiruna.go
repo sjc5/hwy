@@ -148,3 +148,9 @@ func (k Kiruna) GetPublicPathPrefix() string {
 func (k Kiruna) ViteProdBuild() error {
 	return k.c.ViteProdBuild()
 }
+func (k Kiruna) GetViteManifestLocation() string {
+	return k.c.GetViteManifestLocation()
+}
+func (k Kiruna) GetViteOutDir() string {
+	return k.c.GetViteOutDir()
+}

@@ -27,8 +27,10 @@ type BuildCtxOptions struct {
 	JSPackageManagerBaseCmd string
 	// optional -- used for monorepos that need to run commands from ancestor directories
 	JSPackageManagerCmdDir string
-	// required -- dir, relative to where you're running build commands from, where the Vite manifest will be written
-	ManifestOutDir string
+	// required
+	OutDir string
+	// required
+	ManifestOut string
 	// optional -- default is 5173
 	DefaultPort int
 	// optional
@@ -46,11 +48,6 @@ func NewBuildCtx(opts *BuildCtxOptions) *BuildCtx {
 	}
 }
 
-type DevInfo struct {
-	Port int
-	PID  int
-}
-
 func (c *BuildCtx) prep_cmd() {
 	split_cmd := strings.Fields(c.opts.JSPackageManagerBaseCmd)
 
@@ -62,16 +59,16 @@ func (c *BuildCtx) prep_cmd() {
 	}
 }
 
-func (c *BuildCtx) DevBuild() (*DevInfo, error) {
+func (c *BuildCtx) DevBuild() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if c.cmd != nil && c.cmd.Process != nil {
 		if err := grace.TerminateProcess(c.cmd.Process, 3*time.Second, nil); err != nil {
-			Log.Warn(fmt.Sprintf("Error terminating vite process: %s", err))
-			return nil, err
+			Log.Warn(fmt.Sprintf("DevBuild: Error terminating vite process: %s", err))
+			return err
 		} else {
-			Log.Info("Terminated vite process", "pid", c.cmd.Process.Pid)
+			Log.Info("DevBuild: Terminated vite process", "pid", c.cmd.Process.Pid)
 		}
 	}
 
@@ -80,7 +77,7 @@ func (c *BuildCtx) DevBuild() (*DevInfo, error) {
 	vitePort, err := InitPort(c.port)
 	if err != nil {
 		Log.Error(fmt.Sprintf("Error initializing vite port: %s", err))
-		return nil, err
+		return err
 	}
 
 	c.cmd.Args = append(c.cmd.Args, "vite",
@@ -93,7 +90,7 @@ func (c *BuildCtx) DevBuild() (*DevInfo, error) {
 		c.cmd.Args = append(c.cmd.Args, "--config", c.opts.ViteConfigFile)
 	}
 
-	Log.Info("Running vite (dev)",
+	Log.Info("Running vite (dev)...",
 		"command", fmt.Sprintf(`"%s"`, strings.Join(c.cmd.Args, " ")),
 	)
 
@@ -101,13 +98,31 @@ func (c *BuildCtx) DevBuild() (*DevInfo, error) {
 		Log.Error(fmt.Sprintf("Error running vite (dev): %s", err))
 	}
 
-	go func() {
-		if err := c.cmd.Wait(); err != nil {
-			Log.Error(fmt.Sprintf("Error running vite (dev): %s", err))
-		}
-	}()
+	return nil
+}
 
-	return &DevInfo{Port: vitePort, PID: c.cmd.Process.Pid}, nil
+func (c *BuildCtx) Wait() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.cmd != nil && c.cmd.Process != nil {
+		if err := c.cmd.Wait(); err != nil {
+			Log.Error(fmt.Sprintf("Error waiting for vite process: %s", err))
+		}
+	}
+}
+
+func (c *BuildCtx) Cleanup() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.cmd != nil && c.cmd.Process != nil {
+		if err := grace.TerminateProcess(c.cmd.Process, 3*time.Second, nil); err != nil {
+			Log.Warn(fmt.Sprintf("Cleanup: Error terminating vite process: %s", err))
+		} else {
+			Log.Info("Cleanup: Terminated vite process", "pid", c.cmd.Process.Pid)
+		}
+	}
 }
 
 func (c *BuildCtx) ProdBuild() error {
@@ -117,16 +132,16 @@ func (c *BuildCtx) ProdBuild() error {
 	c.prep_cmd()
 
 	c.cmd.Args = append(c.cmd.Args, "vite", "build",
-		"--outDir", filepath.Join(".", c.opts.ManifestOutDir),
+		"--outDir", filepath.Join(".", c.opts.OutDir),
 		"--assetsDir", filepath.Join("."),
-		"--manifest",
+		"--manifest", "kiruna_vite_manifest.json",
 	)
 
 	if c.opts.ViteConfigFile != "" {
 		c.cmd.Args = append(c.cmd.Args, "--config", c.opts.ViteConfigFile)
 	}
 
-	Log.Info("Running vite build (prod)",
+	Log.Info("Running vite build (prod)...",
 		"command", fmt.Sprintf(`"%s"`, strings.Join(c.cmd.Args, " ")),
 	)
 
@@ -134,6 +149,18 @@ func (c *BuildCtx) ProdBuild() error {
 		Log.Error(fmt.Sprintf("Error running vite build (prod): %s", err))
 		return err
 	}
+
+	// Move kiruna_vite_manifest.json to the specified location
+	manifestPath := filepath.Join(".", c.opts.OutDir, "kiruna_vite_manifest.json")
+	if err := os.Rename(manifestPath, c.opts.ManifestOut); err != nil {
+		Log.Error(fmt.Sprintf("Error moving vite manifest: %s", err))
+		return err
+	}
+
+	Log.Info("DONE running vite build (prod)",
+		"manifest", c.opts.ManifestOut,
+		"outDir", c.opts.OutDir,
+	)
 
 	return nil
 }

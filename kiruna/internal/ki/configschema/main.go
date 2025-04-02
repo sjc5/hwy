@@ -8,7 +8,7 @@ import (
 	"github.com/sjc5/river/kit/jsonschema"
 )
 
-const current_version = "0.17.0-pre.0"
+const current_version = "0.17.0-pre.0.1"
 
 func main() {
 	json, err := json.MarshalIndent(Root_Schema, "", "\t")
@@ -55,7 +55,7 @@ var Root_Schema = jsonschema.Entry{
 
 var Core_Schema = jsonschema.RequiredObject(jsonschema.Def{
 	Description:      `All paths should be set relative to the directory from which you run commands.`,
-	RequiredChildren: []string{"DevBuildHook", "ProdBuildHook", "AppEntry", "DistDir"},
+	RequiredChildren: []string{"DevBuildHook", "ProdBuildHook", "MainAppEntry", "DistDir"},
 	AllOf: []any{jsonschema.IfThen{
 		If: map[string]any{
 			"properties": map[string]any{
@@ -69,7 +69,7 @@ var Core_Schema = jsonschema.RequiredObject(jsonschema.Def{
 	Properties: struct {
 		DevBuildHook     jsonschema.Entry
 		ProdBuildHook    jsonschema.Entry
-		AppEntry         jsonschema.Entry
+		MainAppEntry     jsonschema.Entry
 		DistDir          jsonschema.Entry
 		StaticAssetDirs  jsonschema.Entry
 		CSSEntryFiles    jsonschema.Entry
@@ -78,7 +78,7 @@ var Core_Schema = jsonschema.RequiredObject(jsonschema.Def{
 	}{
 		DevBuildHook:     DevBuildHook_Schema,
 		ProdBuildHook:    ProdBuildHook_Schema,
-		AppEntry:         AppEntry_Schema,
+		MainAppEntry:     MainAppEntry_Schema,
 		DistDir:          DistDir_Schema,
 		StaticAssetDirs:  StaticAssetDirs_Schema,
 		CSSEntryFiles:    CSSEntryFiles_Schema,
@@ -109,7 +109,7 @@ var ProdBuildHook_Schema = jsonschema.OptionalString(jsonschema.Def{
 /////// CORE SETTINGS -- APP ENTRY
 /////////////////////////////////////////////////////////////////////
 
-var AppEntry_Schema = jsonschema.RequiredString(jsonschema.Def{
+var MainAppEntry_Schema = jsonschema.RequiredString(jsonschema.Def{
 	Description: `Path to your app's main.go entry file (or its parent directory).`,
 	Examples:    []string{"./cmd/app/main.go", "./cmd/app"},
 })

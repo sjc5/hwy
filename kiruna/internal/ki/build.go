@@ -27,6 +27,7 @@ var noHashPublicDirsByVersion = map[uint8]string{0: "__nohash", 1: PrehashedDirn
 type BuildOptions struct {
 	IsDev             bool
 	RecompileGoBinary bool
+	CSSHotReload      bool
 	is_dev_rebuild    bool
 }
 
@@ -53,22 +54,18 @@ func (c *Config) do_build_time_file_processing(shouldBeGranular bool) error {
 
 func (c *Config) Build(opts BuildOptions) error {
 	a := time.Now()
-	c.Logger.Info("Building...",
-		"recompile_go_binary", opts.RecompileGoBinary,
-		"is_dev_rebuild", opts.is_dev_rebuild,
-	)
-	defer func() {
-		c.Logger.Info("DONE building",
-			"duration", time.Since(a),
+
+	if !opts.CSSHotReload {
+		c.Logger.Info("Building Kiruna...",
 			"recompile_go_binary", opts.RecompileGoBinary,
 			"is_dev_rebuild", opts.is_dev_rebuild,
 		)
-	}()
+	}
 
 	if !opts.is_dev_rebuild {
-		// nuke the dist/kiruna directory
-		if err := os.RemoveAll(c._dist.S().Kiruna.FullPath()); err != nil {
-			return fmt.Errorf("error removing dist/kiruna directory: %v", err)
+		// nuke the dist/static directory
+		if err := os.RemoveAll(c._dist.S().Static.FullPath()); err != nil {
+			return fmt.Errorf("error removing dist/static directory: %v", err)
 		}
 
 		// re-make required directories
@@ -79,25 +76,48 @@ func (c *Config) Build(opts BuildOptions) error {
 
 	c.do_build_time_file_processing(opts.is_dev_rebuild) // once before build hook
 
-	if opts.IsDev && c._uc.Core.DevBuildHook != "" {
+	if opts.CSSHotReload {
+		return nil
+	}
+
+	hook_start := time.Now()
+
+	with_dev_hook := opts.IsDev && c._uc.Core.DevBuildHook != ""
+	if with_dev_hook {
 		if err := executil.RunCmd(strings.Fields(c._uc.Core.DevBuildHook)...); err != nil {
 			return fmt.Errorf("error running dev build command: %v", err)
 		}
 	}
 
-	if !opts.IsDev && c._uc.Core.ProdBuildHook != "" {
+	with_prod_hook := !opts.IsDev && c._uc.Core.ProdBuildHook != ""
+	if with_prod_hook {
 		if err := executil.RunCmd(strings.Fields(c._uc.Core.ProdBuildHook)...); err != nil {
 			return fmt.Errorf("error running prod build command: %v", err)
 		}
 	}
 
+	hook_duration := time.Since(hook_start)
+
 	c.do_build_time_file_processing(true) // and once again after
+
+	go_compile_start := time.Now()
 
 	if opts.RecompileGoBinary {
 		if err := c.compile_go_binary(); err != nil {
 			return fmt.Errorf("error compiling binary: %v", err)
 		}
 	}
+
+	go_compile_duration := time.Since(go_compile_start)
+
+	total_duration := time.Since(a)
+
+	c.Logger.Info("DONE building Kiruna",
+		"total_duration", total_duration,
+		"hook_duration", hook_duration,
+		"go_compile_duration", go_compile_duration,
+		"kiruna_build_duration", total_duration-hook_duration-go_compile_duration,
+	)
 
 	return nil
 }
@@ -134,7 +154,7 @@ func (c *Config) processCSSNormal() error   { return c.__processCSS("normal") }
 
 // nature = "critical" or "normal"
 func (c *Config) __processCSS(nature string) error {
-	entryPoint := c.cleanSources.NormalCSSEntry
+	entryPoint := c.cleanSources.NonCriticalCSSEntry
 	if nature == "critical" {
 		entryPoint = c.cleanSources.CriticalCSSEntry
 	}
@@ -196,7 +216,7 @@ func (c *Config) __processCSS(nature string) error {
 		return fmt.Errorf("error unmarshalling esbuild metafile: %v", err)
 	}
 
-	srcURL := c.cleanSources.NormalCSSEntry
+	srcURL := c.cleanSources.NonCriticalCSSEntry
 	if nature == "critical" {
 		srcURL = c.cleanSources.CriticalCSSEntry
 	}
@@ -230,9 +250,9 @@ func (c *Config) __processCSS(nature string) error {
 
 	switch nature {
 	case "critical":
-		outputPath = c._dist.S().Kiruna.S().Internal.FullPath()
+		outputPath = c._dist.S().Static.S().Internal.FullPath()
 	case "normal":
-		outputPath = c._dist.S().Kiruna.S().Static.S().Public.FullPath()
+		outputPath = c._dist.S().Static.S().Assets.S().Public.FullPath()
 	}
 
 	outputFileName := nature + ".css" // Default for 'critical'
@@ -264,7 +284,7 @@ func (c *Config) __processCSS(nature string) error {
 
 	// If normal, also write to a file called normal_css_ref.txt with the hash
 	if nature == "normal" {
-		hashFile := c._dist.S().Kiruna.S().Internal.S().NormalCSSFileRefDotTXT.FullPath()
+		hashFile := c._dist.S().Static.S().Internal.S().NormalCSSFileRefDotTXT.FullPath()
 		if err := os.WriteFile(hashFile, []byte(outputFileName), 0644); err != nil {
 			return fmt.Errorf("error writing to file: %v", err)
 		}
@@ -287,7 +307,7 @@ func (c *Config) handlePublicFiles(isDevRebuild bool) error {
 	return c.processStaticFiles(&staticFileProcessorOpts{
 		basename:       PUBLIC,
 		srcDir:         c.cleanSources.PublicStatic,
-		distDir:        c._dist.S().Kiruna.S().Static.S().Public.FullPath(),
+		distDir:        c._dist.S().Static.S().Assets.S().Public.FullPath(),
 		mapName:        PublicFileMapGobName,
 		is_dev_rebuild: isDevRebuild,
 		getIsNoHashDir: func(path string) (bool, uint8) {
@@ -307,7 +327,7 @@ func (c *Config) copyPrivateFiles(is_dev_rebuild bool) error {
 	return c.processStaticFiles(&staticFileProcessorOpts{
 		basename:       PRIVATE,
 		srcDir:         c.cleanSources.PrivateStatic,
-		distDir:        c._dist.S().Kiruna.S().Static.S().Private.FullPath(),
+		distDir:        c._dist.S().Static.S().Assets.S().Private.FullPath(),
 		mapName:        PrivateFileMapGobName,
 		is_dev_rebuild: is_dev_rebuild,
 		getIsNoHashDir: func(path string) (bool, uint8) {

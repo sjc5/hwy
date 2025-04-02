@@ -36,8 +36,6 @@ func (c *Config) is_using_browser() bool {
 /////////////////////////////////////////////////////////////////////
 
 func (c *Config) setup_browser_refresh_mux() {
-	c.Logger.Info("Initializing sidecar refresh server", "port", getRefreshServerPort())
-
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
@@ -56,25 +54,25 @@ func (c *Config) setup_browser_refresh_mux() {
 	shutdownComplete := make(chan struct{})
 
 	go func() {
-		c.Logger.Info("Starting refresh server")
+		c.Logger.Info("Starting sidecar refresh server...", "port", getRefreshServerPort())
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			c.panic("failed to start refresh server", err)
+			c.panic("Failed to start refresh server", err)
 		}
 		close(shutdownComplete)
 	}()
 
 	<-c._rebuild_cleanup_chan
-	c.Logger.Info("Rebuild cleanup signal received, shutting down server")
+	c.Logger.Info("Shutting down sidecar refresh server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		c.panic("failed to shutdown refresh server", err)
+		c.panic("Failed to shutdown sidecar refresh server", err)
 	}
 
 	<-shutdownComplete
-	c.Logger.Info("Refresh server shutdown complete")
+	c.Logger.Info("DONE shutting down sidecar refresh server")
 }
 
 func (c *Config) kill_browser_refresh_mux() {
@@ -180,15 +178,16 @@ func (c *Config) send_rebuilding_signal() {
 /////// MUST RELOAD BROADCAST
 /////////////////////////////////////////////////////////////////////
 
-func (c *Config) must_reload_broadcast(rfp refreshFilePayload) {
+func (c *Config) must_reload_broadcast(rfp refreshFilePayload, with_wait bool) {
 	if !c.is_using_browser() {
 		return
 	}
-	if c.wait_for_app_readiness() {
-		c.browserTabManager.broadcast <- rfp
-		return
+	if with_wait {
+		if ok := c.wait_for_app_readiness(); !ok {
+			c.panic("app never became ready", nil)
+		}
 	}
-	c.panic("app never became ready", nil)
+	c.browserTabManager.broadcast <- rfp
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -207,7 +206,7 @@ func (c *Config) compile_go_binary() error {
 	a := time.Now()
 	c.Logger.Info("Compiling Go binary...")
 	buildDest := c.get_binary_output_path()
-	buildCmd := exec.Command("go", "build", "-o", buildDest, c._uc.Core.AppEntry)
+	buildCmd := exec.Command("go", "build", "-o", buildDest, c._uc.Core.MainAppEntry)
 	buildCmd.Stdout = os.Stdout
 	buildCmd.Stderr = os.Stderr
 	err := buildCmd.Run()

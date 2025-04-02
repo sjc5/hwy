@@ -55,7 +55,7 @@ func (c *Config) process_batched_events(events []fsnotify.Event) {
 
 		wfc := evtDetails.wfc
 		if wfc == nil {
-			return
+			wfc = &WatchedFile{}
 		}
 
 		if _, alreadyHandled := wfcsAlreadyHandled[wfc.Pattern]; alreadyHandled {
@@ -141,7 +141,7 @@ func (c *Config) process_batched_events(events []fsnotify.Event) {
 
 	if hasMultipleEvents {
 		c.Logger.Info("Hard reloading browser")
-		c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeOther})
+		c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeOther}, true)
 	}
 }
 
@@ -155,7 +155,7 @@ func (c *Config) mustHandleFileChange(
 ) error {
 	wfc := evtDetails.wfc
 	if wfc == nil {
-		return nil
+		wfc = &WatchedFile{}
 	}
 
 	if c.is_using_browser() && !wfc.SkipRebuildingNotification && !evtDetails.isKirunaCSS && !isPartOfBatch {
@@ -240,14 +240,14 @@ func (c *Config) mustHandleFileChange(
 	}
 
 	if wfc.RunClientDefinedRevalidateFunc {
-		c.Logger.Info("Revalidating browser")
-		c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeRevalidate})
+		c.Logger.Info("Running client-defined revalidate function")
+		c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeRevalidate}, true)
 		return nil
 	}
 
 	if !evtDetails.isKirunaCSS || needsHardReloadEvenIfNonGo {
 		c.Logger.Info("Hard reloading browser")
-		c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeOther})
+		c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeOther}, true)
 		return nil
 	}
 	// At this point, we know it's a CSS file
@@ -257,14 +257,15 @@ func (c *Config) mustHandleFileChange(
 		cssType = changeTypeCriticalCSS
 	}
 
-	c.Logger.Info("Hot reloading browser")
-	c.must_reload_broadcast(refreshFilePayload{
+	c.Logger.Info("Hot reloading browser (CSS)")
+	rfp := refreshFilePayload{
 		ChangeType: cssType,
 
 		// These must be called AFTER ProcessCSS
 		CriticalCSS:  base64.StdEncoding.EncodeToString([]byte(c.GetCriticalCSS())),
 		NormalCSSURL: c.GetStyleSheetURL(),
-	})
+	}
+	c.must_reload_broadcast(rfp, false)
 
 	return nil
 }
@@ -276,7 +277,7 @@ func (c *Config) callback(wfc *WatchedFile, evtDetails *EvtDetails) error {
 
 	if evtDetails.isKirunaCSS {
 		if getNeedsHardReloadEvenIfNonGo(wfc) {
-			return c.runOtherFileBuild(wfc)
+			return c.runOtherFileBuild(wfc, evtDetails)
 		}
 		if evtDetails.isCriticalCSS {
 			c.processCSSCritical()
@@ -285,15 +286,16 @@ func (c *Config) callback(wfc *WatchedFile, evtDetails *EvtDetails) error {
 		}
 	}
 
-	return c.runOtherFileBuild(wfc)
+	return c.runOtherFileBuild(wfc, evtDetails)
 }
 
 // This is different than inside of handleGoFileChange, because here we
 // assume we need to re-run other build steps too, not just recompile Go.
 // Also, we don't necessarily recompile Go here (we only necessarily) run
 // the other build steps. We only recompile Go if wfc.RecompileGoBinary is true.
-func (c *Config) runOtherFileBuild(wfc *WatchedFile) error {
+func (c *Config) runOtherFileBuild(wfc *WatchedFile, evtDetails *EvtDetails) error {
 	err := c.Build(BuildOptions{
+		CSSHotReload:      evtDetails.isKirunaCSS,
 		RecompileGoBinary: wfc.RecompileGoBinary,
 		IsDev:             true,
 		is_dev_rebuild:    true,

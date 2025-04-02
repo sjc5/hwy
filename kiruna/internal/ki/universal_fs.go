@@ -15,7 +15,7 @@ func (c *Config) get_is_using_embedded_fs() bool {
 }
 
 func (c *Config) get_initial_base_dir_fs() (fs.FS, error) {
-	return os.DirFS(c._dist.S().Kiruna.FullPath()), nil
+	return os.DirFS(c._dist.S().Static.FullPath()), nil
 }
 
 func (c *Config) getSubFSPrivate() (fs.FS, error) { return c.__getSubFS(PRIVATE) }
@@ -23,8 +23,8 @@ func (c *Config) getSubFSPublic() (fs.FS, error)  { return c.__getSubFS(PUBLIC) 
 
 // subDir = "public" or "private"
 func (c *Config) __getSubFS(subDir string) (fs.FS, error) {
-	// __LOCATION_ASSUMPTION: Inside "dist/kiruna"
-	path := filepath.Join(c._dist.S().Kiruna.S().Static.LastSegment(), subDir)
+	// __LOCATION_ASSUMPTION: Inside "dist/static"
+	path := filepath.Join(c._dist.S().Static.S().Assets.LastSegment(), subDir)
 
 	baseFS, err := c.GetBaseFS()
 	if err != nil {
@@ -60,20 +60,16 @@ func (c *Config) get_initial_base_fs() (fs.FS, error) {
 	// There is an expectation that you run the dev server from the root of your project,
 	// where your go.mod file is.
 	if GetIsDev() {
-		c.Logger.Info("using dev filesystem")
-
-		return os.DirFS(c._dist.S().Kiruna.FullPath()), nil
+		return os.DirFS(c._dist.S().Static.FullPath()), nil
 	}
 
 	// If we are using the embedded file system, we should use the dist file system
 	if c.get_is_using_embedded_fs() {
-		c.Logger.Info("using embedded filesystem (prod)")
-
 		directive := c.EmbedDirective
 
 		if directive == "" {
-			c.Logger.Warn("no embed directive set in Kiruna.New -- assuming 'kiruna'")
-			directive = c._dist.S().Kiruna.LastSegment()
+			c.Logger.Warn("no embed directive set in Kiruna.New -- assuming 'static'")
+			directive = c._dist.S().Static.LastSegment()
 		}
 
 		// if first 4 are "all:", strip
@@ -93,14 +89,12 @@ func (c *Config) get_initial_base_fs() (fs.FS, error) {
 		return embeddedFS, nil
 	}
 
-	c.Logger.Info("using os filesystem (prod)")
-
 	// If we are not using the embedded file system, we should use the os file system,
-	// and assume that the executable is a sibling to the kiruna-outputted "kiruna" directory
+	// and assume that the executable is a sibling to the kiruna-outputted "static" directory
 	execDir, err := executil.GetExecutableDir()
 	if err != nil {
 		return nil, err
 	}
 
-	return os.DirFS(filepath.Join(execDir, c._dist.S().Kiruna.LastSegment())), nil
+	return os.DirFS(filepath.Join(execDir, c._dist.S().Static.LastSegment())), nil
 }

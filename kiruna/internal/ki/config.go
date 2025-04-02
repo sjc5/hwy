@@ -108,11 +108,11 @@ type Config struct {
 }
 
 type CleanSources struct {
-	Dist             string
-	PrivateStatic    string
-	PublicStatic     string
-	CriticalCSSEntry string
-	NormalCSSEntry   string
+	Dist                string
+	PrivateStatic       string
+	PublicStatic        string
+	CriticalCSSEntry    string
+	NonCriticalCSSEntry string
 }
 
 func (c *Config) GetPrivateStaticDir() string {
@@ -155,7 +155,7 @@ type UserConfig struct {
 type UserConfigCore struct {
 	DevBuildHook     string
 	ProdBuildHook    string
-	AppEntry         string
+	MainAppEntry     string
 	DistDir          string
 	StaticAssetDirs  StaticAssetDirs
 	CSSEntryFiles    CSSEntryFiles

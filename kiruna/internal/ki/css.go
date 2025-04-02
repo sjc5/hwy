@@ -49,9 +49,9 @@ func (c *Config) getInitialStyleSheetURL() (string, error) {
 		return "", err
 	}
 
-	dist_kiruna_internal := c._dist.S().Kiruna.S().Internal
+	dist_kiruna_internal := c._dist.S().Static.S().Internal
 
-	// __LOCATION_ASSUMPTION: Inside "dist/kiruna"
+	// __LOCATION_ASSUMPTION: Inside "dist/static"
 	content, err := fs.ReadFile(base_fs, filepath.Join(
 		dist_kiruna_internal.LastSegment(),
 		dist_kiruna_internal.S().NormalCSSFileRefDotTXT.LastSegment(),
@@ -97,10 +97,10 @@ func (c *Config) getInitialCriticalCSSStatus() (*criticalCSSStatus, error) {
 		return nil, err
 	}
 
-	dist_kiruna_internal := c._dist.S().Kiruna.S().Internal
+	dist_kiruna_internal := c._dist.S().Static.S().Internal
 
 	// Read critical CSS
-	// __LOCATION_ASSUMPTION: Inside "dist/kiruna"
+	// __LOCATION_ASSUMPTION: Inside "dist/static"
 	content, err := fs.ReadFile(base_fs, filepath.Join(
 		dist_kiruna_internal.LastSegment(),
 		dist_kiruna_internal.S().CriticalDotCSS.LastSegment(),

@@ -64,7 +64,7 @@ type River[C any] struct {
 	Kiruna *kiruna.Kiruna
 
 	PublicURLFuncName string // e.g., "publicURL", "withHash", etc.
-	VitePluginOutpath string // e.g., "./frontend/gen/river.vite-plugin.ts"
+	RiverGenOutPath   string // e.g., "./frontend/river.gen.ts"
 
 	RootTemplateLocation string // Relative to the FS root
 	GetDefaultHeadBlocks func(r *http.Request) ([]*htmlutil.Element, error)
@@ -79,7 +79,7 @@ type River[C any] struct {
 	// Defaults to false.
 	AutoUIRouteETags bool
 
-	ClientRoutesFile string
+	ClientRouteDefs string
 
 	// BUILD OPTIONS
 	ClientEntry string

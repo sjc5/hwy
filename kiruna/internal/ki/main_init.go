@@ -50,7 +50,7 @@ func (c *Config) MainInit(opts MainInitOptions, calledFrom string) {
 		c.cleanSources.CriticalCSSEntry = filepath.Clean(c._uc.Core.CSSEntryFiles.Critical)
 	}
 	if c._uc.Core.CSSEntryFiles.NonCritical != "" {
-		c.cleanSources.NormalCSSEntry = filepath.Clean(c._uc.Core.CSSEntryFiles.NonCritical)
+		c.cleanSources.NonCriticalCSSEntry = filepath.Clean(c._uc.Core.CSSEntryFiles.NonCritical)
 	}
 
 	// DIST LAYOUT
@@ -91,7 +91,7 @@ func (c *Config) MainInit(opts MainInitOptions, calledFrom string) {
 	c.naiveIgnoreDirPatterns = []string{
 		"**/.git",
 		"**/node_modules",
-		c._dist.S().Kiruna.FullPath(),
+		c._dist.S().Static.FullPath(),
 		filepath.Join(c.cleanSources.PublicStatic, noHashPublicDirsByVersion[0]),
 		filepath.Join(c.cleanSources.PublicStatic, noHashPublicDirsByVersion[1]),
 	}

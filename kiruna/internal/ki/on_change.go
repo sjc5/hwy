@@ -55,6 +55,13 @@ func sortOnChangeCallbacks(onChanges []OnChangeHook) sortedOnChangeCallbacks {
 	}
 }
 
+func (c *Config) resolveCmd(cmd string) string {
+	if cmd == "DevBuildHook" {
+		return c._uc.Core.DevBuildHook
+	}
+	return cmd
+}
+
 func (c *Config) runConcurrentOnChangeCallbacks(onChanges []OnChangeHook, evtName string, shouldWait bool) error {
 	if len(onChanges) > 0 {
 		eg := errgroup.Group{}
@@ -63,7 +70,7 @@ func (c *Config) runConcurrentOnChangeCallbacks(onChanges []OnChangeHook, evtNam
 				continue
 			}
 			eg.Go(func() error {
-				err := executil.RunCmd(strings.Fields(o.Cmd)...)
+				err := executil.RunCmd(strings.Fields(c.resolveCmd(o.Cmd))...)
 				if err != nil {
 					c.Logger.Error(fmt.Sprintf("error running on-change callback: %v", err))
 					return err
@@ -92,7 +99,7 @@ func (c *Config) simpleRunOnChangeCallbacks(onChanges []OnChangeHook, evtName st
 		if c.get_is_ignored(evtName, o.Exclude) {
 			continue
 		}
-		err := executil.RunCmd(strings.Fields(o.Cmd)...)
+		err := executil.RunCmd(strings.Fields(c.resolveCmd(o.Cmd))...)
 		if err != nil {
 			c.Logger.Error(fmt.Sprintf("error running on-change callback: %v", err))
 			return err

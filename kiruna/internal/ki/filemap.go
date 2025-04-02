@@ -27,9 +27,9 @@ func (c *Config) loadMapFromGob(gobFileName string, isBuildTime bool) (FileMap, 
 		return nil, fmt.Errorf("error getting FS: %v", err)
 	}
 
-	distKirunaInternal := c._dist.S().Kiruna.S().Internal
+	distKirunaInternal := c._dist.S().Static.S().Internal
 
-	// __LOCATION_ASSUMPTION: Inside "dist/kiruna"
+	// __LOCATION_ASSUMPTION: Inside "dist/static"
 	file, err := appropriateFS.Open(filepath.Join(distKirunaInternal.LastSegment(), gobFileName))
 	if err != nil {
 		return nil, fmt.Errorf("error opening file %s: %v", gobFileName, err)
@@ -53,7 +53,7 @@ func (c *Config) getAppropriateFSMaybeBuildTime(isBuildTime bool) (fs.FS, error)
 }
 
 func (c *Config) saveMapToGob(mapToSave FileMap, dest string) error {
-	file, err := os.Create(filepath.Join(c._dist.S().Kiruna.S().Internal.FullPath(), dest))
+	file, err := os.Create(filepath.Join(c._dist.S().Static.S().Internal.FullPath(), dest))
 	if err != nil {
 		return fmt.Errorf("error creating file: %v", err)
 	}
@@ -77,13 +77,13 @@ func (c *Config) savePublicFileMapJSToInternalPublicDir(mapToSave FileMap) error
 
 	hashedFilename := getHashedFilenameFromBytes(bytes, PublicFileMapJSName)
 
-	hashedFileRefPath := c._dist.S().Kiruna.S().Internal.S().PublicFileMapFileRefDotTXT.FullPath()
+	hashedFileRefPath := c._dist.S().Static.S().Internal.S().PublicFileMapFileRefDotTXT.FullPath()
 	if err := os.WriteFile(hashedFileRefPath, []byte(hashedFilename), 0644); err != nil {
 		return fmt.Errorf("error writing to file: %v", err)
 	}
 
 	return os.WriteFile(filepath.Join(
-		c._dist.S().Kiruna.S().Static.S().Public.S().PublicInternal.FullPath(),
+		c._dist.S().Static.S().Assets.S().Public.S().PublicInternal.FullPath(),
 		hashedFilename,
 	), bytes, 0644)
 }
@@ -145,9 +145,9 @@ func (c *Config) getInitialPublicFileMapURL() (string, error) {
 		return "", err
 	}
 
-	distKirunaInternal := c._dist.S().Kiruna.S().Internal
+	distKirunaInternal := c._dist.S().Static.S().Internal
 
-	// __LOCATION_ASSUMPTION: Inside "dist/kiruna"
+	// __LOCATION_ASSUMPTION: Inside "dist/static"
 	content, err := fs.ReadFile(baseFS,
 		filepath.Join(
 			distKirunaInternal.LastSegment(),
@@ -160,7 +160,7 @@ func (c *Config) getInitialPublicFileMapURL() (string, error) {
 
 	return "/" + filepath.Join(
 		PUBLIC,
-		c._dist.S().Kiruna.S().Static.S().Public.S().PublicInternal.LastSegment(),
+		c._dist.S().Static.S().Assets.S().Public.S().PublicInternal.LastSegment(),
 		string(content),
 	), nil
 }
