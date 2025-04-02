@@ -154,3 +154,6 @@ func (k Kiruna) GetViteManifestLocation() string {
 func (k Kiruna) GetViteOutDir() string {
 	return k.c.GetViteOutDir()
 }
+func (k Kiruna) BuildHelper(hook func(isDev bool) error) {
+	k.c.BuildHelper(hook)
+}

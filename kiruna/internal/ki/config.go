@@ -180,6 +180,19 @@ type UserConfigVite struct {
 	ViteConfigFile          string
 }
 
+// __TODO
+type UserConfigRiver struct {
+	IncludeDefaults      bool
+	UIVariant            string
+	RootBodyElementID    string
+	HTMLTemplateLocation string
+	ClientEntry          string
+	ClientRouteDefs      string
+	TSGenOutPath         string
+	PublicURLFuncName    string
+	AutoETags            bool
+}
+
 type UserConfigWatch struct {
 	WatchRoot           string
 	HealthcheckEndpoint string
