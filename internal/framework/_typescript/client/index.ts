@@ -7,6 +7,7 @@ export {
 	getCurrentRiverData,
 	getHistoryInstance,
 	getPrefetchHandlers,
+	getRootEl,
 	getStatus,
 	initClient,
 	makeLinkClickListenerFn,

@@ -148,6 +148,7 @@ var TimingEnum = struct {
 
 type UserConfig struct {
 	Core  *UserConfigCore
+	River *UserConfigRiver
 	Vite  *UserConfigVite
 	Watch *UserConfigWatch
 }
@@ -161,6 +162,10 @@ type UserConfigCore struct {
 	CSSEntryFiles    CSSEntryFiles
 	PublicPathPrefix string
 	ServerOnlyMode   bool
+}
+
+func (c *Config) GetConfigFile() string {
+	return c.ConfigFile
 }
 
 type StaticAssetDirs struct {
@@ -182,15 +187,43 @@ type UserConfigVite struct {
 
 // __TODO
 type UserConfigRiver struct {
-	IncludeDefaults      bool
+	IncludeDefaults      *bool
 	UIVariant            string
-	RootBodyElementID    string
-	HTMLTemplateLocation string
+	HTMLTemplateLocation string // Relative to your static private dir
 	ClientEntry          string
-	ClientRouteDefs      string
-	TSGenOutPath         string
-	PublicURLFuncName    string
-	AutoETags            bool
+	ClientRouteDefsFile  string
+	TSGenOutPath         string // e.g., "./frontend/river.gen.ts"
+	PublicURLFuncName    string // e.g., "publicURL", "withHash", etc.
+
+	// If set to true, UI route responses will automatically include a strong ETag
+	// (SHA-256 hash) derived from the applicable nested route data, and will
+	// respond with a 304 header for any subsequent exact matches to an If-None-Match
+	// header value. JSON and HTML responses use the same underlying SHA-256 hash of
+	// nested route data, but each has a unique prefix to differentiate between them.
+	// Defaults to false.
+	AutoETags bool
+}
+
+func (c *Config) GetRiverUIVariant() string {
+	return c._uc.River.UIVariant
+}
+func (c *Config) GetRiverHTMLTemplateLocation() string {
+	return c._uc.River.HTMLTemplateLocation
+}
+func (c *Config) GetRiverClientEntry() string {
+	return c._uc.River.ClientEntry
+}
+func (c *Config) GetRiverClientRouteDefsFile() string {
+	return c._uc.River.ClientRouteDefsFile
+}
+func (c *Config) GetRiverTSGenOutPath() string {
+	return c._uc.River.TSGenOutPath
+}
+func (c *Config) GetRiverPublicURLFuncName() string {
+	return c._uc.River.PublicURLFuncName
+}
+func (c *Config) GetRiverAutoETags() bool {
+	return c._uc.River.AutoETags
 }
 
 type UserConfigWatch struct {

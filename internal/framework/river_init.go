@@ -89,7 +89,7 @@ func (h *River[C]) initInner(isDev bool) error {
 	if h._depToCSSBundleMap == nil {
 		h._depToCSSBundleMap = make(map[string]string)
 	}
-	tmpl, err := template.ParseFS(h._privateFS, h.RootTemplateLocation)
+	tmpl, err := template.ParseFS(h._privateFS, h.Kiruna.GetRiverHTMLTemplateLocation())
 	if err != nil {
 		return fmt.Errorf("error parsing root template: %v", err)
 	}

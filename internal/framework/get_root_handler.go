@@ -57,12 +57,12 @@ func (h *River[C]) GetUIHandler(nestedRouter *mux.NestedRouter, coreDataTask *Co
 		var etag string
 		var routeDataHash []byte
 
-		if h.AutoUIRouteETags {
+		if h.Kiruna.GetRiverAutoETags() {
 			routeDataHash = cryptoutil.Sha256Hash(jsonBytes)
 		}
 
 		if GetIsJSONRequest(r) {
-			if h.AutoUIRouteETags {
+			if h.Kiruna.GetRiverAutoETags() {
 				etag = fmt.Sprintf(`"json-%x"`, routeDataHash)
 				res.SetETag(etag)
 				if response.ShouldReturn304Conservative(r, etag) {
@@ -90,6 +90,9 @@ func (h *River[C]) GetUIHandler(nestedRouter *mux.NestedRouter, coreDataTask *Co
 				return fmt.Errorf("error getting head elements: %v", err)
 			}
 			headElements = he
+			headElements += "\n" + h.Kiruna.GetCriticalCSSStyleElement()
+			headElements += "\n" + h.Kiruna.GetStyleSheetLinkElement()
+
 			return nil
 		})
 
@@ -109,11 +112,11 @@ func (h *River[C]) GetUIHandler(nestedRouter *mux.NestedRouter, coreDataTask *Co
 			return
 		}
 
-		var rootTemplateData RootTemplateData
+		var rootTemplateData map[string]any
 		if h.GetRootTemplateData != nil {
 			rootTemplateData, err = h.GetRootTemplateData(r)
 		} else {
-			rootTemplateData = make(RootTemplateData)
+			rootTemplateData = make(map[string]any)
 		}
 		if err != nil {
 			Log.Error(fmt.Sprintf("Error getting root template data: %v\n", err))
@@ -121,17 +124,18 @@ func (h *River[C]) GetUIHandler(nestedRouter *mux.NestedRouter, coreDataTask *Co
 			return
 		}
 
-		rootTemplateData["HeadElements"] = headElements
-		rootTemplateData["SSRScriptElement"] = ssrScript
-		rootTemplateData["SSRScriptElementSha256Hash"] = ssrScriptSha256Hash
+		rootTemplateData["RiverHeadBlocks"] = headElements
+		rootTemplateData["RiverSSRScript"] = ssrScript
+		rootTemplateData["RiverSSRScriptSha256Hash"] = ssrScriptSha256Hash
+		rootTemplateData["RiverRootID"] = "river-root"
 
 		if !h._isDev {
-			rootTemplateData["BodyElements"] = template.HTML(
+			rootTemplateData["RiverBodyScripts"] = template.HTML(
 				fmt.Sprintf(`<script type="module" src="/public/%s"></script>`, h._clientEntryOut),
 			)
 		} else {
 			opts := viteutil.ToDevScriptsOptions{ClientEntry: h._clientEntrySrc}
-			if h.UIVariant == UIVariants.React {
+			if UIVariant(h.Kiruna.GetRiverUIVariant()) == UIVariants.React {
 				opts.Variant = viteutil.Variants.React
 			} else {
 				opts.Variant = viteutil.Variants.Other
@@ -144,7 +148,7 @@ func (h *River[C]) GetUIHandler(nestedRouter *mux.NestedRouter, coreDataTask *Co
 				return
 			}
 
-			rootTemplateData["BodyElements"] = devScripts
+			rootTemplateData["RiverBodyScripts"] = devScripts + "\n" + h.Kiruna.GetRefreshScript()
 		}
 
 		var buf bytes.Buffer
@@ -155,7 +159,7 @@ func (h *River[C]) GetUIHandler(nestedRouter *mux.NestedRouter, coreDataTask *Co
 			res.InternalServerError()
 		}
 
-		if h.AutoUIRouteETags {
+		if h.Kiruna.GetRiverAutoETags() {
 			etag = fmt.Sprintf(`"html-%x"`, routeDataHash)
 			res.SetETag(etag)
 			if response.ShouldReturn304Conservative(r, etag) {

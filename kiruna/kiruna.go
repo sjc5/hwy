@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/sjc5/river/kiruna/internal/ki"
+	"github.com/sjc5/river/kit/middleware"
 )
 
 type (
@@ -157,3 +158,37 @@ func (k Kiruna) GetViteOutDir() string {
 func (k Kiruna) BuildHelper(hook func(isDev bool) error) {
 	k.c.BuildHelper(hook)
 }
+func (k Kiruna) GetRiverUIVariant() string {
+	return k.c.GetRiverUIVariant()
+}
+func (k Kiruna) GetRiverHTMLTemplateLocation() string {
+	return k.c.GetRiverHTMLTemplateLocation()
+}
+func (k Kiruna) GetRiverClientEntry() string {
+	return k.c.GetRiverClientEntry()
+}
+func (k Kiruna) GetRiverClientRouteDefsFile() string {
+	return k.c.GetRiverClientRouteDefsFile()
+}
+func (k Kiruna) GetRiverTSGenOutPath() string {
+	return k.c.GetRiverTSGenOutPath()
+}
+func (k Kiruna) GetRiverPublicURLFuncName() string {
+	return k.c.GetRiverPublicURLFuncName()
+}
+func (k Kiruna) GetRiverAutoETags() bool {
+	return k.c.GetRiverAutoETags()
+}
+func (k Kiruna) GetConfigFile() string {
+	return k.c.GetConfigFile()
+}
+
+// Forwards requests for "/favicon.ico" to "/{your-public-prefix}/favicon.ico".
+// Not necessary if you're explicitly defining your favicon anywhere.
+// Only comes into play if your preference is to drop a "favicon.ico" file into
+// your public static directory and call it a day.
+func (k Kiruna) FaviconRedirect() middleware.Middleware {
+	return k.c.FaviconRedirect()
+}
+
+// __TODO the func re-definitions in this file are becoming unwieldy. Refactor.

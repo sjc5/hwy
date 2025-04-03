@@ -111,6 +111,49 @@ func (c *Config) MainInit(opts MainInitOptions, calledFrom string) {
 		{Pattern: filepath.Join(c.cleanSources.PublicStatic, "**/*"), RestartApp: true},
 	}
 
+	includeDefaults := true
+	if c._uc.River.IncludeDefaults != nil && !*c._uc.River.IncludeDefaults {
+		includeDefaults = false
+	}
+
+	if includeDefaults {
+		relClientRouteDefsFile, err := filepath.Rel(c.cleanWatchRoot, c._uc.River.ClientRouteDefsFile)
+		if err != nil {
+			c.panic("failed to get relative path for ClientRouteDefsFile", err)
+		}
+
+		c.defaultWatchedFiles = append(c.defaultWatchedFiles, WatchedFile{
+			Pattern:       relClientRouteDefsFile,
+			RestartApp:    true,
+			OnChangeHooks: []OnChangeHook{{Cmd: "DevBuildHook", Timing: "pre"}},
+		})
+
+		c.defaultWatchedFiles = append(c.defaultWatchedFiles, WatchedFile{
+			Pattern:                        "**/*.go",
+			RunClientDefinedRevalidateFunc: true,
+			OnChangeHooks:                  []OnChangeHook{{Cmd: "DevBuildHook", Timing: "concurrent"}},
+		})
+
+		relHTMLTemplateLocation, err := filepath.Rel(c.cleanWatchRoot, c._uc.River.HTMLTemplateLocation)
+		if err != nil {
+			c.panic("failed to get relative path for HTMLTemplateLocation", err)
+		}
+
+		c.defaultWatchedFiles = append(c.defaultWatchedFiles, WatchedFile{
+			Pattern:    relHTMLTemplateLocation,
+			RestartApp: true,
+		})
+
+		c.ignoredDirPatterns = append(c.ignoredDirPatterns, "**/river_out")
+
+		relTSGenOutPath, err := filepath.Rel(c.cleanWatchRoot, c._uc.River.TSGenOutPath)
+		if err != nil {
+			c.panic("failed to get relative path for TSGenOutPath", err)
+		}
+
+		c.ignoredFilePatterns = append(c.ignoredFilePatterns, relTSGenOutPath)
+	}
+
 	// Loop through all WatchedFiles...
 	for i, wfc := range c._uc.Watch.Include {
 		// and make each WatchedFile's Pattern relative to cleanWatchRoot...

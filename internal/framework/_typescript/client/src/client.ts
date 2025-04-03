@@ -1116,6 +1116,10 @@ export function getHistoryInstance() {
 // INIT CLIENT
 /////////////////////////////////////////////////////////////////////
 
+export function getRootEl() {
+	return document.getElementById("river-root") as HTMLDivElement;
+}
+
 export async function initClient(renderFn: () => void) {
 	if (import.meta.hot) {
 		import.meta.hot.on("vite:afterUpdate", () => {

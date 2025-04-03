@@ -58,31 +58,10 @@ var UIVariants = struct {
 	Solid:  "solid",
 }
 
-type RootTemplateData = map[string]any
-
 type River[C any] struct {
-	Kiruna *kiruna.Kiruna
-
-	PublicURLFuncName string // e.g., "publicURL", "withHash", etc.
-	RiverGenOutPath   string // e.g., "./frontend/river.gen.ts"
-
-	RootTemplateLocation string // Relative to the FS root
+	Kiruna               *kiruna.Kiruna
 	GetDefaultHeadBlocks func(r *http.Request) ([]*htmlutil.Element, error)
-	GetRootTemplateData  func(r *http.Request) (RootTemplateData, error)
-	UIVariant            UIVariant
-
-	// If set to true, UI route responses will automatically include a strong ETag
-	// (SHA-256 hash) derived from the applicable nested route data, and will
-	// respond with a 304 header for any subsequent exact matches to an If-None-Match
-	// header value. JSON and HTML responses use the same underlying SHA-256 hash of
-	// nested route data, but each has a unique prefix to differentiate between them.
-	// Defaults to false.
-	AutoUIRouteETags bool
-
-	ClientRouteDefs string
-
-	// BUILD OPTIONS
-	ClientEntry string
+	GetRootTemplateData  func(r *http.Request) (map[string]any, error)
 
 	mu                 sync.RWMutex
 	_isDev             bool

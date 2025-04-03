@@ -1,9 +1,11 @@
 package framework
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -19,6 +21,7 @@ import (
 	"github.com/sjc5/river/kit/matcher"
 	"github.com/sjc5/river/kit/mux"
 	"github.com/sjc5/river/kit/stringsutil"
+	"github.com/sjc5/river/kit/tsgen"
 	"github.com/sjc5/river/kit/viteutil"
 )
 
@@ -51,7 +54,7 @@ func (h *River[C]) writePathsToDisk_StageOne() error {
 	pathsAsJSON, err := json.MarshalIndent(PathsFile{
 		Stage:          "one",
 		Paths:          h._paths,
-		ClientEntrySrc: h.ClientEntry,
+		ClientEntrySrc: h.Kiruna.GetRiverClientEntry(),
 		BuildID:        h._buildID,
 	}, "", "\t")
 	if err != nil {
@@ -66,18 +69,64 @@ func (h *River[C]) writePathsToDisk_StageOne() error {
 	return nil
 }
 
+var (
+	reactDedupeList  = []string{"react", "react-dom"}
+	preactDedupeList = []string{"preact", "preact/hooks"}
+	solidDedupeList  = []string{"solid-js", "solid-js/web"}
+)
+
 // 0 = func name, 1,2 = backtick literal, 3 = public dir, 4 = backtick literal
 const vitePluginTemplateStr = `
 export function riverVitePlugin(): Plugin {
 	return {
 		name: "river-vite-plugin",
 		config(c) {
-			return { ...c, build: { ...c.build, rollupOptions } };
+			const mp = c.build?.modulePreload;
+			const roi = c.build?.rollupOptions?.input;
+			const ign = c.server?.watch?.ignored;
+			const dedupe = c.resolve?.dedupe;
+
+			return {
+				...c,
+				build: {
+					target: "es2022",
+					...c.build,
+					modulePreload: { 
+						polyfill: false,
+						...(typeof mp === "object" ? mp : {}),
+					},
+					rollupOptions: {
+						...c.build?.rollupOptions,
+						...rollupOptions,
+						input: [
+							...rollupOptions.input,
+							...(Array.isArray(roi) ? roi : []),
+						],
+					},
+				},
+				server: {
+					...c.server,
+					watch: {
+						...c.server?.watch,
+						ignored: [
+							...(Array.isArray(ign) ? ign : []),
+							...{{.IgnoredList}},
+						],
+					},
+				},
+				resolve: {
+					...c.resolve,
+					dedupe: [
+						...(Array.isArray(dedupe) ? dedupe : []),
+						...{{.DedupeList}}
+					],
+				},
+			};
 		},
 		transform(code, id) {
 			const isNodeModules = /node_modules/.test(id);
 			if (isNodeModules) return null;
-			const assetRegex = /%s\s*\(\s*(["'%s])(.*?)\1\s*\)/g;
+			const assetRegex = /{{.FuncName}}\s*\(\s*(["'{{.Tick}}])(.*?)\1\s*\)/g;
 			const needsReplacement = assetRegex.test(code);
 			if (!needsReplacement) return null;
 			const replacedCode = code.replace(
@@ -85,7 +134,7 @@ export function riverVitePlugin(): Plugin {
 				(original, _, assetPath) => {
 					const hashed = (publicFileMap as Record<string, string>)[assetPath];
 					if (!hashed) return original;
-					return %s"/%s/${hashed}"%s;
+					return {{.Tick}}"/{{.PublicDir}}/${hashed}"{{.Tick}};
 				},
 			);
 			if (replacedCode === code) return null;
@@ -95,10 +144,15 @@ export function riverVitePlugin(): Plugin {
 }
 `
 
+var vitePluginTemplate = template.Must(template.New("vitePlugin").Parse(vitePluginTemplateStr))
+
 func (h *River[C]) toRollupOptions(entrypoints []string, fileMap map[string]string) (string, error) {
 	var sb stringsutil.Builder
 
 	sb.Return()
+	sb.Write(tsgen.Comment("River Vite Plugin:"))
+	sb.Return().Return()
+
 	sb.Line("import type { Plugin } from \"vite\";")
 	sb.Return()
 
@@ -134,14 +188,61 @@ func (h *River[C]) toRollupOptions(entrypoints []string, fileMap map[string]stri
 
 	sb.Line(fmt.Sprintf(
 		"declare global {\n\tfunction %s(staticPublicAsset: StaticPublicAsset): string;\n}",
-		h.PublicURLFuncName,
+		h.Kiruna.GetRiverPublicURLFuncName(),
 	))
 
 	publicPrefixToUse := filepath.Clean(h.Kiruna.GetPublicPathPrefix())
 	publicPrefixToUse = matcher.StripLeadingSlash(publicPrefixToUse)
 	publicPrefixToUse = matcher.StripTrailingSlash(publicPrefixToUse)
 	tick := "`"
-	sb.Write(fmt.Sprintf(vitePluginTemplateStr, h.PublicURLFuncName, tick, tick, publicPrefixToUse, tick))
+
+	var buf bytes.Buffer
+
+	var dedupeList []string
+	switch UIVariant(h.Kiruna.GetRiverUIVariant()) {
+	case UIVariants.React:
+		dedupeList = reactDedupeList
+	case UIVariants.Preact:
+		dedupeList = preactDedupeList
+	case UIVariants.Solid:
+		dedupeList = solidDedupeList
+	}
+
+	ignoredList := []string{
+		"**/*.go",
+		filepath.Join("**", h.Kiruna.GetPrivateStaticDir()),
+		filepath.Join("**", h.Kiruna.GetConfigFile()),
+		filepath.Join("**", h.Kiruna.GetRiverTSGenOutPath()),
+		filepath.Join("**", h.Kiruna.GetRiverClientRouteDefsFile()),
+	}
+
+	ignoreTabs := strings.Repeat("\t", 7)
+	stringifiedIgnoreBytes, err := json.MarshalIndent(ignoredList, "", ignoreTabs+"\t")
+	if err != nil {
+		return "", fmt.Errorf("error marshalling ignored list to JSON: %v", err)
+	}
+
+	stringifiedDedupeBytes, err := json.Marshal(dedupeList)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling dedupe list to JSON: %v", err)
+	}
+
+	stringifiedIgnore := string(stringifiedIgnoreBytes)
+	stringifiedIgnore = strings.TrimSuffix(stringifiedIgnore, "]")
+	stringifiedIgnore += ignoreTabs + "]"
+
+	err = vitePluginTemplate.Execute(&buf, map[string]any{
+		"FuncName":    h.Kiruna.GetRiverPublicURLFuncName(),
+		"PublicDir":   publicPrefixToUse,
+		"Tick":        tick,
+		"IgnoredList": template.HTML(stringifiedIgnore),
+		"DedupeList":  template.HTML(stringifiedDedupeBytes),
+	})
+	if err != nil {
+		return "", fmt.Errorf("error executing template: %v", err)
+	}
+
+	sb.Write(buf.String())
 
 	return sb.String(), nil
 }
@@ -163,7 +264,7 @@ func (h *River[C]) handleViteConfigHelper(extraTS string) error {
 
 	rollupOptions = extraTS + rollupOptions
 
-	target := filepath.Join(".", h.RiverGenOutPath)
+	target := filepath.Join(".", h.Kiruna.GetRiverTSGenOutPath())
 
 	err = os.MkdirAll(filepath.Dir(target), os.ModePerm)
 	if err != nil {
@@ -212,7 +313,7 @@ func (h *River[C]) Build(opts *BuildOptions) error {
 	Log.Info("Building River...", "buildID", h._buildID)
 
 	esbuildResult := esbuild.Build(esbuild.BuildOptions{
-		EntryPoints: []string{h.ClientRouteDefs},
+		EntryPoints: []string{h.Kiruna.GetRiverClientRouteDefsFile()},
 		Bundle:      false,
 		Write:       false,
 		Format:      esbuild.FormatESModule,
@@ -263,7 +364,7 @@ func (h *River[C]) Build(opts *BuildOptions) error {
 const routes = RoutesBuilder();
 ` + code
 
-	routesSrcFile := filepath.Join(".", h.ClientRouteDefs)
+	routesSrcFile := filepath.Join(".", h.Kiruna.GetRiverClientRouteDefsFile())
 	routesDir := filepath.Dir(routesSrcFile)
 
 	for _, imp := range imports {
@@ -422,7 +523,7 @@ func cleanStaticPublicOutDir(staticPublicOutDir string) error {
 
 func (h *River[C]) getEntrypoints() []string {
 	entryPoints := make(map[string]struct{}, len(h._paths)+1)
-	entryPoints[h.ClientEntry] = struct{}{}
+	entryPoints[h.Kiruna.GetRiverClientEntry()] = struct{}{}
 	for _, path := range h._paths {
 		if path.SrcPath != "" {
 			entryPoints[path.SrcPath] = struct{}{}
@@ -441,7 +542,7 @@ func (h *River[C]) getEntrypoints() []string {
 /////////////////////////////////////////////////////////////////////
 
 func (h *River[C]) toPathsFile_StageTwo() (*PathsFile, error) {
-	riverClientEntry := ""
+	riverClientEntryOut := ""
 	riverClientEntryDeps := []string{}
 	depToCSSBundleMap := make(map[string]string)
 
@@ -451,7 +552,7 @@ func (h *River[C]) toPathsFile_StageTwo() (*PathsFile, error) {
 		return nil, err
 	}
 
-	cleanClientEntry := filepath.Clean(h.ClientEntry)
+	cleanClientEntry := filepath.Clean(h.Kiruna.GetRiverClientEntry())
 
 	// Assuming manifestJSON is your Vite manifest
 	for key, chunk := range viteManifest {
@@ -470,10 +571,10 @@ func (h *River[C]) toPathsFile_StageTwo() (*PathsFile, error) {
 
 		// Handle client entry
 		if chunk.IsEntry && cleanClientEntry == chunk.Src {
-			riverClientEntry = cleanKey
+			riverClientEntryOut = cleanKey
 			depsWithoutClientEntry := make([]string, 0, len(deps)-1)
 			for _, dep := range deps {
-				if dep != riverClientEntry {
+				if dep != riverClientEntryOut {
 					depsWithoutClientEntry = append(depsWithoutClientEntry, dep)
 				}
 			}
@@ -494,8 +595,8 @@ func (h *River[C]) toPathsFile_StageTwo() (*PathsFile, error) {
 		Stage:             "two",
 		DepToCSSBundleMap: depToCSSBundleMap,
 		Paths:             h._paths,
-		ClientEntrySrc:    h.ClientEntry,
-		ClientEntryOut:    riverClientEntry,
+		ClientEntrySrc:    h.Kiruna.GetRiverClientEntry(),
+		ClientEntryOut:    riverClientEntryOut,
 		ClientEntryDeps:   riverClientEntryDeps,
 		BuildID:           h._buildID,
 	}, nil
