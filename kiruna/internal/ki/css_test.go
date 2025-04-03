@@ -15,7 +15,7 @@ func TestGetCriticalCSS(t *testing.T) {
 	defer teardownTestEnv(t)
 
 	criticalCSS := "body { color: red; }"
-	env.createTestFile(t, "dist/kiruna/internal/critical.css", criticalCSS)
+	env.createTestFile(t, "dist/static/internal/critical.css", criticalCSS)
 
 	result := env.config.GetCriticalCSS()
 	if result != criticalCSS {
@@ -28,7 +28,7 @@ func TestGetCriticalCSSStyleElement(t *testing.T) {
 	defer teardownTestEnv(t)
 
 	criticalCSS := "body { color: red; }"
-	env.createTestFile(t, "dist/kiruna/internal/critical.css", criticalCSS)
+	env.createTestFile(t, "dist/static/internal/critical.css", criticalCSS)
 
 	result := env.config.GetCriticalCSSStyleElement()
 	expected := template.HTML(`<style id="` + CriticalCSSElementID + `" integrity="sha256-XeYlw2NVzOfB1UCIJqCyGr+0n7bA4fFslFpvKu84IAw=">body { color: red; }</style>`)
@@ -52,7 +52,7 @@ func TestGetStyleSheetURL(t *testing.T) {
 	defer teardownTestEnv(t)
 
 	normalCSSFile := "normal_1234567890.css"
-	env.createTestFile(t, "dist/kiruna/internal/normal_css_file_ref.txt", normalCSSFile)
+	env.createTestFile(t, "dist/static/internal/normal_css_file_ref.txt", normalCSSFile)
 
 	result := env.config.GetStyleSheetURL()
 	expected := "/public/" + normalCSSFile
@@ -66,7 +66,7 @@ func TestGetStyleSheetLinkElement(t *testing.T) {
 	defer teardownTestEnv(t)
 
 	normalCSSFile := "normal_1234567890.css"
-	env.createTestFile(t, "dist/kiruna/internal/normal_css_file_ref.txt", normalCSSFile)
+	env.createTestFile(t, "dist/static/internal/normal_css_file_ref.txt", normalCSSFile)
 
 	result := env.config.GetStyleSheetLinkElement()
 	expected := template.HTML(`<link rel="stylesheet" href="/public/` + normalCSSFile + `" id="` + StyleSheetElementID + `" />`)
@@ -94,7 +94,7 @@ func TestBuildCSS(t *testing.T) {
 	}
 
 	// Check if critical CSS was processed correctly
-	processedCriticalCSS, err := os.ReadFile(filepath.Join(testRootDir, "dist/kiruna/internal/critical.css"))
+	processedCriticalCSS, err := os.ReadFile(filepath.Join(testRootDir, "dist/static/internal/critical.css"))
 	if err != nil {
 		t.Fatalf("Failed to read processed critical CSS: %v", err)
 	}
@@ -103,7 +103,7 @@ func TestBuildCSS(t *testing.T) {
 	}
 
 	// Check if normal CSS reference file was created and points to an existing file
-	normalCSSRef, err := os.ReadFile(filepath.Join(testRootDir, "dist/kiruna/internal/normal_css_file_ref.txt"))
+	normalCSSRef, err := os.ReadFile(filepath.Join(testRootDir, "dist/static/internal/normal_css_file_ref.txt"))
 	if err != nil {
 		t.Fatalf("Failed to read normal CSS reference file: %v", err)
 	}
@@ -113,7 +113,7 @@ func TestBuildCSS(t *testing.T) {
 	}
 
 	// Check if the referenced normal CSS file exists and has correct content
-	normalCSSPath := filepath.Join(testRootDir, "dist/kiruna/static/public", normalCSSFilename)
+	normalCSSPath := filepath.Join(testRootDir, "dist/static/assets/public", normalCSSFilename)
 	if _, err := os.Stat(normalCSSPath); os.IsNotExist(err) {
 		t.Fatalf("Referenced normal CSS file does not exist: %s", normalCSSPath)
 	}

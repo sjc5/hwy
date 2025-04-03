@@ -186,6 +186,10 @@ func TestColorLogHandler_ComplexAttributes(t *testing.T) {
 	}
 }
 
+func withParens(str string) string {
+	return "  (" + colorBlue + str + colorReset + ")  "
+}
+
 func TestColorLogHandler_Output(t *testing.T) {
 	var buf bytes.Buffer
 	logger := New("TEST")
@@ -204,7 +208,7 @@ func TestColorLogHandler_Output(t *testing.T) {
 			logFunc: logger.Info,
 			msg:     "test message",
 			prefix:  colorGray,
-			suffix:  colorReset + "  TEST  " + colorCyan + "test message" + colorReset + "\n",
+			suffix:  colorReset + withParens("TEST") + colorCyan + "test message" + colorReset + "\n",
 		},
 		{
 			name:    "info with attrs",
@@ -212,7 +216,7 @@ func TestColorLogHandler_Output(t *testing.T) {
 			msg:     "test message",
 			args:    []any{"key1", "val1", "key2", 42},
 			prefix:  colorGray,
-			suffix: colorReset + "  TEST  " + colorCyan + "test message" + colorReset + "  " +
+			suffix: colorReset + withParens("TEST") + colorCyan + "test message" + colorReset + "  " +
 				colorGray + "[" + colorReset + " " + colorGray + "key1" + colorReset + " " + colorGray + "=" + colorReset + " val1 " + colorGray + "]" + colorReset + " " +
 				colorGray + "[" + colorReset + " " + colorGray + "key2" + colorReset + " " + colorGray + "=" + colorReset + " 42 " + colorGray + "]" + colorReset + "\n",
 		},
@@ -221,21 +225,21 @@ func TestColorLogHandler_Output(t *testing.T) {
 			logFunc: logger.Debug,
 			msg:     "debug message",
 			prefix:  colorGray,
-			suffix:  colorReset + "  TEST  " + colorGray + "DEBUG  debug message" + colorReset + "\n",
+			suffix:  colorReset + withParens("TEST") + colorGray + "DEBUG  debug message" + colorReset + "\n",
 		},
 		{
 			name:    "warn no attrs",
 			logFunc: logger.Warn,
 			msg:     "warn message",
 			prefix:  colorGray,
-			suffix:  colorReset + "  TEST  " + colorYellow + "WARNING  warn message" + colorReset + "\n",
+			suffix:  colorReset + withParens("TEST") + colorYellow + "WARNING  warn message" + colorReset + "\n",
 		},
 		{
 			name:    "error no attrs",
 			logFunc: logger.Error,
 			msg:     "error message",
 			prefix:  colorGray,
-			suffix:  colorReset + "  TEST  " + colorRed + "ERROR  error message" + colorReset + "\n",
+			suffix:  colorReset + withParens("TEST") + colorRed + "ERROR  error message" + colorReset + "\n",
 		},
 	}
 

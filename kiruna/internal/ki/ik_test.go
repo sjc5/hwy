@@ -30,9 +30,9 @@ func setupTestEnv(t *testing.T) *testEnv {
 
 	// Set up the dist directory structure
 	distDirs := []string{
-		"dist/kiruna/static/public",
-		"dist/kiruna/static/private",
-		"dist/kiruna/internal",
+		"dist/static/assets/public",
+		"dist/static/assets/private",
+		"dist/static/internal",
 	}
 
 	for _, dir := range append(sourceDirs, distDirs...) {
@@ -42,39 +42,56 @@ func setupTestEnv(t *testing.T) *testEnv {
 	}
 
 	c := &Config{
-		PrivateStaticDir: filepath.Join(testRootDir, privateStaticSrcDirName),
-		PublicStaticDir:  filepath.Join(testRootDir, publicStaticSrcDirName),
-		NormalCSSEntry:   filepath.Join(testRootDir, "main.css"),
-		CriticalCSSEntry: filepath.Join(testRootDir, "critical.css"),
-		DistDir:          filepath.Join(testRootDir, "dist"),
-		MainAppEntry:     "cmd/app/main.go",
-		Logger:           colorlog.New("test"),
+		_uc: &UserConfig{
+			Core: &UserConfigCore{
+				StaticAssetDirs: StaticAssetDirs{
+					Private: filepath.Join(testRootDir, privateStaticSrcDirName),
+					Public:  filepath.Join(testRootDir, publicStaticSrcDirName),
+				},
+				CSSEntryFiles: CSSEntryFiles{
+					NonCritical: filepath.Join(testRootDir, "main.css"),
+					Critical:    filepath.Join(testRootDir, "critical.css"),
+				},
+				DistDir:      filepath.Join(testRootDir, "dist"),
+				MainAppEntry: "cmd/app/main.go",
+			},
+		},
+		Logger: colorlog.New("ik_test"),
 	}
 
-	c.Private_CommonInitOnce_OnlyCallInNewFunc()
+	c.cleanSources = CleanSources{
+		Dist:                filepath.Clean(c._uc.Core.DistDir),
+		PrivateStatic:       filepath.Clean(c._uc.Core.StaticAssetDirs.Private),
+		PublicStatic:        filepath.Clean(c._uc.Core.StaticAssetDirs.Public),
+		CriticalCSSEntry:    filepath.Clean(c._uc.Core.CSSEntryFiles.Critical),
+		NonCriticalCSSEntry: filepath.Clean(c._uc.Core.CSSEntryFiles.NonCritical),
+	}
+
+	c._dist = toDistLayout(c.cleanSources.Dist)
 
 	// Initialize the fileSemaphore
 	c.fileSemaphore = semaphore.NewWeighted(100)
 
 	// Set up embedded FS
 	c.DistFS = os.DirFS(filepath.Join(testRootDir, "dist"))
+	c.EmbedDirective = "static"
 
 	// Initialize safecache
-	c.runtimeCache = runtimeCache{
-		baseFS:                safecache.New(c.getInitialBaseFS, nil),
-		baseDirFS:             safecache.New(c.getInitialBaseDirFS, nil),
-		publicFS:              safecache.New(func() (fs.FS, error) { return c.getSubFSPublic() }, nil),
-		privateFS:             safecache.New(func() (fs.FS, error) { return c.getSubFSPrivate() }, nil),
-		styleSheetLinkElement: safecache.New(c.getInitialStyleSheetLinkElement, GetIsDev),
-		styleSheetURL:         safecache.New(c.getInitialStyleSheetURL, GetIsDev),
-		criticalCSS:           safecache.New(c.getInitialCriticalCSSStatus, GetIsDev),
-		publicFileMapFromGob:  safecache.New(c.getInitialPublicFileMapFromGobRuntime, nil),
-		publicFileMapURL:      safecache.New(c.getInitialPublicFileMapURL, GetIsDev),
-		publicURLs:            safecache.NewMap(c.getInitialPublicURL, publicURLsKeyMaker, nil),
+	c.runtime_cache = runtimeCache{
+		base_fs:                 safecache.New(c.get_initial_base_fs, nil),
+		base_dir_fs:             safecache.New(c.get_initial_base_dir_fs, nil),
+		public_fs:               safecache.New(func() (fs.FS, error) { return c.getSubFSPublic() }, nil),
+		private_fs:              safecache.New(func() (fs.FS, error) { return c.getSubFSPrivate() }, nil),
+		stylesheet_link_el:      safecache.New(c.getInitialStyleSheetLinkElement, GetIsDev),
+		stylesheet_url:          safecache.New(c.getInitialStyleSheetURL, GetIsDev),
+		critical_css:            safecache.New(c.getInitialCriticalCSSStatus, GetIsDev),
+		public_filemap_from_gob: safecache.New(c.getInitialPublicFileMapFromGobRuntime, nil),
+		public_filemap_url:      safecache.New(c.getInitialPublicFileMapURL, GetIsDev),
+		public_urls:             safecache.NewMap(c.getInitialPublicURL, publicURLsKeyMaker, nil),
 	}
 
 	// Initialize dev cache if needed
-	c.dev.matchResults = safecache.NewMap(c.getInitialMatchResults, c.matchResultsKeyMaker, nil)
+	c.dev.matchResults = safecache.NewMap(c.get_initial_match_results, c.match_results_key_maker, nil)
 
 	// Set to production mode for testing
 	os.Setenv(modeKey, "production")
@@ -116,7 +133,6 @@ func resetEnv() {
 	os.Unsetenv(portKey)
 	os.Unsetenv(portHasBeenSetKey)
 	os.Unsetenv(refreshServerPortKey)
-	os.Unsetenv(isBuildTimeKey)
 }
 
 func TestMain(m *testing.M) {

@@ -85,6 +85,16 @@ func CopyFile(src, dest string) error {
 	return destFile.Sync()
 }
 
+// CopyFiles takes any number of src-dest tuples and copies each file from src to dest.
+func CopyFiles(srcDestTuples ...[2]string) error {
+	for _, c := range srcDestTuples {
+		if err := CopyFile(c[0], c[1]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // FromGobInto decodes a gob-encoded file into a destination.
 // The destination must be a pointer to the destination type.
 func FromGobInto(file fs.File, destPtr any) error {

@@ -2,7 +2,9 @@ package ki
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/sjc5/river/kit/executil"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -14,18 +16,18 @@ const (
 )
 
 type sortedOnChangeCallbacks struct {
-	stratPre              []OnChange
-	stratConcurrent       []OnChange
-	stratPost             []OnChange
-	stratConcurrentNoWait []OnChange
+	stratPre              []OnChangeHook
+	stratConcurrent       []OnChangeHook
+	stratPost             []OnChangeHook
+	stratConcurrentNoWait []OnChangeHook
 	exists                bool
 }
 
-func sortOnChangeCallbacks(onChanges []OnChange) sortedOnChangeCallbacks {
-	stratPre := []OnChange{}
-	stratConcurrent := []OnChange{}
-	stratPost := []OnChange{}
-	stratConcurrentNoWait := []OnChange{}
+func sortOnChangeCallbacks(onChanges []OnChangeHook) sortedOnChangeCallbacks {
+	stratPre := []OnChangeHook{}
+	stratConcurrent := []OnChangeHook{}
+	stratPost := []OnChangeHook{}
+	stratConcurrentNoWait := []OnChangeHook{}
 	exists := false
 	if len(onChanges) == 0 {
 		return sortedOnChangeCallbacks{}
@@ -33,7 +35,7 @@ func sortOnChangeCallbacks(onChanges []OnChange) sortedOnChangeCallbacks {
 		exists = true
 	}
 	for _, o := range onChanges {
-		switch o.Strategy {
+		switch o.Timing {
 		case OnChangeStrategyPre, "":
 			stratPre = append(stratPre, o)
 		case OnChangeStrategyConcurrent:
@@ -53,15 +55,22 @@ func sortOnChangeCallbacks(onChanges []OnChange) sortedOnChangeCallbacks {
 	}
 }
 
-func (c *Config) runConcurrentOnChangeCallbacks(onChanges *[]OnChange, evtName string, shouldWait bool) error {
-	if len(*onChanges) > 0 {
+func (c *Config) resolveCmd(cmd string) string {
+	if cmd == "DevBuildHook" {
+		return c._uc.Core.DevBuildHook
+	}
+	return cmd
+}
+
+func (c *Config) runConcurrentOnChangeCallbacks(onChanges []OnChangeHook, evtName string, shouldWait bool) error {
+	if len(onChanges) > 0 {
 		eg := errgroup.Group{}
-		for _, o := range *onChanges {
-			if c.getIsIgnored(evtName, &o.ExcludedPatterns) {
+		for _, o := range onChanges {
+			if c.get_is_ignored(evtName, o.Exclude) {
 				continue
 			}
 			eg.Go(func() error {
-				err := o.Func()
+				err := executil.RunCmd(strings.Fields(c.resolveCmd(o.Cmd))...)
 				if err != nil {
 					c.Logger.Error(fmt.Sprintf("error running on-change callback: %v", err))
 					return err
@@ -85,12 +94,12 @@ func (c *Config) runConcurrentOnChangeCallbacks(onChanges *[]OnChange, evtName s
 	return nil
 }
 
-func (c *Config) simpleRunOnChangeCallbacks(onChanges *[]OnChange, evtName string) error {
-	for _, o := range *onChanges {
-		if c.getIsIgnored(evtName, &o.ExcludedPatterns) {
+func (c *Config) simpleRunOnChangeCallbacks(onChanges []OnChangeHook, evtName string) error {
+	for _, o := range onChanges {
+		if c.get_is_ignored(evtName, o.Exclude) {
 			continue
 		}
-		err := o.Func()
+		err := executil.RunCmd(strings.Fields(c.resolveCmd(o.Cmd))...)
 		if err != nil {
 			c.Logger.Error(fmt.Sprintf("error running on-change callback: %v", err))
 			return err

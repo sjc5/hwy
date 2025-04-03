@@ -4,156 +4,16 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strconv"
-	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/sjc5/river/kit/grace"
-	"github.com/sjc5/river/kit/port"
 	"golang.org/x/sync/errgroup"
 )
 
-const (
-	healthCheckWarningA = `WARNING: No healthcheck endpoint found, setting to "/".`
-	healthCheckWarningB = `To set this explicitly, use the "HealthcheckEndpoint" field in your dev config.`
-	healthCheckWarning  = healthCheckWarningA + "\n" + healthCheckWarningB
-)
+func (c *Config) process_batched_events(events []fsnotify.Event) {
+	cleanConfigFile := filepath.Clean(c.ConfigFile)
 
-func (c *Config) MustStartDev(devConfig *DevConfig) {
-	enforceProperInstantiation(c)
-
-	// Short circuit if no dev config
-	if devConfig == nil {
-		errMsg := "error: no dev config found"
-		c.Logger.Error(errMsg)
-		panic(errMsg)
-	}
-
-	c.devConfig = devConfig
-	c.cleanWatchRoot = filepath.Clean(c.devConfig.WatchRoot)
-
-	if len(c.devConfig.HealthcheckEndpoint) == 0 {
-		c.Logger.Warn(healthCheckWarning)
-		c.devConfig.HealthcheckEndpoint = "/"
-	}
-
-	SetModeToDev()
-
-	c.devInitOnce()
-
-	// take a breather for prior process to clean up
-	// not sure why needed, but it allows same port to be used
-	time.Sleep(10 * time.Millisecond)
-
-	// Warm port right away, in case default is unavailable
-	// Also, env needs to be set in this scope
-	MustGetPort()
-
-	// Set refresh server port
-	if freePort, err := port.GetFreePort(defaultFreePort); err == nil {
-		setRefreshServerPort(freePort)
-	} else {
-		c.Logger.Error(fmt.Sprintf("error: failed to get free port for refresh server: %v", err))
-		panic(err)
-	}
-
-	err := c.Build(false, false)
-	if err != nil {
-		errMsg := fmt.Sprintf("error: failed to build app: %v", err)
-		c.Logger.Error(errMsg)
-		panic(errMsg)
-	}
-
-	if c.ServerOnly {
-		c.mustSetupWatcher()
-		return
-	}
-
-	c.Logger.Info("Initializing sidecar refresh server", "port", getRefreshServerPort())
-
-	go c.manager.start()
-	go c.mustSetupWatcher()
-
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/events", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		websocketHandler(c.manager)(w, r)
-	})
-
-	mux.HandleFunc("/get-refresh-script-inner", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Content-Type", "text/javascript")
-		w.Write([]byte(GetRefreshScriptInner(getRefreshServerPort())))
-	})
-
-	if err := http.ListenAndServe(":"+strconv.Itoa(getRefreshServerPort()), mux); err != nil {
-		errMsg := fmt.Sprintf("error: failed to start refresh server: %v", err)
-		c.Logger.Error(errMsg)
-		panic(errMsg)
-	}
-}
-
-func (c *Config) mustKillAppDev() {
-	c.lastBuildCmd.mu.Lock()
-	defer c.lastBuildCmd.mu.Unlock()
-
-	if c.lastBuildCmd.v != nil {
-		if err := grace.TerminateProcess(c.lastBuildCmd.v.Process, 5*time.Second, c.Logger); err != nil {
-			errMsg := fmt.Sprintf(
-				"error: failed to kill running app with pid %d: %v",
-				c.lastBuildCmd.v.Process.Pid,
-				err,
-			)
-			c.Logger.Error(errMsg)
-			panic(errMsg)
-		} else {
-			c.Logger.Info("Terminated previous process", "pid", c.lastBuildCmd.v.Process.Pid)
-
-			c.lastBuildCmd.v = nil
-		}
-	}
-}
-
-func (c *Config) mustStartAppDev() {
-	c.lastBuildCmd.mu.Lock()
-	defer c.lastBuildCmd.mu.Unlock()
-
-	buildDest := c.__dist.S().Bin.S().Main.FullPath()
-
-	c.lastBuildCmd.v = exec.Command(buildDest)
-	c.lastBuildCmd.v.Stdout = os.Stdout
-	c.lastBuildCmd.v.Stderr = os.Stderr
-
-	if err := c.lastBuildCmd.v.Start(); err != nil {
-		errMsg := fmt.Sprintf("error: failed to start app: %v", err)
-		c.Logger.Error(errMsg)
-		panic(errMsg)
-	}
-
-	c.Logger.Info("App is running", "pid", c.lastBuildCmd.v.Process.Pid)
-}
-
-func (c *Config) mustHandleWatcherEmissions() {
-	debouncer := newDebouncer(30*time.Millisecond, func(events []fsnotify.Event) {
-		c.processBatchedEvents(events)
-	})
-
-	for {
-		select {
-		case evt := <-c.watcher.Events:
-			debouncer.addEvent(evt)
-		case err := <-c.watcher.Errors:
-			c.Logger.Error(fmt.Sprintf("watcher error: %v", err))
-		}
-	}
-}
-
-func (c *Config) processBatchedEvents(events []fsnotify.Event) {
 	fileChanges := make(map[string]fsnotify.Event)
 	for _, evt := range events {
 		fileChanges[evt.Name] = evt
@@ -166,9 +26,21 @@ func (c *Config) processBatchedEvents(events []fsnotify.Event) {
 
 	for _, evt := range fileChanges {
 		fileInfo, _ := os.Stat(evt.Name) // no need to check error, because we want to process either way
-		if fileInfo != nil && fileInfo.IsDir() {
+
+		if fileInfo == nil {
+			continue
+		}
+
+		isConfig := filepath.Join(c.cleanWatchRoot, evt.Name) == cleanConfigFile
+		isWriteOrCreate := evt.Has(fsnotify.Write) || evt.Has(fsnotify.Create)
+		if isConfig && isWriteOrCreate {
+			c.handler_user_config_update()
+			return
+		}
+
+		if fileInfo.IsDir() {
 			if evt.Has(fsnotify.Create) || evt.Has(fsnotify.Rename) {
-				if err := c.addDirs(evt.Name); err != nil {
+				if err := c.add_directory_to_watcher(evt.Name); err != nil {
 					c.Logger.Error(fmt.Sprintf("error: failed to add directory to watcher: %v", err))
 					continue
 				}
@@ -177,13 +49,13 @@ func (c *Config) processBatchedEvents(events []fsnotify.Event) {
 		}
 
 		evtDetails := c.getEvtDetails(evt)
-		if evtDetails.isIgnored {
+		if evtDetails == nil || evtDetails.isIgnored {
 			continue
 		}
 
 		wfc := evtDetails.wfc
 		if wfc == nil {
-			wfc = c.defaultWatchedFile
+			wfc = &WatchedFile{}
 		}
 
 		if _, alreadyHandled := wfcsAlreadyHandled[wfc.Pattern]; alreadyHandled {
@@ -234,7 +106,7 @@ func (c *Config) processBatchedEvents(events []fsnotify.Event) {
 			return
 		}
 
-		c.manager.broadcast <- refreshFilePayload{
+		c.browserTabManager.broadcast <- refreshFilePayload{
 			ChangeType: changeTypeRebuilding,
 		}
 	}
@@ -243,7 +115,7 @@ func (c *Config) processBatchedEvents(events []fsnotify.Event) {
 	if hasMultipleEvents && isGoOrNeedsHardReloadEvenIfNonGo {
 		eg.Go(func() error {
 			c.Logger.Info("Shutting down running app")
-			c.mustKillAppDev()
+			c.kill_running_go_binary()
 			return nil
 		})
 	}
@@ -264,17 +136,17 @@ func (c *Config) processBatchedEvents(events []fsnotify.Event) {
 			return
 		}
 		c.Logger.Info("Restarting app")
-		c.mustStartAppDev()
+		c.run_go_binary()
 	}
 
 	if hasMultipleEvents {
 		c.Logger.Info("Hard reloading browser")
-		c.mustReloadBroadcast(refreshFilePayload{ChangeType: changeTypeOther})
+		c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeOther}, true)
 	}
 }
 
 func getNeedsHardReloadEvenIfNonGo(wfc *WatchedFile) bool {
-	return wfc.RecompileBinary || wfc.RestartApp
+	return wfc.RecompileGoBinary || wfc.RestartApp
 }
 
 func (c *Config) mustHandleFileChange(
@@ -283,20 +155,16 @@ func (c *Config) mustHandleFileChange(
 ) error {
 	wfc := evtDetails.wfc
 	if wfc == nil {
-		wfc = c.defaultWatchedFile
+		wfc = &WatchedFile{}
 	}
 
-	if !c.ServerOnly && !wfc.SkipRebuildingNotification && !evtDetails.isKirunaCSS && !isPartOfBatch {
-		c.manager.broadcast <- refreshFilePayload{
+	if c.is_using_browser() && !wfc.SkipRebuildingNotification && !evtDetails.isKirunaCSS && !isPartOfBatch {
+		c.browserTabManager.broadcast <- refreshFilePayload{
 			ChangeType: changeTypeRebuilding,
 		}
 	}
 
 	needsHardReloadEvenIfNonGo := getNeedsHardReloadEvenIfNonGo(wfc)
-
-	if evtDetails.isGo || wfc.RecompileBinary {
-		c.Logger.Info("Recompiling Go binary")
-	}
 
 	needsKillAndRestart := (evtDetails.isGo || needsHardReloadEvenIfNonGo) && !isPartOfBatch
 
@@ -304,22 +172,22 @@ func (c *Config) mustHandleFileChange(
 	if needsKillAndRestart {
 		killAndRestartEG.Go(func() error {
 			c.Logger.Info("Terminating running app")
-			c.mustKillAppDev()
+			c.kill_running_go_binary()
 			return nil
 		})
 	}
 
-	sortedOnChanges := sortOnChangeCallbacks(wfc.OnChangeCallbacks)
+	sortedOnChanges := sortOnChangeCallbacks(wfc.OnChangeHooks)
 
 	if sortedOnChanges.exists {
 		// Kiruna has no control over error handling for "no-wait" callbacks.
 		// They might not even be finished until after Kiruna has already
 		// restarted the app (in fact, that's the point).
 		go func() {
-			_ = c.runConcurrentOnChangeCallbacks(&sortedOnChanges.stratConcurrentNoWait, evtDetails.evt.Name, false)
+			_ = c.runConcurrentOnChangeCallbacks(sortedOnChanges.stratConcurrentNoWait, evtDetails.evt.Name, false)
 		}()
 
-		if err := c.simpleRunOnChangeCallbacks(&sortedOnChanges.stratPre, evtDetails.evt.Name); err != nil {
+		if err := c.simpleRunOnChangeCallbacks(sortedOnChanges.stratPre, evtDetails.evt.Name); err != nil {
 			c.Logger.Error(fmt.Sprintf("error: failed to build: %v", err))
 			return err
 		}
@@ -335,7 +203,7 @@ func (c *Config) mustHandleFileChange(
 			return c.callback(wfc, evtDetails)
 		})
 
-		if err := c.runConcurrentOnChangeCallbacks(&sortedOnChanges.stratConcurrent, evtDetails.evt.Name, true); err != nil {
+		if err := c.runConcurrentOnChangeCallbacks(sortedOnChanges.stratConcurrent, evtDetails.evt.Name, true); err != nil {
 			c.Logger.Error(fmt.Sprintf("error: failed to build: %v", err))
 			return err
 		}
@@ -353,7 +221,7 @@ func (c *Config) mustHandleFileChange(
 		}
 	}
 
-	if err := c.simpleRunOnChangeCallbacks(&sortedOnChanges.stratPost, evtDetails.evt.Name); err != nil {
+	if err := c.simpleRunOnChangeCallbacks(sortedOnChanges.stratPost, evtDetails.evt.Name); err != nil {
 		c.Logger.Error(fmt.Sprintf("error: failed to build: %v", err))
 		return err
 	}
@@ -364,22 +232,22 @@ func (c *Config) mustHandleFileChange(
 			return err
 		}
 		c.Logger.Info("Restarting app")
-		c.mustStartAppDev()
+		c.run_go_binary()
 	}
 
-	if c.ServerOnly || isPartOfBatch {
+	if !c.is_using_browser() || isPartOfBatch {
 		return nil
 	}
 
 	if wfc.RunClientDefinedRevalidateFunc {
-		c.Logger.Info("Revalidating browser")
-		c.mustReloadBroadcast(refreshFilePayload{ChangeType: changeTypeRevalidate})
+		c.Logger.Info("Running client-defined revalidate function")
+		c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeRevalidate}, true)
 		return nil
 	}
 
 	if !evtDetails.isKirunaCSS || needsHardReloadEvenIfNonGo {
 		c.Logger.Info("Hard reloading browser")
-		c.mustReloadBroadcast(refreshFilePayload{ChangeType: changeTypeOther})
+		c.must_reload_broadcast(refreshFilePayload{ChangeType: changeTypeOther}, true)
 		return nil
 	}
 	// At this point, we know it's a CSS file
@@ -389,26 +257,27 @@ func (c *Config) mustHandleFileChange(
 		cssType = changeTypeCriticalCSS
 	}
 
-	c.Logger.Info("Hot reloading browser")
-	c.mustReloadBroadcast(refreshFilePayload{
+	c.Logger.Info("Hot reloading browser (CSS)")
+	rfp := refreshFilePayload{
 		ChangeType: cssType,
 
 		// These must be called AFTER ProcessCSS
 		CriticalCSS:  base64.StdEncoding.EncodeToString([]byte(c.GetCriticalCSS())),
 		NormalCSSURL: c.GetStyleSheetURL(),
-	})
+	}
+	c.must_reload_broadcast(rfp, false)
 
 	return nil
 }
 
 func (c *Config) callback(wfc *WatchedFile, evtDetails *EvtDetails) error {
 	if evtDetails.isGo {
-		return c.compileBinary()
+		return c.compile_go_binary()
 	}
 
 	if evtDetails.isKirunaCSS {
 		if getNeedsHardReloadEvenIfNonGo(wfc) {
-			return c.runOtherFileBuild(wfc)
+			return c.runOtherFileBuild(wfc, evtDetails)
 		}
 		if evtDetails.isCriticalCSS {
 			c.processCSSCritical()
@@ -417,15 +286,20 @@ func (c *Config) callback(wfc *WatchedFile, evtDetails *EvtDetails) error {
 		}
 	}
 
-	return c.runOtherFileBuild(wfc)
+	return c.runOtherFileBuild(wfc, evtDetails)
 }
 
 // This is different than inside of handleGoFileChange, because here we
 // assume we need to re-run other build steps too, not just recompile Go.
 // Also, we don't necessarily recompile Go here (we only necessarily) run
-// the other build steps. We only recompile Go if wfc.RecompileBinary is true.
-func (c *Config) runOtherFileBuild(wfc *WatchedFile) error {
-	err := c.Build(wfc.RecompileBinary, true)
+// the other build steps. We only recompile Go if wfc.RecompileGoBinary is true.
+func (c *Config) runOtherFileBuild(wfc *WatchedFile, evtDetails *EvtDetails) error {
+	err := c.Build(BuildOptions{
+		CSSHotReload:      evtDetails.isKirunaCSS,
+		RecompileGoBinary: wfc.RecompileGoBinary,
+		IsDev:             true,
+		is_dev_rebuild:    true,
+	})
 	if err != nil {
 		msg := fmt.Sprintf("error: failed to build app: %v", err)
 		c.Logger.Error(msg)

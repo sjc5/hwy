@@ -10,7 +10,7 @@ func TestGetPublicFS(t *testing.T) {
 	env := setupTestEnv(t)
 	defer teardownTestEnv(t)
 
-	env.createTestFile(t, "dist/kiruna/static/public/test.txt", "public fs content")
+	env.createTestFile(t, "dist/static/assets/public/test.txt", "public fs content")
 
 	publicFS, err := env.config.GetPublicFS()
 	if err != nil {
@@ -31,7 +31,7 @@ func TestGetPrivateFS(t *testing.T) {
 	env := setupTestEnv(t)
 	defer teardownTestEnv(t)
 
-	env.createTestFile(t, "dist/kiruna/static/private/test.txt", "private fs content")
+	env.createTestFile(t, "dist/static/assets/private/test.txt", "private fs content")
 
 	privateFS, err := env.config.GetPrivateFS()
 	if err != nil {
@@ -52,14 +52,14 @@ func TestGetBaseFS(t *testing.T) {
 	env := setupTestEnv(t)
 	defer teardownTestEnv(t)
 
-	env.createTestFile(t, "dist/kiruna/static/public/test.txt", "base fs content")
+	env.createTestFile(t, "dist/static/assets/public/test.txt", "base fs content")
 
 	baseFS, err := env.config.GetBaseFS()
 	if err != nil {
 		t.Fatalf("GetBaseFS() error = %v", err)
 	}
 
-	content, err := fs.ReadFile(baseFS, "static/public/test.txt")
+	content, err := fs.ReadFile(baseFS, "assets/public/test.txt")
 	if err != nil {
 		t.Fatalf("ReadFile() error = %v", err)
 	}
@@ -69,7 +69,7 @@ func TestGetBaseFS(t *testing.T) {
 	}
 
 	// Test Sub
-	subFS, err := fs.Sub(baseFS, "static/public")
+	subFS, err := fs.Sub(baseFS, "assets/public")
 	if err != nil {
 		t.Fatalf("Sub() error = %v", err)
 	}
@@ -84,7 +84,7 @@ func TestGetBaseFS(t *testing.T) {
 	}
 
 	// Test ReadDir
-	entries, err := fs.ReadDir(baseFS, "static")
+	entries, err := fs.ReadDir(baseFS, "assets")
 	if err != nil {
 		t.Fatalf("ReadDir() error = %v", err)
 	}
@@ -117,9 +117,9 @@ func TestFSEdgeCases(t *testing.T) {
 	})
 
 	t.Run("EmptyFile", func(t *testing.T) {
-		env.createTestFile(t, "dist/kiruna/static/public/empty.txt", "")
+		env.createTestFile(t, "dist/static/assets/public/empty.txt", "")
 		baseFS, _ := env.config.GetBaseFS()
-		content, err := fs.ReadFile(baseFS, "static/public/empty.txt")
+		content, err := fs.ReadFile(baseFS, "assets/public/empty.txt")
 		if err != nil {
 			t.Errorf("Unexpected error reading empty file: %v", err)
 		}
@@ -134,13 +134,13 @@ func TestGetIsUsingEmbeddedFS(t *testing.T) {
 	defer teardownTestEnv(t)
 
 	// Test when DistFS is set (default in setupTestEnv)
-	if !env.config.getIsUsingEmbeddedFS() {
+	if !env.config.get_is_using_embedded_fs() {
 		t.Errorf("getIsUsingEmbeddedFS() = false, want true when DistFS is set")
 	}
 
 	// Test when DistFS is nil
 	env.config.DistFS = nil
-	if env.config.getIsUsingEmbeddedFS() {
+	if env.config.get_is_using_embedded_fs() {
 		t.Errorf("getIsUsingEmbeddedFS() = true, want false when DistFS is nil")
 	}
 }

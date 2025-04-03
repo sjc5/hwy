@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io/fs"
+	"path/filepath"
 
 	"github.com/sjc5/river/kit/mux"
 )
@@ -42,6 +44,20 @@ func (h *River[C]) validateAndDecorateNestedRouter(nestedRouter *mux.NestedRoute
 	}
 }
 
+func PrettyPrintFS(fsys fs.FS) error {
+	return fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			fmt.Println(path)
+		} else {
+			fmt.Printf("%s (%s)\n", path, d.Type())
+		}
+		return nil
+	})
+}
+
 func (h *River[C]) initInner(isDev bool) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -73,7 +89,7 @@ func (h *River[C]) initInner(isDev bool) error {
 	if h._depToCSSBundleMap == nil {
 		h._depToCSSBundleMap = make(map[string]string)
 	}
-	tmpl, err := template.ParseFS(h._privateFS, h.RootTemplateLocation)
+	tmpl, err := template.ParseFS(h._privateFS, h.Kiruna.GetRiverHTMLTemplateLocation())
 	if err != nil {
 		return fmt.Errorf("error parsing root template: %v", err)
 	}
@@ -87,7 +103,7 @@ func (h *River[C]) getBasePaths_StageOneOrTwo(isDev bool) (*PathsFile, error) {
 		fileToUse = RiverPathsStageTwoJSONFileName
 	}
 	pathsFile := PathsFile{}
-	file, err := h._privateFS.Open(fileToUse)
+	file, err := h._privateFS.Open(filepath.Join("river_out", fileToUse))
 	if err != nil {
 		errMsg := fmt.Sprintf("could not open %s: %v", fileToUse, err)
 		Log.Error(errMsg)

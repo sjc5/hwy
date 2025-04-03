@@ -15,6 +15,9 @@ gobump: gotest
 gobench:
 	@go test -bench=. $(pkg)
 
+gen-kiruna-json-schema:
+	@go run ./kiruna/internal/ki/configschema
+
 #####################################################################
 ####### TS
 #####################################################################

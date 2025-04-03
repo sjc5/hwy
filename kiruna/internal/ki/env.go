@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-
-	"github.com/sjc5/river/kit/envutil"
 )
 
 const (
@@ -15,8 +13,6 @@ const (
 	portHasBeenSetKey    = "KIRUNA_PORT_HAS_BEEN_SET"
 	refreshServerPortKey = "KIRUNA_REFRESH_SERVER_PORT"
 	trueStr              = "true"
-	isBuildTimeKey       = "KIRUNA_IS_BUILD_TIME"
-	useVerboseLogsKey    = "KIRUNA_USE_VERBOSE_LOGS"
 )
 
 func GetIsDev() bool {
@@ -55,10 +51,6 @@ func SetModeToDev() {
 	os.Setenv(modeKey, devModeVal)
 }
 
-func setRefreshServerPort(port int) {
+func set_refresh_server_port(port int) {
 	os.Setenv(refreshServerPortKey, fmt.Sprintf("%d", port))
-}
-
-func getUseVerboseLogs() bool {
-	return envutil.GetBool(useVerboseLogsKey, false)
 }

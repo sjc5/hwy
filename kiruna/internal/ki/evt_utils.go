@@ -21,20 +21,24 @@ type EvtDetails struct {
 }
 
 func (c *Config) getEvtDetails(evt fsnotify.Event) *EvtDetails {
+	if evt.Name == "" {
+		return nil
+	}
+
 	cssImportURLsMu.RLock()
 	_, isImportedCritical := criticalReliedUponFiles[evt.Name]
 	_, isImportedNormal := normalReliedUponFiles[evt.Name]
 	cssImportURLsMu.RUnlock()
 
 	isCriticalCSS := evt.Name == c.cleanSources.CriticalCSSEntry || isImportedCritical
-	isNormalCSS := evt.Name == c.cleanSources.NormalCSSEntry || isImportedNormal
+	isNormalCSS := evt.Name == c.cleanSources.NonCriticalCSSEntry || isImportedNormal
 
 	isKirunaCSS := isCriticalCSS || isNormalCSS
 
 	var matchingWatchedFile *WatchedFile
 
-	for _, wfc := range c.devConfig.WatchedFiles {
-		isMatch := c.getIsMatch(potentialMatch{pattern: wfc.Pattern, path: evt.Name})
+	for _, wfc := range c._uc.Watch.Include {
+		isMatch := c.get_is_match(potentialMatch{pattern: wfc.Pattern, path: evt.Name})
 		if isMatch {
 			matchingWatchedFile = &wfc
 			break
@@ -42,8 +46,8 @@ func (c *Config) getEvtDetails(evt fsnotify.Event) *EvtDetails {
 	}
 
 	if matchingWatchedFile == nil {
-		for _, wfc := range *c.defaultWatchedFiles {
-			isMatch := c.getIsMatch(potentialMatch{pattern: wfc.Pattern, path: evt.Name})
+		for _, wfc := range c.defaultWatchedFiles {
+			isMatch := c.get_is_match(potentialMatch{pattern: wfc.Pattern, path: evt.Name})
 			if isMatch {
 				matchingWatchedFile = &wfc
 				break
@@ -58,7 +62,7 @@ func (c *Config) getEvtDetails(evt fsnotify.Event) *EvtDetails {
 
 	isOther := !isGo && !isKirunaCSS
 
-	isIgnored := c.getIsIgnored(evt.Name, c.ignoredFilePatterns)
+	isIgnored := c.get_is_ignored(evt.Name, c.ignoredFilePatterns)
 	if isOther && matchingWatchedFile == nil {
 		isIgnored = true
 	}
