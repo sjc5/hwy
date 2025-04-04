@@ -21,6 +21,11 @@ var NestedPatterns = []string{
 	"/lion/_index",                                    // Index
 	"/tiger/_index",                                   // Index
 	"/tiger/:tiger_id/_index",                         // Index
+
+	// NOTE: This will evaluate to an empty string -- should match to everything
+	// __TODO modify this to run tests both with and without this "absolute root" pattern
+	"/",
+
 	"/*",
 	"/bear",
 	"/bear/:bear_id",
@@ -42,343 +47,245 @@ var NestedPatterns = []string{
 
 type TestNestedScenario struct {
 	Path            string
-	ExpectedMatches []Match
+	ExpectedMatches []string
+	SplatValues     []string
+	Params          Params
 }
 
 var NestedScenarios = []TestNestedScenario{
 	{
-		Path: "/does-not-exist",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/*"},
-				SplatValues:       []string{"does-not-exist"},
-			},
+		Path:        "/does-not-exist",
+		SplatValues: []string{"does-not-exist"},
+		ExpectedMatches: []string{
+			"",
+			"/*",
 		},
 	},
 	{
-		Path: "/this-should-be-ignored",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/*"},
-				SplatValues:       []string{"this-should-be-ignored"},
-			},
+		Path:        "/this-should-be-ignored",
+		SplatValues: []string{"this-should-be-ignored"},
+		ExpectedMatches: []string{
+			"",
+			"/*",
 		},
 	},
 	{
 		Path: "/",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/"},
-			},
+		ExpectedMatches: []string{
+			"",
+			"/",
 		},
 	},
 	{
 		Path: "/lion",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/lion"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/lion/"},
-			},
+		ExpectedMatches: []string{
+			"",
+			"/lion",
+			"/lion/",
 		},
 	},
 	{
-		Path: "/lion/123",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/lion"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/lion/*"},
-				SplatValues:       []string{"123"},
-			},
+		Path:        "/lion/123",
+		SplatValues: []string{"123"},
+		ExpectedMatches: []string{
+			"",
+			"/lion",
+			"/lion/*",
 		},
 	},
 	{
-		Path: "/lion/123/456",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/lion"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/lion/*"},
-				SplatValues:       []string{"123", "456"},
-			},
+		Path:        "/lion/123/456",
+		SplatValues: []string{"123", "456"},
+		ExpectedMatches: []string{
+			"",
+			"/lion",
+			"/lion/*",
 		},
 	},
 	{
-		Path: "/lion/123/456/789",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/lion"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/lion/*"},
-				SplatValues:       []string{"123", "456", "789"},
-			},
+		Path:        "/lion/123/456/789",
+		SplatValues: []string{"123", "456", "789"},
+		ExpectedMatches: []string{
+			"",
+			"/lion",
+			"/lion/*",
 		},
 	},
 	{
 		Path: "/tiger",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger/"},
-			},
+		ExpectedMatches: []string{
+			"",
+			"/tiger",
+			"/tiger/",
 		},
 	},
 	{
-		Path: "/tiger/123",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger/:tiger_id"},
-				Params:            Params{"tiger_id": "123"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger/:tiger_id/"},
-				Params:            Params{"tiger_id": "123"},
-			},
+		Path:   "/tiger/123",
+		Params: Params{"tiger_id": "123"},
+		ExpectedMatches: []string{
+			"",
+			"/tiger",
+			"/tiger/:tiger_id",
+			"/tiger/:tiger_id/",
 		},
 	},
 	{
-		Path: "/tiger/123/456",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger/:tiger_id"},
-				Params:            Params{"tiger_id": "123"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger/:tiger_id/:tiger_cub_id"},
-				Params:            Params{"tiger_id": "123", "tiger_cub_id": "456"},
-			},
+		Path:   "/tiger/123/456",
+		Params: Params{"tiger_id": "123", "tiger_cub_id": "456"},
+		ExpectedMatches: []string{
+			"",
+			"/tiger",
+			"/tiger/:tiger_id",
+			"/tiger/:tiger_id/:tiger_cub_id",
 		},
 	},
 	{
-		Path: "/tiger/123/456/789",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger/:tiger_id"},
-				Params:            Params{"tiger_id": "123"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/tiger/:tiger_id/*"},
-				Params:            Params{"tiger_id": "123"},
-				SplatValues:       []string{"456", "789"},
-			},
+		Path:        "/tiger/123/456/789",
+		Params:      Params{"tiger_id": "123"},
+		SplatValues: []string{"456", "789"},
+		ExpectedMatches: []string{
+			"",
+			"/tiger",
+			"/tiger/:tiger_id",
+			"/tiger/:tiger_id/*",
 		},
 	},
 	{
 		Path: "/bear",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/bear"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/bear/"},
-			},
+		ExpectedMatches: []string{
+			"",
+			"/bear",
+			"/bear/",
 		},
 	},
 	{
-		Path: "/bear/123",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/bear"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/bear/:bear_id"},
-				Params:            Params{"bear_id": "123"},
-			},
+		Path:   "/bear/123",
+		Params: Params{"bear_id": "123"},
+		ExpectedMatches: []string{
+			"",
+			"/bear",
+			"/bear/:bear_id",
 		},
 	},
 	{
-		Path: "/bear/123/456",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/bear"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/bear/:bear_id"},
-				Params:            Params{"bear_id": "123"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/bear/:bear_id/*"},
-				Params:            Params{"bear_id": "123"},
-				SplatValues:       []string{"456"},
-			},
+		Path:        "/bear/123/456",
+		Params:      Params{"bear_id": "123"},
+		SplatValues: []string{"456"},
+		ExpectedMatches: []string{
+			"",
+			"/bear",
+			"/bear/:bear_id",
+			"/bear/:bear_id/*",
 		},
 	},
 	{
-		Path: "/bear/123/456/789",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/bear"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/bear/:bear_id"},
-				Params:            Params{"bear_id": "123"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/bear/:bear_id/*"},
-				Params:            Params{"bear_id": "123"},
-				SplatValues:       []string{"456", "789"},
-			},
+		Path:        "/bear/123/456/789",
+		Params:      Params{"bear_id": "123"},
+		SplatValues: []string{"456", "789"},
+		ExpectedMatches: []string{
+			"",
+			"/bear",
+			"/bear/:bear_id",
+			"/bear/:bear_id/*",
 		},
 	},
 	{
 		Path: "/dashboard",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/"},
-			},
+		ExpectedMatches: []string{
+			"",
+			"/dashboard",
+			"/dashboard/",
 		},
 	},
 	{
-		Path: "/dashboard/asdf",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/*"},
-				SplatValues:       []string{"asdf"},
-			},
+		Path:        "/dashboard/asdf",
+		SplatValues: []string{"asdf"},
+		ExpectedMatches: []string{
+			"",
+			"/dashboard",
+			"/dashboard/*",
 		},
 	},
 	{
 		Path: "/dashboard/customers",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers/"},
-			},
+		ExpectedMatches: []string{
+			"",
+			"/dashboard",
+			"/dashboard/customers",
+			"/dashboard/customers/",
 		},
 	},
 	{
-		Path: "/dashboard/customers/123",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers/:customer_id"},
-				Params:            Params{"customer_id": "123"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers/:customer_id/"},
-				Params:            Params{"customer_id": "123"},
-			},
+		Path:   "/dashboard/customers/123",
+		Params: Params{"customer_id": "123"},
+		ExpectedMatches: []string{
+			"",
+			"/dashboard",
+			"/dashboard/customers",
+			"/dashboard/customers/:customer_id",
+			"/dashboard/customers/:customer_id/",
 		},
 	},
 	{
-		Path: "/dashboard/customers/123/orders",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers/:customer_id"},
-				Params:            Params{"customer_id": "123"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers/:customer_id/orders"},
-				Params:            Params{"customer_id": "123"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers/:customer_id/orders/"},
-				Params:            Params{"customer_id": "123"},
-			},
+		Path:   "/dashboard/customers/123/orders",
+		Params: Params{"customer_id": "123"},
+		ExpectedMatches: []string{
+			"",
+			"/dashboard",
+			"/dashboard/customers",
+			"/dashboard/customers/:customer_id",
+			"/dashboard/customers/:customer_id/orders",
+			"/dashboard/customers/:customer_id/orders/",
 		},
 	},
 	{
-		Path: "/dashboard/customers/123/orders/456",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers/:customer_id"},
-				Params:            Params{"customer_id": "123"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers/:customer_id/orders"},
-				Params:            Params{"customer_id": "123"},
-			},
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dashboard/customers/:customer_id/orders/:order_id"},
-				Params:            Params{"customer_id": "123", "order_id": "456"},
-			},
+		Path:   "/dashboard/customers/123/orders/456",
+		Params: Params{"customer_id": "123", "order_id": "456"},
+		ExpectedMatches: []string{
+			"",
+			"/dashboard",
+			"/dashboard/customers",
+			"/dashboard/customers/:customer_id",
+			"/dashboard/customers/:customer_id/orders",
+			"/dashboard/customers/:customer_id/orders/:order_id",
 		},
 	},
 	{
 		Path: "/articles",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/articles/"},
-			},
+		ExpectedMatches: []string{
+			"",
+			"/articles/",
 		},
 	},
 	{
-		Path: "/articles/bob",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/*"},
-				SplatValues:       []string{"articles", "bob"},
-			},
+		Path:        "/articles/bob",
+		SplatValues: []string{"articles", "bob"},
+		ExpectedMatches: []string{
+			"",
+			"/*",
 		},
 	},
 	{
-		Path: "/articles/test",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/*"},
-				SplatValues:       []string{"articles", "test"},
-			},
+		Path:        "/articles/test",
+		SplatValues: []string{"articles", "test"},
+		ExpectedMatches: []string{
+			"",
+			"/*",
 		},
 	},
 	{
 		Path: "/articles/test/articles",
-		ExpectedMatches: []Match{
-			{
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/articles/test/articles/"},
-			},
+		ExpectedMatches: []string{
+			"",
+			"/articles/test/articles/",
 		},
 	},
 	{
 		Path: "/dynamic-index/index",
-		ExpectedMatches: []Match{
-			{
-				// no underscore prefix, so not really an index!
-				RegisteredPattern: &RegisteredPattern{normalizedPattern: "/dynamic-index/index"},
-			},
+		ExpectedMatches: []string{
+			"",
+			// no underscore prefix, so not really an index!
+			"/dynamic-index/index",
 		},
 	},
 }
@@ -394,6 +301,14 @@ func TestFindAllMatches(t *testing.T) {
 		for _, tc := range NestedScenarios {
 			t.Run(tc.Path, func(t *testing.T) {
 				results, ok := m.FindNestedMatches(tc.Path)
+
+				if !equalParams(tc.Params, results.Params) {
+					t.Errorf("Expected params %v, got %v", tc.Params, results.Params)
+				}
+				if !equalSplat(tc.SplatValues, results.SplatValues) {
+					t.Errorf("Expected splat values %v, got %v", tc.SplatValues, results.SplatValues)
+				}
+
 				actualMatches := results.Matches
 
 				var errors []string
@@ -411,9 +326,7 @@ func TestFindAllMatches(t *testing.T) {
 						actual := actualMatches[i]
 
 						// ---- Use helper functions to compare maps/slices ----
-						if expected.normalizedPattern != actual.normalizedPattern ||
-							!equalParams(expected.Params, actual.Params) ||
-							!equalSplat(expected.SplatValues, actual.SplatValues) {
+						if expected != actual.normalizedPattern {
 							fail = true
 							break
 						}
@@ -441,50 +354,17 @@ func TestFindAllMatches(t *testing.T) {
 					errors = append(errors, "Expected Matches:")
 					for i, expected := range tc.ExpectedMatches {
 						errors = append(errors, fmt.Sprintf(
-							"  [%d] {Pattern: %q, Params: %v, SplatValues: %v}",
-							i, expected.normalizedPattern, expected.Params, expected.SplatValues,
+							"  [%d] {Pattern: %q}",
+							i, expected,
 						))
 					}
 
 					errors = append(errors, "Actual Matches:")
 					for i, actual := range actualMatches {
 						errors = append(errors, fmt.Sprintf(
-							"  [%d] {Pattern: %q, Params: %v, SplatValues: %v}",
-							i, actual.normalizedPattern, actual.Params, actual.SplatValues,
+							"  [%d] {Pattern: %q}",
+							i, actual.normalizedPattern,
 						))
-					}
-
-					// Detailed mismatches
-					for i := range max(expectedCount, actualCount) {
-						if i < expectedCount && i < actualCount {
-							expected := tc.ExpectedMatches[i]
-							actual := actualMatches[i]
-
-							if expected.normalizedPattern != actual.normalizedPattern ||
-								!equalParams(expected.Params, actual.Params) ||
-								!equalSplat(expected.SplatValues, actual.SplatValues) {
-								errors = append(errors, fmt.Sprintf(
-									"Match %d mismatch:\n  Expected: {Pattern: %q, Params: %v, SplatValues: %v}\n  Got:      {Pattern: %q, Params: %v, SplatValues: %v}",
-									i,
-									expected.normalizedPattern, expected.Params, expected.SplatValues,
-									actual.normalizedPattern, actual.Params, actual.SplatValues,
-								))
-							}
-						} else if i < expectedCount {
-							// Missing expected match
-							expected := tc.ExpectedMatches[i]
-							errors = append(errors, fmt.Sprintf(
-								"Missing expected match %d: {Pattern: %q, Params: %v, SplatValues: %v}",
-								i, expected.normalizedPattern, expected.Params, expected.SplatValues,
-							))
-						} else {
-							// Unexpected extra match
-							actual := actualMatches[i]
-							errors = append(errors, fmt.Sprintf(
-								"Unexpected extra match %d: {Pattern: %q, Params: %v, SplatValues: %v}",
-								i, actual.normalizedPattern, actual.Params, actual.SplatValues,
-							))
-						}
 					}
 
 					// Print only if something went wrong

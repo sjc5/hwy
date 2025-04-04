@@ -30,11 +30,13 @@ var mutationMethods = map[string]struct{}{
 	http.MethodPost: {}, http.MethodPut: {}, http.MethodPatch: {}, http.MethodDelete: {},
 }
 
-func GenerateTypeScript(h RiverAny, opts *TSGenOptions) (string, error) {
+func (h *River[C]) GenerateTypeScript(opts *TSGenOptions) (string, error) {
 	var collection []tsgen.CollectionItem
 
 	allLoaders := opts.UIRouter.AllRoutes()
 	allActions := opts.ActionsRouter.AllRoutes()
+
+	var seen = map[string]struct{}{}
 
 	for pattern, loader := range allLoaders {
 		item := tsgen.CollectionItem{
@@ -49,6 +51,27 @@ func GenerateTypeScript(h RiverAny, opts *TSGenOptions) (string, error) {
 			}
 		}
 		collection = append(collection, item)
+		seen[pattern] = struct{}{}
+	}
+
+	// add any client-defined paths that don't have loaders
+	// (loaders are optional, client routes are obviously required)
+	maybeExtraLoaderPaths := h._paths
+	for _, path := range maybeExtraLoaderPaths {
+		if _, ok := seen[path.Pattern]; ok {
+			continue
+		}
+		item := tsgen.CollectionItem{
+			ArbitraryProperties: map[string]any{
+				base.DiscriminatorStr:     path.Pattern,
+				base.CategoryPropertyName: "loader",
+			},
+			PhantomTypes: map[string]AdHocType{
+				"phantomOutputType": {TypeInstance: mux.None{}},
+			},
+		}
+		collection = append(collection, item)
+		seen[path.Pattern] = struct{}{}
 	}
 
 	hasQueries, hasMutations := false, false

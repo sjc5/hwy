@@ -1,8 +1,8 @@
 package matcher
 
-func (m *Matcher) FindBestMatch(realPath string) (*Match, bool) {
+func (m *Matcher) FindBestMatch(realPath string) (*BestMatch, bool) {
 	if rr, ok := m.staticPatterns[realPath]; ok {
-		return &Match{RegisteredPattern: rr}, true
+		return &BestMatch{RegisteredPattern: rr}, true
 	}
 
 	segments := ParseSegments(realPath)
@@ -11,11 +11,11 @@ func (m *Matcher) FindBestMatch(realPath string) (*Match, bool) {
 	if hasTrailingSlash {
 		pathWithoutTrailingSlash := realPath[:len(realPath)-1]
 		if rr, ok := m.staticPatterns[pathWithoutTrailingSlash]; ok {
-			return &Match{RegisteredPattern: rr}, true
+			return &BestMatch{RegisteredPattern: rr}, true
 		}
 	}
 
-	best := new(Match)
+	best := new(BestMatch)
 	var bestScore uint16
 	foundMatch := false
 
@@ -47,7 +47,7 @@ func (m *Matcher) dfsBest(
 	segments []string,
 	depth int,
 	score uint16,
-	best *Match,
+	best *BestMatch,
 	bestScore *uint16,
 	foundMatch *bool,
 	checkTrailingSlash bool,

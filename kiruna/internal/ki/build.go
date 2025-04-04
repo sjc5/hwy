@@ -12,6 +12,7 @@ import (
 	"time"
 
 	esbuild "github.com/evanw/esbuild/pkg/api"
+	"github.com/sjc5/river/kiruna/internal/ki/configschema"
 	"github.com/sjc5/river/kit/errutil"
 	"github.com/sjc5/river/kit/esbuildutil"
 	"github.com/sjc5/river/kit/executil"
@@ -97,6 +98,11 @@ func (c *Config) Build(opts BuildOptions) error {
 	}
 
 	hook_duration := time.Since(hook_start)
+
+	err := configschema.Write(filepath.Join(c._dist.S().Static.S().Internal.FullPath(), "schema.json"))
+	if err != nil {
+		return fmt.Errorf("error writing config schema: %v", err)
+	}
 
 	c.do_build_time_file_processing(true) // and once again after
 

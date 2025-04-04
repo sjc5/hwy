@@ -1,4 +1,4 @@
-package main
+package configschema
 
 import (
 	"encoding/json"
@@ -8,22 +8,19 @@ import (
 	"github.com/sjc5/river/kit/jsonschema"
 )
 
-const current_version = "0.17.0-pre.0.1"
-
-func main() {
+func Write(target string) error {
 	json, err := json.MarshalIndent(Root_Schema, "", "\t")
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("configschema.Write: failed to marshal JSON schema: %w", err)
 	}
 
 	json = append(json, []byte("\n")...)
 
-	target := "kiruna/configschema/" + current_version + ".schema.json"
 	if err = os.WriteFile(target, json, 0644); err != nil {
-		panic(err)
+		return fmt.Errorf("configschema.Write: failed to write JSON schema: %w", err)
 	}
 
-	fmt.Printf("JSON schema written to %s\n", target)
+	return nil
 }
 
 /////////////////////////////////////////////////////////////////////

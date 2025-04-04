@@ -743,81 +743,7 @@ async function __reRenderApp({
 		cssBundlePromises.push(preloadPromise);
 	}
 
-	const oldList = internal_RiverClientGlobal.get("importURLs") ?? [];
-	const oldListExportKeys = internal_RiverClientGlobal.get("exportKeys") ?? [];
-	const newList = json.importURLs ?? [];
-	const newListExportKeys = json.exportKeys ?? [];
-
-	const updatedList: {
-		importPath: string;
-		type: "new" | "same";
-		newIdx: number;
-	}[] = [];
-
-	// compare and populate updatedList
-	for (let i = 0; i < Math.max(oldList.length, newList.length); i++) {
-		if (
-			i < oldList.length &&
-			i < newList.length &&
-			oldList[i] === newList[i] &&
-			oldListExportKeys[i] === newListExportKeys[i]
-		) {
-			updatedList.push({
-				importPath: oldList[i] ?? Panic(),
-				type: "same",
-				newIdx: i,
-			});
-		} else if (i < newList.length) {
-			updatedList.push({
-				importPath: newList[i] ?? Panic(),
-				type: "new",
-				newIdx: i,
-			});
-		}
-	}
-
-	// get new components only
-	const componentsToLoad = updatedList.filter((x) => x.type === "new");
-	const components = updatedList.map((x) => {
-		return import(/* @vite-ignore */ resolvePublicHref(x.importPath));
-	});
-	const awaitedComps = await Promise.all(components);
-	const awaitedDefaultsWithIdxs = componentsToLoad.map((x, i) => {
-		return {
-			comp: awaitedComps[i]?.[json.exportKeys[x.newIdx] ?? "default"] ?? null,
-			idx: x.newIdx,
-			errorBoundary: awaitedComps[i]?.ErrorBoundary,
-		};
-	});
-
-	// placeholder list based on old list
-	let newActiveComps = internal_RiverClientGlobal.get("activeComponents");
-	let newActiveErrorBoundaries = internal_RiverClientGlobal.get("activeErrorBoundaries");
-
-	if (!newActiveComps || !newActiveErrorBoundaries) {
-		Panic("expected activeComponents and activeErrorBoundaries to be present");
-	}
-
-	// replace stale components with new ones where applicable
-	for (const { comp, idx, errorBoundary } of awaitedDefaultsWithIdxs) {
-		if (comp) {
-			newActiveComps[idx] = comp;
-		}
-		if (errorBoundary) {
-			newActiveErrorBoundaries[idx] = errorBoundary;
-		}
-	}
-
-	// delete any remaining stale components
-	if (oldList.length > newList.length) {
-		newActiveComps = newActiveComps.slice(0, newList.length);
-		newActiveErrorBoundaries = newActiveErrorBoundaries.slice(0, newList.length);
-	}
-
 	// NOW ACTUALLY SET EVERYTHING
-	internal_RiverClientGlobal.set("activeComponents", newActiveComps);
-	internal_RiverClientGlobal.set("activeErrorBoundaries", newActiveErrorBoundaries);
-
 	const identicalKeysToSet = [
 		"loadersData",
 		"importURLs",
@@ -832,19 +758,13 @@ async function __reRenderApp({
 		internal_RiverClientGlobal.set(key, json[key]);
 	}
 
+	await handleComponents();
+
 	const oldID = internal_RiverClientGlobal.get("buildID");
 	const newID = json.buildID;
 	if (newID !== oldID) {
 		dispatchBuildIDEvent({ newID, oldID });
 		internal_RiverClientGlobal.set("buildID", json.buildID);
-	}
-
-	let highestIndex: number | undefined;
-	for (let i = 0; i < updatedList.length; i++) {
-		if (updatedList[i]?.type === "new") {
-			highestIndex = i;
-			break;
-		}
 	}
 
 	let scrollStateToDispatch: ScrollState | undefined;
@@ -873,10 +793,7 @@ async function __reRenderApp({
 	}
 
 	// dispatch event
-	const detail: RouteChangeEventDetail = {
-		index: highestIndex ?? 0,
-		scrollState: scrollStateToDispatch,
-	} as const;
+	const detail: RouteChangeEventDetail = { scrollState: scrollStateToDispatch } as const;
 
 	// Wait for all CSS bundle preloads to complete
 	if (cssBundlePromises.length > 0) {
@@ -1131,16 +1048,7 @@ export async function initClient(renderFn: () => void) {
 	initCustomHistory();
 
 	// HANDLE COMPONENTS
-	const components = await importComponents();
-	const exportKeys = internal_RiverClientGlobal.get("exportKeys") ?? [];
-	internal_RiverClientGlobal.set(
-		"activeComponents",
-		components.map((x, i) => x?.[exportKeys[i] ?? "default"] ?? null),
-	);
-	internal_RiverClientGlobal.set(
-		"activeErrorBoundaries",
-		components.map((x) => x.ErrorBoundary),
-	);
+	await handleComponents();
 
 	// RUN THE RENDER FUNCTION
 	renderFn();
@@ -1149,11 +1057,25 @@ export async function initClient(renderFn: () => void) {
 	__addAnchorClickListener();
 }
 
-function importComponents() {
-	return Promise.all(
-		internal_RiverClientGlobal.get("importURLs").map((x) => {
+async function handleComponents() {
+	const originalImportURLs = internal_RiverClientGlobal.get("importURLs");
+	const dedupedImportURLs = [...new Set(originalImportURLs)];
+
+	const dedupedModules = await Promise.all(
+		dedupedImportURLs.map((x) => {
 			return import(/* @vite-ignore */ resolvePublicHref(x));
 		}),
+	);
+	const modulesMap = new Map(dedupedImportURLs.map((url, index) => [url, dedupedModules[index]]));
+
+	const exportKeys = internal_RiverClientGlobal.get("exportKeys") ?? [];
+	internal_RiverClientGlobal.set(
+		"activeComponents",
+		originalImportURLs.map((x, i) => modulesMap.get(x)?.[exportKeys[i] ?? "default"] ?? null),
+	);
+	internal_RiverClientGlobal.set(
+		"activeErrorBoundaries",
+		originalImportURLs.map((x, i) => modulesMap.get(x)?.ErrorBoundary ?? null),
 	);
 }
 

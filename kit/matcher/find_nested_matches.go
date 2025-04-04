@@ -16,10 +16,13 @@ func (m *Matcher) FindNestedMatches(realPath string) (*FindNestedMatchesResults,
 	realSegments := ParseSegments(realPath)
 	matches := make(matchesMap)
 
+	emptyRR, hasEmptyRR := m.staticPatterns[""]
+
+	if hasEmptyRR {
+		matches[emptyRR.normalizedPattern] = &Match{RegisteredPattern: emptyRR}
+	}
+
 	if realPath == "" || realPath == "/" {
-		if rr, ok := m.staticPatterns[""]; ok {
-			matches[rr.normalizedPattern] = &Match{RegisteredPattern: rr}
-		}
 		if rr, ok := m.staticPatterns["/"]; ok {
 			matches[rr.normalizedPattern] = &Match{RegisteredPattern: rr}
 		}
@@ -51,7 +54,7 @@ func (m *Matcher) FindNestedMatches(realPath string) (*FindNestedMatchesResults,
 		if rr, ok := m.dynamicPatterns["/*"]; ok {
 			matches["/*"] = &Match{
 				RegisteredPattern: rr,
-				SplatValues:       realSegments,
+				splatValues:       realSegments,
 			}
 		}
 
@@ -61,8 +64,13 @@ func (m *Matcher) FindNestedMatches(realPath string) (*FindNestedMatchesResults,
 	}
 
 	// if there are multiple matches and a catch-all, remove the catch-all
+	// UNLESS the sole other match is an empty str pattern
 	if _, ok := matches["/*"]; ok {
-		if len(matches) > 1 {
+		if hasEmptyRR {
+			if len(matches) > 2 {
+				delete(matches, "/*")
+			}
+		} else if len(matches) > 1 {
 			delete(matches, "/*")
 		}
 	}
@@ -143,8 +151,8 @@ func (m *Matcher) dfsNestedMatches(
 
 				match := &Match{
 					RegisteredPattern: rp,
-					Params:            paramsCopy,
-					SplatValues:       splatValues,
+					params:            paramsCopy,
+					splatValues:       splatValues,
 				}
 				matches[node.pattern] = match
 
@@ -158,7 +166,7 @@ func (m *Matcher) dfsNestedMatches(
 					if rp, ok := m.dynamicPatterns[indexPattern]; ok {
 						matches[indexPattern] = &Match{
 							RegisteredPattern: rp,
-							Params:            paramsCopy,
+							params:            paramsCopy,
 						}
 					}
 				}
@@ -229,8 +237,8 @@ func flattenAndSortMatches(matches matchesMap) (*FindNestedMatchesResults, bool)
 	lastMatch := results[len(results)-1]
 
 	return &FindNestedMatchesResults{
-		Params:      lastMatch.Params,
-		SplatValues: lastMatch.SplatValues,
+		Params:      lastMatch.params,
+		SplatValues: lastMatch.splatValues,
 		Matches:     results,
 	}, true
 }

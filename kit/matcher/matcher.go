@@ -32,6 +32,12 @@ type Matcher struct {
 
 type Match struct {
 	*RegisteredPattern
+	params      Params
+	splatValues []string
+}
+
+type BestMatch struct {
+	*RegisteredPattern
 	Params      Params
 	SplatValues []string
 

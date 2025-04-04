@@ -5,6 +5,10 @@ import (
 	"github.com/sjc5/river/kit/htmlutil"
 )
 
+/////////////////////////////////////////////////////////////////////
+/////// PUBLIC API
+/////////////////////////////////////////////////////////////////////
+
 type (
 	River[C any] = framework.River[C]
 	HeadBlock    = htmlutil.Element
@@ -13,9 +17,5 @@ type (
 )
 
 var (
-	UIVariants                     = framework.UIVariants
-	GenerateTypeScript             = framework.GenerateTypeScript
-	GetIsJSONRequest               = framework.GetIsJSONRequest
-	RiverPathsStageOneJSONFileName = framework.RiverPathsStageOneJSONFileName
-	RiverPathsStageTwoJSONFileName = framework.RiverPathsStageTwoJSONFileName
+	GetIsJSONRequest = framework.GetIsJSONRequest
 )

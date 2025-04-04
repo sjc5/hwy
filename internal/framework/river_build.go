@@ -421,7 +421,7 @@ const routes = RoutesBuilder();
 		return err
 	}
 
-	tsgenOutput, err := GenerateTypeScript(h, &TSGenOptions{
+	tsgenOutput, err := h.GenerateTypeScript(&TSGenOptions{
 		UIRouter:      opts.UIRouter,
 		ActionsRouter: opts.ActionsRouter,
 		AdHocTypes:    opts.AdHocTypes,

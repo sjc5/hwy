@@ -4,27 +4,23 @@
 
 import { getPrefetchHandlers, makeLinkClickListenerFn } from "./client.ts";
 
-export type RoutePropsTypeArg = {
-	loaderData?: any;
-	coreData?: any;
-};
+export type UntypedLoader = { _type: string; pattern: string; phantomOutputType: any };
 
-export type DefaultRoutePropsTypeArg = {
-	loaderData: any;
-	coreData: any;
-};
-
-export type Shared<JSXElement, T extends RoutePropsTypeArg = DefaultRoutePropsTypeArg> = {
-	RouteProps: RouteProps<JSXElement>;
-	Route: Route<JSXElement, T>;
-};
-
-type RouteProps<JSXElement> = {
+export type RouteProps<
+	JSXElement,
+	T extends UntypedLoader,
+	Pattern extends T["pattern"] = T["pattern"],
+> = {
 	idx: number;
-	Outlet: (...props: any) => JSXElement;
+	Outlet: (props: Record<string, any>) => JSXElement;
+	__phantom_pattern: Pattern;
 } & Record<string, any>;
 
-type Route<JSXElement, T extends RoutePropsTypeArg> = (props: RouteProps<JSXElement>) => JSXElement;
+export type Route<
+	JSXElement,
+	T extends UntypedLoader,
+	Pattern extends T["pattern"] = T["pattern"],
+> = (props: RouteProps<JSXElement, T, Pattern>) => JSXElement;
 
 export type RootOutletProps<JSXElement> = {
 	idx?: number;

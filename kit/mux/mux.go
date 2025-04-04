@@ -321,12 +321,12 @@ func (rd *ReqData[I]) Request() *http.Request         { return rd._tasks_ctx.Req
 func (rd *ReqData[I]) ResponseProxy() *response.Proxy { return rd._response_proxy }
 
 type _Req_Data_Getter interface {
-	_get_req_data(r *http.Request, match *matcher.Match) (_Req_Data_Marker, error)
+	_get_req_data(r *http.Request, match *matcher.BestMatch) (_Req_Data_Marker, error)
 }
 
-type _Req_Data_Getter_Impl[I any] func(*http.Request, *matcher.Match) (*ReqData[I], error)
+type _Req_Data_Getter_Impl[I any] func(*http.Request, *matcher.BestMatch) (*ReqData[I], error)
 
-func (f _Req_Data_Getter_Impl[I]) _get_req_data(r *http.Request, m *matcher.Match) (_Req_Data_Marker, error) {
+func (f _Req_Data_Getter_Impl[I]) _get_req_data(r *http.Request, m *matcher.BestMatch) (_Req_Data_Marker, error) {
 	return f(r, m)
 }
 
@@ -369,7 +369,7 @@ func GetSplatValues[I any](r *http.Request) []string {
 
 type findBestOutput struct {
 	_method_matcher        *_Method_Matcher
-	_match                 *matcher.Match
+	_match                 *matcher.BestMatch
 	_did_match             bool
 	_head_fell_back_to_get bool
 }
@@ -633,7 +633,7 @@ func _must_register_route[I any, O any](_route *Route[I, O]) {
 	_method_matcher._req_data_getters[_route._pattern] = _to_req_data_getter_impl(_route)
 }
 
-func _req_data_starter[I any](_match *matcher.Match, _tasks_registry *tasks.Registry, r *http.Request) *ReqData[I] {
+func _req_data_starter[I any](_match *matcher.BestMatch, _tasks_registry *tasks.Registry, r *http.Request) *ReqData[I] {
 	_req_data := new(ReqData[I])
 	if len(_match.Params) > 0 {
 		_req_data._params = _match.Params
@@ -648,7 +648,7 @@ func _req_data_starter[I any](_match *matcher.Match, _tasks_registry *tasks.Regi
 
 func _to_req_data_getter_impl[I any, O any](_route *Route[I, O]) _Req_Data_Getter_Impl[I] {
 	return _Req_Data_Getter_Impl[I](
-		func(r *http.Request, _match *matcher.Match) (*ReqData[I], error) {
+		func(r *http.Request, _match *matcher.BestMatch) (*ReqData[I], error) {
 			_req_data := _req_data_starter[I](_match, _route._router._tasks_registry, r)
 			_input_ptr := _route.IPtr()
 			if _route._router._marshal_input != nil {

@@ -24,7 +24,7 @@ func main() {
 
 	fmt.Println()
 
-	var matches []*matcher.Match
+	var matches []*matcher.BestMatch
 	var ok bool
 	// matches, ok = m.FindNestedMatches("/")
 	match, ok := m.FindBestMatch("/bob")

@@ -33,10 +33,12 @@ export function RiverRootOutlet(props: RootOutletProps<JSX.Element>): JSX.Elemen
 			const newNextImportURL = ctx.get("importURLs")?.[idx + 1];
 			const newNextExportKey = ctx.get("exportKeys")?.[idx + 1];
 
-			if (currentImportURL !== newCurrentImportURL) setCurrentImportURL(newCurrentImportURL);
-			if (currentExportKey !== newCurrentExportKey) setCurrentExportKey(newCurrentExportKey);
-			if (nextImportURL !== newNextImportURL) setNextImportURL(newNextImportURL);
-			if (nextExportKey !== newNextExportKey) setNextExportKey(newNextExportKey);
+			flushSync(() => {
+				if (currentImportURL !== newCurrentImportURL) setCurrentImportURL(newCurrentImportURL);
+				if (currentExportKey !== newCurrentExportKey) setCurrentExportKey(newCurrentExportKey);
+				if (nextImportURL !== newNextImportURL) setNextImportURL(newNextImportURL);
+				if (nextExportKey !== newNextExportKey) setNextExportKey(newNextExportKey);
+			});
 		});
 	}, [currentImportURL, currentExportKey]);
 
