@@ -1,6 +1,0 @@
-{
-	"type": "module",
-	"devDependencies": {
-		"solid-js": ">=1.9.5"
-	}
-}

@@ -29,7 +29,9 @@ tstestwatch:
 	@pnpm vitest
 
 tsreset:
-	@rm -rf node_modules **/node_modules && pnpm i
+	@rm -rf node_modules 2>/dev/null || true
+	@find . -path "*/node_modules" -type d -exec rm -rf {} \; 2>/dev/null || true
+	@pnpm i
 
 tslint:
 	@pnpm biome check .
@@ -55,3 +57,9 @@ tspublishpre: tsprepforpub
 
 tspublishnonpre: tsprepforpub
 	@npm publish --access public
+
+npmbuild:
+	@go run ./internal/scripts/buildts
+
+npmbump:
+	@go run ./internal/scripts/npm_bumper

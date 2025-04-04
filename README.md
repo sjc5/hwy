@@ -1,6 +1,6 @@
 # River 🛶
 
-<img src="river-banner.webp" alt="River logo banner">
+<img src="/river-banner.webp" alt="River logo banner">
 
 ## Explainer
 
@@ -11,6 +11,7 @@ without the downsides of isomorphic JavaScript and component hydration patterns.
 Core Features:
 
 - Full Vite integration
+- Nested routing using concurrent Go-based loaders
 - Blazing fast TypeScript type generation
 - Hybrid-SSR architecture
 - React, Preact, and Solid support

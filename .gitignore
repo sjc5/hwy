@@ -10,3 +10,5 @@ node_modules
 !env.example
 
 .vscode/settings.json
+
+npm_dist/

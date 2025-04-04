@@ -30,7 +30,9 @@ func (h *River[C]) GetUIHandler(nestedRouter *mux.NestedRouter, coreDataTask *Co
 		uiRouteData, err := h.getUIRouteData(w, r, nestedRouter, coreDataTask)
 
 		if err != nil && isErrNotFound(err) {
-			res.Redirect(r, "/404") // __TODO make this configurable
+			// __TODO -- optionally client redirect to a specific 404 page
+			Log.Error("Not found", "path", r.URL.Path)
+			res.NotFound()
 			return
 		}
 

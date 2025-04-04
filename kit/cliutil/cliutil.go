@@ -47,6 +47,8 @@ func RequireYes(failMsg string) {
 }
 
 func MustRun(cmd *exec.Cmd, failMsg string) {
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		Exit(failMsg, err)
 	}

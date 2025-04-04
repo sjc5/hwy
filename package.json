@@ -1,24 +1,78 @@
 {
 	"name": "@sjc5/river",
-	"version": "0.17.0-pre.0",
+	"version": "0.17.0-pre.4",
 	"type": "module",
-	"exports": {
-		"./client": "./internal/framework/_typescript/client/index.ts",
-		"./react": "./internal/framework/_typescript/react/index.tsx",
-		"./solid": "./internal/framework/_typescript/solid/index.tsx",
-		"./kit/converters": "./kit/_typescript/converters/converters.ts",
-		"./kit/debounce": "./kit/_typescript/debounce/debounce.ts",
-		"./kit/fmt": "./kit/_typescript/fmt/fmt.ts",
-		"./kit/json": "./kit/_typescript/json/json.ts",
-		"./kit/listeners": "./kit/_typescript/listeners/listeners.ts",
-		"./kit/theme": "./kit/_typescript/theme/theme.ts",
-		"./kit/url": "./kit/_typescript/url/url.ts"
+	"license": "BSD-3-Clause",
+	"repository": {
+		"url": "https://github.com/sjc5/river",
+		"type": "git"
 	},
+	"exports": {
+		"./client": {
+			"import": "./npm_dist/internal/framework/_typescript/client/index.js",
+			"types": "./npm_dist/internal/framework/_typescript/client/index.d.ts"
+		},
+		"./react": {
+			"import": "./npm_dist/internal/framework/_typescript/react/index.js",
+			"types": "./npm_dist/internal/framework/_typescript/react/index.d.ts"
+		},
+		"./solid": {
+			"import": "./npm_dist/internal/framework/_typescript/solid/index.js",
+			"types": "./npm_dist/internal/framework/_typescript/solid/index.d.ts"
+		},
+		"./kit/converters": {
+			"import": "./npm_dist/kit/_typescript/converters/converters.js",
+			"types": "./npm_dist/kit/_typescript/converters/converters.d.ts"
+		},
+		"./kit/debounce": {
+			"import": "./npm_dist/kit/_typescript/debounce/debounce.js",
+			"types": "./npm_dist/kit/_typescript/debounce/debounce.d.ts"
+		},
+		"./kit/fmt": {
+			"import": "./npm_dist/kit/_typescript/fmt/fmt.js",
+			"types": "./npm_dist/kit/_typescript/fmt/fmt.d.ts"
+		},
+		"./kit/json": {
+			"import": "./npm_dist/kit/_typescript/json/json.js",
+			"types": "./npm_dist/kit/_typescript/json/json.d.ts"
+		},
+		"./kit/listeners": {
+			"import": "./npm_dist/kit/_typescript/listeners/listeners.js",
+			"types": "./npm_dist/kit/_typescript/listeners/listeners.d.ts"
+		},
+		"./kit/theme": {
+			"import": "./npm_dist/kit/_typescript/theme/theme.js",
+			"types": "./npm_dist/kit/_typescript/theme/theme.d.ts"
+		},
+		"./kit/url": {
+			"import": "./npm_dist/kit/_typescript/url/url.js",
+			"types": "./npm_dist/kit/_typescript/url/url.d.ts"
+		}
+	},
+	"files": [
+		"npm_dist/",
+		"LICENSE",
+		"README.md",
+		"river-banner.webp",
+		"tsconfig.base.json",
+		"internal/framework/_typescript/",
+		"kit/_typescript/"
+	],
 	"devDependencies": {
 		"@biomejs/biome": "2.0.0-beta.1",
+		"@preact/signals": "^2.0.2",
 		"@types/jsdom": "^21.1.7",
+		"@types/node": "^22.14.0",
+		"@types/react": "^19.1.0",
+		"@types/react-dom": "^19.1.1",
+		"history": "^5.3.0",
+		"jotai": "^2.12.2",
 		"jsdom": "^26.0.0",
+		"preact": "^10.26.4",
 		"prettier": "^3.5.3",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
+		"solid-js": "^1.9.5",
 		"typescript": "^5.8.2",
 		"vite": "^6.2.3",
 		"vitest": "^3.0.8"
